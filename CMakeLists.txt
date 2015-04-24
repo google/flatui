@@ -43,6 +43,17 @@ set(dependencies_mathfu_dir "${fpl_root}/mathfu"
     CACHE PATH "Directory containing the MathFu library.")
 set(dependencies_fplbase_dir "${fpl_root}/fplbase"
     CACHE PATH "Directory containing the FPLBase library.")
+set(dependencies_sdl_dir "${third_party_root}/sdl"
+    CACHE PATH "Directory containing the SDL library.")
+set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
+    CACHE PATH "Directory containing the harfbuzz cmake project.")
+set(dependencies_harfbuzz_distr_dir "${third_party_root}/harfbuzz"
+    CACHE PATH "Directory containing the harfbuzz library.")
+set(dependencies_freetype_cmake_dir "${CMAKE_MODULE_PATH}/freetype"
+    CACHE PATH "Directory containing the freetype cmake project.")
+set(dependencies_freetype_distr_dir "${third_party_root}/freetype"
+    CACHE PATH "Directory containing the freetype library.")
+
 
 # Option to enable / disable the test build.
 option(imgui_build_tests "Build tests for this project." OFF)
@@ -60,6 +71,12 @@ add_subdirectory(${dependencies_mathfu_dir} ${tmp_dir}/mathfu)
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")
 if(NOT TARGET flatc)
   add_subdirectory("${dependencies_flatbuffers_dir}" ${tmp_dir}/flatbuffers)
+endif()
+
+# Include harfbuzz and freetype.
+if(NOT TARGET flatc)
+  add_subdirectory("${dependencies_harfbuzz_cmake_dir}" ${tmp_dir}/harfbuzz)
+  add_subdirectory("${dependencies_freetype_cmake_dir}" ${tmp_dir}/freetype)
 endif()
 
 # Generate source files for all FlatBuffers schema files under the src
@@ -93,17 +110,30 @@ add_custom_target(imgui_generated_includes DEPENDS ${FLATBUFFERS_GENERATED_INCLU
 # IMGUI source files.
 set(imgui_SRCS
     include/imgui/imgui.h
+    include/imgui/font_manager.h
+    src/font_manager.cpp
+    src/glyph_cache.h
     src/imgui.cpp)
 
 # Includes for this project.
-include_directories(src include)
+include_directories(src include include/imgui)
 if(WIN32)
   include_directories(external/include/windows)
+  include_directories(external/include/harfbuzz)
 endif()
 include_directories(${IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR})
 include_directories(${dependencies_flatbuffers_dir}/include)
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
+
+# SDL includes.
+include_directories(${dependencies_sdl_dir}/include)
+
+# harfbuzz includes.
+include_directories(${dependencies_harfbuzz_distr_dir}/src)
+
+# freetype includes.
+include_directories(${dependencies_freetype_distr_dir}/include)
 
 # Detect clang
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

@@ -15,6 +15,8 @@
 #ifndef FPL_IMGUI_H
 #define FPL_IMGUI_H
 
+#include "precompiled.h"
+
 #include <functional>
 
 #include <material_manager.h>
