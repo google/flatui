@@ -121,7 +121,7 @@ add_custom_target(imgui_generated_includes DEPENDS ${FLATBUFFERS_GENERATED_INCLU
 set(imgui_SRCS
     include/imgui/imgui.h
     include/imgui/font_manager.h
-    include/internal/imgui/internal/glyph_cache.h
+    include/imgui/internal/glyph_cache.h
     src/font_manager.cpp
     src/imgui.cpp)
 

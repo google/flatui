@@ -120,7 +120,10 @@ void Image(const char *texture_name, float ysize);
 // text: label string in UTF8
 // ysize: vertical size in virtual resolution. xsize will be derived
 // automatically based on the text length.
-void Label(const unsigned char *text, float ysize);
+void Label(const char *text, float ysize);
+
+// Set Label's text color.
+void SetTextColor(const vec4 &color);
 
 // Create a group of elements with the given layout and intra-element spacing.
 // Start/end calls must be matched and may be nested to create more complex
@@ -180,10 +183,6 @@ const float IMGUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 // If this function is not called, it defaults to virtual resolution set to
 // IMGUI_DEFAULT_VIRTUAL_RESOLUTION, and top/left placement.
 void PositionUI(float virtual_resolution, Layout horizontal, Layout vertical);
-
-// TODO: Move into a test application.
-#define IMGUI_TEST 0
-void TestGUI(MaterialManager &matman, FontManager &fontman, InputSystem &input);
 
 // Use glyph cache for a font rendering
 #define USE_GLYPHCACHE (1)
