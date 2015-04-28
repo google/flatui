@@ -16,7 +16,7 @@
 #define FONT_MANAGER_H
 
 #include "renderer.h"
-#include "glyph_cache.h"
+#include "imgui/internal/glyph_cache.h"
 
 // Forward decls for FreeType & Harfbuzz
 typedef struct FT_LibraryRec_ *FT_Library;

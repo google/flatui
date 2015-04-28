@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//#include "precompiled.h"
-
 #include "imgui/imgui.h"
+#include "SDL.h"
+#include "SDL_log.h"
 
 namespace fpl {
 namespace gui {

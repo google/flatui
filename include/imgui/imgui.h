@@ -15,15 +15,15 @@
 #ifndef FPL_IMGUI_H
 #define FPL_IMGUI_H
 
-#include "precompiled.h"
-
 #include <functional>
+#include <string>
+#include <vector>
+#include <map>
 
-#include <material_manager.h>
-#include <font_manager.h>
-
-#include <input.h>
-#include <utilities.h>
+#include "mathfu/constants.h"
+#include "material_manager.h"
+#include "font_manager.h"
+#include "input.h"
 
 namespace fpl {
 namespace gui {

@@ -53,6 +53,10 @@ set(dependencies_freetype_cmake_dir "${CMAKE_MODULE_PATH}/freetype"
     CACHE PATH "Directory containing the freetype cmake project.")
 set(dependencies_freetype_distr_dir "${third_party_root}/freetype"
     CACHE PATH "Directory containing the freetype library.")
+set(dependencies_libunibreak_cmake_dir "${CMAKE_MODULE_PATH}/libunibreak"
+    CACHE PATH "Directory containing the libunibreak cmake project.")
+set(dependencies_libunibreak_distr_dir "${third_party_root}/libunibreak"
+    CACHE PATH "Directory containing the libunibreak library.")
 
 
 # Option to enable / disable the test build.
@@ -73,10 +77,16 @@ if(NOT TARGET flatc)
   add_subdirectory("${dependencies_flatbuffers_dir}" ${tmp_dir}/flatbuffers)
 endif()
 
-# Include harfbuzz and freetype.
-if(NOT TARGET flatc)
+# Include harfbuzz, freetype and libunibreak.
+if(NOT TARGET harfbuzz)
   add_subdirectory("${dependencies_harfbuzz_cmake_dir}" ${tmp_dir}/harfbuzz)
+endif()
+if(NOT TARGET freetype)
   add_subdirectory("${dependencies_freetype_cmake_dir}" ${tmp_dir}/freetype)
+endif()
+if(NOT TARGET libunibreak)
+  add_subdirectory("${dependencies_libunibreak_cmake_dir}"
+    ${tmp_dir}/libunibreak)
 endif()
 
 # Generate source files for all FlatBuffers schema files under the src
@@ -111,8 +121,8 @@ add_custom_target(imgui_generated_includes DEPENDS ${FLATBUFFERS_GENERATED_INCLU
 set(imgui_SRCS
     include/imgui/imgui.h
     include/imgui/font_manager.h
+    include/internal/imgui/internal/glyph_cache.h
     src/font_manager.cpp
-    src/glyph_cache.h
     src/imgui.cpp)
 
 # Includes for this project.
@@ -134,6 +144,9 @@ include_directories(${dependencies_harfbuzz_distr_dir}/src)
 
 # freetype includes.
 include_directories(${dependencies_freetype_distr_dir}/include)
+
+# libunibreak includes.
+include_directories(${dependencies_libunibreak_distr_dir}/include)
 
 # Detect clang
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -164,6 +177,9 @@ add_library(imgui ${imgui_SRCS})
 
 # Dependencies for the executable target.
 add_dependencies(imgui imgui_generated_includes)
+
+# Dependencies to libraries.
+target_link_libraries(imgui libfreetype libharfbuzz libunibreak)
 
 # Additional flags for the target.
 mathfu_configure_flags(imgui)
