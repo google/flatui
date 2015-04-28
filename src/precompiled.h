@@ -21,11 +21,9 @@
 #include <map>
 #include <math.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <vector>
 #include <algorithm>
-
-#include "flatbuffers/util.h"
 
 #include "mathfu/matrix.h"
 #include "mathfu/vector_4.h"
