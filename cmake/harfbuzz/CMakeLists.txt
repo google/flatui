@@ -27,13 +27,20 @@ else()
 # Execute configuration script and make
 # Need ragel, autoconf, automake, libtool, pkg-config and freetype to configure
 # This process is required to generate header files
+set(libharfbuzz_generated_headers
+    ${harfbuzz_dir}/src/hb-buffer-deserialize-json.hh
+    ${harfbuzz_dir}/src/hb-buffer-deserialize-text.hh
+    ${harfbuzz_dir}/src/hb-ot-shape-complex-indic-machine.hh
+    ${harfbuzz_dir}/src/hb-ot-shape-complex-myanmar-machine.hh
+    ${harfbuzz_dir}/src/hb-ot-shape-complex-sea-machine.hh)
 set(configure_cmd "./autogen.sh")
 set(make_cmd "make")
+set(make_arg "dist")
 execute_process(COMMAND ${configure_cmd} WORKING_DIRECTORY ${harfbuzz_dir}
                 RESULT_VARIABLE autogen_result)
-execute_process(COMMAND ${make_cmd} WORKING_DIRECTORY ${harfbuzz_dir}
-                RESULT_VARIABLE make_result)
-if (NOT ${autogen_result} EQUAL 0 OR NOT ${make_result} EQUAL 0)
+add_custom_command(OUTPUT ${libharfbuzz_generated_headers} PRE_BUILD
+                   COMMAND ${make_cmd} ${make_arg} WORKING_DIRECTORY ${harfbuzz_dir})
+if (NOT ${autogen_result} EQUAL 0)
     message(FATAL_ERROR
             "CMake encountered an error while configuring harfbuzz.\n"
             "You must have autoconf, automake, libtool, pkg-config and ragel\n"
@@ -89,4 +96,4 @@ set(libharfbuzz_SRCS
 add_definitions(-DHAVE_OT)
 add_definitions(-DHAVE_UCDN)
 
-add_library(libharfbuzz ${libharfbuzz_SRCS})
+add_library(libharfbuzz ${libharfbuzz_SRCS} ${libharfbuzz_generated_headers})
