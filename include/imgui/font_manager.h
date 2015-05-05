@@ -15,7 +15,7 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
-#include "renderer.h"
+#include "fplbase/renderer.h"
 #include "imgui/internal/glyph_cache.h"
 
 // Forward decls for FreeType & Harfbuzz
