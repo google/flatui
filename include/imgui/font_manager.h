@@ -394,8 +394,8 @@ class FontBuffer {
   void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
 
   // Getter of the indices array.
-  std::vector<uint32_t> *get_indices() { return &indices_; }
-  const std::vector<uint32_t> *get_indices() const { return &indices_; }
+  std::vector<uint16_t> *get_indices() { return &indices_; }
+  const std::vector<uint16_t> *get_indices() const { return &indices_; }
 
   // Getter of the vertices array.
   std::vector<FontVertex> *get_vertices() { return &vertices_; }
@@ -448,7 +448,7 @@ class FontBuffer {
   // be a separate array.
 
   // Indices of the font buffer.
-  std::vector<uint32_t> indices_;
+  std::vector<uint16_t> indices_;
 
   // Vertices data of the font buffer.
   std::vector<FontVertex> vertices_;
