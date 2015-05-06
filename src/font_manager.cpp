@@ -23,7 +23,7 @@
 #include <hb-ft.h>
 
 #include "font_manager.h"
-#include "utilities.h"
+#include "fplbase/utilities.h"
 
 namespace fpl {
 

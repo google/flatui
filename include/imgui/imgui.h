@@ -20,10 +20,10 @@
 #include <vector>
 #include <map>
 
+#include "fplbase/input.h"
+#include "fplbase/material_manager.h"
 #include "mathfu/constants.h"
-#include "material_manager.h"
 #include "font_manager.h"
-#include "input.h"
 
 namespace fpl {
 namespace gui {
