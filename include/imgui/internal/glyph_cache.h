@@ -19,7 +19,6 @@
 #include <unordered_map>
 #include <list>
 
-#include "SDL_log.h"
 #include "mathfu/constants.h"
 
 namespace fpl {
@@ -454,23 +453,20 @@ class GlyphCache {
   // Debug API to show cache statistics.
   void Status() {
 #ifdef GLYPH_CACHE_STATS
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Cache size: %dx%d", size_.x(),
-                size_.y());
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Cache hit: %d / %d", stats_hit_,
-                stats_lookup_);
+    LogInfo("Cache size: %dx%d", size_.x(), size_.y());
+    LogInfo("Cache hit: %d / %d", stats_hit_, stats_lookup_);
 
     auto total_glyph = 0;
     for (auto row : list_row_) {
-      SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                  "Row start:%d height:%d glyphs:%d counter:%d",
+      LogInfo("Row start:%d height:%d glyphs:%d counter:%d",
                   row.get_y_pos(), row.get_size().y(), row.get_num_glyphs(),
                   row.get_last_used_counter());
       total_glyph += row.get_num_glyphs();
     }
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Cached glyphs: %d", total_glyph);
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Row flush: %d",
+    LogInfo("Cached glyphs: %d", total_glyph);
+    LogInfo("Row flush: %d",
                 stats_row_flush_);
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Set fail: %d", stats_set_fail_);
+    LogInfo("Set fail: %d", stats_set_fail_);
 #endif
   }
 
