@@ -27,15 +27,84 @@
 
 namespace fpl {
 
+// Constants
+const char *kLineBreakDefaultLaunguage = "en";
+
 // Singleton object of FreeType&Harfbuzz.
 FT_Library *FontManager::ft_;
 hb_buffer_t *FontManager::harfbuzz_buf_;
 
-FontManager::FontManager()
-    : renderer_(nullptr),
-      face_initialized_(false),
-      current_atlas_revision_(0),
-      current_pass_(0) {
+// Enumerate words in a specified buffer using line break information generated
+// by libunibreak.
+class WordEnumerator {
+public:
+  // Delete default constructor.
+  WordEnumerator() = delete;
+
+  // buffer: a buffer contains a linebreak information.
+  // Note that the class accesses the given buffer while it's lifetime.
+  WordEnumerator(const std::vector<char> &buffer)
+  : current_index_(0), current_length_(0), finished_(false) {
+    buffer_ = &buffer;
+  }
+
+  // Advance the current word index
+  // return: true if the buffer has next word. false if the buffer finishes.
+  bool Advance() {
+    assert(buffer_);
+    if (buffer_->size() == 0 && finished_ == false) {
+      // If there is no word breaking information, allow one iteration.
+      finished_ = true;
+      return true;
+    }
+
+    current_index_ += current_length_;
+    if (current_index_ >= buffer_->size()) {
+      return false;
+    }
+
+    size_t index = current_index_;
+    while (index < buffer_->size()) {
+      auto word_info = (*buffer_)[index];
+      if (word_info == LINEBREAK_MUSTBREAK || word_info == LINEBREAK_ALLOWBREAK) {
+        break;
+      }
+      index++;
+    }
+    current_length_ = index - current_index_ + 1;
+    return true;
+  }
+
+  // Get an index of the current word in the given text buffer.
+  uint32_t GetCurrentWordIndex() {
+    assert(buffer_);
+    return current_index_;
+  }
+
+  // Get a length of the current word in the given text buffer.
+  size_t GetCurrentWordLength() {
+    assert(buffer_);
+    return current_length_;
+  }
+
+  // Retrieve if current word must break a line.
+  bool CurrentWordMustBreak() {
+    assert(buffer_);
+    // Check if the first advance is made.
+    if (current_index_ + current_length_ == 0) return false;
+    return (*buffer_)[current_index_ + current_length_ - 1] ==
+    LINEBREAK_MUSTBREAK;
+  }
+
+private:
+  size_t current_index_;
+  size_t current_length_;
+  const std::vector<char> *buffer_;
+  bool finished_;
+};
+
+FontManager::FontManager() {
+  // Initialize variables and libraries.
   Initialize();
 
   // Initialize glyph cache.
@@ -43,11 +112,8 @@ FontManager::FontManager()
       mathfu::vec2i(kGlyphCacheWidth, kGlyphCacheHeight)));
 }
 
-FontManager::FontManager(const mathfu::vec2i &cache_size)
-    : renderer_(nullptr),
-      face_initialized_(false),
-      current_atlas_revision_(0),
-      current_pass_(0) {
+FontManager::FontManager(const mathfu::vec2i &cache_size) {
+  // Initialize variables and libraries.
   Initialize();
 
   // Initialize glyph cache.
@@ -58,6 +124,15 @@ FontManager::~FontManager() { Close(); }
 
 void FontManager::Initialize() {
   assert(ft_ == nullptr);
+
+  // Initialize variables.
+  renderer_ = nullptr;
+  face_initialized_ = false;
+  current_atlas_revision_ = 0;
+  current_pass_ = 0;
+  language_ = kLineBreakDefaultLaunguage;
+  line_height_ = kLineHeightDefault;
+
   ft_ = new FT_Library;
   FT_Error err;
   if ((err = FT_Init_FreeType(ft_))) {
@@ -69,6 +144,13 @@ void FontManager::Initialize() {
 
   // Create a buffer for harfbuzz.
   harfbuzz_buf_ = hb_buffer_create();
+
+#ifdef IMGUI_USE_LIBUNIBREAK
+  // Initialize libunibreak
+  init_linebreak();
+#else
+  #error libunibreak is required for multiline label support!
+#endif
 }
 
 void FontManager::Terminate() {
@@ -80,10 +162,13 @@ void FontManager::Terminate() {
   ft_ = nullptr;
 }
 
-FontBuffer *FontManager::GetBuffer(const char *text, const float ysize) {
+FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
+                                   const float ysize,
+                                   const mathfu::vec2i &size) {
   // Adjust y size if the size selector is set.
   int32_t converted_ysize = ConvertSize(ysize);
   float scale = ysize / static_cast<float>(converted_ysize);
+  bool multi_line = size.x();
 
   // Check cache if we already have a FontBuffer generated.
   auto it = map_buffers_.find(text);
@@ -106,72 +191,132 @@ FontBuffer *FontManager::GetBuffer(const char *text, const float ysize) {
   // Set freetype settings.
   FT_Set_Pixel_Sizes(face_, 0, converted_ysize);
 
-  // Layout text.
-  auto string_width = LayoutText(text) * scale;
-
-  // Retrieve layout info.
-  uint32_t glyph_count;
-  hb_glyph_info_t *glyph_info =
-      hb_buffer_get_glyph_infos(harfbuzz_buf_, &glyph_count);
-  hb_glyph_position_t *glyph_pos =
-      hb_buffer_get_glyph_positions(harfbuzz_buf_, &glyph_count);
-
   // Create FontBuffer with derived string length.
-  std::unique_ptr<FontBuffer> buffer(new FontBuffer(glyph_count));
+  std::unique_ptr<FontBuffer> buffer(new FontBuffer(length));
+
+  // Retrieve word breaking information using libunibreak.
+  if (multi_line) {
+    wordbreak_info_.resize(length);
+    set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text), length,
+                        language_.c_str(), &wordbreak_info_[0]);
+  } else {
+    wordbreak_info_.resize(0);
+  }
 
   // Initialize font metrics parameters.
   int32_t base_line = ysize * face_->ascender / face_->units_per_EM;
   FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
-
   mathfu::vec2 pos(mathfu::kZeros2f);
   FT_GlyphSlot glyph = face_->glyph;
 
-  for (size_t i = 0; i < glyph_count; ++i) {
-    auto code_point = glyph_info[i].codepoint;
-    auto cache = GetCachedEntry(code_point, converted_ysize);
-    if (cache == nullptr) {
-      // Cleanup buffer contents.
-      hb_buffer_clear_contents(harfbuzz_buf_);
-      return nullptr;
+  uint32_t line_width = 0;
+  uint32_t max_line_width = 0;
+  uint32_t total_glyph_count = 0;
+  uint32_t total_height = ysize;
+  bool lastline_must_break = false;
+  WordEnumerator word_enum(wordbreak_info_);
+
+  // Find words and layout them.
+  while (word_enum.Advance()) {
+    if (!multi_line) {
+      // Single line text.
+      // In this mode, it layouts all string into single line.
+      max_line_width = LayoutText(text, length) * scale;
+    } else {
+      // Multi line text.
+      // In this mode, it layouts every single word in the order of the text and
+      // performs a line break if either current word exceeds the max line
+      // width or indicated a line break must happen due to a line break
+      // character etc.
+      uint32_t word_width = LayoutText(text + word_enum.GetCurrentWordIndex(),
+                                       word_enum.GetCurrentWordLength()) *
+                            scale;
+      if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
+                                     static_cast<uint32_t>(size.x())) {
+        // Line break.
+        auto line_height = face_->height * line_height_ * scale / kFreeTypeUnit;
+        pos = vec2(0.f, pos.y() + line_height);
+        total_height += line_height;
+        if (size.y() && total_height > static_cast<uint32_t>(size.y())) {
+          // The text size exceeds given size.
+          // For now, we just don't render the rest of strings.
+          break;
+        }
+
+        line_width = word_width;
+        if (line_width > static_cast<uint32_t>(size.x())) {
+          std::string s = std::string(&text[word_enum.GetCurrentWordIndex()],
+                                      word_enum.GetCurrentWordLength());
+          fpl::LogInfo(
+              "A single word '%s' exceeded the given line width setting.\n"
+              "Currently multiline label doesn't support a hyphenation",
+              s.c_str());
+        }
+      } else {
+        line_width += word_width;
+      }
+      max_line_width = std::max(max_line_width, line_width);
+      lastline_must_break = word_enum.CurrentWordMustBreak();
     }
 
-    // Add the code point to the buffer. This information is used when
-    // re-fetching UV information when the texture atlas is updated.
-    buffer->get_code_points()->push_back(code_point);
+    // Retrieve layout info.
+    uint32_t glyph_count;
+    auto glyph_info = hb_buffer_get_glyph_infos(harfbuzz_buf_, &glyph_count);
+    auto glyph_pos = hb_buffer_get_glyph_positions(harfbuzz_buf_, &glyph_count);
 
-    // Calculate internal/external leading value and expand a buffer if
-    // necessary.
-    FontMetrics new_metrics;
-    if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
-      initial_metrics = new_metrics;
+    for (size_t i = 0; i < glyph_count; ++i) {
+      auto code_point = glyph_info[i].codepoint;
+      auto cache = GetCachedEntry(code_point, converted_ysize);
+      if (cache == nullptr) {
+        // Cleanup buffer contents.
+        hb_buffer_clear_contents(harfbuzz_buf_);
+        return nullptr;
+      }
+
+      // Add the code point to the buffer. This information is used when
+      // re-fetching UV information when the texture atlas is updated.
+      buffer->get_code_points()->push_back(code_point);
+
+      // Calculate internal/external leading value and expand a buffer if
+      // necessary.
+      FontMetrics new_metrics;
+      if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
+        initial_metrics = new_metrics;
+      }
+
+      // Construct indices array.
+      const uint16_t kIndices[] = {0, 1, 2, 1, 2, 3};
+      for (auto index : kIndices) {
+        buffer->get_indices()->push_back(index + (total_glyph_count + i) * 4);
+      }
+
+      // Construct intermediate vertices array.
+      // The vertices array is update in the render pass with correct
+      // glyph size & glyph cache entry information.
+
+      // Update vertices.
+      buffer->AddVertices(pos, base_line, scale, *cache);
+
+      // Update UV.
+      buffer->UpdateUV(total_glyph_count + i, cache->get_uv());
+
+      // Set buffer revision using glyph cache revision.
+      buffer->set_revision(glyph_cache_->get_revision());
+
+      // Advance positions.
+      pos += mathfu::vec2(glyph_pos[i].x_advance, -glyph_pos[i].y_advance) *
+             scale / kFreeTypeUnit;
     }
 
-    // Construct indices array.
-    const uint16_t kIndices[] = {0, 1, 2, 1, 2, 3};
-    for (auto index : kIndices) {
-      buffer->get_indices()->push_back(index + i * 4);
-    }
+    // Update total number of glyphs.
+    total_glyph_count += glyph_count;
 
-    // Construct intermediate vertices array.
-    // The vertices array is update in the render pass with correct
-    // glyph size & glyph cache entry information.
-
-    // Update vertices.
-    buffer->AddVertices(pos, base_line, scale, *cache);
-
-    // Update UV.
-    buffer->UpdateUV(i, cache->get_uv());
-
-    // Set buffer revision using glyph cache revision.
-    buffer->set_revision(glyph_cache_->get_revision());
-
-    // Advance positions.
-    pos += mathfu::vec2(glyph_pos[i].x_advance, -glyph_pos[i].y_advance) *
-           scale / kFreeTypeUnit;
+    // Cleanup buffer contents.
+    hb_buffer_clear_contents(harfbuzz_buf_);
   }
 
   // Setup size.
-  buffer->set_size(vec2i(string_width, ysize));
+  buffer->set_size(vec2i(max_line_width / kFreeTypeUnit, total_height));
 
   // Setup font metrics.
   buffer->set_metrics(initial_metrics);
@@ -180,9 +325,6 @@ FontBuffer *FontManager::GetBuffer(const char *text, const float ysize) {
   if (current_pass_ != kRenderPass) {
     buffer->set_pass(current_pass_);
   }
-
-  // Cleanup buffer contents.
-  hb_buffer_clear_contents(harfbuzz_buf_);
 
   // Verify the buffer.
   assert(buffer->Verify());
@@ -222,7 +364,7 @@ FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
   return buffer;
 }
 
-FontTexture *FontManager::GetTexture(const char *text,
+FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
                                      const float original_ysize) {
   // Round up y size if the size selector is set.
   int32_t ysize = ConvertSize(original_ysize);
@@ -240,7 +382,7 @@ FontTexture *FontManager::GetTexture(const char *text,
   FT_Set_Pixel_Sizes(face_, 0, ysize);
 
   // Layout text.
-  auto string_width = LayoutText(text);
+  auto string_width = LayoutText(text, length);
 
   // Retrieve layout info.
   uint32_t glyph_count;
@@ -481,9 +623,7 @@ void FontManager::UpdatePass(const bool start_subpass) {
   }
 }
 
-uint32_t FontManager::LayoutText(const char *text) {
-  size_t length = strlen(text);
-
+uint32_t FontManager::LayoutText(const char *text, const size_t length) {
   // TODO: make harfbuzz settings (and other font settings) configurable.
   // Set harfbuzz settings.
   hb_buffer_set_direction(harfbuzz_buf_, HB_DIRECTION_LTR);
@@ -504,8 +644,6 @@ uint32_t FontManager::LayoutText(const char *text) {
   for (uint32_t i = 0; i < glyph_count; ++i) {
     string_width += glyph_pos[i].x_advance;
   }
-  string_width /= kFreeTypeUnit;
-
   return string_width;
 }
 
@@ -516,15 +654,15 @@ bool FontManager::UpdateMetrics(const FT_GlyphSlot g,
   // necessary.
   if (g->bitmap_top > current_metrics.ascender() ||
       static_cast<int32_t>(g->bitmap_top - g->bitmap.rows) <
-      current_metrics.descender()) {
+          current_metrics.descender()) {
     *new_metrics = current_metrics;
     new_metrics->set_internal_leading(
         std::max(current_metrics.internal_leading(),
                  g->bitmap_top - current_metrics.ascender()));
     new_metrics->set_external_leading(
         std::min(current_metrics.external_leading(),
-                 static_cast<int32_t>(g->bitmap_top - g->bitmap.rows
-                                      - current_metrics.descender())));
+                 static_cast<int32_t>(g->bitmap_top - g->bitmap.rows -
+                                      current_metrics.descender())));
     new_metrics->set_base_line(new_metrics->internal_leading() +
                                new_metrics->ascender());
 

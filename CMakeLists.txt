@@ -118,7 +118,7 @@ include_directories(${dependencies_harfbuzz_distr_dir}/src)
 include_directories(${dependencies_freetype_distr_dir}/include)
 
 # libunibreak includes.
-include_directories(${dependencies_libunibreak_distr_dir}/include)
+include_directories(${dependencies_libunibreak_distr_dir}/src)
 
 # Detect clang
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

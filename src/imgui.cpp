@@ -332,19 +332,27 @@ class InternalState : public Group {
 
   // Text label.
   void Label(const char *text, float ysize) {
+    auto size = vec2(0, ysize);
+    Label(text, ysize, size);
+  }
+
+  // Multi line Text label.
+  void Label(const char *text, float ysize, const vec2 &label_size) {
     // Set text color.
     renderer_.color() = text_color_;
 
-#   if USE_GLYPHCACHE
+    auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto buffer = fontman_.GetBuffer(text, size.y());
+    auto buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
+                                     physical_label_size);
     if (layout_pass_) {
       if (buffer == nullptr) {
         // Upload a texture & flush glyph cache
         fontman_.FlushAndUpdate();
 
         // Try to create buffer again.
-        buffer = fontman_.GetBuffer(text, size.y());
+        buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
+                                    physical_label_size);
         if (buffer == nullptr) {
           SDL_LogError(SDL_LOG_CATEGORY_ERROR, "The given text '%s' with ",
                        "size:%d does not fit a glyph cache. Try to "
@@ -377,36 +385,6 @@ class InternalState : public Group {
         Advance(element->size);
       }
     }
-#   else
-    font_shader_->SetUniform("pos_offset", vec3(0.0f, 0.0f, 0.f));
-
-    auto size = VirtualToPhysical(vec2(0, ysize));
-    auto tex = fontman_.GetTexture(text, size.y());
-    auto uv = tex->uv();
-    auto scale = static_cast<float>(size.y()) /
-                 static_cast<float>(tex->metrics().ascender() -
-                                    tex->metrics().descender());
-    if (layout_pass_) {
-      auto image_size =
-          vec2i(tex->size().x() * (uv.z() - uv.x()) * scale, size.y());
-      NewElement(image_size, text);
-      Extend(image_size);
-    } else {
-      auto element = NextElement(text);
-      if (element) {
-        tex->Set(0);
-        // Note that some glyphs may render outside of element boundary.
-        vec2i pos = Position(*element) -
-                    vec2i(0, tex->metrics().internal_leading() * scale);
-        vec2i size = vec2i(element->size) +
-                     vec2i(0, (tex->metrics().internal_leading() -
-                               tex->metrics().external_leading()) *
-                                  scale);
-        RenderQuad(font_shader_, mathfu::kOnes4f, pos, size, uv);
-        Advance(element->size);
-      }
-    }
-#   endif
   }
 
   // Custom element with user supplied renderer.
@@ -780,7 +758,13 @@ void Image(const char *texture_name, float size) {
   Gui()->Image(texture_name, size);
 }
 
-void Label(const char *text, float size) { Gui()->Label(text, size); }
+void Label(const char *text, float font_size) {
+  Gui()->Label(text, font_size);
+}
+
+void Label(const char *text, float font_size, const vec2 &size) {
+  Gui()->Label(text, font_size, size);
+}
 
 void StartGroup(Layout layout, float spacing, const char *id) {
   Gui()->StartGroup(GetDirection(layout), GetAlignment(layout), spacing, id);

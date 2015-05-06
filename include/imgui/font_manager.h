@@ -15,8 +15,17 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
+// Use libunibreak for a line breaking
+#if !defined(IMGUI_USE_LIBUNIBREAK)
+// For now, it's automatically turned on.
+#define IMGUI_USE_LIBUNIBREAK 1
+#endif  // !defined(IMGUI_USE_LIBUNIBREAK)
+
 #include "fplbase/renderer.h"
 #include "imgui/internal/glyph_cache.h"
+#ifdef IMGUI_USE_LIBUNIBREAK
+#include "linebreak.h"
+#endif
 
 // Forward decls for FreeType & Harfbuzz
 typedef struct FT_LibraryRec_ *FT_Library;
@@ -41,6 +50,11 @@ const int32_t kFreeTypeUnit = 64;
 // Default size of glyph cache.
 const int32_t kGlyphCacheWidth = 1024;
 const int32_t kGlyphCacheHeight = 1024;
+
+// Default value for a line height factor.
+// The line height is derived as the factor * a font height.
+// To change the line height, use SetLineHeight() API.
+const float kLineHeightDefault = 1.2f;
 
 // FontManager manages font rendering with OpenGL utilizing freetype
 // and harfbuzz as a glyph rendering and layout back end.
@@ -72,13 +86,23 @@ class FontManager {
   // This API doesn't use the glyph cache, instead it writes the string image
   // directly to the returned texture. The user can use this API when a font
   // texture is used for a long time, such as a string image used in game HUD.
-  FontTexture *GetTexture(const char *text, const float ysize);
+  FontTexture *GetTexture(const char *text, const uint32_t length,
+                          const float ysize);
 
   // Retrieve a vertex buffer for a font rendering using glyph cache.
   // Returns nullptr if the string does not fit in the glyph cache.
   // When this happens, caller may flush the glyph cache with
   // FlushAndUpdate() call and re-try the GetBuffer() call.
-  FontBuffer *GetBuffer(const char *text, const float ysize);
+  FontBuffer *GetBuffer(const char *text, const uint32_t length,
+                        const float ysize);
+
+  // Multil line version of GetBuffer() API.
+  // size: max size of the rendered text in pixels.
+  //       0 for size.x indicates a single line.
+  //       0 for size.y indicates no height restriction.
+  //       The API renders whole texts in the label in the case.
+  FontBuffer *GetBuffer(const char *text, const uint32_t length,
+                        const float ysize, const mathfu::vec2i &size);
 
   // Set renderer. Renderer is used to create a texture instance.
   void SetRenderer(Renderer &renderer) {
@@ -135,12 +159,22 @@ class FontManager {
     size_selector_.swap(selector);
   }
 
+  // Set a langauge used to determine line breaking.
+  // language: ISO 639-1 based language code. Default setting is 'en'(English).
+  // The value is passed to libunibreak.
+  // As of libunibreak version 3.0, a list of supported languages is,
+  // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
+  void SetLanguage(const std::string &language) { language_ = language; }
+
+  // Set a line height in multi line text.
+  void SetLineHeight(const float line_height) { line_height_ = line_height; }
+
  private:
   // Pass indicating rendering pass.
   static const int32_t kRenderPass = -1;
 
   // Initialize static data associated with the class.
-  static void Initialize();
+  void Initialize();
 
   // Clean up static data associated with the class.
   // Note that after the call, an application needs to call Initialize() again
@@ -156,7 +190,7 @@ class FontManager {
 
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
-  uint32_t LayoutText(const char *text);
+  uint32_t LayoutText(const char *text, const size_t length);
 
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
@@ -243,6 +277,16 @@ class FontManager {
 
   // Size selector function object used to adjust a glyph size.
   std::function<int32_t(const int32_t)> size_selector_;
+
+  // Language of input string.
+  // Used to determine line breaking depending on a language.
+  std::string language_;
+
+  // Line height for a multi line text.
+  float line_height_;
+
+  // Line break info buffer used in libunibreak.
+  std::vector<char> wordbreak_info_;
 };
 
 // Font texture class inherits Texture publicly.

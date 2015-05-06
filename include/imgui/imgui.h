@@ -127,6 +127,15 @@ void Image(const char *texture_name, float ysize);
 // automatically based on the text length.
 void Label(const char *text, float ysize);
 
+// Multi line version of label.
+// text: label string in UTF8
+// ysize: vertical size in virtual resolution.
+// size: max size of the label in virtual resolution.
+//       0 for size.x indicates a single line.
+//       0 for size.y indicates no height restriction.
+//       The API renders whole texts in the label in the case.
+void Label(const char *text, float ysize, const mathfu::vec2 &size);
+
 // Set Label's text color.
 void SetTextColor(const vec4 &color);
 
@@ -188,9 +197,6 @@ const float IMGUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 // If this function is not called, it defaults to virtual resolution set to
 // IMGUI_DEFAULT_VIRTUAL_RESOLUTION, and top/left placement.
 void PositionUI(float virtual_resolution, Layout horizontal, Layout vertical);
-
-// Use glyph cache for a font rendering
-#define USE_GLYPHCACHE (1)
 
 }  // namespace gui
 }  // namespace fpl

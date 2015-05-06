@@ -66,10 +66,11 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
     Image("textures/text_about.webp", 30);
     EndGroup();
     StartGroup(LAYOUT_VERTICAL_RIGHT, 0);
-    SetMargin(Margin(100));
-    Image("textures/text_about.webp", 50);
-    Image("textures/text_about.webp", 40);
-    Image("textures/text_about.webp", 30);
+    Label("The\nquick brown fox jumps over the lazy dog.\n"
+          "The quick brown fox jumps over the lazy dog. "
+          "The quick brown fox jumps over the lazy dog. "
+          "The quick brown fox jumps over the lazy dog. ",
+          24,vec2(400, 400));
     EndGroup();
     EndGroup();
     if (show_about) {
