@@ -33,6 +33,11 @@ namespace gui {
 // gui_definition: a function that defines all GUI elements using the GUI
 // element construction functions.
 // It will be run twice, once for layout, once for rendering & events.
+//
+// While an initialization of Imgui, it implicitly loads shaders used in the
+// API below using MaterialManager.
+// shaders/color.glslv & .glslf, shaders/font.glslv & .glslf
+// shaders/textured.glslv & .glslf
 void Run(MaterialManager &matman, FontManager &fontman, InputSystem &input,
          const std::function<void()> &gui_definition);
 

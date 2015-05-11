@@ -25,26 +25,27 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 # Temporary files (like object files) created while compiling projects.
 set(tmp_dir ${CMAKE_CURRENT_BINARY_DIR}/obj)
 
+# Directory which contains the source for 3rd party libraries.
+get_filename_component(
+    third_party_root "${CMAKE_SOURCE_DIR}/../../../../external" REALPATH)
+
 # Directory which contains source for FPL libraries.
 get_filename_component(
-    fpl_root "${CMAKE_CURRENT_SOURCE_DIR}/../../libs" REALPATH)
+    fpl_root "${CMAKE_SOURCE_DIR}/../../libs" REALPATH)
 
 # If the dependencies directory exists, assume this is the root directory for
 # all libraries required by this project.
-set(dependencies_root "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
+set(dependencies_root "${CMAKE_SOURCE_DIR}/dependencies")
 if(EXISTS "${dependencies_root}")
+  set(third_party_root "${dependencies_root}")
   set(fpl_root "${dependencies_root}")
 endif()
 
 # Configurable locations of dependencies of this project.
-set(dependencies_flatbuffers_dir "${fpl_root}/flatbuffers"
-    CACHE PATH "Directory containing the Flatbuffers library.")
 set(dependencies_mathfu_dir "${fpl_root}/mathfu"
     CACHE PATH "Directory containing the MathFu library.")
 set(dependencies_fplbase_dir "${fpl_root}/fplbase"
     CACHE PATH "Directory containing the FPLBase library.")
-set(dependencies_sdl_dir "${third_party_root}/sdl"
-    CACHE PATH "Directory containing the SDL library.")
 set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
     CACHE PATH "Directory containing the harfbuzz cmake project.")
 set(dependencies_harfbuzz_distr_dir "${third_party_root}/harfbuzz"
@@ -58,24 +59,16 @@ set(dependencies_libunibreak_cmake_dir "${CMAKE_MODULE_PATH}/libunibreak"
 set(dependencies_libunibreak_distr_dir "${third_party_root}/libunibreak"
     CACHE PATH "Directory containing the libunibreak library.")
 
+# Option to enable / disable the sample build.
+option(imgui_build_samples "Build samples for this project." OFF)
 
 # Option to enable / disable the test build.
 option(imgui_build_tests "Build tests for this project." OFF)
-option(imgui_build_samples "Build samples for this project." OFF)
-
-# Option to only build flatc
-option(motive_only_flatc "Only build FlatBuffers compiler." OFF)
 
 # Include MathFu in this project with test and benchmark builds disabled.
 set(mathfu_build_benchmarks OFF CACHE BOOL "")
 set(mathfu_build_tests OFF CACHE BOOL "")
 add_subdirectory(${dependencies_mathfu_dir} ${tmp_dir}/mathfu)
-
-# Include FlatBuffers in this project.
-set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")
-if(NOT TARGET flatc)
-  add_subdirectory("${dependencies_flatbuffers_dir}" ${tmp_dir}/flatbuffers)
-endif()
 
 # Include harfbuzz, freetype and libunibreak.
 if(NOT TARGET harfbuzz)
@@ -88,34 +81,10 @@ if(NOT TARGET libunibreak)
   add_subdirectory("${dependencies_libunibreak_cmake_dir}"
     ${tmp_dir}/libunibreak)
 endif()
-
-# Generate source files for all FlatBuffers schema files under the src
-# directory.
-set(IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR
-    ${CMAKE_CURRENT_SOURCE_DIR}${CMAKE_FILES_DIRECTORY}/include)
-get_directory_property(hasParent PARENT_DIRECTORY)
-if(hasParent)
-  set(IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR
-      ${IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR} PARENT_SCOPE)
+if(imgui_build_tests OR imgui_build_samples)
+# Add FPLbase
+add_subdirectory("${fpl_root}/fplbase" ${tmp_dir}/fplbase)
 endif()
-
-file(GLOB_RECURSE FLATBUFFERS_SCHEMAS ${CMAKE_CURRENT_SOURCE_DIR}/schemas/*.fbs)
-
-# Generate rules to build the set of output files from the set of input
-# schema files.
-foreach(flatbuffers_schema ${FLATBUFFERS_SCHEMAS})
-  get_filename_component(filename ${flatbuffers_schema} NAME_WE)
-  set(flatbuffers_include
-    ${IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR}/${filename}_generated.h)
-  add_custom_command(
-    OUTPUT ${flatbuffers_include}
-    COMMAND flatc --gen-includes
-        -o ${IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR}
-        -c ${flatbuffers_schema}
-    DEPENDS flatc ${flatbuffers_schema})
-  list(APPEND FLATBUFFERS_GENERATED_INCLUDES ${flatbuffers_include})
-endforeach()
-add_custom_target(imgui_generated_includes DEPENDS ${FLATBUFFERS_GENERATED_INCLUDES})
 
 # IMGUI source files.
 set(imgui_SRCS
@@ -131,10 +100,13 @@ if(WIN32)
   include_directories(external/include/windows)
   include_directories(external/include/harfbuzz)
 endif()
-include_directories(${IMGUI_FLATBUFFERS_GENERATED_INCLUDES_DIR})
-include_directories(${dependencies_flatbuffers_dir}/include)
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
+
+if(imgui_build_tests OR imgui_build_samples)
+# SDL includes.
+include_directories(${tmp_dir}/fplbase/obj/sdl/include)
+endif()
 
 # SDL includes.
 include_directories(${dependencies_sdl_dir}/include)
@@ -175,9 +147,6 @@ endif()
 # Executable target.
 add_library(imgui ${imgui_SRCS})
 
-# Dependencies for the executable target.
-add_dependencies(imgui imgui_generated_includes)
-
 # Dependencies to libraries.
 target_link_libraries(imgui libfreetype libharfbuzz libunibreak)
 
@@ -186,11 +155,10 @@ mathfu_configure_flags(imgui)
 
 # Tests.
 if(imgui_build_tests)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/tests)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 endif()
 
 # Samples.
 if(imgui_build_samples)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/samples)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/samples)
 endif()
-
