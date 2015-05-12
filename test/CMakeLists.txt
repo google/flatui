@@ -20,7 +20,10 @@ add_dependencies(imguitest fplbase imgui)
 mathfu_configure_flags(imguitest)
 target_link_libraries(imguitest fplbase imgui)
 
-# Copy resource files
+# Imgui postprocess
+imguiPostProcess(imguitest)
+
+# Copy test resource files
 add_custom_command(TARGET imguitest POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_CURRENT_SOURCE_DIR}/assets

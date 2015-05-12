@@ -20,7 +20,10 @@ add_dependencies(imguisample fplbase imgui)
 mathfu_configure_flags(imguisample)
 target_link_libraries(imguisample fplbase imgui)
 
-# Copy resource files
+# Imgui postprocess
+imguiPostProcess(imguisample)
+
+# Copy sample's resource files
 add_custom_command(TARGET imguisample POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_CURRENT_SOURCE_DIR}/assets

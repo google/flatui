@@ -155,6 +155,15 @@ target_link_libraries(imgui libfreetype libharfbuzz libunibreak)
 # Additional flags for the target.
 mathfu_configure_flags(imgui)
 
+# Post process function.
+function(imguiPostProcess target)
+# Copy imgui resource files
+add_custom_command(TARGET ${target} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/assets
+                       $<TARGET_FILE_DIR:${target}>)
+endfunction()
+
 # Tests.
 if(imgui_build_tests)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
