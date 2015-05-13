@@ -25,6 +25,10 @@
 #include "font_manager.h"
 #include "fplbase/utilities.h"
 
+#ifdef IMGUI_USE_LIBUNIBREAK
+#include "linebreak.h"
+#endif
+
 namespace fpl {
 
 // Constants

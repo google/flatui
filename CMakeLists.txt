@@ -58,6 +58,8 @@ set(dependencies_libunibreak_cmake_dir "${CMAKE_MODULE_PATH}/libunibreak"
     CACHE PATH "Directory containing the libunibreak cmake project.")
 set(dependencies_libunibreak_distr_dir "${third_party_root}/libunibreak"
     CACHE PATH "Directory containing the libunibreak library.")
+set(dependencies_sdl_dir "${third_party_root}/sdl"
+    CACHE PATH "Directory containing the SDL library.")
 
 # Option to enable / disable the sample build.
 option(imgui_build_samples "Build samples for this project." OFF)

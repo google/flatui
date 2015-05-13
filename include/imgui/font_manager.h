@@ -23,9 +23,6 @@
 
 #include "fplbase/renderer.h"
 #include "imgui/internal/glyph_cache.h"
-#ifdef IMGUI_USE_LIBUNIBREAK
-#include "linebreak.h"
-#endif
 
 // Forward decls for FreeType & Harfbuzz
 typedef struct FT_LibraryRec_ *FT_Library;
