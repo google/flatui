@@ -36,6 +36,8 @@ DEPENDENCIES_FPLUTIL_DIR?=$(FPL_ROOT)/fplutil
 DEPENDENCIES_FREETYPE_DIR?=$(THIRD_PARTY_ROOT)/freetype
 # Location of the HarfBuzz library.
 DEPENDENCIES_HARFBUZZ_DIR?=$(THIRD_PARTY_ROOT)/harfbuzz
+# Location of the libunibreak library.
+DEPENDENCIES_LIBUNIBREAK_DIR?=$(THIRD_PARTY_ROOT)/libunibreak
 # Location of the MathFu library.
 DEPENDENCIES_MATHFU_DIR?=$(FPL_ROOT)/mathfu
 
