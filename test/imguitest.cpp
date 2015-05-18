@@ -22,12 +22,35 @@ Event ImageButton(const char *texture_name, float size, const char *id) {
   return event;
 }
 
+// Example how to create a checkbox.
+Event CheckBox(const char *texture_name_checked,
+               const char *texture_name_unchecked,
+               const char *label,
+               float size, const char *id, bool *is_checked) {
+  StartGroup(LAYOUT_HORIZONTAL_BOTTOM, 0, id);
+  auto event = CheckEvent();
+  Image(*is_checked ? texture_name_checked : texture_name_unchecked, size);
+  SetMargin(Margin(6, 0));
+  Label(label, size);
+
+  // Note that this event check needs to come after the Image() API that is
+  // using the variable, because the event check happens in the render pass,
+  // and we want to specify same texture name for both the layout and render
+  // pass (otherwise the IMGUI system can not find a correct layout info).
+  if (event & EVENT_WENT_UP) {
+    *is_checked = !*is_checked;
+  }
+  EndGroup();
+  return event;
+}
+
 void TestGUI(MaterialManager &matman, FontManager &fontman,
              InputSystem &input) {
   static float f = 0.0f;
   f += 0.04f;
   static bool show_about = false;
   static vec2i scroll_offset(mathfu::kZeros2i);
+  static bool checkbox1_checked;
 
   auto click_about_example = [&](const char *id, bool about_on) {
     if (ImageButton("textures/text_about.webp", 50, id) == EVENT_WENT_UP) {
@@ -37,11 +60,14 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
   };
 
   Run(matman, fontman, input, [&]() {
-    PositionUI(1000, LAYOUT_HORIZONTAL_CENTER, LAYOUT_VERTICAL_RIGHT);
+    PositionUI(1000, LAYOUT_HORIZONTAL_CENTER, LAYOUT_VERTICAL_CENTER);
     StartGroup(LAYOUT_OVERLAY_CENTER, 0);
     StartGroup(LAYOUT_HORIZONTAL_TOP, 10);
     StartGroup(LAYOUT_VERTICAL_LEFT, 20);
     click_about_example("my_id1", true);
+    CheckBox("textures/btn_check_on.webp",
+             "textures/btn_check_off.webp",
+             "CheckBox", 30, "checkbox_1", &checkbox1_checked);
     StartGroup(LAYOUT_HORIZONTAL_TOP, 0);
     Label("Property T", 30);
     SetTextColor(mathfu::vec4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -106,6 +132,8 @@ int main() {
 
   // Load textures.
   matman.LoadTexture("textures/text_about.webp");
+  matman.LoadTexture("textures/btn_check_on.webp");
+  matman.LoadTexture("textures/btn_check_off.webp");
   matman.StartLoadingTextures();
 
   // Wait for everything to finish loading...

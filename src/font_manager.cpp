@@ -244,6 +244,9 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
         if (size.y() && total_height > static_cast<uint32_t>(size.y())) {
           // The text size exceeds given size.
           // For now, we just don't render the rest of strings.
+
+          // Cleanup buffer contents.
+          hb_buffer_clear_contents(harfbuzz_buf_);
           break;
         }
 
