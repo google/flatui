@@ -62,18 +62,34 @@ enum Event {
   // and a EVENT_WENT_UP, it occurs only if it spans multiple frames.
   // Only fires for the element the corresponding EVENT_WENT_DOWN fired on.
   EVENT_IS_DOWN = 4,
+  // Pointing device started dragging this frame while over this element.
+  // The element is expected to call CapturePointer() API to recieve drag event
+  // continuously even the pointer goes out of the element.
+  EVENT_START_DRAG = 8,
+  // Pointing device finished dragging this frame.
+  EVENT_END_DRAG = 16,
+  // Pointing device is currently in dragging mode.
+  EVENT_IS_DRAGGING = 32,
   // Pointing device is currently over the element but not pressed.
   // This event does NOT occur on touch screen devices and only occurs for
   // devices that use a mouse, or a gamepad (that emulates a mouse with a
   // selection). As such it is good to show a subtle form of highlighting
   // upon this event, but the UI should not rely on it to function.
-  EVENT_HOVER = 8,
+  EVENT_HOVER = 64,
 };
 
 // Alignment and Direction of groups. Instead of using these directly, use
 // the Layout enum below.
-enum Alignment { ALIGN_TOPLEFT = 1, ALIGN_CENTER = 2, ALIGN_BOTTOMRIGHT = 3 };
-enum Direction { DIR_HORIZONTAL = 4, DIR_VERTICAL = 8, DIR_OVERLAY = 12 };
+enum Alignment {
+  ALIGN_TOPLEFT = 1,
+  ALIGN_CENTER = 2,
+  ALIGN_BOTTOMRIGHT = 3
+};
+enum Direction {
+  DIR_HORIZONTAL = 4,
+  DIR_VERTICAL = 8,
+  DIR_OVERLAY = 12
+};
 
 // Specify how to layout a group. Elements can be positioned either
 // horizontally next to eachother or vertically, with elements aligned
@@ -87,11 +103,9 @@ enum Layout {
   LAYOUT_HORIZONTAL_TOP    = DIR_HORIZONTAL | ALIGN_TOPLEFT,
   LAYOUT_HORIZONTAL_CENTER = DIR_HORIZONTAL | ALIGN_CENTER,
   LAYOUT_HORIZONTAL_BOTTOM = DIR_HORIZONTAL | ALIGN_BOTTOMRIGHT,
-
   LAYOUT_VERTICAL_LEFT     = DIR_VERTICAL | ALIGN_TOPLEFT,
   LAYOUT_VERTICAL_CENTER   = DIR_VERTICAL | ALIGN_CENTER,
   LAYOUT_VERTICAL_RIGHT    = DIR_VERTICAL | ALIGN_BOTTOMRIGHT,
-
   LAYOUT_OVERLAY_CENTER    = DIR_OVERLAY | ALIGN_CENTER,
 };
 
@@ -155,6 +169,34 @@ void SetMargin(const Margin &margin);
 // Check for events on the current group.
 Event CheckEvent();
 
+// Check for events on the current group.
+// check_dragevent_only : Check only a drag event and ignore button events.
+//                        If an element is not interested in a button event,
+//                        The caller should set this flag for other elements
+//                        correctly can recieve WENT_UP event, because WENT_UP
+//                        event will be only recieved a same element that
+//                        recieved corresponding WENT_DOWN event.
+Event CheckEvent(bool check_dragevent_only);
+
+// Capture a pointer event.
+// After the API call, the element with element_id will recieve pointer event
+// exclusively until ReleasePointer() is called. This API is used mainly for a
+// drag operation that an element wants to recieve events continuously.
+void CapturePointer(const char *element_id);
+// Release a pointer capture.
+void ReleasePointer();
+
+// Retrieve a pointer motion delta in current frame.
+vec2i GetPointerDelta();
+
+// Set scroll speeds of drag and mouse wheel operations.
+// default: kScrollSpeedDragDefault & kScrollSpeedWheelgDefault
+void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel);
+
+// Set a threshold value of a drag operation start.
+// default: kDragStartThresholdDefault
+void SetDragStartThreshold(float drag_start_threshold);
+
 // Set the background for the group. May use alpha.
 void ColorBackground(const vec4 &color);
 
@@ -168,7 +210,7 @@ void ImageBackground(const Texture &tex);
 // (x1,y1): bottom-right corner of stretchable area in UV coordinate.
 // The coordinates are in UV value in the texture (0.0 ~ 1.0).
 // For more information for nine patch, refer
-//http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch
+// http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch
 void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info);
 
 // Make the current group into a scrolling group that can display arbitrary
@@ -180,10 +222,9 @@ void EndScroll();
 
 // Put a custom element with given size.
 // Renderer function is invoked while render pass to render the element.
-void CustomElement(const vec2 &virtual_size,
-                   const char *id,
-                   const std::function<void(const vec2i &pos,
-                                            const vec2i &size)>renderer);
+void CustomElement(
+    const vec2 &virtual_size, const char *id,
+    const std::function<void(const vec2i &pos, const vec2i &size)> renderer);
 void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size);
 
 // The default virtual resolution used if none is set.

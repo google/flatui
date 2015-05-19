@@ -141,8 +141,7 @@ void FontManager::Initialize() {
   FT_Error err;
   if ((err = FT_Init_FreeType(ft_))) {
     // Error! Please fix me.
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR,
-                 "Can't initialize freetype. FT_Error:%d\n", err);
+    fpl::LogError("Can't initialize freetype. FT_Error:%d\n", err);
     assert(0);
   }
 
@@ -424,7 +423,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
     if ((err = FT_Load_Glyph(face_, glyph_info[i].codepoint, FT_LOAD_RENDER))) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
-      SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Can't load glyph %c FT_Error:%d\n",
+      fpl::LogInfo("Can't load glyph %c FT_Error:%d\n",
                    text[i], err);
       return nullptr;
     }
@@ -538,7 +537,7 @@ bool FontManager::Open(const char *font_name) {
 
   // Load the font file of assets.
   if (!LoadFile(font_name, &font_data_)) {
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Can't load font reource: %s\n",
+    fpl::LogInfo("Can't load font reource: %s\n",
                  font_name);
     return false;
   }
@@ -549,8 +548,7 @@ bool FontManager::Open(const char *font_name) {
            *ft_, reinterpret_cast<const unsigned char *>(&font_data_[0]),
            font_data_.size(), 0, &face_))) {
     // Failed to open font.
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR,
-                 "Failed to initialize font:%s FT_Error:%d\n", font_name, err);
+    fpl::LogInfo("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
     return false;
   }
 
@@ -558,8 +556,7 @@ bool FontManager::Open(const char *font_name) {
   harfbuzz_font_ = hb_ft_font_create(face_, NULL);
   if (!harfbuzz_font_) {
     // Failed to open font.
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR,
-                 "Failed to initialize harfbuzz layout information:%s\n",
+    fpl::LogInfo("Failed to initialize harfbuzz layout information:%s\n",
                  font_name);
     font_data_.clear();
     FT_Done_Face(face_);
@@ -615,8 +612,7 @@ void FontManager::UpdatePass(const bool start_subpass) {
 
   if (start_subpass) {
     if (current_pass_ > 0) {
-      SDL_LogError(SDL_LOG_CATEGORY_ERROR,
-                   "Multiple subpasses in one rendering pass is not supported. "
+      fpl::LogInfo("Multiple subpasses in one rendering pass is not supported. "
                    "When this happens, increase the glyph cache size not to "
                    "flush the atlas texture multiple times in one rendering "
                    "pass.");
@@ -689,8 +685,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
     if ((err = FT_Load_Glyph(face_, code_point, FT_LOAD_RENDER))) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
-      SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Can't load glyph %c FT_Error:%d\n",
-                   code_point, err);
+      fpl::LogInfo("Can't load glyph %c FT_Error:%d\n", code_point, err);
       return nullptr;
     }
 
@@ -705,8 +700,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
     if (cache == nullptr) {
       // Glyph cache need to be flushed.
       // Returning nullptr here for a retry.
-      SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                  "Glyph cache is full. Need to flush and re-create.\n");
+      fpl::LogInfo("Glyph cache is full. Need to flush and re-create.\n");
       return nullptr;
     }
   }

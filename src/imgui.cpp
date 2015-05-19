@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include "imgui/imgui.h"
+#include "fplbase/utilities.h"
 #include "SDL.h"
-#include "SDL_log.h"
 
 namespace fpl {
 namespace gui {
@@ -28,6 +28,10 @@ Alignment GetAlignment(Layout layout) {
 }
 
 static const char *kDummyId = "__null_id__";
+static const float kScrollSpeedDragDefault = 2.0f;
+static const float kScrollSpeedWheelgDefault = 16.0f;
+static const int32_t kDragStartThresholdDefault = 8;
+static const int32_t kPointerIndexInvalid = -1;
 
 // This holds the transient state of a group while its layout is being
 // calculated / rendered.
@@ -59,7 +63,6 @@ class Group {
         size_ = vec2i(std::max(size_.x(), extension.x()),
                       std::max(size_.y(), extension.y()));
         break;
-
     }
   }
 
@@ -107,7 +110,7 @@ class InternalState : public Group {
         clip_position_(mathfu::kZeros2i),
         clip_size_(mathfu::kZeros2i),
         clip_inside_(false),
-        pointer_max_active_index_(-1),
+        pointer_max_active_index_(kPointerIndexInvalid),
         gamepad_has_focus_element(false),
         gamepad_event(EVENT_HOVER) {
     SetScale();
@@ -115,7 +118,8 @@ class InternalState : public Group {
     // Cache the state of multiple pointers, so we have to do less work per
     // interactive element.
     pointer_max_active_index_ = 0;  // Mouse is always active.
-    // TODO: pointer_max_active_index_ should start at -1 if on a touchscreen.
+    // TODO: pointer_max_active_index_ should start at kPointerIndexInvalid
+    // if on a touchscreen.
     for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
       pointer_buttons_[i] = &input.GetPointerButton(i);
       clip_mouse_inside_[i] = true;
@@ -139,6 +143,12 @@ class InternalState : public Group {
     assert(color_shader_);
 
     text_color_ = mathfu::kOnes4f;
+
+    scroll_speed_drag_ = kScrollSpeedDragDefault;
+    scroll_speed_wheel_ = kScrollSpeedWheelgDefault;
+    drag_start_threshold_ = vec2i(kDragStartThresholdDefault,
+                                  kDragStartThresholdDefault);
+    current_pointer_ = kPointerIndexInvalid;
 
     fontman_.StartLayoutPass();
   }
@@ -178,9 +188,8 @@ class InternalState : public Group {
   void SetOrtho() {
     auto res = renderer_.window_size();
     auto ortho_mat = mathfu::OrthoHelper<float>(
-                       0.0f, static_cast<float>(res.x()),
-                       static_cast<float>(res.y()), 0.0f,
-                       -1.0f, 1.0f);
+        0.0f, static_cast<float>(res.x()), static_cast<float>(res.y()), 0.0f,
+        -1.0f, 1.0f);
     renderer_.model_view_projection() = ortho_mat;
   }
 
@@ -203,8 +212,8 @@ class InternalState : public Group {
 
   // Determines placement for the UI as a whole inside the available space
   // (screen).
-  void PositionUI(float virtual_resolution,
-                  Alignment horizontal, Alignment vertical) {
+  void PositionUI(float virtual_resolution, Alignment horizontal,
+                  Alignment vertical) {
     if (layout_pass_) {
       virtual_resolution_ = virtual_resolution;
       SetScale();
@@ -296,10 +305,10 @@ class InternalState : public Group {
 
   void RenderQuad(Shader *sh, const vec4 &color, const vec2i &pos,
                   const vec2i &size, const vec4 &uv) {
-      renderer_.color() = color;
-      sh->Set(renderer_);
-      Mesh::RenderAAQuadAlongX(vec3(vec2(pos), 0), vec3(vec2(pos + size), 0),
-                               uv.xy(), uv.zw());
+    renderer_.color() = color;
+    sh->Set(renderer_);
+    Mesh::RenderAAQuadAlongX(vec3(vec2(pos), 0), vec3(vec2(pos + size), 0),
+                             uv.xy(), uv.zw());
   }
 
   void RenderQuad(Shader *sh, const vec4 &color, const vec2i &pos,
@@ -343,8 +352,8 @@ class InternalState : public Group {
 
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
-                                     physical_label_size);
+    auto buffer =
+        fontman_.GetBuffer(text, strlen(text), size.y(), physical_label_size);
     if (layout_pass_) {
       if (buffer == nullptr) {
         // Upload a texture & flush glyph cache
@@ -354,10 +363,10 @@ class InternalState : public Group {
         buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
                                     physical_label_size);
         if (buffer == nullptr) {
-          SDL_LogError(SDL_LOG_CATEGORY_ERROR, "The given text '%s' with ",
-                       "size:%d does not fit a glyph cache. Try to "
-                       "increase a cache size or use GetTexture() API ",
-                       "instead.\n", text, size.y());
+          fpl::LogError("The given text '%s' with ",
+                        "size:%d does not fit a glyph cache. Try to "
+                        "increase a cache size or use GetTexture() API ",
+                        "instead.\n", text, size.y());
         }
       }
       NewElement(buffer->get_size(), text);
@@ -431,6 +440,10 @@ class InternalState : public Group {
       }
     }
     *static_cast<Group *>(this) = layout;
+
+    // Reset clipping status.
+    clip_position_ = mathfu::kZeros2i;
+    clip_size_ = mathfu::kZeros2i;
   }
 
   // Clean up the Group element started by StartGroup()
@@ -468,6 +481,7 @@ class InternalState : public Group {
 
   void StartScroll(const vec2 &size, vec2i *offset) {
     auto psize = VirtualToPhysical(size);
+
     if (layout_pass_) {
       // If you hit this assert, you are nesting scrolling areas, which is
       // not supported.
@@ -485,20 +499,44 @@ class InternalState : public Group {
       glEnable(GL_SCISSOR_TEST);
       glScissor(position_.x(),
                 renderer_.window_size().y() - position_.y() - psize.y(),
-                psize.x(),
-                psize.y());
+                psize.x(), psize.y());
+
+      vec2i pointer_delta = mathfu::kZeros2i;
+      int32_t scroll_speed = scroll_speed_drag_;
+
+      // Check drag event only.
+      elements_[element_idx_].interactive = true;
+      size_ = psize;
+      auto event = CheckEvent(true);
+      if (event & EVENT_START_DRAG) {
+        // Start drag.
+        CapturePointer(elements_[element_idx_].id);
+      }
+
+      if (IsPointerCaptured(elements_[element_idx_].id)) {
+        if (event & EVENT_END_DRAG) {
+          // Finish dragging and release the pointer.
+          ReleasePointer();
+        }
+        pointer_delta = input_.pointers_[0].mousedelta;
+      } else {
+        if (mathfu::InRange2D(input_.pointers_[0].mousepos, position_,
+                               position_ + psize)) {
+          pointer_delta = input_.mousewheel_delta();
+          scroll_speed = -scroll_speed_wheel_;
+        }
+      }
+
       // Scroll the pane on user input.
-      // TODO: this will need to be generalized, as mousewheel only works on
-      // desktops.
-      const int scroll_speed = -16;  // TODO: configurable?
       *offset = vec2i::Min(elements_[element_idx_].extra_size,
-                    vec2i::Max(mathfu::kZeros2i,
-                        *offset + input_.mousewheel_delta() * scroll_speed));
+                           vec2i::Max(mathfu::kZeros2i,
+                                      *offset - pointer_delta * scroll_speed));
+
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
       for (int i = 0; i <= pointer_max_active_index_; i++) {
-        if (!mathfu::InRange2D(input_.pointers_[i].mousepos,
-                               position_, position_ + psize)) {
+        if (!mathfu::InRange2D(input_.pointers_[i].mousepos, position_,
+                               position_ + psize)) {
           clip_mouse_inside_[i] = false;
         }
       }
@@ -528,14 +566,54 @@ class InternalState : public Group {
     }
   }
 
-  vec2i GroupSize() { return size_  + elements_[element_idx_].extra_size; }
+  // Set scroll speed of the scroll group.
+  // scroll_speed_drag: Scroll speed with a pointer drag operation.
+  // scroll_speed_wheel: Scroll speed with a mouse wheel operation.
+  void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
+    scroll_speed_drag_ = scroll_speed_drag;
+    scroll_speed_wheel_ = scroll_speed_wheel;
+  }
+
+  // Set drag start threshold.
+  // The value is used to determine if the drag operation should start after a
+  // pointer WENT_DOWN event happened.
+  void SetDragStartThreshold(float drag_start_threshold) {
+    drag_start_threshold_ = vec2i(drag_start_threshold, drag_start_threshold);
+  }
+
+  // Capture the pointer to the element.
+  // The element with element_id will continue to recieve pointer events
+  // exclusively until CapturePointer() with kDummyId API is called.
+  //
+  // element_id: an element ID that captures the pointer.
+  void CapturePointer(const char *element_id) {
+    persistent_.mouse_capture_ = element_id;
+    RecordId(element_id, current_pointer_);
+  }
+
+  // Check if the element can recieve pointer events.
+  // Return false if the pointer is captured by another element.
+  bool CanReceivePointerEvent(const char *element_id) {
+    return persistent_.mouse_capture_ == kDummyId ||
+           EqualId(persistent_.mouse_capture_, element_id);
+  }
+
+  // Check if the element is capturing a pointer events.
+  bool IsPointerCaptured(const char *element_id) {
+    return EqualId(persistent_.mouse_capture_, element_id);
+  }
+  vec2i GetPointerDelta() {
+    return input_.pointers_[0].mousedelta;
+  }
+
+  vec2i GroupSize() { return size_ + elements_[element_idx_].extra_size; }
 
   void RecordId(const char *id, int i) { persistent_.pointer_element[i] = id; }
   bool SameId(const char *id, int i) {
     return EqualId(id, persistent_.pointer_element[i]);
   }
 
-  Event CheckEvent() {
+  Event CheckEvent(bool check_dragevent_only) {
     auto &element = elements_[element_idx_];
     if (layout_pass_) {
       element.interactive = true;
@@ -544,27 +622,65 @@ class InternalState : public Group {
       // Check if this is an inactive part of an overlay.
       if (element.interactive) {
         auto id = element.id;
+
         // pointer_max_active_index_ is typically 0, so loop not expensive.
         for (int i = 0; i <= pointer_max_active_index_; i++) {
-          if (clip_mouse_inside_[i] &&
-              mathfu::InRange2D(input_.pointers_[i].mousepos,
-                                position_, position_ + size_)) {
+          if ((clip_mouse_inside_[i] &&
+               mathfu::InRange2D(input_.pointers_[i].mousepos, position_,
+                                 position_ + size_)) ||
+              IsPointerCaptured(id)) {
             auto &button = *pointer_buttons_[i];
             int event = 0;
 
-            if (button.went_down()) {
-              RecordId(id, i);
-              event |= EVENT_WENT_DOWN;
+            if (persistent_.dragging_pointer_ == i) {
+              // The pointer is in drag operation.
+              if (button.went_up()) {
+                event |= EVENT_END_DRAG;
+                persistent_.dragging_pointer_ = kPointerIndexInvalid;
+              } else if (button.is_down()) {
+                event |= EVENT_IS_DRAGGING;
+              }
+            } else {
+              if (!check_dragevent_only) {
+                // Regular pointer event handlings.
+                if (button.went_down()) {
+                  RecordId(id, i);
+                  event |= EVENT_WENT_DOWN;
+                }
+
+                if (button.went_up() && SameId(id, i)) {
+                  event |= EVENT_WENT_UP;
+                } else if (button.is_down() && SameId(id, i)) {
+                  event |= EVENT_IS_DOWN;
+                  // Record the last element we received an up on, as the target
+                  // for keyboard input.
+                  persistent_.keyboard_focus = id;
+                }
+              }
+
+              // Check for drag events.
+              if (button.went_down()) {
+                persistent_.drag_start_position_ = input_.pointers_[i].mousepos;
+              }
+              if (button.is_down() &&
+                  !mathfu::InRange2D(input_.pointers_[i].mousepos,
+                                     persistent_.drag_start_position_ -
+                                     drag_start_threshold_,
+                                     persistent_.drag_start_position_ +
+                                     drag_start_threshold_)) {
+                // Start drag event.
+                // Note that any element the event can recieve the drag start
+                // event, so that parent layer can start a dragging operation
+                // regardless if it's sub-layer is checking event.
+                event |= EVENT_START_DRAG;
+                persistent_.drag_start_position_ = input_.pointers_[i].mousepos;
+                persistent_.dragging_pointer_ = i;
+              }
             }
-            if (button.went_up() && SameId(id, i)) {
-              event |= EVENT_WENT_UP;
-            } else if (button.is_down() && SameId(id, i)) {
-              event |= EVENT_IS_DOWN;
-              // Record the last element we received an up on, as the target
-              // for keyboard input.
-              persistent_.keyboard_focus = id;
-            }
+
             if (!event) event = EVENT_HOVER;
+
+            current_pointer_ = i;
             // We only report an event for the first finger to touch an element.
             // This is intentional.
             return static_cast<Event>(event);
@@ -590,15 +706,15 @@ class InternalState : public Group {
 
   void CheckGamePadNavigation() {
     int dir = 0;
-    // FIXME: this should work on other platforms too.
-#   ifdef ANDROID_GAMEPAD
+// FIXME: this should work on other platforms too.
+#ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
       dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
                          gamepad.second.GetButton(Gamepad::kRight),
                          gamepad.second.GetButton(Gamepad::kButtonA));
     }
-#   endif
+#endif
     // For testing, also support keyboard:
     dir =
         CheckButtons(input_.GetButton(SDLK_LEFT), input_.GetButton(SDLK_RIGHT),
@@ -663,8 +779,7 @@ class InternalState : public Group {
       auto pos = position_;
       Mesh::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
                                         vec3(vec2(pos + GroupSize()), 0),
-                                        tex.size(),
-                                        patch_info);
+                                        tex.size(), patch_info);
     }
   }
 
@@ -702,6 +817,14 @@ class InternalState : public Group {
   bool gamepad_has_focus_element;
   Event gamepad_event;
 
+  // Drag operations.
+  float scroll_speed_drag_;
+  float scroll_speed_wheel_;
+  vec2i drag_start_threshold_;
+
+  // The latest pointer that returned an event.
+  int32_t current_pointer_;
+
   // Intra-frame persistent state.
   static struct PersistentState {
     PersistentState() {
@@ -710,7 +833,8 @@ class InternalState : public Group {
       for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
         pointer_element[i] = kDummyId;
       }
-      gamepad_focus = keyboard_focus = kDummyId;
+      gamepad_focus = keyboard_focus = mouse_capture_ = kDummyId;
+      dragging_pointer_ = kPointerIndexInvalid;
     }
 
     // For each pointer, the element id that last received a down event.
@@ -721,6 +845,15 @@ class InternalState : public Group {
     // The element that last received an up event. Keystrokes should be
     // directed to this element, e.g. for a text edit widget
     const char *keyboard_focus;
+
+    // The element that capturing the pointer.
+    // The element continues to recieve mouse events until it releases the
+    // capture.
+    const char *mouse_capture_;
+
+    // Keep tracking a pointer position of a drag start.
+    vec2i drag_start_position_;
+    int32_t dragging_pointer_;
   } persistent_;
 };
 
@@ -758,9 +891,7 @@ void Image(const char *texture_name, float size) {
   Gui()->Image(texture_name, size);
 }
 
-void Label(const char *text, float font_size) {
-  Gui()->Label(text, font_size);
-}
+void Label(const char *text, float font_size) { Gui()->Label(text, font_size); }
 
 void Label(const char *text, float font_size, const vec2 &size) {
   Gui()->Label(text, font_size, size);
@@ -778,9 +909,7 @@ void StartScroll(const vec2 &size, vec2i *offset) {
   Gui()->StartScroll(size, offset);
 }
 
-void EndScroll() {
-  Gui()->EndScroll();
-}
+void EndScroll() { Gui()->EndScroll(); }
 
 void CustomElement(
     const vec2 &virtual_size, const char *id,
@@ -794,7 +923,10 @@ void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size) {
 
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
-Event CheckEvent() { return Gui()->CheckEvent(); }
+Event CheckEvent() { return Gui()->CheckEvent(false); }
+Event CheckEvent(bool check_dragevent_only) {
+  return Gui()->CheckEvent(check_dragevent_only);
+}
 
 void ColorBackground(const vec4 &color) { Gui()->ColorBackground(color); }
 
@@ -814,6 +946,26 @@ mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
 }
 
 float GetScale() { return Gui()->GetScale(); }
+
+void CapturePointer(const char *element_id) {
+  Gui()->CapturePointer(element_id);
+}
+
+void ReleasePointer() {
+  Gui()->CapturePointer(kDummyId);
+}
+
+vec2i GetPointerDelta() {
+  return Gui()->GetPointerDelta();
+}
+
+void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
+  Gui()->SetScrollSpeed(scroll_speed_drag, scroll_speed_wheel);
+}
+
+void SetDragStartThreshold(float drag_start_threshold) {
+  Gui()->SetDragStartThreshold(drag_start_threshold);
+}
 
 }  // namespace gui
 }  // namespace fpl

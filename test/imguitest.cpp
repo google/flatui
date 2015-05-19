@@ -1,6 +1,7 @@
 #include "precompiled.h"
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
+#include "fplbase/utilities.h"
 #include "imgui/imgui.h"
 #include <cassert>
 
@@ -75,11 +76,11 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
     SetTextColor(mathfu::kOnes4f);
     Label("ffWAWÄテスト", 30);
     EndGroup();
-    StartGroup(LAYOUT_VERTICAL_LEFT, 20);
+
+    StartGroup(LAYOUT_VERTICAL_LEFT, 20, "scroll");
     StartScroll(vec2(200, 100), &scroll_offset);
     auto splash_tex = matman.FindTexture("textures/text_about.webp");
     ImageBackgroundNinePatch(*splash_tex, vec4(0.2f, 0.2f, 0.8f, 0.8f));
-    Label("The quick brown fox jumps over the lazy dog", 32);
     click_about_example("my_id4", true);
     Label("The quick brown fox jumps over the lazy dog", 24);
     Label("The quick brown fox jumps over the lazy dog", 20);
