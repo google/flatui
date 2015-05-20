@@ -32,6 +32,7 @@ static const float kScrollSpeedDragDefault = 2.0f;
 static const float kScrollSpeedWheelgDefault = 16.0f;
 static const int32_t kDragStartThresholdDefault = 8;
 static const int32_t kPointerIndexInvalid = -1;
+static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
 
 // This holds the transient state of a group while its layout is being
 // calculated / rendered.
@@ -421,6 +422,19 @@ class InternalState : public Group {
     }
   }
 
+  void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
+                              const vec2i &pos, const vec2i &size) {
+    if (!layout_pass_) {
+      tex.Set(0);
+      renderer_.color() = mathfu::kOnes4f;
+      image_shader_->Set(renderer_);
+      Mesh::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
+                                        vec3(vec2(pos + size), 0),
+                                        tex.size(),
+                                        patch_info);
+    }
+  }
+
   // An element that has sub-elements. Tracks its state in an instance of
   // Layout, that is pushed/popped from the stack as needed.
   void StartGroup(Direction direction, Alignment align, float spacing,
@@ -505,15 +519,21 @@ class InternalState : public Group {
       int32_t scroll_speed = scroll_speed_drag_;
 
       // Check drag event only.
-      elements_[element_idx_].interactive = true;
+      auto &element = elements_[element_idx_];
       size_ = psize;
+
+      // Set the interactive flag, check event and restore the flag.
+      auto interactive =  element.interactive;
+      element.interactive = true;
       auto event = CheckEvent(true);
+      element.interactive = interactive;
+
       if (event & EVENT_START_DRAG) {
         // Start drag.
-        CapturePointer(elements_[element_idx_].id);
+        CapturePointer(element.id);
       }
 
-      if (IsPointerCaptured(elements_[element_idx_].id)) {
+      if (IsPointerCaptured(element.id)) {
         if (event & EVENT_END_DRAG) {
           // Finish dragging and release the pointer.
           ReleasePointer();
@@ -566,6 +586,43 @@ class InternalState : public Group {
     }
   }
 
+  void StartSlider(Direction direction, float *value) {
+    auto event = CheckEvent(false);
+    if (!layout_pass_) {
+      if (event & EVENT_START_DRAG) {
+        CapturePointer(elements_[element_idx_].id);
+      } else if (event & EVENT_END_DRAG) {
+        ReleasePointer();
+      }
+      // Update the knob position.
+      if (event & EVENT_IS_DRAGGING ||
+          event & EVENT_WENT_DOWN ||
+          event & EVENT_IS_DOWN) {
+        switch (direction) {
+          case DIR_HORIZONTAL:
+            *value = static_cast<float>(GetPointerPosition().x() -
+                                        position_.x() -
+                                        size_.y() * 0.5f) /
+            static_cast<float>(size_.x() - size_.y());
+            break;
+          case DIR_VERTICAL:
+            *value = static_cast<float>(GetPointerPosition().y() -
+                                        position_.y() -
+                                        size_.x() * 0.5f) /
+            static_cast<float>(size_.y() - size_.x());
+            break;
+          default:
+            assert(0);
+        }
+        // Clamp the slider value.
+        *value = std::max(0.0f, std::min(1.0f, *value));
+        fpl::LogInfo("Changed Slider Value:%f", *value);
+      }
+    }
+  }
+
+  void EndSlider() {}
+
   // Set scroll speed of the scroll group.
   // scroll_speed_drag: Scroll speed with a pointer drag operation.
   // scroll_speed_wheel: Scroll speed with a mouse wheel operation.
@@ -602,9 +659,6 @@ class InternalState : public Group {
   bool IsPointerCaptured(const char *element_id) {
     return EqualId(persistent_.mouse_capture_, element_id);
   }
-  vec2i GetPointerDelta() {
-    return input_.pointers_[0].mousedelta;
-  }
 
   vec2i GroupSize() { return size_ + elements_[element_idx_].extra_size; }
 
@@ -625,7 +679,8 @@ class InternalState : public Group {
 
         // pointer_max_active_index_ is typically 0, so loop not expensive.
         for (int i = 0; i <= pointer_max_active_index_; i++) {
-          if ((clip_mouse_inside_[i] &&
+          if ((CanReceivePointerEvent(id) &&
+               clip_mouse_inside_[i] &&
                mathfu::InRange2D(input_.pointers_[i].mousepos, position_,
                                  position_ + size_)) ||
               IsPointerCaptured(id)) {
@@ -637,6 +692,7 @@ class InternalState : public Group {
               if (button.went_up()) {
                 event |= EVENT_END_DRAG;
                 persistent_.dragging_pointer_ = kPointerIndexInvalid;
+                persistent_.drag_start_position_ = kDragStartPoisitionInvalid;
               } else if (button.is_down()) {
                 event |= EVENT_IS_DRAGGING;
               }
@@ -663,6 +719,8 @@ class InternalState : public Group {
                 persistent_.drag_start_position_ = input_.pointers_[i].mousepos;
               }
               if (button.is_down() &&
+                  mathfu::InRange2D(persistent_.drag_start_position_, position_,
+                                    position_ + size_) &&
                   !mathfu::InRange2D(input_.pointers_[i].mousepos,
                                      persistent_.drag_start_position_ -
                                      drag_start_threshold_,
@@ -772,19 +830,20 @@ class InternalState : public Group {
   }
 
   void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info) {
-    if (!layout_pass_) {
-      tex.Set(0);
-      renderer_.color() = mathfu::kOnes4f;
-      image_shader_->Set(renderer_);
-      auto pos = position_;
-      Mesh::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
-                                        vec3(vec2(pos + GroupSize()), 0),
-                                        tex.size(), patch_info);
-    }
+    RenderTextureNinePatch(tex, patch_info, position_, GroupSize());
   }
 
   // Set Label's text color.
   void SetTextColor(const vec4 &color) { text_color_ = color; }
+
+private:
+  vec2i GetPointerDelta() {
+    return input_.pointers_[0].mousedelta;
+  }
+
+  vec2i GetPointerPosition() {
+    return input_.pointers_[0].mousepos;
+  }
 
   bool layout_pass_;
   std::vector<Element> elements_;
@@ -911,6 +970,12 @@ void StartScroll(const vec2 &size, vec2i *offset) {
 
 void EndScroll() { Gui()->EndScroll(); }
 
+void StartSlider(Direction direction, float *value) {
+  Gui()->StartSlider(direction, value);
+}
+
+void EndSlider() { Gui()->EndSlider(); }
+
 void CustomElement(
     const vec2 &virtual_size, const char *id,
     const std::function<void(const vec2i &pos, const vec2i &size)> renderer) {
@@ -919,6 +984,11 @@ void CustomElement(
 
 void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size) {
   Gui()->RenderTexture(tex, pos, size);
+}
+
+void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
+                            const vec2i &pos, const vec2i &size) {
+  Gui()->RenderTextureNinePatch(tex, patch_info, pos, size);
 }
 
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
@@ -953,10 +1023,6 @@ void CapturePointer(const char *element_id) {
 
 void ReleasePointer() {
   Gui()->CapturePointer(kDummyId);
-}
-
-vec2i GetPointerDelta() {
-  return Gui()->GetPointerDelta();
 }
 
 void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {

@@ -45,6 +45,36 @@ Event CheckBox(const char *texture_name_checked,
   return event;
 }
 
+// Example how to create a slider.
+Event Slider(const Texture &foreground_tex, const Texture &background_tex,
+             const vec2 &size, float bar_height, const char *id,
+             float *slider_value) {
+  StartGroup(LAYOUT_HORIZONTAL_BOTTOM, 0, id);
+  StartSlider(DIR_HORIZONTAL, slider_value);
+  auto event = CheckEvent();
+  CustomElement(size, id, [&foreground_tex, &background_tex, bar_height,
+                           slider_value](const vec2i &pos,
+                                         const vec2i &size){
+    // Render the slider.
+    auto bar_pos = pos;
+    auto bar_size = size;
+    bar_pos += vec2i(size.y() * 0.5, size.y() * (1.0 - bar_height) * 0.5);
+    bar_size = vec2i(std::max(bar_size.x() - size.y(), 0),
+                     bar_size.y() * bar_height);
+
+    auto knob_pos = pos;
+    auto knob_sizes = vec2i(size.y(), size.y());
+    knob_pos.x() += *slider_value * static_cast<float>(size.x() - size.y());
+    RenderTextureNinePatch(background_tex, vec4(0.5f, 0.5f, 0.5f, 0.5f),
+                  bar_pos, bar_size);
+    RenderTexture(foreground_tex, knob_pos, knob_sizes);
+  });
+
+  EndSlider();
+  EndGroup();
+  return event;
+}
+
 void TestGUI(MaterialManager &matman, FontManager &fontman,
              InputSystem &input) {
   static float f = 0.0f;
@@ -52,6 +82,7 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
   static bool show_about = false;
   static vec2i scroll_offset(mathfu::kZeros2i);
   static bool checkbox1_checked;
+  static float slider_value;
 
   auto click_about_example = [&](const char *id, bool about_on) {
     if (ImageButton("textures/text_about.webp", 50, id) == EVENT_WENT_UP) {
@@ -66,6 +97,11 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
     StartGroup(LAYOUT_HORIZONTAL_TOP, 10);
     StartGroup(LAYOUT_VERTICAL_LEFT, 20);
     click_about_example("my_id1", true);
+    // Textures used in widgets.
+    auto slider_background_tex = matman.FindTexture("textures/gray_bar.webp");
+    auto slider_knob_tex = matman.FindTexture("textures/white_circle.webp");
+    Slider(*slider_knob_tex, *slider_background_tex,
+           vec2(300, 25), 0.5f, "slider", &slider_value);
     CheckBox("textures/btn_check_on.webp",
              "textures/btn_check_off.webp",
              "CheckBox", 30, "checkbox_1", &checkbox1_checked);
@@ -135,6 +171,8 @@ int main() {
   matman.LoadTexture("textures/text_about.webp");
   matman.LoadTexture("textures/btn_check_on.webp");
   matman.LoadTexture("textures/btn_check_off.webp");
+  matman.LoadTexture("textures/white_circle.webp");
+  matman.LoadTexture("textures/gray_bar.webp");
   matman.StartLoadingTextures();
 
   // Wait for everything to finish loading...
