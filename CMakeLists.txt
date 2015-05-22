@@ -35,7 +35,8 @@ get_filename_component(
 
 # If the dependencies directory exists, assume this is the root directory for
 # all libraries required by this project.
-set(dependencies_root "${CMAKE_SOURCE_DIR}/dependencies")
+set(dependencies_root "${CMAKE_SOURCE_DIR}/dependencies" CACHE PATH
+    "Root directory for dependencies")
 if(EXISTS "${dependencies_root}")
   set(third_party_root "${dependencies_root}")
   set(fpl_root "${dependencies_root}")
