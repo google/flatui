@@ -24,6 +24,7 @@
 #include "fplbase/material_manager.h"
 #include "mathfu/constants.h"
 #include "font_manager.h"
+#include "internal/micro_edit.h"
 
 namespace fpl {
 namespace gui {
@@ -158,6 +159,14 @@ void Label(const char *text, float ysize, const mathfu::vec2 &size);
 // Set Label's text color.
 void SetTextColor(const vec4 &color);
 
+// Render an edit box as a GUI element.
+// ysize: vertical size in virtual resolution.
+// size: a size of the editbox in virtual resolution.
+// string: label string in UTF8
+// returns true if the widget is in edit.
+bool Edit(float ysize, const mathfu::vec2 &size, const char* id,
+          std::string* string);
+
 // Create a group of elements with the given layout and intra-element spacing.
 // Start/end calls must be matched and may be nested to create more complex
 // layouts.
@@ -190,11 +199,6 @@ Event CheckEvent(bool check_dragevent_only);
 void CapturePointer(const char *element_id);
 // Release a pointer capture.
 void ReleasePointer();
-
-// Retrieve a pointer position in current frame.
-vec2i GetPointerPosition();
-// Retrieve a pointer motion delta in current frame.
-vec2i GetPointerDelta();
 
 // Set scroll speeds of drag and mouse wheel operations.
 // default: kScrollSpeedDragDefault & kScrollSpeedWheelgDefault

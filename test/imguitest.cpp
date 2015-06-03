@@ -83,6 +83,8 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
   static vec2i scroll_offset(mathfu::kZeros2i);
   static bool checkbox1_checked;
   static float slider_value;
+  static std::string str("Edit box.");
+  static std::string str2("More Edit box.");
 
   auto click_about_example = [&](const char *id, bool about_on) {
     if (ImageButton("textures/text_about.webp", 50, id) == EVENT_WENT_UP) {
@@ -100,6 +102,8 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
     // Textures used in widgets.
     auto slider_background_tex = matman.FindTexture("textures/gray_bar.webp");
     auto slider_knob_tex = matman.FindTexture("textures/white_circle.webp");
+    Edit(30, vec2(400, 30), "edit2", &str2);
+    Edit(30, vec2(400, 30), "edit", &str);
     Slider(*slider_knob_tex, *slider_background_tex,
            vec2(300, 25), 0.5f, "slider", &slider_value);
     CheckBox("textures/btn_check_on.webp",
@@ -177,13 +181,13 @@ int main() {
 
   // Wait for everything to finish loading...
   while (matman.TryFinalize() == false) {
-    renderer.AdvanceFrame(input.minimized_);
+    renderer.AdvanceFrame(input.minimized());
   }
 
   // Main loop.
-  while (!input.exit_requested_) {
+  while (!input.exit_requested()) {
     input.AdvanceFrame(&renderer.window_size());
-    renderer.AdvanceFrame(input.minimized_);
+    renderer.AdvanceFrame(input.minimized());
 
     const float kColorGray = 0.5f;
     renderer.ClearFrameBuffer(

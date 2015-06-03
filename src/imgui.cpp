@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "imgui/imgui.h"
 #include "fplbase/utilities.h"
+#include "imgui/imgui.h"
+#include "imgui/internal/micro_edit.h"
 #include "SDL.h"
 
 namespace fpl {
@@ -147,8 +148,8 @@ class InternalState : public Group {
 
     scroll_speed_drag_ = kScrollSpeedDragDefault;
     scroll_speed_wheel_ = kScrollSpeedWheelgDefault;
-    drag_start_threshold_ = vec2i(kDragStartThresholdDefault,
-                                  kDragStartThresholdDefault);
+    drag_start_threshold_ =
+        vec2i(kDragStartThresholdDefault, kDragStartThresholdDefault);
     current_pointer_ = kPointerIndexInvalid;
 
     fontman_.StartLayoutPass();
@@ -340,6 +341,139 @@ class InternalState : public Group {
     }
   }
 
+  bool Edit(float ysize, const mathfu::vec2 &edit_size, const char *id,
+            std::string *text) {
+    StartGroup(GetDirection(LAYOUT_HORIZONTAL_BOTTOM),
+               GetAlignment(LAYOUT_HORIZONTAL_BOTTOM), 0, id);
+    bool in_edit = false;
+    if (EqualId(persistent_.input_focus_, id)) {
+      // The widget is in edit.
+      in_edit = true;
+    }
+
+    // Check event, this marks this element as an interactive element.
+    CheckEvent(false);
+
+    // Set text color
+    renderer_.color() = text_color_;
+
+    auto physical_label_size = VirtualToPhysical(edit_size);
+    auto size = VirtualToPhysical(vec2(0, ysize));
+    auto ui_text = text;
+    if (in_edit && persistent_.text_edit_.GetEditingText()) {
+      // Get a text from the micro editor when it's editing.
+      ui_text = persistent_.text_edit_.GetEditingText();
+    }
+    auto buffer = fontman_.GetBuffer(ui_text->c_str(), ui_text->length(),
+                                     size.y(), physical_label_size, true);
+    assert(buffer);
+    auto pos = Label(ui_text->c_str(), *buffer);
+    if (!layout_pass_) {
+      auto show_caret = false;
+
+      if (EqualId(persistent_.input_focus_, id)) {
+        // The edit box is in focus. Now we can start text input.
+        if (persistent_.input_capture_ != id) {
+          // Initialize the editor.
+          persistent_.text_edit_.Initialize(id, text);
+          persistent_.text_edit_.SetLanguage(fontman_.GetLanguage());
+          CaptureInput(id);
+        }
+        show_caret = true;
+      }
+
+      int32_t input_region_start, input_region_length;
+      int32_t focus_region_start, focus_region_length;
+      if (persistent_.text_edit_.GetInputRegions(
+              &input_region_start, &input_region_length, &focus_region_start,
+              &focus_region_length)) {
+        // IME is active in the editor.
+        // Show some input region indicators.
+        if (show_caret && input_region_length) {
+          const float kInputLineWidth = 1.0f;
+          const float kFocusLineWidth = 3.0f;
+
+          // Calculate and render an input text region.
+          DrawUnderline(*buffer, input_region_start, input_region_length,
+                        pos, physical_label_size.y(), kInputLineWidth);
+
+          // Calculate and render a focus text region inside the input text.
+          if (focus_region_length) {
+            DrawUnderline(*buffer, focus_region_start, focus_region_length,
+                          pos, physical_label_size.y(), kFocusLineWidth);
+          }
+
+          // Specify IME rect to input system.
+          auto ime_rect = pos + buffer->GetCaretPosition(input_region_start);
+          auto ime_size = pos + buffer->GetCaretPosition(input_region_start +
+                                                   input_region_length) -
+                          ime_rect;
+          if (focus_region_length) {
+            ime_rect = pos + buffer->GetCaretPosition(focus_region_start);
+            ime_size = pos + buffer->GetCaretPosition(focus_region_start +
+                                                      focus_region_length) -
+                       ime_rect;
+          }
+          vec4 rect;
+          rect.x() = ime_rect.x();
+          rect.y() = ime_rect.y();
+          rect.z() = ime_size.x();
+          rect.w() = ime_size.y();
+          input_.SetTextInputRect(rect);
+        }
+      }
+
+      if (show_caret) {
+        // Render caret.
+        const float kCaretPositionSizeFactor = 0.8f;
+        auto caret_pos =
+            buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
+        caret_pos += pos;
+        // Caret Y position is at the base line, add some offset.
+        caret_pos.y() -= (physical_label_size.y() * kCaretPositionSizeFactor);
+        RenderCaret(caret_pos, vec2i(1, physical_label_size.y()));
+
+        // Handle text input events only after the rendering for the pass is
+        // finished.
+        auto finished_input = persistent_.text_edit_.HandleInputEvents(
+            input_.GetTextInputEvents());
+        input_.ClearTextInputEvents();
+        if (finished_input) {
+          CaptureInput(kDummyId);
+        }
+      }
+    }
+    EndGroup();
+    return in_edit;
+  }
+
+  // Helper for Edit widget to draw an underline.
+  void DrawUnderline(const FontBuffer &buffer, int32_t start, int32_t length,
+                     const vec2i &pos, float font_size, float line_width) {
+    const float kUnderlineOffsetFactor = 0.2f;
+
+    auto startpos = buffer.GetCaretPosition(start);
+    auto size = buffer.GetCaretPosition(start + length) - startpos;
+    startpos.y() += font_size * kUnderlineOffsetFactor;
+    size.y() += line_width;
+
+    RenderQuad(color_shader_, mathfu::kOnes4f, pos + startpos, size);
+  }
+
+  // Helper for Edit widget to render a caret.
+  void RenderCaret(const vec2i &caret_pos, const vec2i &caret_size) {
+    // TODO: Make the caret rendering configurable.
+
+    // Caret blink duration.
+    // 1.0f/100.0f indicates the counter value increased by 10 for each seconds,
+    // so the caret blink cycle becomes 10 / (2 * M_PI) second.
+    const float kCareteBlinkDuration = 1.0f / 100.0f;
+    auto t = GetTicks();
+    if (sinf(static_cast<float>(t) * kCareteBlinkDuration) > 0.0f) {
+      RenderQuad(color_shader_, mathfu::kOnes4f, caret_pos, caret_size);
+    }
+  }
+
   // Text label.
   void Label(const char *text, float ysize) {
     auto size = vec2(0, ysize);
@@ -353,28 +487,20 @@ class InternalState : public Group {
 
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto buffer =
-        fontman_.GetBuffer(text, strlen(text), size.y(), physical_label_size);
-    if (layout_pass_) {
-      if (buffer == nullptr) {
-        // Upload a texture & flush glyph cache
-        fontman_.FlushAndUpdate();
+    auto buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
+                                     physical_label_size, false);
+    assert(buffer);
+    Label(text, *buffer);
+  }
 
-        // Try to create buffer again.
-        buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
-                                    physical_label_size);
-        if (buffer == nullptr) {
-          fpl::LogError("The given text '%s' with ",
-                        "size:%d does not fit a glyph cache. Try to "
-                        "increase a cache size or use GetTexture() API ",
-                        "instead.\n", text, size.y());
-        }
-      }
-      NewElement(buffer->get_size(), text);
-      Extend(buffer->get_size());
+  vec2i Label(const char *text, const FontBuffer &buffer) {
+    vec2i pos = mathfu::kZeros2i;
+    if (layout_pass_) {
+      NewElement(buffer.get_size(), text);
+      Extend(buffer.get_size());
     } else {
       // Check if texture atlas needs to be updated.
-      if (buffer->get_pass() > 0) {
+      if (buffer.get_pass() > 0) {
         fontman_.StartRenderPass();
       }
 
@@ -383,18 +509,19 @@ class InternalState : public Group {
         fontman_.GetAtlasTexture()->Set(0);
 
         font_shader_->Set(renderer_);
-        auto pos = Position(*element);
+        pos = Position(*element);
         font_shader_->SetUniform("pos_offset", vec3(pos.x(), pos.y(), 0.0f));
 
         const Attribute kFormat[] = {kPosition3f, kTexCoord2f, kEND};
         Mesh::RenderArray(
-            GL_TRIANGLES, buffer->get_indices()->size(), kFormat,
+            GL_TRIANGLES, buffer.get_indices()->size(), kFormat,
             sizeof(FontVertex),
-            reinterpret_cast<const char *>(buffer->get_vertices()->data()),
-            buffer->get_indices()->data());
+            reinterpret_cast<const char *>(buffer.get_vertices()->data()),
+            buffer.get_indices()->data());
         Advance(element->size);
       }
     }
+    return pos;
   }
 
   // Custom element with user supplied renderer.
@@ -429,8 +556,7 @@ class InternalState : public Group {
       renderer_.color() = mathfu::kOnes4f;
       image_shader_->Set(renderer_);
       Mesh::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
-                                        vec3(vec2(pos + size), 0),
-                                        tex.size(),
+                                        vec3(vec2(pos + size), 0), tex.size(),
                                         patch_info);
     }
   }
@@ -523,7 +649,7 @@ class InternalState : public Group {
       size_ = psize;
 
       // Set the interactive flag, check event and restore the flag.
-      auto interactive =  element.interactive;
+      auto interactive = element.interactive;
       element.interactive = true;
       auto event = CheckEvent(true);
       element.interactive = interactive;
@@ -538,24 +664,24 @@ class InternalState : public Group {
           // Finish dragging and release the pointer.
           ReleasePointer();
         }
-        pointer_delta = input_.pointers_[0].mousedelta;
+        pointer_delta = input_.get_pointers()[0].mousedelta;
       } else {
-        if (mathfu::InRange2D(input_.pointers_[0].mousepos, position_,
-                               position_ + psize)) {
+        if (mathfu::InRange2D(input_.get_pointers()[0].mousepos, position_,
+                              position_ + psize)) {
           pointer_delta = input_.mousewheel_delta();
           scroll_speed = -scroll_speed_wheel_;
         }
       }
 
       // Scroll the pane on user input.
-      *offset = vec2i::Min(elements_[element_idx_].extra_size,
-                           vec2i::Max(mathfu::kZeros2i,
-                                      *offset - pointer_delta * scroll_speed));
+      *offset = vec2i::Min(
+          elements_[element_idx_].extra_size,
+          vec2i::Max(mathfu::kZeros2i, *offset - pointer_delta * scroll_speed));
 
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
       for (int i = 0; i <= pointer_max_active_index_; i++) {
-        if (!mathfu::InRange2D(input_.pointers_[i].mousepos, position_,
+        if (!mathfu::InRange2D(input_.get_pointers()[i].mousepos, position_,
                                position_ + psize)) {
           clip_mouse_inside_[i] = false;
         }
@@ -595,21 +721,18 @@ class InternalState : public Group {
         ReleasePointer();
       }
       // Update the knob position.
-      if (event & EVENT_IS_DRAGGING ||
-          event & EVENT_WENT_DOWN ||
+      if (event & EVENT_IS_DRAGGING || event & EVENT_WENT_DOWN ||
           event & EVENT_IS_DOWN) {
         switch (direction) {
           case DIR_HORIZONTAL:
             *value = static_cast<float>(GetPointerPosition().x() -
-                                        position_.x() -
-                                        size_.y() * 0.5f) /
-            static_cast<float>(size_.x() - size_.y());
+                                        position_.x() - size_.y() * 0.5f) /
+                     static_cast<float>(size_.x() - size_.y());
             break;
           case DIR_VERTICAL:
             *value = static_cast<float>(GetPointerPosition().y() -
-                                        position_.y() -
-                                        size_.x() * 0.5f) /
-            static_cast<float>(size_.y() - size_.x());
+                                        position_.y() - size_.x() * 0.5f) /
+                     static_cast<float>(size_.y() - size_.x());
             break;
           default:
             assert(0);
@@ -638,7 +761,31 @@ class InternalState : public Group {
     drag_start_threshold_ = vec2i(drag_start_threshold, drag_start_threshold);
   }
 
-  // Capture the pointer to the element.
+  // Capture the input to an element.
+  void CaptureInput(const char *element_id) {
+    persistent_.input_capture_ = element_id;
+    if (element_id != kDummyId) {
+      // Start recording input events.
+      if (!input_.IsRecordingTextInput()) {
+        input_.RecordTextInput(true);
+      }
+
+      // Enable IME.
+      input_.StartTextInput();
+    } else {
+      // The element releases keyboard focus as well.
+      persistent_.input_focus_ = kDummyId;
+
+      // Stop recording input events.
+      if (input_.IsRecordingTextInput()) {
+        input_.RecordTextInput(false);
+      }
+      // Disable IME
+      input_.StopTextInput();
+    }
+  }
+
+  // Capture the pointer to an element.
   // The element with element_id will continue to recieve pointer events
   // exclusively until CapturePointer() with kDummyId API is called.
   //
@@ -679,9 +826,8 @@ class InternalState : public Group {
 
         // pointer_max_active_index_ is typically 0, so loop not expensive.
         for (int i = 0; i <= pointer_max_active_index_; i++) {
-          if ((CanReceivePointerEvent(id) &&
-               clip_mouse_inside_[i] &&
-               mathfu::InRange2D(input_.pointers_[i].mousepos, position_,
+          if ((CanReceivePointerEvent(id) && clip_mouse_inside_[i] &&
+               mathfu::InRange2D(input_.get_pointers()[i].mousepos, position_,
                                  position_ + size_)) ||
               IsPointerCaptured(id)) {
             auto &button = *pointer_buttons_[i];
@@ -708,36 +854,42 @@ class InternalState : public Group {
                   event |= EVENT_WENT_UP;
                 } else if (button.is_down() && SameId(id, i)) {
                   event |= EVENT_IS_DOWN;
+
+                  // Stop input handling.
+                  CaptureInput(kDummyId);
                   // Record the last element we received an up on, as the target
                   // for keyboard input.
-                  persistent_.keyboard_focus = id;
+                  persistent_.input_focus_ = id;
                 }
               }
 
               // Check for drag events.
               if (button.went_down()) {
-                persistent_.drag_start_position_ = input_.pointers_[i].mousepos;
+                persistent_.drag_start_position_ =
+                    input_.get_pointers()[i].mousepos;
               }
               if (button.is_down() &&
                   mathfu::InRange2D(persistent_.drag_start_position_, position_,
                                     position_ + size_) &&
-                  !mathfu::InRange2D(input_.pointers_[i].mousepos,
-                                     persistent_.drag_start_position_ -
-                                     drag_start_threshold_,
-                                     persistent_.drag_start_position_ +
-                                     drag_start_threshold_)) {
+                  !mathfu::InRange2D(
+                       input_.get_pointers()[i].mousepos,
+                       persistent_.drag_start_position_ - drag_start_threshold_,
+                       persistent_.drag_start_position_ +
+                           drag_start_threshold_)) {
                 // Start drag event.
                 // Note that any element the event can recieve the drag start
                 // event, so that parent layer can start a dragging operation
                 // regardless if it's sub-layer is checking event.
                 event |= EVENT_START_DRAG;
-                persistent_.drag_start_position_ = input_.pointers_[i].mousepos;
+                persistent_.drag_start_position_ =
+                    input_.get_pointers()[i].mousepos;
                 persistent_.dragging_pointer_ = i;
               }
             }
 
             if (!event) event = EVENT_HOVER;
 
+            gamepad_has_focus_element = true;
             current_pointer_ = i;
             // We only report an event for the first finger to touch an element.
             // This is intentional.
@@ -746,7 +898,7 @@ class InternalState : public Group {
         }
         // Generate hover events for the current element the gamepad is focused
         // on.
-        if (EqualId(persistent_.gamepad_focus, id)) {
+        if (EqualId(persistent_.input_focus_, id)) {
           gamepad_has_focus_element = true;
           return gamepad_event;
         }
@@ -759,10 +911,16 @@ class InternalState : public Group {
     if (!gamepad_has_focus_element)
       // This may happen when a GUI first appears or when elements get removed.
       // TODO: only do this when there's an actual gamepad connected.
-      persistent_.gamepad_focus = NextInteractiveElement(-1, 1);
+      persistent_.input_focus_ = NextInteractiveElement(-1, 1);
   }
 
   void CheckGamePadNavigation() {
+    // Gamepad/keyboard navigation only happens when the keyboard is not
+    // captured.
+    if (persistent_.input_capture_ != kDummyId) {
+      return;
+    }
+
     int dir = 0;
 // FIXME: this should work on other platforms too.
 #ifdef ANDROID_GAMEPAD
@@ -780,8 +938,8 @@ class InternalState : public Group {
     // Now find the current element, and move to the next.
     if (dir) {
       for (auto &e : elements_) {
-        if (EqualId(e.id, persistent_.gamepad_focus)) {
-          persistent_.gamepad_focus =
+        if (EqualId(e.id, persistent_.input_focus_)) {
+          persistent_.input_focus_ =
               NextInteractiveElement(&e - &elements_[0], dir);
           break;
         }
@@ -836,14 +994,10 @@ class InternalState : public Group {
   // Set Label's text color.
   void SetTextColor(const vec4 &color) { text_color_ = color; }
 
-private:
-  vec2i GetPointerDelta() {
-    return input_.pointers_[0].mousedelta;
-  }
+ private:
+  vec2i GetPointerDelta() { return input_.get_pointers()[0].mousedelta; }
 
-  vec2i GetPointerPosition() {
-    return input_.pointers_[0].mousepos;
-  }
+  vec2i GetPointerPosition() { return input_.get_pointers()[0].mousepos; }
 
   bool layout_pass_;
   std::vector<Element> elements_;
@@ -892,7 +1046,7 @@ private:
       for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
         pointer_element[i] = kDummyId;
       }
-      gamepad_focus = keyboard_focus = mouse_capture_ = kDummyId;
+      input_focus_ = input_capture_ = mouse_capture_ = kDummyId;
       dragging_pointer_ = kPointerIndexInvalid;
     }
 
@@ -900,15 +1054,18 @@ private:
     const char *pointer_element[InputSystem::kMaxSimultanuousPointers];
     // The element the gamepad is currently "over", simulates the mouse
     // hovering over an element.
-    const char *gamepad_focus;
-    // The element that last received an up event. Keystrokes should be
-    // directed to this element, e.g. for a text edit widget
-    const char *keyboard_focus;
+    const char *input_focus_;
+
+    // The element that capturing the keyboard.
+    const char *input_capture_;
 
     // The element that capturing the pointer.
     // The element continues to recieve mouse events until it releases the
     // capture.
     const char *mouse_capture_;
+
+    // Simple text edit handler for an edit box.
+    MicroEdit text_edit_;
 
     // Keep tracking a pointer position of a drag start.
     vec2i drag_start_position_;
@@ -954,6 +1111,11 @@ void Label(const char *text, float font_size) { Gui()->Label(text, font_size); }
 
 void Label(const char *text, float font_size, const vec2 &size) {
   Gui()->Label(text, font_size, size);
+}
+
+bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
+          std::string *string) {
+  return Gui()->Edit(ysize, size, id, string);
 }
 
 void StartGroup(Layout layout, float spacing, const char *id) {
@@ -1021,9 +1183,7 @@ void CapturePointer(const char *element_id) {
   Gui()->CapturePointer(element_id);
 }
 
-void ReleasePointer() {
-  Gui()->CapturePointer(kDummyId);
-}
+void ReleasePointer() { Gui()->CapturePointer(kDummyId); }
 
 void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
   Gui()->SetScrollSpeed(scroll_speed_drag, scroll_speed_wheel);

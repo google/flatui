@@ -94,7 +94,9 @@ set(imgui_SRCS
     include/imgui/imgui.h
     include/imgui/font_manager.h
     include/imgui/internal/glyph_cache.h
+    include/imgui/internal/micro_edit.h
     src/font_manager.cpp
+    src/micro_edit.cpp
     src/imgui.cpp)
 
 # Includes for this project.

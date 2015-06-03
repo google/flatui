@@ -44,6 +44,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
   $(IMGUI_RELATIVE_DIR)/src/imgui.cpp \
   $(IMGUI_RELATIVE_DIR)/src/font_manager.cpp \
+  $(IMGUI_RELATIVE_DIR)/src/micro_edit.cpp \
 
 .PHONY: clean
 clean: clean_assets clean_generated_includes

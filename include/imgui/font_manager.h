@@ -30,6 +30,7 @@ typedef struct FT_FaceRec_ *FT_Face;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
 struct hb_font_t;
 struct hb_buffer_t;
+struct hb_glyph_info_t;
 
 namespace fpl {
 
@@ -37,6 +38,7 @@ namespace fpl {
 class FontTexture;
 class FontBuffer;
 class FontMetrics;
+class WordEnumerator;
 
 // Constant to convert FreeType unit to pixel unit.
 // In FreeType & Harfbuzz, the position value unit is 1/64 px whereas
@@ -52,6 +54,12 @@ const int32_t kGlyphCacheHeight = 1024;
 // The line height is derived as the factor * a font height.
 // To change the line height, use SetLineHeight() API.
 const float kLineHeightDefault = 1.2f;
+
+// Caret position indicating invalid result.
+const vec2i kCaretPositionInvalid = vec2i(-1,-1);
+
+// Default language used for a line break.
+const char *const kLineBreakDefaultLanguage = "en";
 
 // FontManager manages font rendering with OpenGL utilizing freetype
 // and harfbuzz as a glyph rendering and layout back end.
@@ -91,15 +99,16 @@ class FontManager {
   // When this happens, caller may flush the glyph cache with
   // FlushAndUpdate() call and re-try the GetBuffer() call.
   FontBuffer *GetBuffer(const char *text, const uint32_t length,
-                        const float ysize);
+                        const float ysize, bool caret_info);
 
-  // Multil line version of GetBuffer() API.
+  // Multi line version of GetBuffer() API.
   // size: max size of the rendered text in pixels.
   //       0 for size.x indicates a single line.
   //       0 for size.y indicates no height restriction.
   //       The API renders whole texts in the label in the case.
   FontBuffer *GetBuffer(const char *text, const uint32_t length,
-                        const float ysize, const mathfu::vec2i &size);
+                        const float ysize, const mathfu::vec2i &size,
+                        bool caret_info);
 
   // Set renderer. Renderer is used to create a texture instance.
   void SetRenderer(Renderer &renderer) {
@@ -163,6 +172,9 @@ class FontManager {
   // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
   void SetLanguage(const std::string &language) { language_ = language; }
 
+  // Retrieve current language setting.
+  const std::string& GetLanguage() { return language_; }
+
   // Set a line height in multi line text.
   void SetLineHeight(const float line_height) { line_height_ = line_height; }
 
@@ -221,6 +233,18 @@ class FontManager {
 
   // Convert requested glyph size using SizeSelector if it's set.
   int32_t ConvertSize(const int32_t size);
+
+  // Retrieve a caret count in a specific glyph from linebreak and halfbuzz
+  // glyph information.
+  int32_t GetCaretPosCount(const WordEnumerator &enumerator,
+                           const hb_glyph_info_t *info, int32_t glyph_count,
+                           int32_t index);
+
+  // Create FontBuffer with requested parameters.
+  // The function may return nullptr if the glyph cache is full.
+  FontBuffer *CreateBuffer(const char *text, const uint32_t length,
+                           const float ysize, const mathfu::vec2i &size,
+                           bool caret_info);
 
   // Renderer instance.
   Renderer *renderer_;
@@ -423,10 +447,21 @@ class FontBuffer {
   FontBuffer() : revision_(0) {}
 
   // Constructor with a buffer sizse.
-  FontBuffer(uint32_t size) : revision_(0) {
+  // size: A size of the FontBuffer in a number of glyphs.
+  // caret_info: Indicates if the FontBuffer also maintains a caret position
+  // buffer.
+  // Caret position does not match to glpyh position 1 to 1, because a glyph can
+  // have multiple caret positions (e.g. Single 'ff' glyph can have 2 caret
+  // positions).
+  // Since it has a strong relationship to rendering positions, we store the
+  // caret position information in the FontBuffer.
+  FontBuffer(uint32_t size, bool caret_info) : revision_(0) {
     indices_.reserve(size * kIndiciesPerCodePoint);
     vertices_.reserve(size * kVerticesPerCodePoint);
     code_points_.reserve(size);
+    if (caret_info) {
+      caret_positions_.reserve(size + 1);
+    }
   }
   ~FontBuffer() {}
 
@@ -468,6 +503,9 @@ class FontBuffer {
   void AddVertices(const vec2 &pos, const int32_t base_line, const float scale,
                    const GlyphCacheEntry &entry);
 
+  // Add caret position to the buffer.
+  void AddCaretPosition(float x, float y);
+
   // Update UV information of a glyph entry.
   // uv vector should include top left corner of UV value as xy, and
   // bottom right of UV value s wz component of the vector.
@@ -478,6 +516,15 @@ class FontBuffer {
     assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
     assert(indices_.size() == code_points_.size() * kIndiciesPerCodePoint);
     return true;
+  }
+
+  // Retrieve a caret position with a specified character.
+  // Returns kCaretPositionInvalid if the buffer doesn't contain caret
+  // information or the index is out of a range.
+  vec2i GetCaretPosition(size_t index) const {
+    if (!caret_positions_.capacity() || index > caret_positions_.size())
+      return kCaretPositionInvalid;
+    return caret_positions_[index];
   }
 
  private:
@@ -497,6 +544,11 @@ class FontBuffer {
   // Code points used in the buffer. This array is used to fetch and update UV
   // entries when the glyph cache is flushed.
   std::vector<uint32_t> code_points_;
+
+  // Caret positions in the buffer. We need to track them differently than a
+  // vertices information because we support ligatures so that single glyph
+  // can include multiple caret positions.
+  std::vector<vec2i> caret_positions_;
 
   // Size of the string in pixels.
   vec2i size_;

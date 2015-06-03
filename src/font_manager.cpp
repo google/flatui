@@ -21,6 +21,7 @@
 // Harfbuzz header
 #include <hb.h>
 #include <hb-ft.h>
+#include <hb-ot.h>
 
 #include "font_manager.h"
 #include "fplbase/utilities.h"
@@ -31,9 +32,6 @@
 
 namespace fpl {
 
-// Constants
-const char *kLineBreakDefaultLaunguage = "en";
-
 // Singleton object of FreeType&Harfbuzz.
 FT_Library *FontManager::ft_;
 hb_buffer_t *FontManager::harfbuzz_buf_;
@@ -41,36 +39,39 @@ hb_buffer_t *FontManager::harfbuzz_buf_;
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
 class WordEnumerator {
-public:
+ public:
   // Delete default constructor.
   WordEnumerator() = delete;
 
   // buffer: a buffer contains a linebreak information.
   // Note that the class accesses the given buffer while it's lifetime.
-  WordEnumerator(const std::vector<char> &buffer)
-  : current_index_(0), current_length_(0), finished_(false) {
+  WordEnumerator(const std::vector<char> &buffer, bool single_line)
+      : current_index_(0), current_length_(0), finished_(false) {
     buffer_ = &buffer;
+    single_line_ = single_line;
   }
 
   // Advance the current word index
   // return: true if the buffer has next word. false if the buffer finishes.
   bool Advance() {
     assert(buffer_);
-    if (buffer_->size() == 0 && finished_ == false) {
-      // If there is no word breaking information, allow one iteration.
+    if (single_line_ && finished_ == false) {
+      // For a single line, allow one iteration.
       finished_ = true;
+      current_length_ = buffer_->size();
       return true;
     }
 
     current_index_ += current_length_;
-    if (current_index_ >= buffer_->size()) {
+    if (current_index_ >= buffer_->size() || finished_) {
       return false;
     }
 
     size_t index = current_index_;
     while (index < buffer_->size()) {
       auto word_info = (*buffer_)[index];
-      if (word_info == LINEBREAK_MUSTBREAK || word_info == LINEBREAK_ALLOWBREAK) {
+      if (word_info == LINEBREAK_MUSTBREAK ||
+          word_info == LINEBREAK_ALLOWBREAK) {
         break;
       }
       index++;
@@ -80,13 +81,13 @@ public:
   }
 
   // Get an index of the current word in the given text buffer.
-  uint32_t GetCurrentWordIndex() {
+  uint32_t GetCurrentWordIndex() const {
     assert(buffer_);
     return current_index_;
   }
 
   // Get a length of the current word in the given text buffer.
-  size_t GetCurrentWordLength() {
+  size_t GetCurrentWordLength() const {
     assert(buffer_);
     return current_length_;
   }
@@ -97,14 +98,18 @@ public:
     // Check if the first advance is made.
     if (current_index_ + current_length_ == 0) return false;
     return (*buffer_)[current_index_ + current_length_ - 1] ==
-    LINEBREAK_MUSTBREAK;
+           LINEBREAK_MUSTBREAK;
   }
 
-private:
+  // Retrieve the word buffer.
+  const std::vector<char> *GetBuffer() const { return buffer_; }
+
+ private:
   size_t current_index_;
   size_t current_length_;
   const std::vector<char> *buffer_;
   bool finished_;
+  bool single_line_;
 };
 
 FontManager::FontManager() {
@@ -134,7 +139,7 @@ void FontManager::Initialize() {
   face_initialized_ = false;
   current_atlas_revision_ = 0;
   current_pass_ = 0;
-  language_ = kLineBreakDefaultLaunguage;
+  language_ = kLineBreakDefaultLanguage;
   line_height_ = kLineHeightDefault;
 
   ft_ = new FT_Library;
@@ -152,7 +157,7 @@ void FontManager::Initialize() {
   // Initialize libunibreak
   init_linebreak();
 #else
-  #error libunibreak is required for multiline label support!
+#error libunibreak is required for multiline label support!
 #endif
 }
 
@@ -166,8 +171,30 @@ void FontManager::Terminate() {
 }
 
 FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
-                                   const float ysize,
-                                   const mathfu::vec2i &size) {
+                                   const float ysize, const mathfu::vec2i &size,
+                                   bool caret_info) {
+  auto buffer = CreateBuffer(text, length, ysize, size, caret_info);
+  if (buffer == nullptr) {
+    // Flush glyph cache & Upload a texture
+    FlushAndUpdate();
+
+    // Try to create buffer again.
+    buffer = CreateBuffer(text, length, ysize,
+                          size, caret_info);
+    if (buffer == nullptr) {
+      fpl::LogError("The given text '%s' with ",
+                    "size:%d does not fit a glyph cache. Try to "
+                    "increase a cache size or use GetTexture() API ",
+                    "instead.\n", text, size.y());
+    }
+  }
+  return buffer;
+}
+
+FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
+                                      const float ysize,
+                                      const mathfu::vec2i &size,
+                                      bool caret_info) {
   // Adjust y size if the size selector is set.
   int32_t converted_ysize = ConvertSize(ysize);
   float scale = ysize / static_cast<float>(converted_ysize);
@@ -195,16 +222,15 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
   FT_Set_Pixel_Sizes(face_, 0, converted_ysize);
 
   // Create FontBuffer with derived string length.
-  std::unique_ptr<FontBuffer> buffer(new FontBuffer(length));
+  std::unique_ptr<FontBuffer> buffer(new FontBuffer(length, caret_info));
 
   // Retrieve word breaking information using libunibreak.
-  if (multi_line) {
+  if (length) {
     wordbreak_info_.resize(length);
     set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text), length,
                         language_.c_str(), &wordbreak_info_[0]);
-  } else {
-    wordbreak_info_.resize(0);
   }
+  WordEnumerator word_enum(wordbreak_info_, !multi_line);
 
   // Initialize font metrics parameters.
   int32_t base_line = ysize * face_->ascender / face_->units_per_EM;
@@ -217,7 +243,6 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
   uint32_t total_glyph_count = 0;
   uint32_t total_height = ysize;
   bool lastline_must_break = false;
-  WordEnumerator word_enum(wordbreak_info_);
 
   // Find words and layout them.
   while (word_enum.Advance()) {
@@ -306,6 +331,27 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
       // Update UV.
       buffer->UpdateUV(total_glyph_count + i, cache->get_uv());
 
+      // Update caret information if it has been requested.
+      if (caret_info) {
+        // Is the current glyph a ligature?
+        // We are not using hb_ot_layout_get_ligature_carets() as the API barely
+        // work with existing fonts.
+        // https://bugs.freedesktop.org/show_bug.cgi?id=90962 tracks a request
+        // for the issue.
+        auto carets = GetCaretPosCount(word_enum, glyph_info, glyph_count, i);
+
+        mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
+        auto scaled_offset = cache->get_offset().x() * scale;
+        auto scaled_size = cache->get_size().x() * scale;
+        float scaled_base_line = base_line * scale;
+        // Add caret points
+        for (auto i = 0; i < carets; ++i) {
+          buffer->AddCaretPosition(
+              rounded_pos.x() + scaled_offset + i * scaled_size / carets,
+              rounded_pos.y() + scaled_base_line);
+        }
+      }
+
       // Set buffer revision using glyph cache revision.
       buffer->set_revision(glyph_cache_->get_revision());
 
@@ -319,6 +365,22 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
 
     // Cleanup buffer contents.
     hb_buffer_clear_contents(harfbuzz_buf_);
+  }
+
+  // Update the last caret position.
+  if (caret_info) {
+    // Insert the last elements's end position.
+    auto vertices = buffer->get_vertices();
+    float scaled_base_line = base_line * scale;
+    if (vertices->size()) {
+      // Retrieve last elements' end position as the last caret position.
+      auto vertex = vertices->at(vertices->size() - 1);
+      buffer->AddCaretPosition(vertex.position_.data[0],
+                               scaled_base_line);
+    } else {
+      // There are no characters in the buffer. Add initial caret position.
+      buffer->AddCaretPosition(0, scaled_base_line);
+    }
   }
 
   // Setup size.
@@ -340,6 +402,32 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
       map_buffers_[text].insert(std::pair<int32_t, std::unique_ptr<FontBuffer>>(
           ysize, std::move(buffer)));
   return insert.first->second.get();
+}
+
+int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
+                                      const hb_glyph_info_t *glyph_info,
+                                      int32_t glyph_count, int32_t index) {
+  // Retrieve a byte range for the glyph in the wordbreak buffer from harfbuzz
+  // buffer.
+  auto byte_index = glyph_info[index].cluster;
+  auto byte_size = 0;
+  if (index < glyph_count - 1) {
+    // Has next word. Calculate a difference between them.
+    byte_size = glyph_info[index + 1].cluster - byte_index;
+  } else {
+    // Up until end of the buffer.
+    byte_size = word_enum.GetCurrentWordLength() - byte_index;
+  }
+
+  // Count the number of characters in the given range in the wordbreak bufer.
+  auto num_characters = 0;
+  for (auto i = 0; i < byte_size; ++i) {
+    if (word_enum.GetBuffer()->at(word_enum.GetCurrentWordIndex() + byte_index +
+                                  i) != LINEBREAK_INSIDEACHAR) {
+      num_characters++;
+    }
+  }
+  return num_characters;
 }
 
 FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
@@ -423,8 +511,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
     if ((err = FT_Load_Glyph(face_, glyph_info[i].codepoint, FT_LOAD_RENDER))) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
-      fpl::LogInfo("Can't load glyph %c FT_Error:%d\n",
-                   text[i], err);
+      fpl::LogInfo("Can't load glyph %c FT_Error:%d\n", text[i], err);
       return nullptr;
     }
 
@@ -537,8 +624,7 @@ bool FontManager::Open(const char *font_name) {
 
   // Load the font file of assets.
   if (!LoadFile(font_name, &font_data_)) {
-    fpl::LogInfo("Can't load font reource: %s\n",
-                 font_name);
+    fpl::LogInfo("Can't load font reource: %s\n", font_name);
     return false;
   }
 
@@ -612,10 +698,11 @@ void FontManager::UpdatePass(const bool start_subpass) {
 
   if (start_subpass) {
     if (current_pass_ > 0) {
-      fpl::LogInfo("Multiple subpasses in one rendering pass is not supported. "
-                   "When this happens, increase the glyph cache size not to "
-                   "flush the atlas texture multiple times in one rendering "
-                   "pass.");
+      fpl::LogInfo(
+          "Multiple subpasses in one rendering pass is not supported. "
+          "When this happens, increase the glyph cache size not to "
+          "flush the atlas texture multiple times in one rendering "
+          "pass.");
     }
     glyph_cache_->Flush();
     current_atlas_revision_ = glyph_cache_->get_revision();
@@ -739,6 +826,11 @@ void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
   vertices_[index * 4 + 1].uv_ = mathfu::vec2(uv.x(), uv.w());
   vertices_[index * 4 + 2].uv_ = mathfu::vec2(uv.z(), uv.y());
   vertices_[index * 4 + 3].uv_ = uv.zw();
+}
+
+void FontBuffer::AddCaretPosition(float x, float y) {
+  assert(caret_positions_.capacity());
+  caret_positions_.emplace_back(x, y);
 }
 
 }  // namespace fpl
