@@ -76,6 +76,11 @@ enum Event {
   // selection). As such it is good to show a subtle form of highlighting
   // upon this event, but the UI should not rely on it to function.
   EVENT_HOVER = 64,
+
+  // For example, when performing a drag operation, the user recieves events in
+  // the sequence below.
+  // EVENT_WENT_DOWN, EVENT_IS_DOWN (Until a pointer motion exceeds a threshold)
+  // EVENT_START_DRAG, EVENT_IS_DRAGGING and EVENT_END_DRAG.
 };
 
 // Alignment and Direction of groups. Instead of using these directly, use
@@ -186,6 +191,8 @@ void CapturePointer(const char *element_id);
 // Release a pointer capture.
 void ReleasePointer();
 
+// Retrieve a pointer position in current frame.
+vec2i GetPointerPosition();
 // Retrieve a pointer motion delta in current frame.
 vec2i GetPointerDelta();
 
@@ -220,12 +227,26 @@ void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info);
 void StartScroll(const vec2 &size, vec2i *offset);
 void EndScroll();
 
+// Make the current group into a slider group that can handle a basic slider
+// behavior. The group captures/releases the pointer as necessary.
+// Call StartSlider right after StartGroup, and EndSlider right before EndGroup.
+void StartSlider(Direction direction, float *value);
+void EndSlider();
+
 // Put a custom element with given size.
 // Renderer function is invoked while render pass to render the element.
 void CustomElement(
     const vec2 &virtual_size, const char *id,
     const std::function<void(const vec2i &pos, const vec2i &size)> renderer);
+
+// Render a texture to specific position & size. Usually used in CustomElement's
+// Render callback.
 void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size);
+
+// Render a nine-patch texture to specific position & size. Usually used in
+// CustomElement's Render callback.
+void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
+                            const vec2i &pos, const vec2i &size);
 
 // The default virtual resolution used if none is set.
 const float IMGUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
