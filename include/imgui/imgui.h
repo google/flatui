@@ -20,8 +20,8 @@
 #include <vector>
 #include <map>
 
+#include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
-#include "fplbase/material_manager.h"
 #include "mathfu/constants.h"
 #include "font_manager.h"
 #include "internal/micro_edit.h"
@@ -30,16 +30,16 @@ namespace fpl {
 namespace gui {
 
 // The core function that drives the GUI.
-// matman: the MaterialManager you want to use textures from.
+// assetman: the AssetManager you want to use textures from.
 // gui_definition: a function that defines all GUI elements using the GUI
 // element construction functions.
 // It will be run twice, once for layout, once for rendering & events.
 //
 // While an initialization of Imgui, it implicitly loads shaders used in the
-// API below using MaterialManager.
+// API below using AssetManager.
 // shaders/color.glslv & .glslf, shaders/font.glslv & .glslf
 // shaders/textured.glslv & .glslf
-void Run(MaterialManager &matman, FontManager &fontman, InputSystem &input,
+void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
          const std::function<void()> &gui_definition);
 
 // Event types returned by most interactive elements. These are flags because

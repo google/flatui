@@ -75,7 +75,7 @@ Event Slider(const Texture &foreground_tex, const Texture &background_tex,
   return event;
 }
 
-void TestGUI(MaterialManager &matman, FontManager &fontman,
+void TestGUI(AssetManager &assetman, FontManager &fontman,
              InputSystem &input) {
   static float f = 0.0f;
   f += 0.04f;
@@ -93,15 +93,15 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
     }
   };
 
-  Run(matman, fontman, input, [&]() {
+  Run(assetman, fontman, input, [&]() {
     PositionUI(1000, LAYOUT_HORIZONTAL_CENTER, LAYOUT_VERTICAL_CENTER);
     StartGroup(LAYOUT_OVERLAY_CENTER, 0);
     StartGroup(LAYOUT_HORIZONTAL_TOP, 10);
     StartGroup(LAYOUT_VERTICAL_LEFT, 20);
     click_about_example("my_id1", true);
     // Textures used in widgets.
-    auto slider_background_tex = matman.FindTexture("textures/gray_bar.webp");
-    auto slider_knob_tex = matman.FindTexture("textures/white_circle.webp");
+    auto slider_background_tex = assetman.FindTexture("textures/gray_bar.webp");
+    auto slider_knob_tex = assetman.FindTexture("textures/white_circle.webp");
     Edit(30, vec2(400, 30), "edit2", &str2);
     Edit(30, vec2(400, 30), "edit", &str);
     Slider(*slider_knob_tex, *slider_background_tex,
@@ -119,7 +119,7 @@ void TestGUI(MaterialManager &matman, FontManager &fontman,
 
     StartGroup(LAYOUT_VERTICAL_LEFT, 20, "scroll");
     StartScroll(vec2(200, 100), &scroll_offset);
-    auto splash_tex = matman.FindTexture("textures/text_about.webp");
+    auto splash_tex = assetman.FindTexture("textures/text_about.webp");
     ImageBackgroundNinePatch(*splash_tex, vec4(0.2f, 0.2f, 0.8f, 0.8f));
     click_about_example("my_id4", true);
     Label("The quick brown fox jumps over the lazy dog", 24);
@@ -161,7 +161,7 @@ int main() {
   fpl::Renderer renderer;
   fpl::InputSystem input;
   fpl::FontManager fontman;
-  fpl::MaterialManager matman(renderer);
+  fpl::AssetManager assetman(renderer);
 
   // Initialize stuff.
   renderer.Initialize();
@@ -172,15 +172,15 @@ int main() {
   fontman.SetRenderer(renderer);
 
   // Load textures.
-  matman.LoadTexture("textures/text_about.webp");
-  matman.LoadTexture("textures/btn_check_on.webp");
-  matman.LoadTexture("textures/btn_check_off.webp");
-  matman.LoadTexture("textures/white_circle.webp");
-  matman.LoadTexture("textures/gray_bar.webp");
-  matman.StartLoadingTextures();
+  assetman.LoadTexture("textures/text_about.webp");
+  assetman.LoadTexture("textures/btn_check_on.webp");
+  assetman.LoadTexture("textures/btn_check_off.webp");
+  assetman.LoadTexture("textures/white_circle.webp");
+  assetman.LoadTexture("textures/gray_bar.webp");
+  assetman.StartLoadingTextures();
 
   // Wait for everything to finish loading...
-  while (matman.TryFinalize() == false) {
+  while (assetman.TryFinalize() == false) {
     renderer.AdvanceFrame(input.minimized());
   }
 
@@ -194,7 +194,7 @@ int main() {
         fpl::vec4(kColorGray, kColorGray, kColorGray, 1.0f));
 
     // Draw GUI test
-    fpl::gui::TestGUI(matman, fontman, input);
+    fpl::gui::TestGUI(assetman, fontman, input);
   }
 
   // Shut down the renderer.

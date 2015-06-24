@@ -100,13 +100,13 @@ class InternalState : public Group {
     bool interactive;  // Wants to respond to user input.
   };
 
-  InternalState(MaterialManager &matman, FontManager &fontman,
+  InternalState(AssetManager &assetman, FontManager &fontman,
                 InputSystem &input)
       : Group(DIR_VERTICAL, ALIGN_TOPLEFT, 0, 0),
         layout_pass_(true),
         virtual_resolution_(IMGUI_DEFAULT_VIRTUAL_RESOLUTION),
-        matman_(matman),
-        renderer_(matman.renderer()),
+        matman_(assetman),
+        renderer_(assetman.renderer()),
         input_(input),
         fontman_(fontman),
         clip_position_(mathfu::kZeros2i),
@@ -1007,7 +1007,7 @@ class InternalState : public Group {
   float virtual_resolution_;
   float pixel_scale_;
 
-  MaterialManager &matman_;
+  AssetManager &matman_;
   Renderer &renderer_;
   InputSystem &input_;
   FontManager &fontman_;
@@ -1075,10 +1075,10 @@ class InternalState : public Group {
 
 InternalState::PersistentState InternalState::persistent_;
 
-void Run(MaterialManager &matman, FontManager &fontman, InputSystem &input,
+void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
          const std::function<void()> &gui_definition) {
   // Create our new temporary state.
-  InternalState internal_state(matman, fontman, input);
+  InternalState internal_state(assetman, fontman, input);
 
   // Run two passes, one for layout, one for rendering.
   // First pass:
@@ -1089,7 +1089,7 @@ void Run(MaterialManager &matman, FontManager &fontman, InputSystem &input,
 
   internal_state.SetOrtho();
 
-  auto &renderer = matman.renderer();
+  auto &renderer = assetman.renderer();
   renderer.SetBlendMode(kBlendModeAlpha);
   renderer.DepthTest(false);
 
