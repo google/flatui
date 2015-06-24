@@ -68,6 +68,14 @@ option(imgui_build_samples "Build samples for this project." OFF)
 # Option to enable / disable the test build.
 option(imgui_build_tests "Build tests for this project." OFF)
 
+# Option to use pregenerated headers on Linux.
+option(use_pregenerated_headers "Use pregenerated headers for Harfbuzz." OFF)
+
+# Use pregenerated headers on Windows & OSX.
+if(WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(use_pregenerated_headers ON)
+endif()
+
 # Include MathFu in this project with test and benchmark builds disabled.
 set(mathfu_build_benchmarks OFF CACHE BOOL "")
 set(mathfu_build_tests OFF CACHE BOOL "")
@@ -103,6 +111,8 @@ set(imgui_SRCS
 include_directories(src include include/imgui)
 if(WIN32)
   include_directories(external/include/windows)
+endif()
+if(use_pregenerated_headers)
   include_directories(external/include/harfbuzz)
 endif()
 include_directories(${dependencies_mathfu_dir}/include)

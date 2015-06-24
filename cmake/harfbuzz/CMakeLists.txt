@@ -17,7 +17,7 @@ project(harfbuzz)
 
 set(harfbuzz_dir ${dependencies_harfbuzz_distr_dir})
 
-if(WIN32)
+if(use_pregenerated_headers)
 # Include pregeneraged harfbuzz header files on Windows.
 # On Windows, building harfbuzz requires prerequisites set up properly
 # (e.g.ragel, auto tools). To make the build process easier, we commit
