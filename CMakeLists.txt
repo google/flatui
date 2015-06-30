@@ -43,6 +43,8 @@ if(EXISTS "${dependencies_root}")
 endif()
 
 # Configurable locations of dependencies of this project.
+set(dependencies_imgui_dir "${fpl_root}/imgui"
+    CACHE PATH "Directory containing the IMGUI library.")
 set(dependencies_mathfu_dir "${fpl_root}/mathfu"
     CACHE PATH "Directory containing the MathFu library.")
 set(dependencies_fplbase_dir "${fpl_root}/fplbase"
@@ -113,7 +115,7 @@ if(WIN32)
   include_directories(external/include/windows)
 endif()
 if(use_pregenerated_headers)
-  include_directories(external/include/harfbuzz)
+  include_directories(${dependencies_imgui_dir}/external/include/harfbuzz)
 endif()
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
