@@ -234,6 +234,10 @@ class InternalState : public Group {
     // Do nothing if there is no elements.
     if (elements_.size() == 0) return;
 
+    // Put in a sentinel element. We'll use this element to point to
+    // when a group didn't exist during layout but it does during rendering.
+    NewElement(mathfu::kZeros2i, "__sentinel__");
+
     // Update font manager if they need to upload font atlas texture.
     fontman_.StartRenderPass();
 
@@ -246,7 +250,7 @@ class InternalState : public Group {
     CheckGamePadNavigation();
   }
 
-  // (event/render pass): retrieve the next corresponding cached element we
+  // (render pass): retrieve the next corresponding cached element we
   // created in the layout pass. This is slightly more tricky than a straight
   // lookup because event handlers may insert/remove elements.
   Element *NextElement(const char *id) {
@@ -577,6 +581,11 @@ class InternalState : public Group {
         // Make layout refer to element it originates from, iterator points
         // to next element after the current one.
         layout.element_idx_ = element_it_ - elements_.begin() - 1;
+      } else {
+        // This group did not exist during layout, but since all code inside
+        // this group will run, it is important to have a valid element_idx_
+        // to refer to, so we point it to our (empty) sentinel element:
+        layout.element_idx_ = elements_.size() - 1;
       }
     }
     *static_cast<Group *>(this) = layout;

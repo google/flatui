@@ -181,13 +181,13 @@ int main() {
 
   // Wait for everything to finish loading...
   while (assetman.TryFinalize() == false) {
-    renderer.AdvanceFrame(input.minimized());
+    renderer.AdvanceFrame(input.minimized(), input.Time());
   }
 
   // Main loop.
   while (!input.exit_requested()) {
     input.AdvanceFrame(&renderer.window_size());
-    renderer.AdvanceFrame(input.minimized());
+    renderer.AdvanceFrame(input.minimized(), input.Time());
 
     const float kColorGray = 0.5f;
     renderer.ClearFrameBuffer(
