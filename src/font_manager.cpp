@@ -316,7 +316,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       }
 
       // Construct indices array.
-      const uint16_t kIndices[] = {0, 1, 2, 1, 2, 3};
+      const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
       for (auto index : kIndices) {
         buffer->get_indices()->push_back(index + (total_glyph_count + i) * 4);
       }

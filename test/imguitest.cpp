@@ -165,6 +165,7 @@ int main() {
 
   // Initialize stuff.
   renderer.Initialize();
+  renderer.SetCulling(fpl::Renderer::kCullBack);
   input.Initialize();
 
   // Open OpenType font.
