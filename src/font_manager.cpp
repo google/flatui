@@ -26,7 +26,7 @@
 #include "font_manager.h"
 #include "fplbase/utilities.h"
 
-#ifdef IMGUI_USE_LIBUNIBREAK
+#ifdef FLATUI_USE_LIBUNIBREAK
 #include "linebreak.h"
 #endif
 
@@ -153,7 +153,7 @@ void FontManager::Initialize() {
   // Create a buffer for harfbuzz.
   harfbuzz_buf_ = hb_buffer_create();
 
-#ifdef IMGUI_USE_LIBUNIBREAK
+#ifdef FLATUI_USE_LIBUNIBREAK
   // Initialize libunibreak
   init_linebreak();
 #else

@@ -13,10 +13,10 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-project(imgui)
+project(flatui)
 
 # Compile the game with the debug flag
-set(imgui_DEBUG ON)
+set(flatui_DEBUG ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -43,8 +43,8 @@ if(EXISTS "${dependencies_root}")
 endif()
 
 # Configurable locations of dependencies of this project.
-set(dependencies_imgui_dir "${fpl_root}/imgui"
-    CACHE PATH "Directory containing the IMGUI library.")
+set(dependencies_flatui_dir "${CMAKE_CURRENT_SOURCE_DIR}"
+    CACHE PATH "Directory containing the FlatUI library.")
 set(dependencies_mathfu_dir "${fpl_root}/mathfu"
     CACHE PATH "Directory containing the MathFu library.")
 set(dependencies_fplbase_dir "${fpl_root}/fplbase"
@@ -64,11 +64,18 @@ set(dependencies_libunibreak_distr_dir "${third_party_root}/libunibreak"
 set(dependencies_sdl_dir "${third_party_root}/sdl"
     CACHE PATH "Directory containing the SDL library.")
 
+set(flatui_standalone_mode OFF)
+if("${CMAKE_CURRENT_SOURCE_DIR}" EQUAL "${CMAKE_SOURCE_DIR}")
+  set(flatui_standalone_mode ON)
+endif()
+
 # Option to enable / disable the sample build.
-option(imgui_build_samples "Build samples for this project." OFF)
+option(flatui_build_samples "Build samples for this project."
+       ${flatui_standalone_mode})
 
 # Option to enable / disable the test build.
-option(imgui_build_tests "Build tests for this project." OFF)
+option(flatui_build_tests "Build tests for this project."
+       ${flatui_standalone_mode})
 
 # Option to use pregenerated headers on Linux.
 option(use_pregenerated_headers "Use pregenerated headers for Harfbuzz." OFF)
@@ -94,33 +101,33 @@ if(NOT TARGET libunibreak)
   add_subdirectory("${dependencies_libunibreak_cmake_dir}"
     ${tmp_dir}/libunibreak)
 endif()
-if(imgui_build_tests OR imgui_build_samples)
+if(flatui_build_tests OR flatui_build_samples)
 # Add FPLbase
 add_subdirectory("${fpl_root}/fplbase" ${tmp_dir}/fplbase)
 endif()
 
-# IMGUI source files.
-set(imgui_SRCS
-    include/imgui/imgui.h
-    include/imgui/font_manager.h
-    include/imgui/internal/glyph_cache.h
-    include/imgui/internal/micro_edit.h
+# flatui source files.
+set(flatui_SRCS
+    include/flatui/flatui.h
+    include/flatui/font_manager.h
+    include/flatui/internal/glyph_cache.h
+    include/flatui/internal/micro_edit.h
     src/font_manager.cpp
     src/micro_edit.cpp
-    src/imgui.cpp)
+    src/flatui.cpp)
 
 # Includes for this project.
-include_directories(src include include/imgui)
+include_directories(src include include/flatui)
 if(WIN32)
   include_directories(external/include/windows)
 endif()
 if(use_pregenerated_headers)
-  include_directories(${dependencies_imgui_dir}/external/include/harfbuzz)
+  include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
 endif()
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
 
-if(imgui_build_tests OR imgui_build_samples)
+if(flatui_build_tests OR flatui_build_samples)
 # SDL includes.
 include_directories(${tmp_dir}/fplbase/obj/sdl/include)
 endif()
@@ -156,35 +163,35 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_FLAGS_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C_FLAGS_WARNINGS}")
 
-if(imgui_DEBUG)
+if(flatui_DEBUG)
   # if we want to define this, it needs to be only in debug builds
   #add_definitions(-D_DEBUG)
 endif()
 
 # Executable target.
-add_library(imgui ${imgui_SRCS})
+add_library(flatui ${flatui_SRCS})
 
 # Dependencies to libraries.
-target_link_libraries(imgui libfreetype libharfbuzz libunibreak)
+target_link_libraries(flatui libfreetype libharfbuzz libunibreak)
 
 # Additional flags for the target.
-mathfu_configure_flags(imgui)
+mathfu_configure_flags(flatui)
 
 # Post process function.
-function(imguiPostProcess target)
-# Copy imgui resource files
+function(flatui_post_process target)
+# Copy flatui resource files
 add_custom_command(TARGET ${target} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/assets
+                       ${dependencies_flatui_dir}/assets
                        $<TARGET_FILE_DIR:${target}>)
 endfunction()
 
 # Tests.
-if(imgui_build_tests)
+if(flatui_build_tests)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 endif()
 
 # Samples.
-if(imgui_build_samples)
+if(flatui_build_samples)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/samples)
 endif()

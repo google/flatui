@@ -19,11 +19,11 @@
 
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
-#include "imgui/font_manager.h"
+#include "flatui/font_manager.h"
 
 namespace fpl {
 
-// Micro editor for IMGUI's text input widget.
+// Micro editor for FlatUI's text input widget.
 // Grab input events from SDL's IME (Input Method Editor) support API and handle
 // them accordingly.
 class MicroEdit {
@@ -38,7 +38,7 @@ class MicroEdit {
 
   // Handle input events provided by SDL.
   // Returns true if the input session is finished by pressing a return.
-  // In IMGUI, the library will call this function in the render pass.
+  // In FlatUI, the library will call this function in the render pass.
   // Since SDL can generates multiple input events at a time, we accepts events
   // as a vector.
   bool HandleInputEvents(const std::vector<TextInputEvent> *events);

@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include "fplbase/utilities.h"
-#include "imgui/imgui.h"
-#include "imgui/internal/micro_edit.h"
+#include "flatui/flatui.h"
+#include "flatui/internal/micro_edit.h"
 #include "SDL.h"
 
 namespace fpl {
@@ -104,7 +104,7 @@ class InternalState : public Group {
                 InputSystem &input)
       : Group(DIR_VERTICAL, ALIGN_TOPLEFT, 0, 0),
         layout_pass_(true),
-        virtual_resolution_(IMGUI_DEFAULT_VIRTUAL_RESOLUTION),
+        virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION),
         matman_(assetman),
         renderer_(assetman.renderer()),
         input_(input),

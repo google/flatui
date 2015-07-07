@@ -1,7 +1,7 @@
 #include "precompiled.h"
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
-#include "imgui/imgui.h"
+#include "flatui/flatui.h"
 #include <cassert>
 
 class ImGuiSample {
@@ -27,16 +27,16 @@ public:
 
     // Wait for everything to finish loading...
     while (matman_.TryFinalize() == false) {
-      renderer_.AdvanceFrame(input_.minimized_);
+      renderer_.AdvanceFrame(input_.minimized(), input_.Time());
     }
   }
 
   void ShutDown() { renderer_.ShutDown(); }
 
   void Run() {
-    while (!input_.exit_requested_) {
+    while (!input_.exit_requested()) {
       input_.AdvanceFrame(&renderer_.window_size());
-      renderer_.AdvanceFrame(input_.minimized_);
+      renderer_.AdvanceFrame(input_.minimized(), input_.Time());
       Render();
     }
   }

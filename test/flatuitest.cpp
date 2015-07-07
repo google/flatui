@@ -2,7 +2,7 @@
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
 #include "fplbase/utilities.h"
-#include "imgui/imgui.h"
+#include "flatui/flatui.h"
 #include <cassert>
 
 namespace fpl {

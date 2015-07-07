@@ -13,19 +13,19 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-project(imguisample)
+project(flatuisample)
 
-add_executable(imguisample imguisample.cpp)
-add_dependencies(imguisample fplbase imgui)
-mathfu_configure_flags(imguisample)
-target_link_libraries(imguisample fplbase imgui)
+add_executable(flatuisample flatuisample.cpp)
+add_dependencies(flatuisample fplbase flatui)
+mathfu_configure_flags(flatuisample)
+target_link_libraries(flatuisample fplbase flatui)
 
-# Imgui postprocess
-imguiPostProcess(imguisample)
+# FlatUI postprocess
+flatui_post_process(flatuisample)
 
 # Copy sample's resource files
-add_custom_command(TARGET imguisample POST_BUILD
+add_custom_command(TARGET flatuisample POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_CURRENT_SOURCE_DIR}/assets
-                       $<TARGET_FILE_DIR:imguisample>)
+                       $<TARGET_FILE_DIR:flatuisample>)
 

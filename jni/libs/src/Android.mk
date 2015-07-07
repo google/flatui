@@ -15,17 +15,17 @@
 LOCAL_PATH:=$(call my-dir)
 
 # Project directory relative to this file.
-IMGUI_RELATIVE_DIR:=../../..
-IMGUI_DIR:=$(LOCAL_PATH)/$(IMGUI_RELATIVE_DIR)
-include $(IMGUI_DIR)/jni/android_config.mk
+FLATUI_RELATIVE_DIR:=../../..
+FLATUI_DIR:=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
+include $(FLATUI_DIR)/jni/android_config.mk
 include $(DEPENDENCIES_FLATBUFFERS_DIR)/android/jni/include.mk
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := imgui
+LOCAL_MODULE := flatui
 LOCAL_ARM_MODE := arm
 
-LOCAL_EXPORT_C_INCLUDES := $(IMGUI_DIR)/include
+LOCAL_EXPORT_C_INCLUDES := $(FLATUI_DIR)/include
 
 LOCAL_C_INCLUDES := \
   $(LOCAL_EXPORT_C_INCLUDES) \
@@ -36,15 +36,15 @@ LOCAL_C_INCLUDES := \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
   $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
-  ${IMGUI_DIR}/external/include/harfbuzz \
-  ${IMGUI_DIR}/include/ \
-  ${IMGUI_DIR}/include/imgui \
-  ${IMGUI_DIR}/src \
+  ${FLATUI_DIR}/external/include/harfbuzz \
+  ${FLATUI_DIR}/include/ \
+  ${FLATUI_DIR}/include/flatui \
+  ${FLATUI_DIR}/src \
 
 LOCAL_SRC_FILES := \
-  $(IMGUI_RELATIVE_DIR)/src/imgui.cpp \
-  $(IMGUI_RELATIVE_DIR)/src/font_manager.cpp \
-  $(IMGUI_RELATIVE_DIR)/src/micro_edit.cpp \
+  $(FLATUI_RELATIVE_DIR)/src/flatui.cpp \
+  $(FLATUI_RELATIVE_DIR)/src/font_manager.cpp \
+  $(FLATUI_RELATIVE_DIR)/src/micro_edit.cpp \
 
 .PHONY: clean
 clean: clean_assets clean_generated_includes

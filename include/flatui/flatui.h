@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FPL_IMGUI_H
-#define FPL_IMGUI_H
+#ifndef FPL_FLATUI_H
+#define FPL_FLATUI_H
 
 #include <functional>
 #include <string>
@@ -35,7 +35,7 @@ namespace gui {
 // element construction functions.
 // It will be run twice, once for layout, once for rendering & events.
 //
-// While an initialization of Imgui, it implicitly loads shaders used in the
+// While an initialization of FlatUI, it implicitly loads shaders used in the
 // API below using AssetManager.
 // shaders/color.glslv & .glslf, shaders/font.glslv & .glslf
 // shaders/textured.glslv & .glslf
@@ -253,7 +253,7 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
                             const vec2i &pos, const vec2i &size);
 
 // The default virtual resolution used if none is set.
-const float IMGUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
+const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 
 // Position the GUI within the screen as a whole, call this as first thing
 // in your gui_definition.
@@ -261,10 +261,10 @@ const float IMGUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 // dimension of your screen (the Y size in landscape mode, or X in portrait).
 // All dimension specified below are relative to this.
 // If this function is not called, it defaults to virtual resolution set to
-// IMGUI_DEFAULT_VIRTUAL_RESOLUTION, and top/left placement.
+// FLATUI_DEFAULT_VIRTUAL_RESOLUTION, and top/left placement.
 void PositionUI(float virtual_resolution, Layout horizontal, Layout vertical);
 
 }  // namespace gui
 }  // namespace fpl
 
-#endif  // FPL_IMGUI_H
+#endif  // FPL_FLATUI_H

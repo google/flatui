@@ -16,13 +16,13 @@
 #define FONT_MANAGER_H
 
 // Use libunibreak for a line breaking
-#if !defined(IMGUI_USE_LIBUNIBREAK)
+#if !defined(FLATUI_USE_LIBUNIBREAK)
 // For now, it's automatically turned on.
-#define IMGUI_USE_LIBUNIBREAK 1
-#endif  // !defined(IMGUI_USE_LIBUNIBREAK)
+#define FLATUI_USE_LIBUNIBREAK 1
+#endif  // !defined(FLATUI_USE_LIBUNIBREAK)
 
 #include "fplbase/renderer.h"
-#include "imgui/internal/glyph_cache.h"
+#include "flatui/internal/glyph_cache.h"
 
 // Forward decls for FreeType & Harfbuzz
 typedef struct FT_LibraryRec_ *FT_Library;
@@ -42,7 +42,7 @@ class WordEnumerator;
 
 // Constant to convert FreeType unit to pixel unit.
 // In FreeType & Harfbuzz, the position value unit is 1/64 px whereas
-// configurable in imgui. The constant is used to convert FreeType unit
+// configurable in FlatUI. The constant is used to convert FreeType unit
 // to px.
 const int32_t kFreeTypeUnit = 64;
 

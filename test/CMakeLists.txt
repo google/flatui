@@ -13,19 +13,19 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-project(imguitest)
+project(flatuitest)
 
-add_executable(imguitest imguitest.cpp)
-add_dependencies(imguitest fplbase imgui)
-mathfu_configure_flags(imguitest)
-target_link_libraries(imguitest fplbase imgui)
+add_executable(flatuitest flatuitest.cpp)
+add_dependencies(flatuitest fplbase flatui)
+mathfu_configure_flags(flatuitest)
+target_link_libraries(flatuitest fplbase flatui)
 
-# Imgui postprocess
-imguiPostProcess(imguitest)
+# FlatUI postprocess
+flatui_post_process(flatuitest)
 
 # Copy test resource files
-add_custom_command(TARGET imguitest POST_BUILD
+add_custom_command(TARGET flatuitest POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_CURRENT_SOURCE_DIR}/assets
-                       $<TARGET_FILE_DIR:imguitest>)
+                       $<TARGET_FILE_DIR:flatuitest>)
 

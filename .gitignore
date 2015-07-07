@@ -5,8 +5,8 @@ Makefile
 CMakeCache.txt
 cmake_install.cmake
 CMakeLists.txt.user
-imgui.cbp
-libimgui.a
 test/CMakeFiles/
 test/imguitest.cbp
-
+flatui.cbp
+libflatui.a
+samples/CMakeFiles/
