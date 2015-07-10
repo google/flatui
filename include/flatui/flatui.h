@@ -84,12 +84,15 @@ enum Event {
   // kEventStartDrag, kEventIsDragging and kEventEndDrag.
 };
 
-// Alignment and Direction of groups. Instead of using these directly, use
-// the Layout enum below.
+// Alignment and Direction of groups.
+// Note that Top & Left (as well as Bottom & Right) are intended to be aliases
+// of eachother, as they both express the same thing on their respective axis.
 enum Alignment {
-  kAlignTopLeft = 1,
+  kAlignTop = 1,
+  kAlignLeft = 1,
   kAlignCenter = 2,
-  kAlignBottomRight = 3
+  kAlignBottom = 3,
+  kAlignRight = 3
 };
 enum Direction {
   kDirHorizontal = 4,
@@ -106,12 +109,12 @@ enum Direction {
 // A   C
 // A
 enum Layout {
-  kLayoutHorizontalTop    = kDirHorizontal | kAlignTopLeft,
+  kLayoutHorizontalTop    = kDirHorizontal | kAlignTop,
   kLayoutHorizontalCenter = kDirHorizontal | kAlignCenter,
-  kLayoutHorizontalBottom = kDirHorizontal | kAlignBottomRight,
-  kLayoutVerticalLeft     = kDirVertical | kAlignTopLeft,
+  kLayoutHorizontalBottom = kDirHorizontal | kAlignBottom,
+  kLayoutVerticalLeft     = kDirVertical | kAlignLeft,
   kLayoutVerticalCenter   = kDirVertical | kAlignCenter,
-  kLayoutVerticalRight    = kDirVertical | kAlignBottomRight,
+  kLayoutVerticalRight    = kDirVertical | kAlignRight,
   kLayoutOverlayCenter    = kDirOverlay | kAlignCenter,
 };
 
@@ -262,7 +265,8 @@ const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 // All dimension specified below are relative to this.
 // If this function is not called, it defaults to virtual resolution set to
 // FLATUI_DEFAULT_VIRTUAL_RESOLUTION, and top/left placement.
-void PositionUI(float virtual_resolution, Layout horizontal, Layout vertical);
+void PositionUI(float virtual_resolution, Alignment horizontal,
+                                          Alignment vertical);
 
 }  // namespace gui
 }  // namespace fpl

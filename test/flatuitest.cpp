@@ -94,7 +94,7 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
   };
 
   Run(assetman, fontman, input, [&]() {
-    PositionUI(1000, kLayoutHorizontalCenter, kLayoutVerticalCenter);
+    PositionUI(1000, kAlignCenter, kAlignCenter);
     StartGroup(kLayoutOverlayCenter, 0);
     StartGroup(kLayoutHorizontalTop, 10);
     StartGroup(kLayoutVerticalLeft, 20);

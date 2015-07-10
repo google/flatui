@@ -102,7 +102,7 @@ class InternalState : public Group {
 
   InternalState(AssetManager &assetman, FontManager &fontman,
                 InputSystem &input)
-      : Group(kDirVertical, kAlignTopLeft, 0, 0),
+      : Group(kDirVertical, kAlignLeft, 0, 0),
         layout_pass_(true),
         virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION),
         matman_(assetman),
@@ -200,12 +200,12 @@ class InternalState : public Group {
   static vec2i AlignDimension(Alignment align, int dim, const vec2i &space) {
     vec2i dest(0, 0);
     switch (align) {
-      case kAlignTopLeft:
+      case kAlignTop:  // Same as kAlignLeft.
         break;
       case kAlignCenter:
         dest[dim] += space[dim] / 2;
         break;
-      case kAlignBottomRight:
+      case kAlignBottom:  // Same as kAlignRight.
         dest[dim] += space[dim];
         break;
     }
@@ -1177,9 +1177,8 @@ void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info) {
   Gui()->ImageBackgroundNinePatch(tex, patch_info);
 }
 
-void PositionUI(float virtual_resolution, Layout horizontal, Layout vertical) {
-  Gui()->PositionUI(virtual_resolution, GetAlignment(horizontal),
-                    GetAlignment(vertical));
+void PositionUI(float virtual_resolution, Alignment horizontal, Alignment vertical) {
+  Gui()->PositionUI(virtual_resolution, horizontal, vertical);
 }
 
 mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
