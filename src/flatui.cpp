@@ -21,11 +21,11 @@ namespace fpl {
 namespace gui {
 
 Direction GetDirection(Layout layout) {
-  return static_cast<Direction>(layout & ~(DIR_HORIZONTAL - 1));
+  return static_cast<Direction>(layout & ~(kDirHorizontal - 1));
 }
 
 Alignment GetAlignment(Layout layout) {
-  return static_cast<Alignment>(layout & (DIR_HORIZONTAL - 1));
+  return static_cast<Alignment>(layout & (kDirHorizontal - 1));
 }
 
 static const char *kDummyId = "__null_id__";
@@ -53,15 +53,15 @@ class Group {
   // if it wasn't the first element.
   void Extend(const vec2i &extension) {
     switch (direction_) {
-      case DIR_HORIZONTAL:
+      case kDirHorizontal:
         size_ = vec2i(size_.x() + extension.x() + (size_.x() ? spacing_ : 0),
                       std::max(size_.y(), extension.y()));
         break;
-      case DIR_VERTICAL:
+      case kDirVertical:
         size_ = vec2i(std::max(size_.x(), extension.x()),
                       size_.y() + extension.y() + (size_.y() ? spacing_ : 0));
         break;
-      case DIR_OVERLAY:
+      case kDirOverlay:
         size_ = vec2i(std::max(size_.x(), extension.x()),
                       std::max(size_.y(), extension.y()));
         break;
@@ -102,7 +102,7 @@ class InternalState : public Group {
 
   InternalState(AssetManager &assetman, FontManager &fontman,
                 InputSystem &input)
-      : Group(DIR_VERTICAL, ALIGN_TOPLEFT, 0, 0),
+      : Group(kDirVertical, kAlignTopLeft, 0, 0),
         layout_pass_(true),
         virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION),
         matman_(assetman),
@@ -114,7 +114,7 @@ class InternalState : public Group {
         clip_inside_(false),
         pointer_max_active_index_(kPointerIndexInvalid),
         gamepad_has_focus_element(false),
-        gamepad_event(EVENT_HOVER) {
+        gamepad_event(kEventHover) {
     SetScale();
 
     // Cache the state of multiple pointers, so we have to do less work per
@@ -200,12 +200,12 @@ class InternalState : public Group {
   static vec2i AlignDimension(Alignment align, int dim, const vec2i &space) {
     vec2i dest(0, 0);
     switch (align) {
-      case ALIGN_TOPLEFT:
+      case kAlignTopLeft:
         break;
-      case ALIGN_CENTER:
+      case kAlignCenter:
         dest[dim] += space[dim] / 2;
         break;
-      case ALIGN_BOTTOMRIGHT:
+      case kAlignBottomRight:
         dest[dim] += space[dim];
         break;
     }
@@ -277,13 +277,13 @@ class InternalState : public Group {
   // the given size.
   void Advance(const vec2i &size) {
     switch (direction_) {
-      case DIR_HORIZONTAL:
+      case kDirHorizontal:
         position_ += vec2i(size.x() + spacing_, 0);
         break;
-      case DIR_VERTICAL:
+      case kDirVertical:
         position_ += vec2i(0, size.y() + spacing_);
         break;
-      case DIR_OVERLAY:
+      case kDirOverlay:
         // Keep at starting position.
         break;
     }
@@ -295,13 +295,13 @@ class InternalState : public Group {
     auto pos = position_ + margin_.xy();
     auto space = size_ - element.size - margin_.xy() - margin_.zw();
     switch (direction_) {
-      case DIR_HORIZONTAL:
+      case kDirHorizontal:
         pos += AlignDimension(align_, 1, space);
         break;
-      case DIR_VERTICAL:
+      case kDirVertical:
         pos += AlignDimension(align_, 0, space);
         break;
-      case DIR_OVERLAY:
+      case kDirOverlay:
         pos += AlignDimension(align_, 0, space);
         pos += AlignDimension(align_, 1, space);
         break;
@@ -347,8 +347,8 @@ class InternalState : public Group {
 
   bool Edit(float ysize, const mathfu::vec2 &edit_size, const char *id,
             std::string *text) {
-    StartGroup(GetDirection(LAYOUT_HORIZONTAL_BOTTOM),
-               GetAlignment(LAYOUT_HORIZONTAL_BOTTOM), 0, id);
+    StartGroup(GetDirection(kLayoutHorizontalBottom),
+               GetAlignment(kLayoutHorizontalBottom), 0, id);
     bool in_edit = false;
     if (EqualId(persistent_.input_focus_, id)) {
       // The widget is in edit.
@@ -614,7 +614,7 @@ class InternalState : public Group {
       // TODO: we currently just make the last group in any overlay group
       // the one to receive events. This is sufficient for popups, but it be
       // better if this could also be specified manually.
-      if (direction_ == DIR_OVERLAY) {
+      if (direction_ == kDirOverlay) {
         // Simply mark all elements before this last group as non-interactive.
         for (size_t i = 0; i < element_idx; i++)
           elements_[i].interactive = false;
@@ -663,13 +663,13 @@ class InternalState : public Group {
       auto event = CheckEvent(true);
       element.interactive = interactive;
 
-      if (event & EVENT_START_DRAG) {
+      if (event & kEventStartDrag) {
         // Start drag.
         CapturePointer(element.id);
       }
 
       if (IsPointerCaptured(element.id)) {
-        if (event & EVENT_END_DRAG) {
+        if (event & kEventEndDrag) {
           // Finish dragging and release the pointer.
           ReleasePointer();
         }
@@ -724,21 +724,21 @@ class InternalState : public Group {
   void StartSlider(Direction direction, float *value) {
     auto event = CheckEvent(false);
     if (!layout_pass_) {
-      if (event & EVENT_START_DRAG) {
+      if (event & kEventStartDrag) {
         CapturePointer(elements_[element_idx_].id);
-      } else if (event & EVENT_END_DRAG) {
+      } else if (event & kEventEndDrag) {
         ReleasePointer();
       }
       // Update the knob position.
-      if (event & EVENT_IS_DRAGGING || event & EVENT_WENT_DOWN ||
-          event & EVENT_IS_DOWN) {
+      if (event & kEventIsDragging || event & kEventWentDown ||
+          event & kEventIsDown) {
         switch (direction) {
-          case DIR_HORIZONTAL:
+          case kDirHorizontal:
             *value = static_cast<float>(GetPointerPosition().x() -
                                         position_.x() - size_.y() * 0.5f) /
                      static_cast<float>(size_.x() - size_.y());
             break;
-          case DIR_VERTICAL:
+          case kDirVertical:
             *value = static_cast<float>(GetPointerPosition().y() -
                                         position_.y() - size_.x() * 0.5f) /
                      static_cast<float>(size_.y() - size_.x());
@@ -845,24 +845,24 @@ class InternalState : public Group {
             if (persistent_.dragging_pointer_ == i) {
               // The pointer is in drag operation.
               if (button.went_up()) {
-                event |= EVENT_END_DRAG;
+                event |= kEventEndDrag;
                 persistent_.dragging_pointer_ = kPointerIndexInvalid;
                 persistent_.drag_start_position_ = kDragStartPoisitionInvalid;
               } else if (button.is_down()) {
-                event |= EVENT_IS_DRAGGING;
+                event |= kEventIsDragging;
               }
             } else {
               if (!check_dragevent_only) {
                 // Regular pointer event handlings.
                 if (button.went_down()) {
                   RecordId(id, i);
-                  event |= EVENT_WENT_DOWN;
+                  event |= kEventWentDown;
                 }
 
                 if (button.went_up() && SameId(id, i)) {
-                  event |= EVENT_WENT_UP;
+                  event |= kEventWentUp;
                 } else if (button.is_down() && SameId(id, i)) {
-                  event |= EVENT_IS_DOWN;
+                  event |= kEventIsDown;
 
                   // Stop input handling.
                   CaptureInput(kDummyId);
@@ -889,14 +889,14 @@ class InternalState : public Group {
                 // Note that any element the event can recieve the drag start
                 // event, so that parent layer can start a dragging operation
                 // regardless if it's sub-layer is checking event.
-                event |= EVENT_START_DRAG;
+                event |= kEventStartDrag;
                 persistent_.drag_start_position_ =
                     input_.get_pointers()[i].mousepos;
                 persistent_.dragging_pointer_ = i;
               }
             }
 
-            if (!event) event = EVENT_HOVER;
+            if (!event) event = kEventHover;
 
             gamepad_has_focus_element = true;
             current_pointer_ = i;
@@ -913,7 +913,7 @@ class InternalState : public Group {
         }
       }
     }
-    return EVENT_NONE;
+    return kEventNone;
   }
 
   void CheckGamePadFocus() {
@@ -961,9 +961,9 @@ class InternalState : public Group {
     int dir = 0;
     if (left.went_up()) dir = -1;
     if (right.went_up()) dir = 1;
-    if (action.went_up()) gamepad_event = EVENT_WENT_UP;
-    if (action.went_down()) gamepad_event = EVENT_WENT_DOWN;
-    if (action.is_down()) gamepad_event = EVENT_IS_DOWN;
+    if (action.went_up()) gamepad_event = kEventWentUp;
+    if (action.went_down()) gamepad_event = kEventWentDown;
+    if (action.is_down()) gamepad_event = kEventIsDown;
     return dir;
   }
 

@@ -45,74 +45,74 @@ void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
 // Event types returned by most interactive elements. These are flags because
 // multiple may occur during one frame, and thus should be tested using &.
 // For example, it is not uncommon for the value to be
-// EVENT_WENT_DOWN | EVENT_WENT_UP if the click/touch was quicker than the
+// kEventWentDown | kEventWentUp if the click/touch was quicker than the
 // current frametime.
 enum Event {
   // No event this frame. Also returned by all elememts during layout pass.
-  EVENT_NONE = 0,
+  kEventNone = 0,
   // Pointing device (or button) was released this frame while over this
   // element. Only fires if this element was also the one to receive
-  // the corresponding EVENT_WENT_DOWN.
-  EVENT_WENT_UP = 1,
+  // the corresponding kEventWentDown.
+  kEventWentUp = 1,
   // Pointing device went down this frame while over this element. You're not
-  // guaranteed to also receive a EVENT_WENT_UP, the pointing device may move
+  // guaranteed to also receive a kEventWentUp, the pointing device may move
   // to another element (or no element) before that happens.
-  EVENT_WENT_DOWN = 2,
+  kEventWentDown = 2,
   // Pointing device is currently being held down on top of this element.
-  // You're not guaranteed to receive this event between an EVENT_WENT_DOWN
-  // and a EVENT_WENT_UP, it occurs only if it spans multiple frames.
-  // Only fires for the element the corresponding EVENT_WENT_DOWN fired on.
-  EVENT_IS_DOWN = 4,
+  // You're not guaranteed to receive this event between an kEventWentDown
+  // and a kEventWentUp, it occurs only if it spans multiple frames.
+  // Only fires for the element the corresponding kEventWentDown fired on.
+  kEventIsDown = 4,
   // Pointing device started dragging this frame while over this element.
   // The element is expected to call CapturePointer() API to recieve drag event
   // continuously even the pointer goes out of the element.
-  EVENT_START_DRAG = 8,
+  kEventStartDrag = 8,
   // Pointing device finished dragging this frame.
-  EVENT_END_DRAG = 16,
+  kEventEndDrag = 16,
   // Pointing device is currently in dragging mode.
-  EVENT_IS_DRAGGING = 32,
+  kEventIsDragging = 32,
   // Pointing device is currently over the element but not pressed.
   // This event does NOT occur on touch screen devices and only occurs for
   // devices that use a mouse, or a gamepad (that emulates a mouse with a
   // selection). As such it is good to show a subtle form of highlighting
   // upon this event, but the UI should not rely on it to function.
-  EVENT_HOVER = 64,
+  kEventHover = 64,
 
   // For example, when performing a drag operation, the user recieves events in
   // the sequence below.
-  // EVENT_WENT_DOWN, EVENT_IS_DOWN (Until a pointer motion exceeds a threshold)
-  // EVENT_START_DRAG, EVENT_IS_DRAGGING and EVENT_END_DRAG.
+  // kEventWentDown, kEventIsDown (Until a pointer motion exceeds a threshold)
+  // kEventStartDrag, kEventIsDragging and kEventEndDrag.
 };
 
 // Alignment and Direction of groups. Instead of using these directly, use
 // the Layout enum below.
 enum Alignment {
-  ALIGN_TOPLEFT = 1,
-  ALIGN_CENTER = 2,
-  ALIGN_BOTTOMRIGHT = 3
+  kAlignTopLeft = 1,
+  kAlignCenter = 2,
+  kAlignBottomRight = 3
 };
 enum Direction {
-  DIR_HORIZONTAL = 4,
-  DIR_VERTICAL = 8,
-  DIR_OVERLAY = 12
+  kDirHorizontal = 4,
+  kDirVertical = 8,
+  kDirOverlay = 12
 };
 
 // Specify how to layout a group. Elements can be positioned either
 // horizontally next to eachother or vertically, with elements aligned
 // to either side or centered.
-// e.g. LAYOUT_HORIZONTAL_TOP looks like:
+// e.g. kLayoutHorizontalTop looks like:
 //
 // A B C
 // A   C
 // A
 enum Layout {
-  LAYOUT_HORIZONTAL_TOP    = DIR_HORIZONTAL | ALIGN_TOPLEFT,
-  LAYOUT_HORIZONTAL_CENTER = DIR_HORIZONTAL | ALIGN_CENTER,
-  LAYOUT_HORIZONTAL_BOTTOM = DIR_HORIZONTAL | ALIGN_BOTTOMRIGHT,
-  LAYOUT_VERTICAL_LEFT     = DIR_VERTICAL | ALIGN_TOPLEFT,
-  LAYOUT_VERTICAL_CENTER   = DIR_VERTICAL | ALIGN_CENTER,
-  LAYOUT_VERTICAL_RIGHT    = DIR_VERTICAL | ALIGN_BOTTOMRIGHT,
-  LAYOUT_OVERLAY_CENTER    = DIR_OVERLAY | ALIGN_CENTER,
+  kLayoutHorizontalTop    = kDirHorizontal | kAlignTopLeft,
+  kLayoutHorizontalCenter = kDirHorizontal | kAlignCenter,
+  kLayoutHorizontalBottom = kDirHorizontal | kAlignBottomRight,
+  kLayoutVerticalLeft     = kDirVertical | kAlignTopLeft,
+  kLayoutVerticalCenter   = kDirVertical | kAlignCenter,
+  kLayoutVerticalRight    = kDirVertical | kAlignBottomRight,
+  kLayoutOverlayCenter    = kDirOverlay | kAlignCenter,
 };
 
 // Specify margins for a group, in units of virtual resolution.

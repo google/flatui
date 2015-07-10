@@ -61,8 +61,8 @@ private:
 
       // Position UI in the center of the screen. '1000' indicates that the
       // virtual resolution of the entire screen is now 1000x1000.
-      fpl::gui::PositionUI(1000, fpl::gui::LAYOUT_HORIZONTAL_CENTER,
-                           fpl::gui::LAYOUT_VERTICAL_CENTER);
+      fpl::gui::PositionUI(1000, fpl::gui::kLayoutHorizontalCenter,
+                           fpl::gui::kLayoutVerticalCenter);
 
       // Show a label with a font size of 40px in a virtual resotuion.
       fpl::gui::Label("The quick brown fox jumps over the lazy dog.", 40);
