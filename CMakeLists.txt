@@ -65,8 +65,13 @@ set(dependencies_sdl_dir "${third_party_root}/sdl"
     CACHE PATH "Directory containing the SDL library.")
 
 set(flatui_standalone_mode OFF)
-if("${CMAKE_CURRENT_SOURCE_DIR}" EQUAL "${CMAKE_SOURCE_DIR}")
+message(STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR})
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR})
+if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
   set(flatui_standalone_mode ON)
+  message(STATUS "FlatUI standalone: building tests and samples")
+else()
+  message(STATUS "FlatUI library: not building tests and samples")
 endif()
 
 # Option to enable / disable the sample build.
