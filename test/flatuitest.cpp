@@ -85,6 +85,10 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
   static float slider_value;
   static std::string str("Edit box.");
   static std::string str2("More Edit box.");
+  static std::string str3("The\nquick brown fox jumps over the lazy dog.\n"
+                          "The quick brown fox jumps over the lazy dog. "
+                          "The quick brown fox jumps over the lazy dog. "
+                          "The quick brown fox jumps over the lazy dog. ");
 
   auto click_about_example = [&](const char *id, bool about_on) {
     if (ImageButton("textures/text_about.webp", 50, id) == kEventWentUp) {
@@ -133,11 +137,7 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
     Image("textures/text_about.webp", 30);
     EndGroup();
     StartGroup(kLayoutVerticalRight, 0);
-    Label("The\nquick brown fox jumps over the lazy dog.\n"
-          "The quick brown fox jumps over the lazy dog. "
-          "The quick brown fox jumps over the lazy dog. "
-          "The quick brown fox jumps over the lazy dog. ",
-          24,vec2(400, 400));
+    Edit(24, vec2(400, 400), "edit3", &str3);
     EndGroup();
     EndGroup();
     if (show_about) {

@@ -154,9 +154,8 @@ void Label(const char *text, float ysize);
 // text: label string in UTF8
 // ysize: vertical size in virtual resolution.
 // size: max size of the label in virtual resolution.
-//       0 for size.x indicates a single line.
 //       0 for size.y indicates no height restriction.
-//       The API renders whole texts in the label in the case.
+//       The API renders whole texts in the label in this case.
 void Label(const char *text, float ysize, const mathfu::vec2 &size);
 
 // Set Label's text color.
@@ -165,6 +164,7 @@ void SetTextColor(const vec4 &color);
 // Render an edit box as a GUI element.
 // ysize: vertical size in virtual resolution.
 // size: a size of the editbox in virtual resolution.
+//       0 for size.y indicates a single line label.
 // string: label string in UTF8
 // returns true if the widget is in edit.
 bool Edit(float ysize, const mathfu::vec2 &size, const char* id,

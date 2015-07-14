@@ -18,10 +18,14 @@
 
 namespace fpl {
 
-void MicroEdit::Initialize(const char *id, std::string *text) {
+void MicroEdit::Initialize(const char *id, std::string *text,
+                           EditorMode mode) {
   Reset();
   id_ = id;
   text_ = text;
+  if (mode == kMultipleLines) {
+    single_line_ = false;
+  }
 
   // Keep a copy of initial string (Used when canceling an edit).
   initial_string_ = *text;
@@ -78,6 +82,46 @@ void MicroEdit::UpdateWordBreakIndex() {
   }
 }
 
+bool MicroEdit::MoveCaretVertical(int32_t offset) {
+  if (buffer_ == nullptr) return false;
+  auto expected_caret_position = expected_caret_position_;
+  auto position = Pick(expected_caret_position, offset);
+  if (position == kCaretPosInvalid) {
+    return false;
+  }
+  auto ret = SetCaret(position);
+  // Restore caret x pos.
+  expected_caret_position_.x() = expected_caret_position.x();
+  return ret;
+}
+
+bool MicroEdit::MoveCaretInLine(CaretPosition position) {
+  // Pick current row.
+  auto start_of_line = buffer_->GetCaretPositions().begin();
+  auto end_of_line = buffer_->GetCaretPositions().end();
+  auto pos = buffer_->GetCaretPositions()[GetCaretPosition()];
+  PickRow(pos, &start_of_line, &end_of_line);
+
+  int32_t index = 0;
+  if (position == kTailOfLine) {
+    index = std::distance(buffer_->GetCaretPositions().begin(), end_of_line);
+  } else if (position == kHeadOfLine) {
+    index = std::distance(buffer_->GetCaretPositions().begin(), start_of_line);
+  }
+  return SetCaret(index);
+}
+
+bool MicroEdit::MoveCaretToWordBoundary(bool forward) {
+  bool ret = false;
+  while (MoveCaret(forward)) {
+    ret = true;
+    if (wordbreak_info_[wordbreak_index_] != LINEBREAK_NOBREAK) {
+      break;
+    }
+  }
+  return ret;
+}
+
 bool MicroEdit::MoveCaret(bool forward) {
   auto moved_caret = false;
   auto delta = forward ? 1 : -1;
@@ -92,7 +136,8 @@ bool MicroEdit::MoveCaret(bool forward) {
     if (!input_text_selection_length_) {
       if (input_text_caret_offset_ - delta >= 0 &&
           input_text_caret_offset_ - delta <= input_text_characters_) {
-        SetCaret(caret_pos_ + delta);
+        SetCaret(caret_pos_ + input_text_characters_ -
+                 input_text_caret_offset_ + delta);
         moved_caret = true;
       }
     }
@@ -110,12 +155,15 @@ bool MicroEdit::SetCaret(int32_t position) {
     // Move a caret in IME input.
     if (!input_text_selection_length_) {
       // Move a caret only when there is no focused string.
-      input_text_caret_offset_ =
-          caret_pos_ + input_text_caret_offset_ - position;
+      input_text_caret_offset_ = caret_pos_ + input_text_characters_ - position;
       input_text_caret_offset_ = std::max(input_text_caret_offset_, 0);
       input_text_caret_offset_ =
           std::min(input_text_caret_offset_, input_text_characters_);
     }
+  }
+
+  if (buffer_ && buffer_->HasCaretPositions()) {
+    expected_caret_position_ = buffer_->GetCaretPosition(position);
   }
   return true;
 }
@@ -151,8 +199,7 @@ int32_t MicroEdit::GetNumCharacters(const std::string &text) {
 
   std::vector<char> v(text.length());
   set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text.c_str()),
-                      text.length(),
-                      language_.c_str(), &v[0]);
+                      text.length(), language_.c_str(), &v[0]);
   auto characters = 0;
   for (auto i : v) {
     if (i != LINEBREAK_INSIDEACHAR) {
@@ -215,6 +262,99 @@ int32_t MicroEdit::GetCaretPosition() {
   return caret_pos_ + input_text_characters_ - input_text_caret_offset_;
 }
 
+const vec4i &MicroEdit::GetWindow() {
+  if (buffer_ == nullptr) {
+    return mathfu::kZeros4i;
+  }
+
+  auto buffer_size = buffer_->get_size();
+  if (buffer_size.x() > window_.z() || buffer_size.y() > window_.w()) {
+
+    // Check if we need to scroll inside the edit box.
+    const float kWindowThresholdFactor = 0.15f;
+    auto caret_pos = buffer_->GetCaretPosition(GetCaretPosition());
+    auto threshold = window_.z() * kWindowThresholdFactor;
+    auto window_start = caret_pos - window_offset_;
+
+    // Update offset if the caret position is outside of the threshold area.
+    if (window_start.x() < threshold) {
+      window_offset_.x() -= threshold;
+    } else if (window_start.x() > window_.z() - threshold) {
+      window_offset_.x() += threshold;
+    }
+
+    if (window_start.y()  < 0) {
+      window_offset_.y() -= buffer_->metrics().total();
+    } else if (window_start.y() > window_.w()) {
+      window_offset_.y() += buffer_->metrics().total();
+    }
+
+    window_.x() = std::max(std::min(window_offset_.x(),
+                                    buffer_size.x() - window_.z()), 0);
+    window_.y() = std::max(std::min(window_offset_.y(),
+                                    buffer_size.y() - window_.w()), 0);
+  } else {
+    window_.x() = 0;
+    window_.y() = 0;
+  }
+  return window_;
+}
+
+int32_t MicroEdit::Pick(const vec2i &pointer_position, float offset) {
+  if (buffer_ == nullptr || !buffer_->HasCaretPositions()) {
+    return kCaretPosInvalid;
+  }
+
+  // Pick a row first.
+  auto start_it = buffer_->GetCaretPositions().begin();
+  auto end_it = buffer_->GetCaretPositions().end();
+  auto buffer_begin = start_it;
+  auto buffer_end = end_it;
+  PickRow(pointer_position, &start_it, &end_it);
+
+  // Pick previous/next row based on the offset value.
+  if (offset < 0) {
+    if (start_it == buffer_begin) {
+      return kCaretPosInvalid;
+    }
+    end_it = start_it - 1;
+    start_it = buffer_begin;
+    PickRow(*end_it, &start_it, &end_it);
+    end_it++;
+  } else if (offset > 0) {
+    if (end_it == buffer_end - 1) {
+      return kCaretPosInvalid;
+    }
+    start_it = end_it + 1;
+    end_it = buffer_end - 1;
+    PickRow(*start_it, &start_it, &end_it);
+  }
+
+  // And pick a column.
+  return PickColumn(pointer_position, start_it, end_it);
+}
+
+void MicroEdit::PickRow(const vec2i &pointer_position,
+                        std::vector<vec2i>::const_iterator *start_it,
+                        std::vector<vec2i>::const_iterator *end_it) {
+  // Perform a binary search in the caret position buffer.
+  auto compare = [](const vec2i &lhs,
+                    const vec2i &rhs) { return lhs.y() < rhs.y(); };
+  *start_it = std::lower_bound(*start_it, *end_it, pointer_position, compare);
+  *end_it = std::upper_bound(*start_it, *end_it, **start_it, compare) - 1;
+}
+
+int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
+                              std::vector<vec2i>::const_iterator start_it,
+                              std::vector<vec2i>::const_iterator end_it) {
+  const auto it = std::upper_bound(
+      start_it, end_it, pointer_position,
+      [](const vec2i &lhs, const vec2i &rhs) { return lhs.x() <= rhs.x(); });
+
+  auto index = std::distance(buffer_->GetCaretPositions().begin(), it);
+  return index;
+}
+
 bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
   bool ret = false;
   auto event = events->begin();
@@ -222,19 +362,55 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
     switch (event->type) {
       case kTextInputEventTypeKey:
         // Do nothing when a key is released.
-        if (event->key.state == SDL_RELEASED)
-          break;
+        if (event->key.state == SDL_RELEASED) break;
         switch (event->key.symbol) {
           case SDLK_RETURN:
           case SDLK_RETURN2:
-            // Finish the input session if IME is not active.
-            if (!in_text_input_) ret = true;
+            if (!single_line_ && (event->key.modifier & KMOD_LSHIFT ||
+                                  event->key.modifier & KMOD_RSHIFT)) {
+              InsertText("\n");
+            } else {
+              // Finish the input session if IME is not active.
+              if (!in_text_input_) ret = true;
+            }
             break;
           case SDLK_LEFT:
-            MoveCaret(false);
+            if (event->key.modifier & KMOD_LGUI ||
+                event->key.modifier & KMOD_RGUI) {
+              MoveCaretInLine(kHeadOfLine);
+            } else if (event->key.modifier & KMOD_LALT ||
+                       event->key.modifier & KMOD_RALT){
+              MoveCaretToWordBoundary(false);
+            } else {
+              MoveCaret(false);
+            }
             break;
           case SDLK_RIGHT:
-            MoveCaret(true);
+            if (event->key.modifier & KMOD_LGUI ||
+                event->key.modifier & KMOD_RGUI) {
+              MoveCaretInLine(kTailOfLine);
+            } else if (event->key.modifier & KMOD_LALT ||
+                       event->key.modifier & KMOD_RALT){
+              MoveCaretToWordBoundary(true);
+            } else {
+              MoveCaret(true);
+            }
+            break;
+          case SDLK_UP:
+            if (event->key.modifier & KMOD_LGUI ||
+                event->key.modifier & KMOD_RGUI) {
+              SetCaret(0);
+            } else {
+              MoveCaretVertical(-buffer_->metrics().total());
+            }
+            break;
+          case SDLK_DOWN:
+            if (event->key.modifier & KMOD_LGUI ||
+                event->key.modifier & KMOD_RGUI) {
+              SetCaret(num_characters_ + input_text_characters_);
+            } else {
+              MoveCaretVertical(buffer_->metrics().total());
+            }
             break;
           case SDLK_BACKSPACE:
             // Delete a character before the caret position.

@@ -526,6 +526,11 @@ class FontBuffer {
       return kCaretPositionInvalid;
     return caret_positions_[index];
   }
+  // Accessor to the caret positon buffer.
+  const std::vector<vec2i> &GetCaretPositions() const {
+    return caret_positions_;
+  }
+  bool HasCaretPositions() const { return caret_positions_.capacity(); }
 
  private:
   // Font metrics information.

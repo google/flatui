@@ -22,12 +22,5 @@ void main()
   // Font texture is a 1 channel luminance texture.
   // Copying luminance value to alphachannel for blending.
   texture_color = vec4(color.rgb, color.a * texture_color.r);
-
-  // We only render pixels if they are at least somewhat opaque.
-  // This will still lead to aliased edges if we render
-  // in the wrong order, but leaves us the option to render correctly
-  // if we sort our polygons first.
-  if (texture_color.a < 0.01)
-    discard;
   gl_FragColor = texture_color;
 }

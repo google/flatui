@@ -23,6 +23,18 @@
 
 namespace fpl {
 
+const int32_t kCaretPosInvalid = -1;
+
+enum CaretPosition {
+  kHeadOfLine,
+  kTailOfLine,
+};
+
+enum EditorMode {
+  kSingleLine,
+  kMultipleLines,
+};
+
 // Micro editor for FlatUI's text input widget.
 // Grab input events from SDL's IME (Input Method Editor) support API and handle
 // them accordingly.
@@ -34,7 +46,7 @@ class MicroEdit {
   }
 
   // Initialize an edit session with a given string.
-  void Initialize(const char *id, std::string *text);
+  void Initialize(const char *id, std::string *text, EditorMode mode);
 
   // Handle input events provided by SDL.
   // Returns true if the input session is finished by pressing a return.
@@ -68,6 +80,31 @@ class MicroEdit {
   // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
   void SetLanguage(const std::string &language) { language_ = language; }
 
+  // Set a FontBuffer to the editor.
+  // The FontBuffer data is used to move a caret, pick a letter etc.
+  void SetBuffer(const FontBuffer *buffer) { buffer_ = buffer; }
+
+  // Get a window of the editor, the value is used in external UI rendering to
+  // show a part of the editting string.
+  // Returns mathfu::kZeros4i if the FontBuffer size is smaller than the given
+  // window size.
+  const vec4i &GetWindow();
+
+  // Set a window size of the editor in UI in pixels.
+  void SetWindowSize(const vec2i &size) {
+    window_.z() = size.x();
+    window_.w() = size.y();
+  }
+
+  // Pick a caret position from the pointer position.
+  // Pointer position should be a relative offset value from the top left corner
+  // of the edit window.
+  int32_t Pick(const vec2i &pointer_position, float offset);
+
+  // Set caret position as a character index. The charactor index can be
+  // retrieved Pick() or other APIs.
+  bool SetCaret(int32_t position);
+
  private:
   void Reset() {
     initial_string_.clear();
@@ -82,6 +119,11 @@ class MicroEdit {
     text_ = nullptr;
     id_ = nullptr;
     in_text_input_ = false;
+    window_ = mathfu::kZeros4i;
+    window_offset_ = mathfu::kZeros2i;
+    buffer_ = nullptr;
+    expected_caret_position_ = mathfu::kZeros2i;
+    single_line_ = true;
   }
 
   // Helper to count a number of characters in a text.
@@ -103,13 +145,23 @@ class MicroEdit {
   // Caret control APIs.
   // Returns true if the caret has been moved by the API call.
   bool MoveCaret(bool forward);
-  bool SetCaret(int32_t position);
+  bool MoveCaretVertical(int32_t offset);
+  bool MoveCaretInLine(CaretPosition position);
+  bool MoveCaretToWordBoundary(bool forward);
 
   // Insert a text before the caret position and update caret position.
   void InsertText(const std::string &text);
 
   // Remove the specified number of text after the caret position.
   void RemoveText(int32_t num_remove);
+
+  // Helper for Pick() API.
+  int32_t PickColumn(const vec2i &pointer_position,
+                     std::vector<vec2i>::const_iterator start_it,
+                     std::vector<vec2i>::const_iterator end_it);
+  void PickRow(const vec2i &pointer_position,
+               std::vector<vec2i>::const_iterator *start_it,
+               std::vector<vec2i>::const_iterator *end_it);
 
   int32_t caret_pos_;
   int32_t wordbreak_index_;
@@ -137,6 +189,21 @@ class MicroEdit {
 
   // Editing text shown in UI (Combination of edited text + IME text).
   std::string editing_text_;
+
+  // Window offset and size of the editor in UI.
+  vec4i window_;
+  vec2i window_offset_;
+
+  // Expected caret position, when moving a caret upward/downward, the editor
+  // will pick a caret positon closest to this position. This position is
+  // updated when a caret is moved explicitly.
+  vec2i expected_caret_position_;
+
+  // A flag indicating the editor is for single line edit.
+  bool single_line_;
+
+  // A pointer to the FontBuffer.
+  const FontBuffer *buffer_;
 
   // ID of the editting widget.
   const char *id_;

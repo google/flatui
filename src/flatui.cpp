@@ -141,6 +141,8 @@ class InternalState : public Group {
     assert(image_shader_);
     font_shader_ = matman_.LoadShader("shaders/font");
     assert(font_shader_);
+    font_clipping_shader_ = matman_.LoadShader("shaders/font_clipping");
+    assert(font_clipping_shader_);
     color_shader_ = matman_.LoadShader("shaders/color");
     assert(color_shader_);
 
@@ -356,7 +358,7 @@ class InternalState : public Group {
     }
 
     // Check event, this marks this element as an interactive element.
-    CheckEvent(false);
+    auto event = CheckEvent(false);
 
     // Set text color
     renderer_.color() = text_color_;
@@ -364,6 +366,13 @@ class InternalState : public Group {
     auto physical_label_size = VirtualToPhysical(edit_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
     auto ui_text = text;
+    auto edit_mode = kMultipleLines;
+    // Check if the editbox is a single line editbox.
+    if (physical_label_size.y() == 0 || physical_label_size.y() == size.y()) {
+      physical_label_size.y() = size.y();
+      edit_mode = kSingleLine;
+    }
+
     if (in_edit && persistent_.text_edit_.GetEditingText()) {
       // Get a text from the micro editor when it's editing.
       ui_text = persistent_.text_edit_.GetEditingText();
@@ -371,19 +380,33 @@ class InternalState : public Group {
     auto buffer = fontman_.GetBuffer(ui_text->c_str(), ui_text->length(),
                                      size.y(), physical_label_size, true);
     assert(buffer);
-    auto pos = Label(ui_text->c_str(), *buffer);
+    persistent_.text_edit_.SetBuffer(buffer);
+    persistent_.text_edit_.SetWindowSize(physical_label_size);
+
+    auto window = vec4i(vec2i(0, 0), physical_label_size);
+    if (in_edit) {
+      window = persistent_.text_edit_.GetWindow();
+    }
+    auto pos = Label(ui_text->c_str(), *buffer, window);
     if (!layout_pass_) {
       auto show_caret = false;
-
+      bool pick_caret = event & kEventWentDown;
       if (EqualId(persistent_.input_focus_, id)) {
         // The edit box is in focus. Now we can start text input.
         if (persistent_.input_capture_ != id) {
           // Initialize the editor.
-          persistent_.text_edit_.Initialize(id, text);
+          persistent_.text_edit_.Initialize(id, text, edit_mode);
           persistent_.text_edit_.SetLanguage(fontman_.GetLanguage());
+          persistent_.text_edit_.SetBuffer(buffer);
+          pick_caret = true;
           CaptureInput(id);
         }
         show_caret = true;
+      }
+      if (pick_caret) {
+        auto caret_pos =
+            persistent_.text_edit_.Pick(GetPointerPosition() - pos, 0);
+        persistent_.text_edit_.SetCaret(caret_pos);
       }
 
       int32_t input_region_start, input_region_length;
@@ -398,19 +421,19 @@ class InternalState : public Group {
           const float kFocusLineWidth = 3.0f;
 
           // Calculate and render an input text region.
-          DrawUnderline(*buffer, input_region_start, input_region_length,
-                        pos, physical_label_size.y(), kInputLineWidth);
+          DrawUnderline(*buffer, input_region_start, input_region_length, pos,
+                        size.y(), kInputLineWidth);
 
           // Calculate and render a focus text region inside the input text.
           if (focus_region_length) {
-            DrawUnderline(*buffer, focus_region_start, focus_region_length,
-                          pos, physical_label_size.y(), kFocusLineWidth);
+            DrawUnderline(*buffer, focus_region_start, focus_region_length, pos,
+                          size.y(), kFocusLineWidth);
           }
 
           // Specify IME rect to input system.
           auto ime_rect = pos + buffer->GetCaretPosition(input_region_start);
           auto ime_size = pos + buffer->GetCaretPosition(input_region_start +
-                                                   input_region_length) -
+                                                         input_region_length) -
                           ime_rect;
           if (focus_region_length) {
             ime_rect = pos + buffer->GetCaretPosition(focus_region_start);
@@ -432,10 +455,18 @@ class InternalState : public Group {
         const float kCaretPositionSizeFactor = 0.8f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
-        caret_pos += pos;
-        // Caret Y position is at the base line, add some offset.
-        caret_pos.y() -= (physical_label_size.y() * kCaretPositionSizeFactor);
-        RenderCaret(caret_pos, vec2i(1, physical_label_size.y()));
+
+        auto caret_size = size.y() * kCaretPositionSizeFactor;
+        if (caret_pos.x() >= window.x() &&
+            caret_pos.x() <= window.x() + window.z() &&
+            caret_pos.y() >= window.y() &&
+            caret_pos.y() - caret_size <= window.y() + window.w()) {
+          caret_pos += pos;
+          // Caret Y position is at the base line, add some offset.
+          caret_pos.y() -= caret_size;
+
+          RenderCaret(caret_pos, vec2i(1, size.y()));
+        }
 
         // Handle text input events only after the rendering for the pass is
         // finished.
@@ -494,14 +525,15 @@ class InternalState : public Group {
     auto buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
                                      physical_label_size, false);
     assert(buffer);
-    Label(text, *buffer);
+    Label(text, *buffer, vec4i(vec2i(0, 0), buffer->get_size()));
   }
 
-  vec2i Label(const char *text, const FontBuffer &buffer) {
+  vec2i Label(const char *text, const FontBuffer &buffer, const vec4i &window) {
     vec2i pos = mathfu::kZeros2i;
     if (layout_pass_) {
-      NewElement(buffer.get_size(), text);
-      Extend(buffer.get_size());
+      auto size = window.zw();
+      NewElement(size, text);
+      Extend(size);
     } else {
       // Check if texture atlas needs to be updated.
       if (buffer.get_pass() > 0) {
@@ -512,9 +544,28 @@ class InternalState : public Group {
       if (element) {
         fontman_.GetAtlasTexture()->Set(0);
 
-        font_shader_->Set(renderer_);
         pos = Position(*element);
-        font_shader_->SetUniform("pos_offset", vec3(pos.x(), pos.y(), 0.0f));
+
+        bool clipping = false;
+        if (window.z() && window.w()) {
+          clipping = window.x() || window.y() ||
+                     (buffer.get_size().x() > window.z()) ||
+                     (buffer.get_size().y() > window.w());
+        }
+        if (clipping) {
+          pos -= window.xy();
+
+          // Set a window to show a part of the label.
+          font_clipping_shader_->Set(renderer_);
+          font_clipping_shader_->SetUniform("pos_offset",
+                                            vec3(pos.x(), pos.y(), 0.0f));
+          auto start = vec2(position_ - pos);
+          auto end = start + vec2(window.zw());
+          font_clipping_shader_->SetUniform("clipping", vec4(start, end));
+        } else {
+          font_shader_->Set(renderer_);
+          font_shader_->SetUniform("pos_offset", vec3(pos.x(), pos.y(), 0.0f));
+        }
 
         const Attribute kFormat[] = {kPosition3f, kTexCoord2f, kEND};
         Mesh::RenderArray(
@@ -864,11 +915,13 @@ class InternalState : public Group {
                 } else if (button.is_down() && SameId(id, i)) {
                   event |= kEventIsDown;
 
-                  // Stop input handling.
-                  CaptureInput(kDummyId);
-                  // Record the last element we received an up on, as the target
-                  // for keyboard input.
-                  persistent_.input_focus_ = id;
+                  if (persistent_.input_focus_ != id) {
+                    // Stop input handling.
+                    CaptureInput(kDummyId);
+                    // Record the last element we received an up on, as the
+                    // target for keyboard input.
+                    persistent_.input_focus_ = id;
+                  }
                 }
               }
 
@@ -1022,6 +1075,7 @@ class InternalState : public Group {
   FontManager &fontman_;
   Shader *image_shader_;
   Shader *font_shader_;
+  Shader *font_clipping_shader_;
   Shader *color_shader_;
 
   // Expensive rendering commands can check if they're inside this rect to

@@ -179,8 +179,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
     FlushAndUpdate();
 
     // Try to create buffer again.
-    buffer = CreateBuffer(text, length, ysize,
-                          size, caret_info);
+    buffer = CreateBuffer(text, length, ysize, size, caret_info);
     if (buffer == nullptr) {
       fpl::LogError("The given text '%s' with ",
                     "size:%d does not fit a glyph cache. Try to "
@@ -198,7 +197,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   // Adjust y size if the size selector is set.
   int32_t converted_ysize = ConvertSize(ysize);
   float scale = ysize / static_cast<float>(converted_ysize);
-  bool multi_line = size.x();
+  bool multi_line = size.y() == 0 || size.y() > ysize;
 
   // Check cache if we already have a FontBuffer generated.
   auto it = map_buffers_.find(text);
@@ -265,7 +264,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         auto line_height = face_->height * line_height_ * scale / kFreeTypeUnit;
         pos = vec2(0.f, pos.y() + line_height);
         total_height += line_height;
-        if (size.y() && total_height > static_cast<uint32_t>(size.y())) {
+        if (size.y() && total_height > static_cast<uint32_t>(size.y()) &&
+            !caret_info) {
           // The text size exceeds given size.
           // For now, we just don't render the rest of strings.
 
@@ -304,32 +304,37 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         return nullptr;
       }
 
-      // Add the code point to the buffer. This information is used when
-      // re-fetching UV information when the texture atlas is updated.
-      buffer->get_code_points()->push_back(code_point);
+      // Register vertices only when the glyph has a size.
+      if (cache->get_size().x() && cache->get_size().y()) {
+        // Add the code point to the buffer. This information is used when
+        // re-fetching UV information when the texture atlas is updated.
+        buffer->get_code_points()->push_back(code_point);
 
-      // Calculate internal/external leading value and expand a buffer if
-      // necessary.
-      FontMetrics new_metrics;
-      if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
-        initial_metrics = new_metrics;
+        // Calculate internal/external leading value and expand a buffer if
+        // necessary.
+        FontMetrics new_metrics;
+        if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
+          initial_metrics = new_metrics;
+        }
+
+        // Construct indices array.
+        const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
+        for (auto index : kIndices) {
+          buffer->get_indices()->push_back(index + (total_glyph_count + i) * 4);
+        }
+
+        // Construct intermediate vertices array.
+        // The vertices array is update in the render pass with correct
+        // glyph size & glyph cache entry information.
+
+        // Update vertices.
+        buffer->AddVertices(pos, base_line, scale, *cache);
+
+        // Update UV.
+        buffer->UpdateUV(total_glyph_count + i, cache->get_uv());
+      } else {
+        total_glyph_count--;
       }
-
-      // Construct indices array.
-      const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
-      for (auto index : kIndices) {
-        buffer->get_indices()->push_back(index + (total_glyph_count + i) * 4);
-      }
-
-      // Construct intermediate vertices array.
-      // The vertices array is update in the render pass with correct
-      // glyph size & glyph cache entry information.
-
-      // Update vertices.
-      buffer->AddVertices(pos, base_line, scale, *cache);
-
-      // Update UV.
-      buffer->UpdateUV(total_glyph_count + i, cache->get_uv());
 
       // Update caret information if it has been requested.
       if (caret_info) {
@@ -371,14 +376,14 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   if (caret_info) {
     // Insert the last elements's end position.
     auto vertices = buffer->get_vertices();
-    float scaled_base_line = base_line * scale;
     if (vertices->size()) {
       // Retrieve last elements' end position as the last caret position.
       auto vertex = vertices->at(vertices->size() - 1);
       buffer->AddCaretPosition(vertex.position_.data[0],
-                               scaled_base_line);
+                               vertex.position_.data[1]);
     } else {
       // There are no characters in the buffer. Add initial caret position.
+      float scaled_base_line = base_line * scale;
       buffer->AddCaretPosition(0, scaled_base_line);
     }
   }
