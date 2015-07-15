@@ -4,9 +4,9 @@
 #include "flatui/flatui.h"
 #include <cassert>
 
-class ImGuiSample {
+class FlatUISample {
 public:
-  ImGuiSample() : matman_(renderer_) {}
+  FlatUISample() : matman_(renderer_) {}
 
   void Initialize() {
     renderer_.Initialize();
@@ -20,7 +20,7 @@ public:
     matman_.LoadTexture("textures/text_about.webp");
     matman_.StartLoadingTextures();
 
-    // While an initialization of Imgui, it implicitly loads shaders used in the
+    // While an initialization of flatui, it implicitly loads shaders used in the
     // API below using AssetManager.
     // shaders/color.glslv & .glslf, shaders/font.glslv & .glslf
     // shaders/textured.glslv & .glslf
@@ -51,11 +51,11 @@ public:
   }
 
 private:
-  // Show test GUI using imgui API.
+  // Show test GUI using flatui API.
   // In this sample, it shows basic UI elements of a label and an image.
   void TestGUI(fpl::AssetManager &assetman, fpl::FontManager &fontman,
                fpl::InputSystem &input) {
-    // Define Imgui block. Note that the block is executed multiple times,
+    // Define flatui block. Note that the block is executed multiple times,
     // One for a layout pass and another for a rendering pass.
     fpl::gui::Run(assetman, fontman, input, [&]() {
 
@@ -81,9 +81,9 @@ private:
 };
 
 int main() {
-  ImGuiSample imguisample;
-  imguisample.Initialize();
-  imguisample.Run();
-  imguisample.ShutDown();
+  FlatUISample flatuisample;
+  flatuisample.Initialize();
+  flatuisample.Run();
+  flatuisample.ShutDown();
   return 0;
 }

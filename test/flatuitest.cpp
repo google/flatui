@@ -37,7 +37,7 @@ Event CheckBox(const char *texture_name_checked,
   // Note that this event check needs to come after the Image() API that is
   // using the variable, because the event check happens in the render pass,
   // and we want to specify same texture name for both the layout and render
-  // pass (otherwise the IMGUI system can not find a correct layout info).
+  // pass (otherwise the FlatUI system can not find a correct layout info).
   if (event & kEventWentUp) {
     *is_checked = !*is_checked;
   }

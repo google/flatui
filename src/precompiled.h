@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef IMGUI_SRC_PRECOMPILED_H
-#define IMGUI_SRC_PRECOMPILED_H
+#ifndef FLATUI_SRC_PRECOMPILED_H
+#define FLATUI_SRC_PRECOMPILED_H
 
 #include <assert.h>
 #include <cstdint>
@@ -35,4 +35,4 @@
 #include "SDL.h"
 #include "SDL_log.h"
 
-#endif  // IMGUI_SRC_PRECOMPILED_H
+#endif  // FLATUI_SRC_PRECOMPILED_H

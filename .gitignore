@@ -6,7 +6,6 @@ CMakeCache.txt
 cmake_install.cmake
 CMakeLists.txt.user
 test/CMakeFiles/
-test/imguitest.cbp
 flatui.cbp
 libflatui.a
 samples/CMakeFiles/
