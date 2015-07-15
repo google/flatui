@@ -268,6 +268,13 @@ const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 void PositionUI(float virtual_resolution, Alignment horizontal,
                                           Alignment vertical);
 
+// By default, FlatUI sets up a projection matrix for all rendering that
+// covers the entire screen (as given by Renderer::window_size().
+// Call this function to instead use whatever projection is in place before
+// Run() is called (which may be a 2D or 3D projection).
+// Specify the new canvas size for the UI to live inside of.
+void UseExistingProjection(const vec2i &canvas_size);
+
 }  // namespace gui
 }  // namespace fpl
 

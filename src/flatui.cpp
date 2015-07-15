@@ -104,6 +104,8 @@ class InternalState : public Group {
                 InputSystem &input)
       : Group(kDirVertical, kAlignLeft, 0, 0),
         layout_pass_(true),
+        canvas_size_(assetman.renderer().window_size()),
+        default_projection_(true),
         virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION),
         matman_(assetman),
         renderer_(assetman.renderer()),
@@ -178,22 +180,31 @@ class InternalState : public Group {
 
   // Initialize the scaling factor for the virtual resolution.
   void SetScale() {
-    auto scale = vec2(renderer_.window_size()) / virtual_resolution_;
+    auto scale = vec2(canvas_size_) / virtual_resolution_;
     pixel_scale_ = std::min(scale.x(), scale.y());
   }
 
   // Retrieve the scaling factor for the virtual resolution.
   float GetScale() { return pixel_scale_; }
 
+  // Override the use of a default projection matrix and canvas size.
+  void UseExistingProjection(const vec2i &canvas_size) {
+    canvas_size_ = canvas_size;
+    default_projection_ = false;
+  }
+
   // Set up an ortho camera for all 2D elements, with (0, 0) in the top left,
   // and the bottom right the windows size in pixels.
   // This is currently hardcoded to use overlay on top of the entire GL window.
   // If that ever changes, we also need to change our use of glScissor below.
   void SetOrtho() {
-    auto res = renderer_.window_size();
     auto ortho_mat = mathfu::OrthoHelper<float>(
-        0.0f, static_cast<float>(res.x()), static_cast<float>(res.y()), 0.0f,
-        -1.0f, 1.0f);
+      0.0f,
+      static_cast<float>(canvas_size_.x()),
+      static_cast<float>(canvas_size_.y()),
+      0.0f,
+      -1.0f,
+      1.0f);
     renderer_.model_view_projection() = ortho_mat;
   }
 
@@ -222,7 +233,7 @@ class InternalState : public Group {
       virtual_resolution_ = virtual_resolution;
       SetScale();
     } else {
-      auto space = renderer_.window_size() - size_;
+      auto space = canvas_size_ - size_;
       position_ += AlignDimension(horizontal, 0, space) +
                    AlignDimension(vertical, 1, space);
     }
@@ -250,6 +261,8 @@ class InternalState : public Group {
     element_it_ = elements_.begin();
 
     CheckGamePadNavigation();
+
+    if (default_projection_) SetOrtho();
   }
 
   // (render pass): retrieve the next corresponding cached element we
@@ -696,9 +709,10 @@ class InternalState : public Group {
       // translating to whereever the GUI is placed, or in the case of 3D
       // placement use another technique alltogether (render to texture,
       // glClipPlane, or stencil buffer).
+      assert(default_projection_);
       renderer_.ScissorOn(
             vec2i(position_.x(),
-                  renderer_.window_size().y() - position_.y() - psize.y()),
+                  canvas_size_.y() - position_.y() - psize.y()),
             psize);
 
       vec2i pointer_delta = mathfu::kZeros2i;
@@ -1066,6 +1080,7 @@ class InternalState : public Group {
   std::vector<Element>::iterator element_it_;
   std::vector<Group> group_stack_;
   vec2i canvas_size_;
+  bool default_projection_;
   float virtual_resolution_;
   float pixel_scale_;
 
@@ -1150,8 +1165,6 @@ void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
   // Second pass:
   internal_state.StartRenderPass();
 
-  internal_state.SetOrtho();
-
   auto &renderer = assetman.renderer();
   renderer.SetBlendMode(kBlendModeAlpha);
   renderer.DepthTest(false);
@@ -1233,6 +1246,10 @@ void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info) {
 
 void PositionUI(float virtual_resolution, Alignment horizontal, Alignment vertical) {
   Gui()->PositionUI(virtual_resolution, horizontal, vertical);
+}
+
+void UseExistingProjection(const vec2i &canvas_size) {
+  Gui()->UseExistingProjection(canvas_size);
 }
 
 mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
