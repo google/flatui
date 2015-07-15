@@ -696,10 +696,10 @@ class InternalState : public Group {
       // translating to whereever the GUI is placed, or in the case of 3D
       // placement use another technique alltogether (render to texture,
       // glClipPlane, or stencil buffer).
-      glEnable(GL_SCISSOR_TEST);
-      glScissor(position_.x(),
-                renderer_.window_size().y() - position_.y() - psize.y(),
-                psize.x(), psize.y());
+      renderer_.ScissorOn(
+            vec2i(position_.x(),
+                  renderer_.window_size().y() - position_.y() - psize.y()),
+            psize);
 
       vec2i pointer_delta = mathfu::kZeros2i;
       int32_t scroll_speed = scroll_speed_drag_;
@@ -768,7 +768,7 @@ class InternalState : public Group {
       for (int i = 0; i <= pointer_max_active_index_; i++) {
         clip_mouse_inside_[i] = true;
       }
-      glDisable(GL_SCISSOR_TEST);
+      renderer_.ScissorOff();
     }
   }
 
