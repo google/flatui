@@ -25,6 +25,7 @@
 
 #include "font_manager.h"
 #include "fplbase/utilities.h"
+#include "fplbase/glplatform.h"
 
 #ifdef FLATUI_USE_LIBUNIBREAK
 #include "linebreak.h"
@@ -168,6 +169,20 @@ void FontManager::Terminate() {
 
   FT_Done_FreeType(*ft_);
   ft_ = nullptr;
+}
+
+void FontManager::SetRenderer(Renderer &renderer) {
+  renderer_ = &renderer;
+
+  // Initialize the font atlas texture.
+  atlas_texture_.reset(new Texture(renderer));
+  atlas_texture_.get()->LoadFromMemory(glyph_cache_->get_buffer(),
+                                       glyph_cache_->get_size(),
+                                       kFormatLuminance, false);
+
+  // Disable mipmap for the atlas texture.
+  atlas_texture_.get()->Set(0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,

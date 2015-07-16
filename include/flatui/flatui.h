@@ -17,14 +17,11 @@
 
 #include <functional>
 #include <string>
-#include <vector>
-#include <map>
 
 #include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
 #include "font_manager.h"
-#include "internal/micro_edit.h"
 
 namespace fpl {
 namespace gui {

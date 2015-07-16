@@ -588,7 +588,7 @@ class InternalState : public Group {
 
         const Attribute kFormat[] = {kPosition3f, kTexCoord2f, kEND};
         Mesh::RenderArray(
-            GL_TRIANGLES, buffer.get_indices()->size(), kFormat,
+            Mesh::kTriangles, buffer.get_indices()->size(), kFormat,
             sizeof(FontVertex),
             reinterpret_cast<const char *>(buffer.get_vertices()->data()),
             buffer.get_indices()->data());
