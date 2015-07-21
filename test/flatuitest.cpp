@@ -107,7 +107,10 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
     auto slider_background_tex = assetman.FindTexture("textures/gray_bar.webp");
     auto slider_knob_tex = assetman.FindTexture("textures/white_circle.webp");
     Edit(30, vec2(400, 30), "edit2", &str2);
-    Edit(30, vec2(400, 30), "edit", &str);
+    StartGroup(kLayoutHorizontalTop, 0);
+    Edit(30, vec2(0, 30), "edit", &str);
+    Label(">Tail", 30);
+    EndGroup();
     Slider(*slider_knob_tex, *slider_background_tex,
            vec2(300, 25), 0.5f, "slider", &slider_value);
     CheckBox("textures/btn_check_on.webp",

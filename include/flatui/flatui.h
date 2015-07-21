@@ -164,6 +164,7 @@ void SetTextColor(const vec4 &color);
 // Render an edit box as a GUI element.
 // ysize: vertical size in virtual resolution.
 // size: a size of the editbox in virtual resolution.
+//       0 for size.x indicates an auto expanding edit box.
 //       0 for size.y indicates a single line label.
 // string: label string in UTF8
 // returns true if the widget is in edit.

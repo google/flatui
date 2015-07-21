@@ -385,7 +385,6 @@ class InternalState : public Group {
       physical_label_size.y() = size.y();
       edit_mode = kSingleLine;
     }
-
     if (in_edit && persistent_.text_edit_.GetEditingText()) {
       // Get a text from the micro editor when it's editing.
       ui_text = persistent_.text_edit_.GetEditingText();
@@ -393,6 +392,13 @@ class InternalState : public Group {
     auto buffer = fontman_.GetBuffer(ui_text->c_str(), ui_text->length(),
                                      size.y(), physical_label_size, true);
     assert(buffer);
+
+    // Check if the editbox is an auto expanding edit box.
+    if (physical_label_size.x() == 0) {
+      physical_label_size.x() = buffer->get_size().x();
+      edit_mode = kSingleLine;
+    }
+
     persistent_.text_edit_.SetBuffer(buffer);
     persistent_.text_edit_.SetWindowSize(physical_label_size);
 
