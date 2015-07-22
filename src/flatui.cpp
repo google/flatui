@@ -675,10 +675,6 @@ class InternalState : public Group {
       }
     }
     *static_cast<Group *>(this) = layout;
-
-    // Reset clipping status.
-    clip_position_ = mathfu::kZeros2i;
-    clip_size_ = mathfu::kZeros2i;
   }
 
   // Clean up the Group element started by StartGroup()
@@ -724,6 +720,7 @@ class InternalState : public Group {
       clip_inside_ = true;
       // Pass this size to EndScroll.
       clip_size_ = psize;
+      clip_position_ = mathfu::kZeros2i;
     } else {
       // This currently assumes an ortho camera that corresponds to all pixels
       // of the GL screen, which is exactly what Run() sets up.

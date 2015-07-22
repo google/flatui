@@ -100,59 +100,62 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
   Run(assetman, fontman, input, [&]() {
     PositionUI(1000, kAlignCenter, kAlignCenter);
     StartGroup(kLayoutOverlayCenter, 0);
-    StartGroup(kLayoutHorizontalTop, 10);
-    StartGroup(kLayoutVerticalLeft, 20);
-    click_about_example("my_id1", true);
-    // Textures used in widgets.
-    auto slider_background_tex = assetman.FindTexture("textures/gray_bar.webp");
-    auto slider_knob_tex = assetman.FindTexture("textures/white_circle.webp");
-    Edit(30, vec2(400, 30), "edit2", &str2);
-    StartGroup(kLayoutHorizontalTop, 0);
-    Edit(30, vec2(0, 30), "edit", &str);
-    Label(">Tail", 30);
-    EndGroup();
-    Slider(*slider_knob_tex, *slider_background_tex,
-           vec2(300, 25), 0.5f, "slider", &slider_value);
-    CheckBox("textures/btn_check_on.webp",
-             "textures/btn_check_off.webp",
-             "CheckBox", 30, "checkbox_1", &checkbox1_checked);
-    StartGroup(kLayoutHorizontalTop, 0);
-    Label("Property T", 30);
-    SetTextColor(mathfu::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-    Label("Test ", 30);
-    SetTextColor(mathfu::kOnes4f);
-    Label("ffWAWÄテスト", 30);
-    EndGroup();
-
-    StartGroup(kLayoutVerticalLeft, 20, "scroll");
-    StartScroll(vec2(200, 100), &scroll_offset);
-    auto splash_tex = assetman.FindTexture("textures/text_about.webp");
-    ImageBackgroundNinePatch(*splash_tex, vec4(0.2f, 0.2f, 0.8f, 0.8f));
-    click_about_example("my_id4", true);
-    Label("The quick brown fox jumps over the lazy dog", 24);
-    Label("The quick brown fox jumps over the lazy dog", 20);
-    EndScroll();
-    EndGroup();
-    EndGroup();
-    StartGroup(kLayoutVerticalCenter, 40);
-    click_about_example("my_id2", true);
-    Image("textures/text_about.webp", 40);
-    Image("textures/text_about.webp", 30);
-    EndGroup();
-    StartGroup(kLayoutVerticalRight, 0);
-    Edit(24, vec2(400, 400), "edit3", &str3);
-    EndGroup();
-    EndGroup();
-    if (show_about) {
-      StartGroup(kLayoutVerticalLeft, 20, "about_overlay");
-      SetMargin(Margin(10));
-      ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
-      click_about_example("my_id3", false);
-      Label("This is the about window! すし!", 32);
-      Label("You should only be able to click on the", 24);
-      Label("about button above, not anywhere else", 20);
+      StartGroup(kLayoutHorizontalTop, 10);
+        StartGroup(kLayoutVerticalLeft, 20);
+          click_about_example("my_id1", true);
+          // Textures used in widgets.
+          auto slider_background_tex =
+              assetman.FindTexture("textures/gray_bar.webp");
+          auto slider_knob_tex =
+              assetman.FindTexture("textures/white_circle.webp");
+          Edit(30, vec2(400, 30), "edit2", &str2);
+          StartGroup(kLayoutHorizontalTop, 0);
+            Edit(30, vec2(0, 30), "edit", &str);
+            Label(">Tail", 30);
+          EndGroup();
+          Slider(*slider_knob_tex, *slider_background_tex,
+                 vec2(300, 25), 0.5f, "slider", &slider_value);
+          CheckBox("textures/btn_check_on.webp",
+                   "textures/btn_check_off.webp",
+                   "CheckBox", 30, "checkbox_1", &checkbox1_checked);
+          StartGroup(kLayoutHorizontalTop, 0);
+            Label("Property T", 30);
+            SetTextColor(mathfu::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+            Label("Test ", 30);
+            SetTextColor(mathfu::kOnes4f);
+            Label("ffWAWÄテスト", 30);
+          EndGroup();
+          StartGroup(kLayoutVerticalLeft, 20, "scroll");
+            StartScroll(vec2(200, 100), &scroll_offset);
+              auto splash_tex =
+                  assetman.FindTexture("textures/text_about.webp");
+              ImageBackgroundNinePatch(*splash_tex,
+                                       vec4(0.2f, 0.2f, 0.8f, 0.8f));
+              click_about_example("my_id4", true);
+              Label("The quick brown fox jumps over the lazy dog", 24);
+              Label("The quick brown fox jumps over the lazy dog", 20);
+            EndScroll();
+          EndGroup();
+        EndGroup();
+        StartGroup(kLayoutVerticalCenter, 40);
+          click_about_example("my_id2", true);
+          Image("textures/text_about.webp", 40);
+          Image("textures/text_about.webp", 30);
+        EndGroup();
+        StartGroup(kLayoutVerticalRight, 0);
+          Edit(24, vec2(400, 400), "edit3", &str3);
+        EndGroup();
       EndGroup();
-    }
+      if (show_about) {
+        StartGroup(kLayoutVerticalLeft, 20, "about_overlay");
+        SetMargin(Margin(10));
+        ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
+        click_about_example("my_id3", false);
+        Label("This is the about window! すし!", 32);
+        Label("You should only be able to click on the", 24);
+        Label("about button above, not anywhere else", 20);
+        EndGroup();
+      }
     EndGroup();
   });
 }
