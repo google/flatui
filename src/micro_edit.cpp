@@ -18,10 +18,8 @@
 
 namespace fpl {
 
-void MicroEdit::Initialize(const char *id, std::string *text,
-                           EditorMode mode) {
+void MicroEdit::Initialize(std::string *text, EditorMode mode) {
   Reset();
-  id_ = id;
   text_ = text;
   if (mode == kMultipleLines) {
     single_line_ = false;

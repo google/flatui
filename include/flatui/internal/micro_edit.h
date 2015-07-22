@@ -46,7 +46,7 @@ class MicroEdit {
   }
 
   // Initialize an edit session with a given string.
-  void Initialize(const char *id, std::string *text, EditorMode mode);
+  void Initialize(std::string *text, EditorMode mode);
 
   // Handle input events provided by SDL.
   // Returns true if the input session is finished by pressing a return.
@@ -117,7 +117,6 @@ class MicroEdit {
     wordbreak_index_ = 0;
     num_characters_ = 0;
     text_ = nullptr;
-    id_ = nullptr;
     in_text_input_ = false;
     window_ = mathfu::kZeros4i;
     window_offset_ = mathfu::kZeros2i;
@@ -204,9 +203,6 @@ class MicroEdit {
 
   // A pointer to the FontBuffer.
   const FontBuffer *buffer_;
-
-  // ID of the editting widget.
-  const char *id_;
 };
 
 }  // namespace fpl

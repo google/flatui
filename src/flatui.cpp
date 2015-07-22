@@ -28,12 +28,36 @@ Alignment GetAlignment(Layout layout) {
   return static_cast<Alignment>(layout & (kDirHorizontal - 1));
 }
 
-static const char *kDummyId = "__null_id__";
 static const float kScrollSpeedDragDefault = 2.0f;
 static const float kScrollSpeedWheelgDefault = 16.0f;
 static const int32_t kDragStartThresholdDefault = 8;
 static const int32_t kPointerIndexInvalid = -1;
 static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
+
+typedef uint32_t HashedId;
+
+static HashedId kNullHash = 0;
+
+HashedId HashId(const char *id) {
+  // A quick good hash, from:
+  // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+  HashedId hash = 0x84222325;
+  while (*id) hash = (hash ^ static_cast<uint8_t>(*id++)) * 0x000001b3;
+  // We use kNullHash for special checks, so make sure it doesn't collide.
+  // If you hit this assert, sorry, please change your id :)
+  assert(hash != kNullHash);
+  return hash;
+}
+
+bool EqualId(HashedId hash1, HashedId hash2) {
+  // We use hashes for comparison (rather that strcmp or pointer compare)
+  // so the user can feel free to generate ids in temporary strings.
+  // Not only are collisions rare because we use the entire 32bit space,
+  // they are even more rare in practice, since noticable effects can only
+  // occur between two adjacent elements, and then only when one of the two
+  // elements was just inserted, etc.
+  return hash1 == hash2;
+}
 
 // This holds the transient state of a group while its layout is being
 // calculated / rendered.
@@ -89,14 +113,14 @@ class InternalState : public Group {
   // We create one of these per GUI element, so new fields should only be
   // added when absolutely necessary.
   struct Element {
-    Element(const vec2i &_size, const char *_id)
+    Element(const vec2i &_size, HashedId _hash)
         : size(_size),
           extra_size(mathfu::kZeros2i),
-          id(_id),
+          hash(_hash),
           interactive(false) {}
     vec2i size;        // Minimum on-screen size computed by layout pass.
     vec2i extra_size;  // Additional size in a scrolling area (TODO: remove?)
-    const char *id;    // Id specified by the user.
+    HashedId hash;     // From id specified by the user.
     bool interactive;  // Wants to respond to user input.
   };
 
@@ -160,18 +184,6 @@ class InternalState : public Group {
   }
 
   ~InternalState() { state = nullptr; }
-
-  bool EqualId(const char *id1, const char *id2) {
-    // We can do pointer compare, because we receive these ids from the user
-    // and then store them.
-    // We require the user to provide storage for the id as long as the GUI
-    // is active, which guarantees pointer identity.
-    // TODO: we either need to provide a way to clear persistent ids once a
-    // GUI goes away entirely, or tell users not ever pass a c_str().
-    // Better yet, replace this by hashes, as that makes generating ids in
-    // loops easier. Bit expensive though.
-    return id1 == id2;
-  }
 
   template <int D>
   mathfu::Vector<int, D> VirtualToPhysical(const mathfu::Vector<float, D> &v) {
@@ -249,7 +261,7 @@ class InternalState : public Group {
 
     // Put in a sentinel element. We'll use this element to point to
     // when a group didn't exist during layout but it does during rendering.
-    NewElement(mathfu::kZeros2i, "__sentinel__");
+    NewElement(mathfu::kZeros2i, kNullHash);
 
     // Update font manager if they need to upload font atlas texture.
     fontman_.StartRenderPass();
@@ -268,14 +280,14 @@ class InternalState : public Group {
   // (render pass): retrieve the next corresponding cached element we
   // created in the layout pass. This is slightly more tricky than a straight
   // lookup because event handlers may insert/remove elements.
-  Element *NextElement(const char *id) {
+  Element *NextElement(HashedId hash) {
     auto backup = element_it_;
     while (element_it_ != elements_.end()) {
       // This loop usually returns on the first iteration, the only time it
       // doesn't is if an event handler caused an element to removed.
       auto &element = *element_it_;
       ++element_it_;
-      if (EqualId(element.id, id)) return &element;
+      if (EqualId(element.hash, hash)) return &element;
     }
     // Didn't find this id at all, which means an event handler just caused
     // this element to be added, so we skip it.
@@ -284,8 +296,8 @@ class InternalState : public Group {
   }
 
   // (layout pass): create a new element.
-  void NewElement(const vec2i &size, const char *id) {
-    elements_.push_back(Element(size, id));
+  void NewElement(const vec2i &size, HashedId hash) {
+    elements_.push_back(Element(size, hash));
   }
 
   // (render pass): move the group's current position past an element of
@@ -341,16 +353,17 @@ class InternalState : public Group {
   void Image(const char *texture_name, float ysize) {
     auto tex = matman_.FindTexture(texture_name);
     assert(tex);  // You need to have called LoadTexture before.
+    auto hash = HashId(texture_name);
     if (layout_pass_) {
       auto virtual_image_size =
           vec2(tex->size().x() * ysize / tex->size().y(), ysize);
       // Map the size to real screen pixels, rounding to the nearest int
       // for pixel-aligned rendering.
       auto size = VirtualToPhysical(virtual_image_size);
-      NewElement(size, texture_name);
+      NewElement(size, hash);
       Extend(size);
     } else {
-      auto element = NextElement(texture_name);
+      auto element = NextElement(hash);
       if (element) {
         tex->Set(0);
         RenderQuad(image_shader_, mathfu::kOnes4f, Position(*element),
@@ -362,10 +375,11 @@ class InternalState : public Group {
 
   bool Edit(float ysize, const mathfu::vec2 &edit_size, const char *id,
             std::string *text) {
+    auto hash = HashId(id);
     StartGroup(GetDirection(kLayoutHorizontalBottom),
-               GetAlignment(kLayoutHorizontalBottom), 0, id);
+               GetAlignment(kLayoutHorizontalBottom), 0, hash);
     bool in_edit = false;
-    if (EqualId(persistent_.input_focus_, id)) {
+    if (EqualId(persistent_.input_focus_, hash)) {
       // The widget is in edit.
       in_edit = true;
     }
@@ -410,15 +424,15 @@ class InternalState : public Group {
     if (!layout_pass_) {
       auto show_caret = false;
       bool pick_caret = event & kEventWentDown;
-      if (EqualId(persistent_.input_focus_, id)) {
+      if (EqualId(persistent_.input_focus_, hash)) {
         // The edit box is in focus. Now we can start text input.
-        if (persistent_.input_capture_ != id) {
+        if (persistent_.input_capture_ != hash) {
           // Initialize the editor.
-          persistent_.text_edit_.Initialize(id, text, edit_mode);
+          persistent_.text_edit_.Initialize(text, edit_mode);
           persistent_.text_edit_.SetLanguage(fontman_.GetLanguage());
           persistent_.text_edit_.SetBuffer(buffer);
           pick_caret = true;
-          CaptureInput(id);
+          CaptureInput(hash);
         }
         show_caret = true;
       }
@@ -493,7 +507,7 @@ class InternalState : public Group {
             input_.GetTextInputEvents());
         input_.ClearTextInputEvents();
         if (finished_input) {
-          CaptureInput(kDummyId);
+          CaptureInput(kNullHash);
         }
       }
     }
@@ -549,9 +563,10 @@ class InternalState : public Group {
 
   vec2i Label(const char *text, const FontBuffer &buffer, const vec4i &window) {
     vec2i pos = mathfu::kZeros2i;
+    auto hash = HashId(text);
     if (layout_pass_) {
       auto size = window.zw();
-      NewElement(size, text);
+      NewElement(size, hash);
       Extend(size);
     } else {
       // Check if texture atlas needs to be updated.
@@ -559,7 +574,7 @@ class InternalState : public Group {
         fontman_.StartRenderPass();
       }
 
-      auto element = NextElement(text);
+      auto element = NextElement(hash);
       if (element) {
         fontman_.GetAtlasTexture()->Set(0);
 
@@ -602,12 +617,13 @@ class InternalState : public Group {
   void CustomElement(
       const vec2 &virtual_size, const char *id,
       const std::function<void(const vec2i &pos, const vec2i &size)> renderer) {
+    auto hash = HashId(id);
     if (layout_pass_) {
       auto size = VirtualToPhysical(virtual_size);
-      NewElement(size, id);
+      NewElement(size, hash);
       Extend(size);
     } else {
-      auto element = NextElement(id);
+      auto element = NextElement(hash);
       if (element) {
         renderer(Position(*element), element->size);
         Advance(element->size);
@@ -638,13 +654,13 @@ class InternalState : public Group {
   // An element that has sub-elements. Tracks its state in an instance of
   // Layout, that is pushed/popped from the stack as needed.
   void StartGroup(Direction direction, Alignment align, float spacing,
-                  const char *id) {
+                  HashedId hash) {
     Group layout(direction, align, spacing, elements_.size());
     group_stack_.push_back(*this);
     if (layout_pass_) {
-      NewElement(mathfu::kZeros2i, id);
+      NewElement(mathfu::kZeros2i, hash);
     } else {
-      auto element = NextElement(id);
+      auto element = NextElement(hash);
       if (element) {
         layout.position_ = Position(*element);
         layout.size_ = element->size;
@@ -736,10 +752,10 @@ class InternalState : public Group {
 
       if (event & kEventStartDrag) {
         // Start drag.
-        CapturePointer(element.id);
+        CapturePointer(element.hash);
       }
 
-      if (IsPointerCaptured(element.id)) {
+      if (IsPointerCaptured(element.hash)) {
         if (event & kEventEndDrag) {
           // Finish dragging and release the pointer.
           ReleasePointer();
@@ -796,7 +812,7 @@ class InternalState : public Group {
     auto event = CheckEvent(false);
     if (!layout_pass_) {
       if (event & kEventStartDrag) {
-        CapturePointer(elements_[element_idx_].id);
+        CapturePointer(elements_[element_idx_].hash);
       } else if (event & kEventEndDrag) {
         ReleasePointer();
       }
@@ -842,9 +858,9 @@ class InternalState : public Group {
   }
 
   // Capture the input to an element.
-  void CaptureInput(const char *element_id) {
-    persistent_.input_capture_ = element_id;
-    if (element_id != kDummyId) {
+  void CaptureInput(HashedId hash) {
+    persistent_.input_capture_ = hash;
+    if (!EqualId(hash, kNullHash)) {
       // Start recording input events.
       if (!input_.IsRecordingTextInput()) {
         input_.RecordTextInput(true);
@@ -854,7 +870,7 @@ class InternalState : public Group {
       input_.StartTextInput();
     } else {
       // The element releases keyboard focus as well.
-      persistent_.input_focus_ = kDummyId;
+      persistent_.input_focus_ = kNullHash;
 
       // Stop recording input events.
       if (input_.IsRecordingTextInput()) {
@@ -867,31 +883,31 @@ class InternalState : public Group {
 
   // Capture the pointer to an element.
   // The element with element_id will continue to recieve pointer events
-  // exclusively until CapturePointer() with kDummyId API is called.
+  // exclusively until CapturePointer() with kNullHash API is called.
   //
-  // element_id: an element ID that captures the pointer.
-  void CapturePointer(const char *element_id) {
-    persistent_.mouse_capture_ = element_id;
-    RecordId(element_id, current_pointer_);
+  // hash: an element hash that captures the pointer.
+  void CapturePointer(HashedId hash) {
+    persistent_.mouse_capture_ = hash;
+    RecordId(hash, current_pointer_);
   }
 
   // Check if the element can recieve pointer events.
   // Return false if the pointer is captured by another element.
-  bool CanReceivePointerEvent(const char *element_id) {
-    return persistent_.mouse_capture_ == kDummyId ||
-           EqualId(persistent_.mouse_capture_, element_id);
+  bool CanReceivePointerEvent(HashedId hash) {
+    return persistent_.mouse_capture_ == kNullHash ||
+           EqualId(persistent_.mouse_capture_, hash);
   }
 
   // Check if the element is capturing a pointer events.
-  bool IsPointerCaptured(const char *element_id) {
-    return EqualId(persistent_.mouse_capture_, element_id);
+  bool IsPointerCaptured(HashedId hash) {
+    return EqualId(persistent_.mouse_capture_, hash);
   }
 
   vec2i GroupSize() { return size_ + elements_[element_idx_].extra_size; }
 
-  void RecordId(const char *id, int i) { persistent_.pointer_element[i] = id; }
-  bool SameId(const char *id, int i) {
-    return EqualId(id, persistent_.pointer_element[i]);
+  void RecordId(HashedId hash, int i) { persistent_.pointer_element[i] = hash; }
+  bool SameId(HashedId hash, int i) {
+    return EqualId(hash, persistent_.pointer_element[i]);
   }
 
   Event CheckEvent(bool check_dragevent_only) {
@@ -902,14 +918,14 @@ class InternalState : public Group {
       // We only fire events after the layout pass.
       // Check if this is an inactive part of an overlay.
       if (element.interactive) {
-        auto id = element.id;
+        auto hash = element.hash;
 
         // pointer_max_active_index_ is typically 0, so loop not expensive.
         for (int i = 0; i <= pointer_max_active_index_; i++) {
-          if ((CanReceivePointerEvent(id) && clip_mouse_inside_[i] &&
+          if ((CanReceivePointerEvent(hash) && clip_mouse_inside_[i] &&
                mathfu::InRange2D(input_.get_pointers()[i].mousepos, position_,
                                  position_ + size_)) ||
-              IsPointerCaptured(id)) {
+              IsPointerCaptured(hash)) {
             auto &button = *pointer_buttons_[i];
             int event = 0;
 
@@ -926,21 +942,21 @@ class InternalState : public Group {
               if (!check_dragevent_only) {
                 // Regular pointer event handlings.
                 if (button.went_down()) {
-                  RecordId(id, i);
+                  RecordId(hash, i);
                   event |= kEventWentDown;
                 }
 
-                if (button.went_up() && SameId(id, i)) {
+                if (button.went_up() && SameId(hash, i)) {
                   event |= kEventWentUp;
-                } else if (button.is_down() && SameId(id, i)) {
+                } else if (button.is_down() && SameId(hash, i)) {
                   event |= kEventIsDown;
 
-                  if (persistent_.input_focus_ != id) {
+                  if (persistent_.input_focus_ != hash) {
                     // Stop input handling.
-                    CaptureInput(kDummyId);
+                    CaptureInput(kNullHash);
                     // Record the last element we received an up on, as the
                     // target for keyboard input.
-                    persistent_.input_focus_ = id;
+                    persistent_.input_focus_ = hash;
                   }
                 }
               }
@@ -980,7 +996,7 @@ class InternalState : public Group {
         }
         // Generate hover events for the current element the gamepad is focused
         // on.
-        if (EqualId(persistent_.input_focus_, id)) {
+        if (EqualId(persistent_.input_focus_, hash)) {
           gamepad_has_focus_element = true;
           return gamepad_event;
         }
@@ -999,20 +1015,20 @@ class InternalState : public Group {
   void CheckGamePadNavigation() {
     // Gamepad/keyboard navigation only happens when the keyboard is not
     // captured.
-    if (persistent_.input_capture_ != kDummyId) {
+    if (persistent_.input_capture_ != kNullHash) {
       return;
     }
 
     int dir = 0;
-// FIXME: this should work on other platforms too.
-#ifdef ANDROID_GAMEPAD
+    // FIXME: this should work on other platforms too.
+#   ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
       dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
                          gamepad.second.GetButton(Gamepad::kRight),
                          gamepad.second.GetButton(Gamepad::kButtonA));
     }
-#endif
+#   endif
     // For testing, also support keyboard:
     dir =
         CheckButtons(input_.GetButton(SDLK_LEFT), input_.GetButton(SDLK_RIGHT),
@@ -1020,7 +1036,7 @@ class InternalState : public Group {
     // Now find the current element, and move to the next.
     if (dir) {
       for (auto &e : elements_) {
-        if (EqualId(e.id, persistent_.input_focus_)) {
+        if (EqualId(e.hash, persistent_.input_focus_)) {
           persistent_.input_focus_ =
               NextInteractiveElement(&e - &elements_[0], dir);
           break;
@@ -1040,7 +1056,7 @@ class InternalState : public Group {
     return dir;
   }
 
-  const char *NextInteractiveElement(int start, int direction) {
+  HashedId NextInteractiveElement(int start, int direction) {
     auto range = static_cast<int>(elements_.size());
     for (auto i = start;;) {
       i += direction;
@@ -1051,8 +1067,8 @@ class InternalState : public Group {
         i = -1;
       // Back where we started, either there's no interactive elements, or
       // the vector is empty.
-      if (i == start) return kDummyId;
-      if (elements_[i].interactive) return elements_[i].id;
+      if (i == start) return kNullHash;
+      if (elements_[i].interactive) return elements_[i].hash;
     }
   }
 
@@ -1128,25 +1144,25 @@ class InternalState : public Group {
       // This is effectively a global, so no memory allocation or other
       // complex initialization here.
       for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
-        pointer_element[i] = kDummyId;
+        pointer_element[i] = kNullHash;
       }
-      input_focus_ = input_capture_ = mouse_capture_ = kDummyId;
+      input_focus_ = input_capture_ = mouse_capture_ = kNullHash;
       dragging_pointer_ = kPointerIndexInvalid;
     }
 
     // For each pointer, the element id that last received a down event.
-    const char *pointer_element[InputSystem::kMaxSimultanuousPointers];
+    HashedId pointer_element[InputSystem::kMaxSimultanuousPointers];
     // The element the gamepad is currently "over", simulates the mouse
     // hovering over an element.
-    const char *input_focus_;
+    HashedId input_focus_;
 
     // The element that capturing the keyboard.
-    const char *input_capture_;
+    HashedId input_capture_;
 
     // The element that capturing the pointer.
     // The element continues to recieve mouse events until it releases the
     // capture.
-    const char *mouse_capture_;
+    HashedId mouse_capture_;
 
     // Simple text edit handler for an edit box.
     MicroEdit text_edit_;
@@ -1201,7 +1217,8 @@ bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
 }
 
 void StartGroup(Layout layout, float spacing, const char *id) {
-  Gui()->StartGroup(GetDirection(layout), GetAlignment(layout), spacing, id);
+  Gui()->StartGroup(GetDirection(layout), GetAlignment(layout), spacing,
+                    HashId(id));
 }
 
 void EndGroup() { Gui()->EndGroup(); }
@@ -1265,10 +1282,10 @@ mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
 float GetScale() { return Gui()->GetScale(); }
 
 void CapturePointer(const char *element_id) {
-  Gui()->CapturePointer(element_id);
+  Gui()->CapturePointer(HashId(element_id));
 }
 
-void ReleasePointer() { Gui()->CapturePointer(kDummyId); }
+void ReleasePointer() { Gui()->CapturePointer(kNullHash); }
 
 void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
   Gui()->SetScrollSpeed(scroll_speed_drag, scroll_speed_wheel);
