@@ -112,7 +112,7 @@ enum Layout {
   kLayoutVerticalLeft     = kDirVertical | kAlignLeft,
   kLayoutVerticalCenter   = kDirVertical | kAlignCenter,
   kLayoutVerticalRight    = kDirVertical | kAlignRight,
-  kLayoutOverlayCenter    = kDirOverlay | kAlignCenter,
+  kLayoutOverlay          = kDirOverlay | kAlignCenter,
 };
 
 // Specify margins for a group, in units of virtual resolution.
@@ -193,6 +193,11 @@ Event CheckEvent();
 //                        recieved corresponding WENT_DOWN event.
 Event CheckEvent(bool check_dragevent_only);
 
+// Call inside of a group that is meant to be like a popup inside of a
+// kLayoutOverlay. It will cause all interactive elements in all groups that
+// precede it to not respond to input.
+void ModalGroup();
+
 // Capture a pointer event.
 // After the API call, the element with element_id will recieve pointer event
 // exclusively until ReleasePointer() is called. This API is used mainly for a
@@ -256,15 +261,22 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 // The default virtual resolution used if none is set.
 const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 
-// Position the GUI within the screen as a whole, call this as first thing
-// in your gui_definition.
-// virtual_resolution: the virtual resolution of the smallest
-// dimension of your screen (the Y size in landscape mode, or X in portrait).
-// All dimension specified below are relative to this.
-// If this function is not called, it defaults to virtual resolution set to
-// FLATUI_DEFAULT_VIRTUAL_RESOLUTION, and top/left placement.
-void PositionUI(float virtual_resolution, Alignment horizontal,
-                                          Alignment vertical);
+// Set the virtual resolution of the smallest dimension of your screen
+// (the Y size in landscape mode, or X in portrait).
+// All dimension specified elsewhere in floats are relative to this.
+// If this function is not called, it defaults to
+// FLATUI_DEFAULT_VIRTUAL_RESOLUTION.
+// If you wish to use native pixels, call this with min(screenx, screeny).
+// Call this as first thing in your gui definition.
+void SetVirtualResolution(float virtual_resolution);
+
+// Position a group within the screen as a whole using 9 possible alignments.
+// Call this as first thing in any top level groups (either your root group,
+// or the children of your root if the root is a kLayoutOverlay.
+// "offset" allows you to displace from the given alignment.
+// If this function is not called, it defaults to top/left placement.
+void PositionGroup(Alignment horizontal, Alignment vertical,
+                   const vec2 &offset);
 
 // By default, FlatUI sets up a projection matrix for all rendering that
 // covers the entire screen (as given by Renderer::window_size().

@@ -98,9 +98,10 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
   };
 
   Run(assetman, fontman, input, [&]() {
-    PositionUI(1000, kAlignCenter, kAlignCenter);
-    StartGroup(kLayoutOverlayCenter, 0);
+    SetVirtualResolution(1000);
+    StartGroup(kLayoutOverlay, 0);
       StartGroup(kLayoutHorizontalTop, 10);
+        PositionGroup(kAlignCenter, kAlignCenter, mathfu::kZeros2f);
         StartGroup(kLayoutVerticalLeft, 20);
           click_about_example("my_id1", true);
           // Textures used in widgets.
@@ -148,12 +149,14 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
       EndGroup();
       if (show_about) {
         StartGroup(kLayoutVerticalLeft, 20, "about_overlay");
-        SetMargin(Margin(10));
-        ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
-        click_about_example("my_id3", false);
-        Label("This is the about window! すし!", 32);
-        Label("You should only be able to click on the", 24);
-        Label("about button above, not anywhere else", 20);
+          ModalGroup();
+          PositionGroup(kAlignRight, kAlignTop, vec2(-30, 30));
+          SetMargin(Margin(10));
+          ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
+          click_about_example("my_id3", false);
+          Label("This is the about window! すし!", 32);
+          Label("You should only be able to click on the", 24);
+          Label("about button above, not anywhere else", 20);
         EndGroup();
       }
     EndGroup();

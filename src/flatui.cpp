@@ -237,17 +237,22 @@ class InternalState : public Group {
     return dest;
   }
 
-  // Determines placement for the UI as a whole inside the available space
-  // (screen).
-  void PositionUI(float virtual_resolution, Alignment horizontal,
-                  Alignment vertical) {
+  void SetVirtualResolution(float virtual_resolution) {
     if (layout_pass_) {
       virtual_resolution_ = virtual_resolution;
       SetScale();
-    } else {
+    }
+  }
+
+  // Determines placement for the UI as a whole inside the available space
+  // (screen).
+  void PositionGroup(Alignment horizontal, Alignment vertical,
+                     const vec2 &offset) {
+    if (!layout_pass_) {
       auto space = canvas_size_ - size_;
-      position_ += AlignDimension(horizontal, 0, space) +
-                   AlignDimension(vertical, 1, space);
+      position_ = AlignDimension(horizontal, 0, space) +
+                  AlignDimension(vertical, 1, space) +
+                  VirtualToPhysical(offset);
     }
   }
 
@@ -693,16 +698,16 @@ class InternalState : public Group {
       Extend(size);
       // Set the size of this group as the size of the element tracking it.
       elements_[element_idx].size = size;
-      // TODO: we currently just make the last group in any overlay group
-      // the one to receive events. This is sufficient for popups, but it be
-      // better if this could also be specified manually.
-      if (direction_ == kDirOverlay) {
-        // Simply mark all elements before this last group as non-interactive.
-        for (size_t i = 0; i < element_idx; i++)
-          elements_[i].interactive = false;
-      }
     } else {
       Advance(elements_[element_idx].size);
+    }
+  }
+
+  void ModalGroup() {
+    if (group_stack_.back().direction_ == kDirOverlay) {
+      // Simply mark all elements before this last group as non-interactive.
+      for (size_t i = 0; i < element_idx_; i++)
+        elements_[i].interactive = false;
     }
   }
 
@@ -1256,6 +1261,8 @@ Event CheckEvent(bool check_dragevent_only) {
   return Gui()->CheckEvent(check_dragevent_only);
 }
 
+void ModalGroup() { Gui()->ModalGroup(); }
+
 void ColorBackground(const vec4 &color) { Gui()->ColorBackground(color); }
 
 void ImageBackground(const Texture &tex) { Gui()->ImageBackground(tex); }
@@ -1264,8 +1271,13 @@ void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info) {
   Gui()->ImageBackgroundNinePatch(tex, patch_info);
 }
 
-void PositionUI(float virtual_resolution, Alignment horizontal, Alignment vertical) {
-  Gui()->PositionUI(virtual_resolution, horizontal, vertical);
+void SetVirtualResolution(float virtual_resolution) {
+  Gui()->SetVirtualResolution(virtual_resolution);
+}
+
+void PositionGroup(Alignment horizontal, Alignment vertical,
+                   const vec2 &offset) {
+  Gui()->PositionGroup(horizontal, vertical, offset);
 }
 
 void UseExistingProjection(const vec2i &canvas_size) {

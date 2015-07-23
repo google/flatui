@@ -58,18 +58,25 @@ private:
     // Define flatui block. Note that the block is executed multiple times,
     // One for a layout pass and another for a rendering pass.
     fpl::gui::Run(assetman, fontman, input, [&]() {
+      // Set a virtual resolution all coordinates will use. 1000 is now the
+      // size of the smallest dimension (Y in landscape mode).
+      fpl::gui::SetVirtualResolution(1000);
 
-      // Position UI in the center of the screen. '1000' indicates that the
-      // virtual resolution of the entire screen is now 1000x1000.
-      fpl::gui::PositionUI(1000, fpl::gui::kAlignCenter,
-                                 fpl::gui::kAlignCenter);
+      // Start our root group.
+      fpl::gui::StartGroup(fpl::gui::kLayoutVerticalLeft);
+
+      // Position group in the center of the screen.
+      fpl::gui::PositionGroup(fpl::gui::kAlignCenter, fpl::gui::kAlignCenter,
+                              mathfu::kZeros2f);
 
       // Show a label with a font size of 40px in a virtual resotuion.
       fpl::gui::Label("The quick brown fox jumps over the lazy dog.", 40);
 
-      // Show an image with a virtical size of 40px in a virtual resotuion.
+      // Show an image with a virtical size of 60px in a virtual resotuion.
       // A width is automatically derived from the image size.
       fpl::gui::Image("textures/text_about.webp", 60);
+
+      fpl::gui::EndGroup();
     });
   }
 
