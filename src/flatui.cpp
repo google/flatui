@@ -772,9 +772,9 @@ class InternalState : public Group {
       }
 
       // Scroll the pane on user input.
-      *offset = vec2i::Min(
-          elements_[element_idx_].extra_size,
-          vec2i::Max(mathfu::kZeros2i, *offset - pointer_delta * scroll_speed));
+      *offset = vec2i::Max(mathfu::kZeros2i,
+                  vec2i::Min(elements_[element_idx_].extra_size,
+                             *offset - pointer_delta * scroll_speed));
 
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
