@@ -32,7 +32,4 @@
 #include "mathfu/constants.h"
 #include "mathfu/utilities.h"
 
-#include "SDL.h"
-#include "SDL_log.h"
-
 #endif  // FLATUI_SRC_PRECOMPILED_H

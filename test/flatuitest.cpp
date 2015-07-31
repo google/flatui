@@ -92,7 +92,7 @@ void TestGUI(AssetManager &assetman, FontManager &fontman,
 
   auto click_about_example = [&](const char *id, bool about_on) {
     if (ImageButton("textures/text_about.webp", 50, id) == kEventWentUp) {
-      SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "You clicked: %s", id);
+      fpl::LogInfo("You clicked: %s", id);
       show_about = about_on;
     }
   };

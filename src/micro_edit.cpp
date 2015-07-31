@@ -360,57 +360,50 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
     switch (event->type) {
       case kTextInputEventTypeKey:
         // Do nothing when a key is released.
-        if (event->key.state == SDL_RELEASED) break;
+        if (!event->key.state) break;
         switch (event->key.symbol) {
-          case SDLK_RETURN:
-          case SDLK_RETURN2:
-            if (!single_line_ && (event->key.modifier & KMOD_LSHIFT ||
-                                  event->key.modifier & KMOD_RSHIFT)) {
+          case FPLK_RETURN:
+          case FPLK_RETURN2:
+            if (!single_line_ && (event->key.modifier & FPL_KMOD_SHIFT)) {
               InsertText("\n");
             } else {
               // Finish the input session if IME is not active.
               if (!in_text_input_) ret = true;
             }
             break;
-          case SDLK_LEFT:
-            if (event->key.modifier & KMOD_LGUI ||
-                event->key.modifier & KMOD_RGUI) {
+          case FPLK_LEFT:
+            if (event->key.modifier & FPL_KMOD_GUI) {
               MoveCaretInLine(kHeadOfLine);
-            } else if (event->key.modifier & KMOD_LALT ||
-                       event->key.modifier & KMOD_RALT){
+            } else if (event->key.modifier & FPL_KMOD_ALT){
               MoveCaretToWordBoundary(false);
             } else {
               MoveCaret(false);
             }
             break;
-          case SDLK_RIGHT:
-            if (event->key.modifier & KMOD_LGUI ||
-                event->key.modifier & KMOD_RGUI) {
+          case FPLK_RIGHT:
+            if (event->key.modifier & FPL_KMOD_GUI) {
               MoveCaretInLine(kTailOfLine);
-            } else if (event->key.modifier & KMOD_LALT ||
-                       event->key.modifier & KMOD_RALT){
+            } else if (event->key.modifier & FPL_KMOD_ALT){
               MoveCaretToWordBoundary(true);
             } else {
               MoveCaret(true);
             }
             break;
-          case SDLK_UP:
-            if (event->key.modifier & KMOD_LGUI ||
-                event->key.modifier & KMOD_RGUI) {
+          case FPLK_UP:
+            if (event->key.modifier & FPL_KMOD_GUI) {
               SetCaret(0);
             } else {
               MoveCaretVertical(-buffer_->metrics().total());
             }
             break;
-          case SDLK_DOWN:
-            if (event->key.modifier & KMOD_LGUI ||
-                event->key.modifier & KMOD_RGUI) {
+          case FPLK_DOWN:
+            if (event->key.modifier & FPL_KMOD_GUI) {
               SetCaret(num_characters_ + input_text_characters_);
             } else {
               MoveCaretVertical(buffer_->metrics().total());
             }
             break;
-          case SDLK_BACKSPACE:
+          case FPLK_BACKSPACE:
             // Delete a character before the caret position.
             if (!in_text_input_) {
               if (MoveCaret(false)) {
@@ -418,7 +411,7 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               }
             }
             break;
-          case SDLK_DELETE:
+          case FPLK_DELETE:
             // Delete a character at the caret position.
             if (!in_text_input_) {
               if (num_characters_ && caret_pos_ < num_characters_) {
@@ -426,7 +419,7 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               }
             }
             break;
-          case SDLK_ESCAPE:
+          case FPLK_ESCAPE:
             // Reset the edit session.
             if (!in_text_input_) {
               *text_ = initial_string_;
@@ -436,10 +429,10 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               ResetEditingText();
             }
             break;
-          case SDLK_HOME:
+          case FPLK_HOME:
             SetCaret(0);
             break;
-          case SDLK_END:
+          case FPLK_END:
             SetCaret(num_characters_ + input_text_characters_);
             break;
         }
