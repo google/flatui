@@ -25,7 +25,6 @@
 
 #include "font_manager.h"
 #include "fplbase/utilities.h"
-#include "fplbase/glplatform.h"
 
 #ifdef FLATUI_USE_LIBUNIBREAK
 #include "linebreak.h"
@@ -178,11 +177,8 @@ void FontManager::SetRenderer(Renderer &renderer) {
   atlas_texture_.reset(new Texture(renderer));
   atlas_texture_.get()->LoadFromMemory(glyph_cache_->get_buffer(),
                                        glyph_cache_->get_size(),
-                                       kFormatLuminance, false);
-
-  // Disable mipmap for the atlas texture.
+                                       kFormatLuminance, false, false);
   atlas_texture_.get()->Set(0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
@@ -570,7 +566,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   // Create new texture.
   FontTexture *tex = new FontTexture(*renderer_);
   tex->LoadFromMemory(image.get(), vec2i(width, height), kFormatLuminance,
-                      false);
+                      false, false);
 
   // Setup UV.
   tex->set_uv(vec4(0.0f, 0.0f,
@@ -703,15 +699,11 @@ void FontManager::UpdatePass(const bool start_subpass) {
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
     auto rect = glyph_cache_->get_dirty_rect();
     atlas_texture_.get()->Set(0);
-
-    // In OpenGL ES2.0, width and pitch of the src buffer needs to match. So
-    // that we are updating entire row at once.
-    // TODO: Optimize glTexSubImage2D call in ES3.0 capable platform.
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, rect.y(),
-                    glyph_cache_.get()->get_size().x(), rect.w() - rect.y(),
-                    GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                    glyph_cache_.get()->get_buffer() +
-                        glyph_cache_.get()->get_size().x() * rect.y());
+    renderer_->UpdateTexture(kFormatLuminance, 0, rect.y(),
+                             glyph_cache_.get()->get_size().x(),
+                             rect.w() - rect.y(),
+                             glyph_cache_.get()->get_buffer() +
+                                 glyph_cache_.get()->get_size().x() * rect.y());
     current_atlas_revision_ = glyph_cache_->get_revision();
     glyph_cache_->set_dirty_state(false);
   }
