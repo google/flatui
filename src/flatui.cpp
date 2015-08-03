@@ -15,7 +15,6 @@
 #include "fplbase/utilities.h"
 #include "flatui/flatui.h"
 #include "flatui/internal/micro_edit.h"
-#include "SDL.h"
 
 namespace fpl {
 namespace gui {
@@ -1033,8 +1032,8 @@ class InternalState : public Group {
 #   endif
     // For testing, also support keyboard:
     dir =
-        CheckButtons(input_.GetButton(SDLK_LEFT), input_.GetButton(SDLK_RIGHT),
-                     input_.GetButton(SDLK_RETURN));
+        CheckButtons(input_.GetButton(FPLK_LEFT), input_.GetButton(FPLK_RIGHT),
+                     input_.GetButton(FPLK_RETURN));
     // Now find the current element, and move to the next.
     if (dir) {
       for (auto &e : elements_) {
