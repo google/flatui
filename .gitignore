@@ -11,4 +11,5 @@ libflatui.a
 samples/CMakeFiles/
 samples/flatuisample.cbp
 test/flatuitest.cbp
+docs/html/
 
