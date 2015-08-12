@@ -48,6 +48,19 @@ HashedId HashId(const char *id) {
   return hash;
 }
 
+// Sometimes we may want to derive identity from an object of which there
+// is guaranteed only one (like e.g. a texture).
+HashedId HashPointer(const void *ptr) {
+  // This method of integer hashing simply randomizes the integer space given,
+  // in case there is an uneven distribution in the input (like is often the
+  // case with pointers due to memory allocator implementations causing
+  // higher and lower bits to be similar).
+  // Knuth: "The Art of Computer Programming", section 6.4
+  auto hash = static_cast<HashedId>(reinterpret_cast<size_t>(ptr)) * 2654435761;
+  assert(hash != kNullHash);
+  return hash;
+}
+
 bool EqualId(HashedId hash1, HashedId hash2) {
   // We use hashes for comparison (rather that strcmp or pointer compare)
   // so the user can feel free to generate ids in temporary strings.
@@ -354,13 +367,11 @@ class InternalState : public Group {
   }
 
   // An image element.
-  void Image(const char *texture_name, float ysize) {
-    auto tex = matman_.FindTexture(texture_name);
-    assert(tex);  // You need to have called LoadTexture before.
-    auto hash = HashId(texture_name);
+  void Image(const Texture &texture, float ysize) {
+    auto hash = HashPointer(&texture);
     if (layout_pass_) {
       auto virtual_image_size =
-          vec2(tex->size().x() * ysize / tex->size().y(), ysize);
+          vec2(texture.size().x() * ysize / texture.size().y(), ysize);
       // Map the size to real screen pixels, rounding to the nearest int
       // for pixel-aligned rendering.
       auto size = VirtualToPhysical(virtual_image_size);
@@ -369,7 +380,7 @@ class InternalState : public Group {
     } else {
       auto element = NextElement(hash);
       if (element) {
-        tex->Set(0);
+        texture.Set(0);
         RenderQuad(image_shader_, mathfu::kOnes4f, Position(*element),
                    element->size);
         Advance(element->size);
@@ -1202,8 +1213,8 @@ InternalState *Gui() {
   return state;
 }
 
-void Image(const char *texture_name, float size) {
-  Gui()->Image(texture_name, size);
+void Image(const Texture &texture, float size) {
+  Gui()->Image(texture, size);
 }
 
 void Label(const char *text, float font_size) { Gui()->Label(text, font_size); }

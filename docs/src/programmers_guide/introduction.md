@@ -176,12 +176,12 @@ gui::SetVirtualResolution(min(renderer.window_size().x,
 Basic elements you can render as part of a UI are images and text:
 
 ~~~{.cpp}
-gui::Image("textures/text_about.webp", 60);
+gui::Image(tex_about, 60);
 gui::Label("The quick brown fox jumps over the lazy dog.", 40);
 ~~~
 
 The image refers to a texture resource, that must have already been loaded
-at initialization time using the AssetManager.
+at initialization time using the `AssetManager` (see `LoadTexture`).
 
 The text will be rendered using the font set in the FontManager. The text
 may contain unicode characters (UTF-8). Text will be formatted using

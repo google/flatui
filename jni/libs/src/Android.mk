@@ -43,6 +43,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
   $(FLATUI_RELATIVE_DIR)/src/flatui.cpp \
+  $(FLATUI_RELATIVE_DIR)/src/flatui_common.cpp \
   $(FLATUI_RELATIVE_DIR)/src/font_manager.cpp \
   $(FLATUI_RELATIVE_DIR)/src/micro_edit.cpp \
 

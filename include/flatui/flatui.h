@@ -135,11 +135,9 @@ mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v);
 float GetScale();
 
 // Render an image as a GUI element.
-// texture_name: filename of the image, must have been loaded with
-// the material manager before.
 // ysize: vertical size in virtual resolution. xsize will be derived
 // automatically based on the image dimensions.
-void Image(const char *texture_name, float ysize);
+void Image(const Texture &texture, float ysize);
 
 // Render an label as a GUI element.
 // text: label string in UTF8
