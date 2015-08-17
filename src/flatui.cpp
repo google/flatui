@@ -370,8 +370,8 @@ class InternalState : public Group {
   void Image(const Texture &texture, float ysize) {
     auto hash = HashPointer(&texture);
     if (layout_pass_) {
-      auto virtual_image_size =
-          vec2(texture.size().x() * ysize / texture.size().y(), ysize);
+      auto virtual_image_size = vec2(texture.original_size().x() * ysize /
+                                     texture.original_size().y(), ysize);
       // Map the size to real screen pixels, rounding to the nearest int
       // for pixel-aligned rendering.
       auto size = VirtualToPhysical(virtual_image_size);
