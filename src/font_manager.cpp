@@ -132,8 +132,6 @@ FontManager::FontManager(const mathfu::vec2i &cache_size) {
 FontManager::~FontManager() { Close(); }
 
 void FontManager::Initialize() {
-  assert(ft_ == nullptr);
-
   // Initialize variables.
   renderer_ = nullptr;
   face_initialized_ = false;
@@ -142,16 +140,20 @@ void FontManager::Initialize() {
   language_ = kLineBreakDefaultLanguage;
   line_height_ = kLineHeightDefault;
 
-  ft_ = new FT_Library;
-  FT_Error err;
-  if ((err = FT_Init_FreeType(ft_))) {
-    // Error! Please fix me.
-    fpl::LogError("Can't initialize freetype. FT_Error:%d\n", err);
-    assert(0);
+  if (ft_ == nullptr) {
+    ft_ = new FT_Library;
+    FT_Error err;
+    if ((err = FT_Init_FreeType(ft_))) {
+      // Error! Please fix me.
+      fpl::LogError("Can't initialize freetype. FT_Error:%d\n", err);
+      assert(0);
+    }
   }
 
-  // Create a buffer for harfbuzz.
-  harfbuzz_buf_ = hb_buffer_create();
+  if (harfbuzz_buf_ == nullptr) {
+    // Create a buffer for harfbuzz.
+    harfbuzz_buf_ = hb_buffer_create();
+  }
 
 #ifdef FLATUI_USE_LIBUNIBREAK
   // Initialize libunibreak
@@ -269,8 +271,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       uint32_t word_width = LayoutText(text + word_enum.GetCurrentWordIndex(),
                                        word_enum.GetCurrentWordLength()) *
                             scale;
-      if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
-                                     static_cast<uint32_t>(size.x())) {
+      if (lastline_must_break ||
+          (line_width + word_width) / kFreeTypeUnit >
+              static_cast<uint32_t>(size.x())) {
         // Line break.
         auto line_height = face_->height * line_height_ * scale / kFreeTypeUnit;
         pos = vec2(0.f, pos.y() + line_height);
@@ -699,10 +702,9 @@ void FontManager::UpdatePass(const bool start_subpass) {
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
     auto rect = glyph_cache_->get_dirty_rect();
     atlas_texture_.get()->Set(0);
-    renderer_->UpdateTexture(kFormatLuminance, 0, rect.y(),
-                             glyph_cache_.get()->get_size().x(),
-                             rect.w() - rect.y(),
-                             glyph_cache_.get()->get_buffer() +
+    renderer_->UpdateTexture(
+        kFormatLuminance, 0, rect.y(), glyph_cache_.get()->get_size().x(),
+        rect.w() - rect.y(), glyph_cache_.get()->get_buffer() +
                                  glyph_cache_.get()->get_size().x() * rect.y());
     current_atlas_revision_ = glyph_cache_->get_revision();
     glyph_cache_->set_dirty_state(false);
