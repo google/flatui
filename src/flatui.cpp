@@ -419,7 +419,8 @@ class InternalState : public Group {
       ui_text = persistent_.text_edit_.GetEditingText();
     }
     auto buffer = fontman_.GetBuffer(ui_text->c_str(), ui_text->length(),
-                                     size.y(), physical_label_size, true);
+                                     static_cast<float>(size.y()),
+                                     physical_label_size, true);
     assert(buffer);
 
     // Check if the editbox is an auto expanding edit box.
@@ -438,7 +439,7 @@ class InternalState : public Group {
     auto pos = Label(ui_text->c_str(), *buffer, window);
     if (!layout_pass_) {
       auto show_caret = false;
-      bool pick_caret = event & kEventWentDown;
+      bool pick_caret = (event & kEventWentDown) != 0;
       if (EqualId(persistent_.input_focus_, hash)) {
         // The edit box is in focus. Now we can start text input.
         if (persistent_.input_capture_ != hash) {
@@ -470,12 +471,12 @@ class InternalState : public Group {
 
           // Calculate and render an input text region.
           DrawUnderline(*buffer, input_region_start, input_region_length, pos,
-                        size.y(), kInputLineWidth);
+                        static_cast<float>(size.y()), kInputLineWidth);
 
           // Calculate and render a focus text region inside the input text.
           if (focus_region_length) {
             DrawUnderline(*buffer, focus_region_start, focus_region_length, pos,
-                          size.y(), kFocusLineWidth);
+                          static_cast<float>(size.y()), kFocusLineWidth);
           }
 
           // Specify IME rect to input system.
@@ -490,10 +491,10 @@ class InternalState : public Group {
                        ime_rect;
           }
           vec4 rect;
-          rect.x() = ime_rect.x();
-          rect.y() = ime_rect.y();
-          rect.z() = ime_size.x();
-          rect.w() = ime_size.y();
+          rect.x() = static_cast<float>(ime_rect.x());
+          rect.y() = static_cast<float>(ime_rect.y());
+          rect.z() = static_cast<float>(ime_size.x());
+          rect.w() = static_cast<float>(ime_size.y());
           input_.SetTextInputRect(rect);
         }
       }
@@ -511,7 +512,7 @@ class InternalState : public Group {
             caret_pos.y() - caret_size <= window.y() + window.w()) {
           caret_pos += pos;
           // Caret Y position is at the base line, add some offset.
-          caret_pos.y() -= caret_size;
+          caret_pos.y() -= static_cast<int>(caret_size);
 
           RenderCaret(caret_pos, vec2i(1, size.y()));
         }
@@ -537,8 +538,8 @@ class InternalState : public Group {
 
     auto startpos = buffer.GetCaretPosition(start);
     auto size = buffer.GetCaretPosition(start + length) - startpos;
-    startpos.y() += font_size * kUnderlineOffsetFactor;
-    size.y() += line_width;
+    startpos.y() += static_cast<int>(font_size * kUnderlineOffsetFactor);
+    size.y() += static_cast<int>(line_width);
 
     RenderQuad(color_shader_, mathfu::kOnes4f, pos + startpos, size);
   }
@@ -570,8 +571,9 @@ class InternalState : public Group {
 
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto buffer = fontman_.GetBuffer(text, strlen(text), size.y(),
-                                     physical_label_size, false);
+    auto buffer =
+        fontman_.GetBuffer(text, strlen(text), static_cast<float>(size.y()),
+                           physical_label_size, false);
     assert(buffer);
     Label(text, *buffer, vec4i(vec2i(0, 0), buffer->get_size()));
   }
@@ -606,14 +608,17 @@ class InternalState : public Group {
 
           // Set a window to show a part of the label.
           font_clipping_shader_->Set(renderer_);
-          font_clipping_shader_->SetUniform("pos_offset",
-                                            vec3(pos.x(), pos.y(), 0.0f));
+          font_clipping_shader_->SetUniform(
+              "pos_offset", vec3(static_cast<float>(pos.x()),
+                                 static_cast<float>(pos.y()), 0.0f));
           auto start = vec2(position_ - pos);
           auto end = start + vec2(window.zw());
           font_clipping_shader_->SetUniform("clipping", vec4(start, end));
         } else {
           font_shader_->Set(renderer_);
-          font_shader_->SetUniform("pos_offset", vec3(pos.x(), pos.y(), 0.0f));
+          font_shader_->SetUniform("pos_offset",
+                                   vec3(static_cast<float>(pos.x()),
+                                        static_cast<float>(pos.y()), 0.0f));
         }
 
         const Attribute kFormat[] = {kPosition3f, kTexCoord2f, kEND};
@@ -670,7 +675,7 @@ class InternalState : public Group {
   // Layout, that is pushed/popped from the stack as needed.
   void StartGroup(Direction direction, Alignment align, float spacing,
                   HashedId hash) {
-    Group layout(direction, align, spacing, elements_.size());
+    Group layout(direction, align, static_cast<int>(spacing), elements_.size());
     group_stack_.push_back(*this);
     if (layout_pass_) {
       NewElement(mathfu::kZeros2i, hash);
@@ -750,7 +755,7 @@ class InternalState : public Group {
             psize);
 
       vec2i pointer_delta = mathfu::kZeros2i;
-      int32_t scroll_speed = scroll_speed_drag_;
+      int32_t scroll_speed = static_cast<int32_t>(scroll_speed_drag_);
 
       // Check drag event only.
       auto &element = elements_[element_idx_];
@@ -777,7 +782,7 @@ class InternalState : public Group {
         if (mathfu::InRange2D(input_.get_pointers()[0].mousepos, position_,
                               position_ + psize)) {
           pointer_delta = input_.mousewheel_delta();
-          scroll_speed = -scroll_speed_wheel_;
+          scroll_speed = static_cast<int32_t>(-scroll_speed_wheel_);
         }
       }
 
@@ -865,7 +870,7 @@ class InternalState : public Group {
   // Set drag start threshold.
   // The value is used to determine if the drag operation should start after a
   // pointer WENT_DOWN event happened.
-  void SetDragStartThreshold(float drag_start_threshold) {
+  void SetDragStartThreshold(int drag_start_threshold) {
     drag_start_threshold_ = vec2i(drag_start_threshold, drag_start_threshold);
   }
 
@@ -1183,6 +1188,11 @@ class InternalState : public Group {
     vec2i drag_start_position_;
     int32_t dragging_pointer_;
   } persistent_;
+
+ private:
+  // Disable copy constructor.
+  InternalState(const InternalState &);
+  InternalState &operator=(const InternalState &);
 };
 
 InternalState::PersistentState InternalState::persistent_;
@@ -1310,7 +1320,7 @@ void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
   Gui()->SetScrollSpeed(scroll_speed_drag, scroll_speed_wheel);
 }
 
-void SetDragStartThreshold(float drag_start_threshold) {
+void SetDragStartThreshold(int drag_start_threshold) {
   Gui()->SetDragStartThreshold(drag_start_threshold);
 }
 

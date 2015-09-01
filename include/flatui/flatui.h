@@ -210,7 +210,7 @@ void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel);
 
 // Set a threshold value of a drag operation start.
 // default: kDragStartThresholdDefault
-void SetDragStartThreshold(float drag_start_threshold);
+void SetDragStartThreshold(int drag_start_threshold);
 
 // Set the background for the group. May use alpha.
 void ColorBackground(const vec4 &color);

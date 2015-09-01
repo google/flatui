@@ -56,7 +56,7 @@ const int32_t kGlyphCacheHeight = 1024;
 const float kLineHeightDefault = 1.2f;
 
 // Caret position indicating invalid result.
-const vec2i kCaretPositionInvalid = vec2i(-1,-1);
+const vec2i kCaretPositionInvalid = vec2i(-1, -1);
 
 // Default language used for a line break.
 const char *const kLineBreakDefaultLanguage = "en";
@@ -161,7 +161,7 @@ class FontManager {
   void SetLanguage(const std::string &language) { language_ = language; }
 
   // Retrieve current language setting.
-  const std::string& GetLanguage() { return language_; }
+  const std::string &GetLanguage() { return language_; }
 
   // Set a line height in multi line text.
   void SetLineHeight(const float line_height) { line_height_ = line_height; }
@@ -518,7 +518,7 @@ class FontBuffer {
   const std::vector<vec2i> &GetCaretPositions() const {
     return caret_positions_;
   }
-  bool HasCaretPositions() const { return caret_positions_.capacity(); }
+  bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
 
  private:
   // Font metrics information.

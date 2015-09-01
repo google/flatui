@@ -125,9 +125,7 @@ set(flatui_SRCS
 
 # Includes for this project.
 include_directories(src include include/flatui)
-if(WIN32)
-  include_directories(external/include/windows)
-endif()
+
 if(use_pregenerated_headers)
   include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
 endif()

@@ -82,13 +82,16 @@ Event Slider(const Texture &tex_bar, const Texture &tex_knob,
         // Render the slider.
         auto bar_pos = pos;
         auto bar_size = size;
-        bar_pos += vec2i(size.y() * 0.5, size.y() * (1.0 - bar_height) * 0.5);
+        bar_pos +=
+            vec2i(size.y() / 2,
+                  static_cast<int>(size.y() * (1.0 - bar_height) / 2.0f));
         bar_size = vec2i(std::max(bar_size.x() - size.y(), 0),
-                         bar_size.y() * bar_height);
+                         static_cast<int>(bar_size.y() * bar_height));
 
         auto knob_pos = pos;
         auto knob_sizes = vec2i(size.y(), size.y());
-        knob_pos.x() += *slider_value * static_cast<float>(size.x() - size.y());
+        knob_pos.x() += static_cast<int>(
+            *slider_value * static_cast<float>(size.x() - size.y()));
         RenderTextureNinePatch(tex_bar, vec4(0.5f, 0.5f, 0.5f, 0.5f),
                       bar_pos, bar_size);
         RenderTexture(tex_knob, knob_pos, knob_sizes);

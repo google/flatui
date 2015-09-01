@@ -83,7 +83,7 @@ void MicroEdit::UpdateWordBreakIndex() {
 bool MicroEdit::MoveCaretVertical(int32_t offset) {
   if (buffer_ == nullptr) return false;
   auto expected_caret_position = expected_caret_position_;
-  auto position = Pick(expected_caret_position, offset);
+  auto position = Pick(expected_caret_position, static_cast<float>(offset));
   if (position == kCaretPosInvalid) {
     return false;
   }
@@ -276,9 +276,9 @@ const vec4i &MicroEdit::GetWindow() {
 
     // Update offset if the caret position is outside of the threshold area.
     if (window_start.x() < threshold) {
-      window_offset_.x() -= threshold;
+      window_offset_.x() -= static_cast<int>(threshold);
     } else if (window_start.x() > window_.z() - threshold) {
-      window_offset_.x() += threshold;
+      window_offset_.x() += static_cast<int>(threshold);
     }
 
     if (window_start.y()  < 0) {

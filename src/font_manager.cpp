@@ -39,10 +39,11 @@ hb_buffer_t *FontManager::harfbuzz_buf_;
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
 class WordEnumerator {
- public:
+ private:
   // Delete default constructor.
-  WordEnumerator() = delete;
+  WordEnumerator() {}
 
+ public:
   // buffer: a buffer contains a linebreak information.
   // Note that the class accesses the given buffer while it's lifetime.
   WordEnumerator(const std::vector<char> &buffer, bool single_line)
@@ -142,8 +143,8 @@ void FontManager::Initialize() {
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
-    FT_Error err;
-    if ((err = FT_Init_FreeType(ft_))) {
+    FT_Error err = FT_Init_FreeType(ft_);
+    if (err) {
       // Error! Please fix me.
       fpl::LogError("Can't initialize freetype. FT_Error:%d\n", err);
       assert(0);
@@ -207,15 +208,16 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
                                       const float ysize,
                                       const mathfu::vec2i &size,
                                       bool caret_info) {
+  const uint32_t ysizeint = static_cast<int32_t>(ysize);
   // Adjust y size if the size selector is set.
-  int32_t converted_ysize = ConvertSize(ysize);
+  int32_t converted_ysize = ConvertSize(ysizeint);
   float scale = ysize / static_cast<float>(converted_ysize);
   bool multi_line = size.y() == 0 || size.y() > ysize;
 
   // Check cache if we already have a FontBuffer generated.
   auto it = map_buffers_.find(text);
   if (it != map_buffers_.end()) {
-    auto t = it->second.find(ysize);
+    auto t = it->second.find(ysizeint);
     if (t != it->second.end()) {
       // Update current pass.
       if (current_pass_ != kRenderPass) {
@@ -245,15 +247,16 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   WordEnumerator word_enum(wordbreak_info_, !multi_line);
 
   // Initialize font metrics parameters.
-  int32_t base_line = ysize * face_->ascender / face_->units_per_EM;
-  FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
+  int32_t base_line =
+      static_cast<int32_t>(ysize * face_->ascender / face_->units_per_EM);
+  FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysizeint, 0);
   mathfu::vec2 pos(mathfu::kZeros2f);
   FT_GlyphSlot glyph = face_->glyph;
 
   uint32_t line_width = 0;
   uint32_t max_line_width = 0;
   uint32_t total_glyph_count = 0;
-  uint32_t total_height = ysize;
+  uint32_t total_height = ysizeint;
   bool lastline_must_break = false;
 
   // Find words and layout them.
@@ -261,23 +264,24 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
     if (!multi_line) {
       // Single line text.
       // In this mode, it layouts all string into single line.
-      max_line_width = LayoutText(text, length) * scale;
+      max_line_width = static_cast<uint32_t>(LayoutText(text, length) * scale);
     } else {
       // Multi line text.
       // In this mode, it layouts every single word in the order of the text and
       // performs a line break if either current word exceeds the max line
       // width or indicated a line break must happen due to a line break
       // character etc.
-      uint32_t word_width = LayoutText(text + word_enum.GetCurrentWordIndex(),
-                                       word_enum.GetCurrentWordLength()) *
-                            scale;
+      uint32_t word_width = static_cast<uint32_t>(
+          LayoutText(text + word_enum.GetCurrentWordIndex(),
+                     word_enum.GetCurrentWordLength()) *
+          scale);
       if (lastline_must_break ||
           (line_width + word_width) / kFreeTypeUnit >
               static_cast<uint32_t>(size.x())) {
         // Line break.
         auto line_height = face_->height * line_height_ * scale / kFreeTypeUnit;
         pos = vec2(0.f, pos.y() + line_height);
-        total_height += line_height;
+        total_height += static_cast<int32_t>(line_height);
         if (size.y() && total_height > static_cast<uint32_t>(size.y()) &&
             !caret_info) {
           // The text size exceeds given size.
@@ -334,7 +338,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         // Construct indices array.
         const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
         for (auto index : kIndices) {
-          buffer->get_indices()->push_back(index + (total_glyph_count + i) * 4);
+          buffer->get_indices()->push_back(
+              static_cast<unsigned short>(index + (total_glyph_count + i) * 4));
         }
 
         // Construct intermediate vertices array.
@@ -375,7 +380,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       buffer->set_revision(glyph_cache_->get_revision());
 
       // Advance positions.
-      pos += mathfu::vec2(glyph_pos[i].x_advance, -glyph_pos[i].y_advance) *
+      pos += mathfu::vec2(static_cast<float>(glyph_pos[i].x_advance),
+                          static_cast<float>(-glyph_pos[i].y_advance)) *
              scale / kFreeTypeUnit;
     }
 
@@ -419,7 +425,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   // Insert the created entry to the hash map.
   auto insert =
       map_buffers_[text].insert(std::pair<int32_t, std::unique_ptr<FontBuffer>>(
-          ysize, std::move(buffer)));
+          static_cast<int32_t>(ysize), std::move(buffer)));
   return insert.first->second.get();
 }
 
@@ -480,7 +486,7 @@ FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
 FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
                                      const float original_ysize) {
   // Round up y size if the size selector is set.
-  int32_t ysize = ConvertSize(original_ysize);
+  int32_t ysize = ConvertSize(static_cast<int32_t>(original_ysize));
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(text);
@@ -518,16 +524,17 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   memset(image.get(), 0, width * height);
 
   // TODO: make padding values configurable.
-  uint32_t kGlyphPadding = 0;
+  float kGlyphPadding = 0.0f;
   mathfu::vec2 pos(kGlyphPadding, kGlyphPadding);
   FT_GlyphSlot glyph = face_->glyph;
 
   for (size_t i = 0; i < glyph_count; ++i) {
-    FT_Error err;
+    FT_Error err =
+        FT_Load_Glyph(face_, glyph_info[i].codepoint, FT_LOAD_RENDER);
 
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
-    if ((err = FT_Load_Glyph(face_, glyph_info[i].codepoint, FT_LOAD_RENDER))) {
+    if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
       fpl::LogInfo("Can't load glyph %c FT_Error:%d\n", text[i], err);
@@ -549,20 +556,21 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
 
     if (i == 0 && glyph->bitmap_left < 0) {
       // Slightly shift all text to right.
-      pos.x() = -glyph->bitmap_left;
+      pos.x() = static_cast<float>(-glyph->bitmap_left);
     }
 
     // Copy the texture
     uint32_t y_offset = initial_metrics.base_line() - glyph->bitmap_top;
     for (uint32_t y = 0; y < glyph->bitmap.rows; ++y) {
-      memcpy(&image[(pos.y() + y + y_offset) * width + pos.x() +
-                    glyph->bitmap_left],
+      memcpy(&image[(static_cast<size_t>(pos.y()) + y + y_offset) * width +
+                    static_cast<size_t>(pos.x()) + glyph->bitmap_left],
              &glyph->bitmap.buffer[y * glyph->bitmap.pitch],
              glyph->bitmap.width);
     }
 
     // Advance positions.
-    pos += mathfu::vec2(glyph_pos[i].x_advance, -glyph_pos[i].y_advance) /
+    pos += mathfu::vec2(static_cast<float>(glyph_pos[i].x_advance),
+                        static_cast<float>(-glyph_pos[i].y_advance)) /
            kFreeTypeUnit;
   }
 
@@ -648,10 +656,10 @@ bool FontManager::Open(const char *font_name) {
   }
 
   // Open the font.
-  FT_Error err;
-  if ((err = FT_New_Memory_Face(
-           *ft_, reinterpret_cast<const unsigned char *>(&font_data_[0]),
-           font_data_.size(), 0, &face_))) {
+  FT_Error err = FT_New_Memory_Face(
+      *ft_, reinterpret_cast<const unsigned char *>(&font_data_[0]),
+      font_data_.size(), 0, &face_);
+  if (err) {
     // Failed to open font.
     fpl::LogInfo("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
     return false;
@@ -782,8 +790,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
   if (cache == nullptr) {
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
-    FT_Error err;
-    if ((err = FT_Load_Glyph(face_, code_point, FT_LOAD_RENDER))) {
+    FT_Error err = FT_Load_Glyph(face_, code_point, FT_LOAD_RENDER);
+    if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
       fpl::LogInfo("Can't load glyph %c FT_Error:%d\n", code_point, err);
@@ -844,7 +852,7 @@ void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
 
 void FontBuffer::AddCaretPosition(float x, float y) {
   assert(caret_positions_.capacity());
-  caret_positions_.emplace_back(x, y);
+  caret_positions_.emplace_back(static_cast<int>(x), static_cast<int>(y));
 }
 
 }  // namespace fpl
