@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <list>
 
+#include "flatui_util.h"
 #include "mathfu/constants.h"
 
 namespace fpl {
@@ -53,6 +54,7 @@ template <typename T>
 class GlyphCache;
 class GlyphCacheRow;
 class GlyphCacheEntry;
+class GlyphKey;
 
 // Constants for a cache entry size rounding up and padding between glyphs.
 // Adding a padding between cached glyph images to avoid sampling artifacts of
@@ -61,12 +63,44 @@ const int32_t kGlyphCacheHeightRound = 4;
 const int32_t kGlyphCachePaddingX = 1;
 const int32_t kGlyphCachePaddingY = 1;
 
+// Class that includes glyph parameters.
+class GlyphKey {
+public:
+  // Constructors.
+  GlyphKey() : font_id_(gui::kNullHash), code_point_(0), glyph_size_(0) {}
+  GlyphKey(const gui::HashedId font_id, uint32_t code_point,
+           uint32_t glyph_size) {
+    font_id_ = font_id;
+    code_point_ = code_point;
+    glyph_size_ = glyph_size;
+  }
+
+  // Compare operator.
+  bool operator==(const GlyphKey& other) const {
+    return (code_point_ == other.code_point_ && font_id_ == other.font_id_ &&
+            glyph_size_ == other.glyph_size_);
+  }
+
+  // Hash function.
+  size_t operator()(const fpl::GlyphKey& key) const {
+    // Note that font_id_ is an already hashed value.
+    return ((std::hash<uint32_t>()(key.code_point_) ^ (key.font_id_ << 1)) >>
+            1) ^
+           (std::hash<uint32_t>()(key.glyph_size_) << 1);
+  }
+
+private:
+  gui::HashedId font_id_;
+  uint32_t code_point_;
+  uint32_t glyph_size_;
+};
+
 // Cache entry for a glyph.
 class GlyphCacheEntry {
  public:
   // Typedef for cache entry map's iterator.
-  typedef std::unordered_map<
-      uint64_t, std::unique_ptr<GlyphCacheEntry>>::iterator iterator;
+  typedef std::unordered_map<GlyphKey, std::unique_ptr<GlyphCacheEntry>,
+                             GlyphKey>::iterator iterator;
   typedef std::list<GlyphCacheRow>::iterator iterator_row;
 
   GlyphCacheEntry() : code_point_(0), size_(0, 0), offset_(0, 0) {}
@@ -255,18 +289,17 @@ class GlyphCache {
     ResetStats();
 #endif
   }
-  ~GlyphCache(){};
+  ~GlyphCache() {};
 
   // Look up a cached entries.
   // Return value: A pointer to a cached glyph entry.
   // nullptr if not found.
-  const GlyphCacheEntry* Find(const uint32_t code_point, const int32_t y_size) {
+  const GlyphCacheEntry* Find(const GlyphKey& key) {
 #ifdef GLYPH_CACHE_STATS
     // Update debug variable.
     stats_lookup_++;
 #endif
-    auto it =
-        map_entries_.find(static_cast<uint64_t>(code_point) << 32 | y_size);
+    auto it = map_entries_.find(key);
     if (it != map_entries_.end()) {
       // Found an entry!
 
@@ -292,10 +325,10 @@ class GlyphCache {
   // Return value: true if caching succeeded. false if there is no room in the
   // cache for a requested entry.
   // Returns a pointer to inserted entry.
-  const GlyphCacheEntry* Set(const T* const image, const int32_t y_size,
+  const GlyphCacheEntry* Set(const T* const image, const GlyphKey& key,
                              const GlyphCacheEntry& entry) {
     // Lookup entries if the entry is already stored in the cache.
-    auto p = Find(entry.get_code_point(), y_size);
+    auto p = Find(key);
 #ifdef GLYPH_CACHE_STATS
     // Adjust debug variable.
     stats_lookup_--;
@@ -359,8 +392,8 @@ class GlyphCache {
 
       // Create new entry in the look-up map.
       auto pair = map_entries_.insert(
-          std::pair<uint64_t, std::unique_ptr<GlyphCacheEntry>>(
-              static_cast<uint64_t>(entry.get_code_point()) << 32 | y_size,
+          std::pair<GlyphKey, std::unique_ptr<GlyphCacheEntry>>(
+              key,
               std::unique_ptr<GlyphCacheEntry>(new GlyphCacheEntry(entry))));
       auto it_entry = pair.first;
       ret = it_entry->second.get();
@@ -403,7 +436,7 @@ class GlyphCache {
           row->Initialize(row->get_y_pos(), row->get_size());
 
           // Call the function recursively.
-          return Set(image, y_size, entry);
+          return Set(image, key, entry);
         }
       }
 #ifdef GLYPH_CACHE_STATS
@@ -458,14 +491,13 @@ class GlyphCache {
 
     auto total_glyph = 0;
     for (auto row : list_row_) {
-      LogInfo("Row start:%d height:%d glyphs:%d counter:%d",
-                  row.get_y_pos(), row.get_size().y(), row.get_num_glyphs(),
-                  row.get_last_used_counter());
+      LogInfo("Row start:%d height:%d glyphs:%d counter:%d", row.get_y_pos(),
+              row.get_size().y(), row.get_num_glyphs(),
+              row.get_last_used_counter());
       total_glyph += row.get_num_glyphs();
     }
     LogInfo("Cached glyphs: %d", total_glyph);
-    LogInfo("Row flush: %d",
-                stats_row_flush_);
+    LogInfo("Row flush: %d", stats_row_flush_);
     LogInfo("Set fail: %d", stats_set_fail_);
 #endif
   }
@@ -475,7 +507,9 @@ class GlyphCache {
   void set_revision(const uint32_t revision) { revision_ = revision; }
 
   // Getter/Setter of dirty state.
-  bool get_dirty_state() const { return dirty_; };
+  bool get_dirty_state() const {
+    return dirty_;
+  };
   void set_dirty_state(const bool dirty) { dirty_ = dirty; }
 
   // Getter of dirty rect.
@@ -586,10 +620,12 @@ class GlyphCache {
 
   // Hash map to the cache entries
   // This map is the primary place to look up the cache entries.
-  // Key: a combination of a code point in a font file and glyph size.
+  // Key: a structure that contains glyph parameters such as a code point, font
+  // id, glyph size etc.
   // Note that the code point is an index in the
   // font file and not a Unicode value.
-  std::unordered_map<uint64_t, std::unique_ptr<GlyphCacheEntry>> map_entries_;
+  std::unordered_map<GlyphKey, std::unique_ptr<GlyphCacheEntry>, GlyphKey>
+      map_entries_;
 
   // list of rows in the cache.
   std::list<GlyphCacheRow> list_row_;

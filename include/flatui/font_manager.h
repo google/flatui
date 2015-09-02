@@ -23,6 +23,7 @@
 
 #include "fplbase/renderer.h"
 #include "flatui/internal/glyph_cache.h"
+#include "flatui/internal/flatui_util.h"
 
 // Forward decls for FreeType & Harfbuzz
 typedef struct FT_LibraryRec_ *FT_Library;
@@ -39,6 +40,7 @@ class FontTexture;
 class FontBuffer;
 class FontMetrics;
 class WordEnumerator;
+class FaceData;
 
 // Constant to convert FreeType unit to pixel unit.
 // In FreeType & Harfbuzz, the position value unit is 1/64 px whereas
@@ -60,6 +62,65 @@ const vec2i kCaretPositionInvalid = vec2i(-1, -1);
 
 // Default language used for a line break.
 const char *const kLineBreakDefaultLanguage = "en";
+
+// Class that includes font buffer parameters.
+// This class is used as a key in the unordered_map to look up FontBuffer.
+class FontBufferParameters {
+ public:
+  // Constructors.
+  FontBufferParameters()
+      : font_id_(gui::kNullHash),
+        text_id_(gui::kNullHash),
+        font_size_(0),
+        size_(mathfu::kZeros2i),
+        caret_info_(false) {}
+  FontBufferParameters(const gui::HashedId font_id, const gui::HashedId text_id,
+                       float font_size, const mathfu::vec2i &size,
+                       bool caret_info) {
+    font_id_ = font_id;
+    text_id_ = text_id;
+    font_size_ = font_size;
+    size_ = size;
+    caret_info_ = caret_info;
+  }
+
+  // Compare operator.
+  bool operator==(const FontBufferParameters &other) const {
+    return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
+            font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
+            size_.y() == other.size_.y() && caret_info_ == other.caret_info_);
+  }
+
+  // Hash function.
+  size_t operator()(const fpl::FontBufferParameters &key) const {
+    // Note that font_id_ and text_id_ are already hashed values.
+    size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
+    value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
+    value = value ^ (std::hash<bool>()(key.caret_info_) << 1) >> 1;
+    value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
+    value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
+    return value;
+  }
+
+  // Retrieve a hash value of a text.
+  gui::HashedId get_text_id() const { return text_id_; }
+
+  // Retrieve a size value.
+  const mathfu::vec2i &get_size() const { return size_; }
+
+  // Retrieve a font size.
+  float get_font_size() const { return font_size_; }
+
+  // Retrieve a flag to indicate if the buffer has a caret info.
+  bool get_caret_info_flag() const { return caret_info_; }
+
+ private:
+  gui::HashedId font_id_;
+  gui::HashedId text_id_;
+  float font_size_;
+  mathfu::vec2i size_;
+  bool caret_info_;
+};
 
 // FontManager manages font rendering with OpenGL utilizing freetype
 // and harfbuzz as a glyph rendering and layout back end.
@@ -85,7 +146,11 @@ class FontManager {
   bool Open(const char *font_name);
 
   // Discard font face that has been opened via Open().
-  bool Close();
+  bool Close(const char *font_name);
+
+  // Select current font face. The font face will be used to a glyph rendering.
+  // The font face needs to have been opened by Open() API.
+  bool SelectFont(const char *font_name);
 
   // Retrieve a texture with the text.
   // This API doesn't use the glyph cache, instead it writes the string image
@@ -98,17 +163,12 @@ class FontManager {
   // Returns nullptr if the string does not fit in the glyph cache.
   // When this happens, caller may flush the glyph cache with
   // FlushAndUpdate() call and re-try the GetBuffer() call.
-  FontBuffer *GetBuffer(const char *text, const uint32_t length,
-                        const float ysize, bool caret_info);
-
-  // Multi line version of GetBuffer() API.
   // size: max size of the rendered text in pixels.
   //       0 for size.x indicates a single line.
   //       0 for size.y indicates no height restriction.
   //       The API renders whole texts in the label in the case.
   FontBuffer *GetBuffer(const char *text, const uint32_t length,
-                        const float ysize, const mathfu::vec2i &size,
-                        bool caret_info);
+                        const FontBufferParameters &parameters);
 
   // Set renderer. Renderer is used to create a texture instance.
   void SetRenderer(Renderer &renderer);
@@ -133,6 +193,10 @@ class FontManager {
   // Flush existing glyph cache contents and start new layout pass.
   // Call this API while in a layout pass when the glyph cache is fragmented.
   void FlushAndUpdate() { UpdatePass(true); }
+
+  // Flush existing FontBuffer in the cache.
+  // Call this API when FontBuffers are not used anymore.
+  void FlushLayout() { map_buffers_.clear(); }
 
   // Indicate a start of new render pass. Call the API each time the user starts
   // a render pass.
@@ -165,6 +229,9 @@ class FontManager {
 
   // Set a line height in multi line text.
   void SetLineHeight(const float line_height) { line_height_ = line_height; }
+
+  // Retrieve current font face.
+  FaceData *GetCurrentFace() { return current_face_; }
 
  private:
   // Pass indicating rendering pass.
@@ -231,25 +298,19 @@ class FontManager {
   // Create FontBuffer with requested parameters.
   // The function may return nullptr if the glyph cache is full.
   FontBuffer *CreateBuffer(const char *text, const uint32_t length,
-                           const float ysize, const mathfu::vec2i &size,
-                           bool caret_info);
+                           const FontBufferParameters &parameters);
 
   // Renderer instance.
   Renderer *renderer_;
 
-  // freetype's fontface instance. In this version of FontManager, it supports
-  // only 1 font opened at a time.
-  FT_Face face_;
-
-  // harfbuzz's font information instance.
-  hb_font_t *harfbuzz_font_;
-
-  // Opened font file data.
-  // The file needs to be kept open until FreeType finishes using the file.
-  std::string font_data_;
-
   // flag indicating if a font file has loaded.
   bool face_initialized_;
+
+  // Map that keeps opened face data instances.
+  std::unordered_map<std::string, std::unique_ptr<FaceData>> map_faces_;
+
+  // Pointer for current face.
+  FaceData *current_face_;
 
   // Texture cache for a rendered string image.
   // Using the std::string & its' vertical size in pixels (int32_t) as keys.
@@ -261,9 +322,8 @@ class FontManager {
   // Cache for a texture atlas + vertex array rendering.
   // Using the std:;string & its' vertical size in pixels (int32_t) as keys.
   // The map is used for GetBuffer() API.
-  std::unordered_map<std::string,
-                     std::unordered_map<int32_t, std::unique_ptr<FontBuffer>>>
-      map_buffers_;
+  std::unordered_map<FontBufferParameters, std::unique_ptr<FontBuffer>,
+                     FontBufferParameters> map_buffers_;
 
   // Singleton instance of Freetype library.
   static FT_Library *ft_;
@@ -553,6 +613,30 @@ class FontBuffer {
 
   // Pass id. Each pass should have it's own texture atlas contents.
   int32_t pass_;
+};
+
+// Face instance data opened via Open() API.
+// It keeps a font file data, FreeType fontface instance, and harfbuzz font
+// information.
+class FaceData {
+ public:
+  FaceData()
+      : face_(nullptr), harfbuzz_font_(nullptr), font_id_(gui::kNullHash) {}
+  ~FaceData() { Close(); }
+  void Close();
+
+  // freetype's fontface instance.
+  FT_Face face_;
+
+  // harfbuzz's font information instance.
+  hb_font_t *harfbuzz_font_;
+
+  // Opened font file data.
+  // The file needs to be kept open until FreeType finishes using the file.
+  std::string font_data_;
+
+  // Hashed value of font face.
+  gui::HashedId font_id_;
 };
 
 }  // namespace fpl

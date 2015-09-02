@@ -14,6 +14,7 @@
 
 #include "fplbase/utilities.h"
 #include "flatui/flatui.h"
+#include "flatui/internal/flatui_util.h"
 #include "flatui/internal/micro_edit.h"
 
 namespace fpl {
@@ -32,44 +33,6 @@ static const float kScrollSpeedWheelgDefault = 16.0f;
 static const int32_t kDragStartThresholdDefault = 8;
 static const int32_t kPointerIndexInvalid = -1;
 static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
-
-typedef uint32_t HashedId;
-
-static HashedId kNullHash = 0;
-
-HashedId HashId(const char *id) {
-  // A quick good hash, from:
-  // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-  HashedId hash = 0x84222325;
-  while (*id) hash = (hash ^ static_cast<uint8_t>(*id++)) * 0x000001b3;
-  // We use kNullHash for special checks, so make sure it doesn't collide.
-  // If you hit this assert, sorry, please change your id :)
-  assert(hash != kNullHash);
-  return hash;
-}
-
-// Sometimes we may want to derive identity from an object of which there
-// is guaranteed only one (like e.g. a texture).
-HashedId HashPointer(const void *ptr) {
-  // This method of integer hashing simply randomizes the integer space given,
-  // in case there is an uneven distribution in the input (like is often the
-  // case with pointers due to memory allocator implementations causing
-  // higher and lower bits to be similar).
-  // Knuth: "The Art of Computer Programming", section 6.4
-  auto hash = static_cast<HashedId>(reinterpret_cast<size_t>(ptr)) * 2654435761;
-  assert(hash != kNullHash);
-  return hash;
-}
-
-bool EqualId(HashedId hash1, HashedId hash2) {
-  // We use hashes for comparison (rather that strcmp or pointer compare)
-  // so the user can feel free to generate ids in temporary strings.
-  // Not only are collisions rare because we use the entire 32bit space,
-  // they are even more rare in practice, since noticable effects can only
-  // occur between two adjacent elements, and then only when one of the two
-  // elements was just inserted, etc.
-  return hash1 == hash2;
-}
 
 // This holds the transient state of a group while its layout is being
 // calculated / rendered.
@@ -223,12 +186,8 @@ class InternalState : public Group {
   // If that ever changes, we also need to change our use of glScissor below.
   void SetOrtho() {
     auto ortho_mat = mathfu::OrthoHelper<float>(
-      0.0f,
-      static_cast<float>(canvas_size_.x()),
-      static_cast<float>(canvas_size_.y()),
-      0.0f,
-      -1.0f,
-      1.0f);
+        0.0f, static_cast<float>(canvas_size_.x()),
+        static_cast<float>(canvas_size_.y()), 0.0f, -1.0f, 1.0f);
     renderer_.model_view_projection() = ortho_mat;
   }
 
@@ -370,8 +329,9 @@ class InternalState : public Group {
   void Image(const Texture &texture, float ysize) {
     auto hash = HashPointer(&texture);
     if (layout_pass_) {
-      auto virtual_image_size = vec2(texture.original_size().x() * ysize /
-                                     texture.original_size().y(), ysize);
+      auto virtual_image_size = vec2(
+          texture.original_size().x() * ysize / texture.original_size().y(),
+          ysize);
       // Map the size to real screen pixels, rounding to the nearest int
       // for pixel-aligned rendering.
       auto size = VirtualToPhysical(virtual_image_size);
@@ -418,9 +378,11 @@ class InternalState : public Group {
       // Get a text from the micro editor when it's editing.
       ui_text = persistent_.text_edit_.GetEditingText();
     }
-    auto buffer = fontman_.GetBuffer(ui_text->c_str(), ui_text->length(),
-                                     static_cast<float>(size.y()),
-                                     physical_label_size, true);
+    auto parameter = FontBufferParameters(fontman_.GetCurrentFace()->font_id_,
+                                          HashId(ui_text->c_str()), size.y(),
+                                          physical_label_size, true);
+    auto buffer =
+        fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
 
     // Check if the editbox is an auto expanding edit box.
@@ -436,7 +398,7 @@ class InternalState : public Group {
     if (in_edit) {
       window = persistent_.text_edit_.GetWindow();
     }
-    auto pos = Label(ui_text->c_str(), *buffer, window);
+    auto pos = Label(*buffer, parameter, window);
     if (!layout_pass_) {
       auto show_caret = false;
       bool pick_caret = (event & kEventWentDown) != 0;
@@ -571,16 +533,18 @@ class InternalState : public Group {
 
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto buffer =
-        fontman_.GetBuffer(text, strlen(text), static_cast<float>(size.y()),
-                           physical_label_size, false);
+    auto parameter =
+        FontBufferParameters(fontman_.GetCurrentFace()->font_id_, HashId(text),
+                             size.y(), physical_label_size, false);
+    auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
-    Label(text, *buffer, vec4i(vec2i(0, 0), buffer->get_size()));
+    Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
   }
 
-  vec2i Label(const char *text, const FontBuffer &buffer, const vec4i &window) {
+  vec2i Label(const FontBuffer &buffer, const FontBufferParameters &parameter,
+              const vec4i &window) {
     vec2i pos = mathfu::kZeros2i;
-    auto hash = HashId(text);
+    auto hash = parameter.get_text_id();
     if (layout_pass_) {
       auto size = window.zw();
       NewElement(size, hash);
@@ -750,9 +714,8 @@ class InternalState : public Group {
       // glClipPlane, or stencil buffer).
       assert(default_projection_);
       renderer_.ScissorOn(
-            vec2i(position_.x(),
-                  canvas_size_.y() - position_.y() - psize.y()),
-            psize);
+          vec2i(position_.x(), canvas_size_.y() - position_.y() - psize.y()),
+          psize);
 
       vec2i pointer_delta = mathfu::kZeros2i;
       int32_t scroll_speed = static_cast<int32_t>(scroll_speed_drag_);
@@ -788,8 +751,8 @@ class InternalState : public Group {
 
       // Scroll the pane on user input.
       *offset = vec2i::Max(mathfu::kZeros2i,
-                  vec2i::Min(elements_[element_idx_].extra_size,
-                             *offset - pointer_delta * scroll_speed));
+                           vec2i::Min(elements_[element_idx_].extra_size,
+                                      *offset - pointer_delta * scroll_speed));
 
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
@@ -1037,7 +1000,7 @@ class InternalState : public Group {
     }
 
     int dir = 0;
-    // FIXME: this should work on other platforms too.
+// FIXME: this should work on other platforms too.
 #   ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
@@ -1108,6 +1071,9 @@ class InternalState : public Group {
 
   // Set Label's text color.
   void SetTextColor(const vec4 &color) { text_color_ = color; }
+
+  // Set Label's font.
+  void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
 
  private:
   vec2i GetPointerDelta() { return input_.get_pointers()[0].mousedelta; }
@@ -1223,9 +1189,7 @@ InternalState *Gui() {
   return state;
 }
 
-void Image(const Texture &texture, float size) {
-  Gui()->Image(texture, size);
-}
+void Image(const Texture &texture, float size) { Gui()->Image(texture, size); }
 
 void Label(const char *text, float font_size) { Gui()->Label(text, font_size); }
 
@@ -1275,6 +1239,8 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 }
 
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
+
+void SetTextFont(const char *font_name) { Gui()->SetTextFont(font_name); }
 
 Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {

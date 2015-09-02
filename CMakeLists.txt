@@ -117,6 +117,7 @@ set(flatui_SRCS
     include/flatui/flatui_common.h
     include/flatui/font_manager.h
     include/flatui/internal/glyph_cache.h
+    include/flatui/internal/flatui_util.h
     include/flatui/internal/micro_edit.h
     src/font_manager.cpp
     src/micro_edit.cpp

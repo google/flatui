@@ -106,13 +106,13 @@ enum Direction {
 // A   C
 // A
 enum Layout {
-  kLayoutHorizontalTop    = kDirHorizontal | kAlignTop,
-  kLayoutHorizontalCenter = kDirHorizontal | kAlignCenter,
-  kLayoutHorizontalBottom = kDirHorizontal | kAlignBottom,
-  kLayoutVerticalLeft     = kDirVertical | kAlignLeft,
-  kLayoutVerticalCenter   = kDirVertical | kAlignCenter,
-  kLayoutVerticalRight    = kDirVertical | kAlignRight,
-  kLayoutOverlay          = kDirOverlay | kAlignCenter,
+  kLayoutHorizontalTop =    kDirHorizontal| kAlignTop,
+  kLayoutHorizontalCenter = kDirHorizontal| kAlignCenter,
+  kLayoutHorizontalBottom = kDirHorizontal| kAlignBottom,
+  kLayoutVerticalLeft =     kDirVertical  | kAlignLeft,
+  kLayoutVerticalCenter =   kDirVertical  | kAlignCenter,
+  kLayoutVerticalRight =    kDirVertical  | kAlignRight,
+  kLayoutOverlay =          kDirOverlay   | kAlignCenter,
 };
 
 // Specify margins for a group, in units of virtual resolution.
@@ -156,6 +156,9 @@ void Label(const char *text, float ysize, const mathfu::vec2 &size);
 // Set Label's text color.
 void SetTextColor(const vec4 &color);
 
+// Set Label's font.
+void SetTextFont(const char *font_name);
+
 // Render an edit box as a GUI element.
 // ysize: vertical size in virtual resolution.
 // size: a size of the editbox in virtual resolution.
@@ -163,8 +166,8 @@ void SetTextColor(const vec4 &color);
 //       0 for size.y indicates a single line label.
 // string: label string in UTF8
 // returns true if the widget is in edit.
-bool Edit(float ysize, const mathfu::vec2 &size, const char* id,
-          std::string* string);
+bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
+          std::string *string);
 
 // Create a group of elements with the given layout and intra-element spacing.
 // Start/end calls must be matched and may be nested to create more complex
