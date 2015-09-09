@@ -167,7 +167,7 @@ class InternalState : public Group {
 
   template <int D>
   mathfu::Vector<float, D> PhysicalToVirtual(const mathfu::Vector<int, D> &v) {
-    return mathfu::Vector<float, D>(v - 0.5f) / pixel_scale_;
+    return (mathfu::Vector<float, D>(v) - 0.5f) / pixel_scale_;
   }
 
   // Initialize the scaling factor for the virtual resolution.
