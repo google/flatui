@@ -63,7 +63,7 @@ int main() {
     static float f = 0.0f;
     f += 0.04f;
     static bool show_about = false;
-    static vec2i scroll_offset(mathfu::kZeros2i);
+    static vec2 scroll_offset(mathfu::kZeros2f);
     static bool checkbox1_checked;
     static float slider_value;
     static std::string str("Edit box.");

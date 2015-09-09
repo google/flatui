@@ -28,79 +28,114 @@ void SetHoverClickColor(const vec4 &hover_color, const vec4 &click_color) {
 }
 
 void EventBackground(Event event) {
-  if (event & kEventIsDown) ColorBackground(g_click_color);
-  else if (event & kEventHover) ColorBackground(g_hover_color);
+  if (event & kEventIsDown)
+    ColorBackground(g_click_color);
+  else if (event & kEventHover)
+    ColorBackground(g_hover_color);
 }
 
 Event ImageButton(const Texture &texture, float size, const Margin &margin,
                   const char *id) {
   StartGroup(kLayoutVerticalLeft, size, id);
-    SetMargin(margin);
-    auto event = CheckEvent();
-    EventBackground(event);
-    Image(texture, size);
+  SetMargin(margin);
+  auto event = CheckEvent();
+  EventBackground(event);
+  Image(texture, size);
   EndGroup();
   return event;
 }
 
 Event TextButton(const char *text, float size, const Margin &margin) {
   StartGroup(kLayoutVerticalLeft, size, text);
-    SetMargin(margin);
-    auto event = CheckEvent();
-    EventBackground(event);
-    Label(text, size);
+  SetMargin(margin);
+  auto event = CheckEvent();
+  EventBackground(event);
+  Label(text, size);
   EndGroup();
   return event;
 }
 
-Event CheckBox(const Texture &texture_checked,
-               const Texture &texture_unchecked,
+Event CheckBox(const Texture &texture_checked, const Texture &texture_unchecked,
                const char *label, float size, const Margin &margin,
                bool *is_checked) {
   StartGroup(kLayoutHorizontalBottom, 0, label);
-    auto event = CheckEvent();
-    Image(*is_checked ? texture_checked : texture_unchecked, size);
-    SetMargin(margin);
-    Label(label, size);
-    // Change the state here, to ensure it changes after we've already rendered.
-    if (event & kEventWentUp) {
-      *is_checked = !*is_checked;
-    }
+  auto event = CheckEvent();
+  Image(*is_checked ? texture_checked : texture_unchecked, size);
+  SetMargin(margin);
+  Label(label, size);
+  // Change the state here, to ensure it changes after we've already rendered.
+  if (event & kEventWentUp) {
+    *is_checked = !*is_checked;
+  }
   EndGroup();
   return event;
 }
 
-Event Slider(const Texture &tex_bar, const Texture &tex_knob,
-             const vec2 &size, float bar_height, const char *id,
-             float *slider_value) {
+Event Slider(const Texture &tex_bar, const Texture &tex_knob, const vec2 &size,
+             float bar_height, const char *id, float *slider_value) {
   StartGroup(kLayoutHorizontalBottom, 0, id);
-    StartSlider(kDirHorizontal, slider_value);
-      auto event = CheckEvent();
-      CustomElement(size, id, [&tex_knob, &tex_bar, bar_height,
-                               slider_value](const vec2i &pos,
-                                             const vec2i &size){
-        // Render the slider.
-        auto bar_pos = pos;
-        auto bar_size = size;
-        bar_pos +=
-            vec2i(size.y() / 2,
-                  static_cast<int>(size.y() * (1.0 - bar_height) / 2.0f));
-        bar_size = vec2i(std::max(bar_size.x() - size.y(), 0),
-                         static_cast<int>(bar_size.y() * bar_height));
+  StartSlider(kDirHorizontal, size.y() * 0.5f, slider_value);
+  auto event = CheckEvent();
+  CustomElement(size, id, [&tex_knob, &tex_bar, bar_height, slider_value](
+                              const vec2i &pos, const vec2i &size) {
+    // Render the slider.
+    auto bar_pos = pos;
+    auto bar_size = size;
+    bar_pos += vec2i(size.y() / 2,
+                     static_cast<int>(size.y() * (1.0 - bar_height) / 2.0f));
+    bar_size = vec2i(std::max(bar_size.x() - size.y(), 0),
+                     static_cast<int>(bar_size.y() * bar_height));
 
-        auto knob_pos = pos;
-        auto knob_sizes = vec2i(size.y(), size.y());
-        knob_pos.x() += static_cast<int>(
-            *slider_value * static_cast<float>(size.x() - size.y()));
-        RenderTextureNinePatch(tex_bar, vec4(0.5f, 0.5f, 0.5f, 0.5f),
-                      bar_pos, bar_size);
-        RenderTexture(tex_knob, knob_pos, knob_sizes);
-      });
-    EndSlider();
+    auto knob_pos = pos;
+    auto knob_sizes = vec2i(size.y(), size.y());
+    knob_pos.x() += static_cast<int>(*slider_value *
+                                     static_cast<float>(size.x() - size.y()));
+    RenderTextureNinePatch(tex_bar, vec4(0.5f, 0.5f, 0.5f, 0.5f), bar_pos,
+                           bar_size);
+    RenderTexture(tex_knob, knob_pos, knob_sizes);
+  });
+  EndSlider();
+  EndGroup();
+  return event;
+}
+
+Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
+                const vec2 &size, float bar_size, const char *id,
+                float *scroll_value) {
+  StartGroup(kLayoutHorizontalBottom, 0, id);
+  Direction direction;
+  int32_t dimension;
+  if (size.y() < size.x()) {
+    direction = kDirHorizontal;
+    dimension = 0;
+  } else {
+    direction = kDirVertical;
+    dimension = 1;
+  }
+  float margin = size[dimension] * bar_size * 0.5f;
+  StartSlider(direction, margin, scroll_value);
+
+  auto event = CheckEvent();
+  CustomElement(size, id, [&tex_foreground, &tex_background, bar_size,
+                           scroll_value, dimension, margin](
+                              const vec2i &pos, const vec2i &render_size) {
+    // Set up the bar position and size.
+    auto bar_render_pos = pos;
+    bar_render_pos[dimension] +=
+    *scroll_value * (render_size[dimension] - margin * 2.0f * gui::GetScale());
+
+    auto bar_render_size = vec2i(render_size.x(), render_size.y());
+    bar_render_size[dimension] *= bar_size;
+
+    RenderTextureNinePatch(tex_background, vec4(0.5f, 0.5f, 0.5f, 0.5f), pos,
+                           render_size);
+    RenderTextureNinePatch(tex_foreground, vec4(0.5f, 0.5f, 0.5f, 0.5f),
+                           bar_render_pos, bar_render_size);
+  });
+  EndSlider();
   EndGroup();
   return event;
 }
 
 }  // gui
 }  // fpl
-

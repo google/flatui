@@ -235,13 +235,13 @@ void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info);
 // sized elements inside a window of "size", scrolled to the current "offset"
 // (which the caller should store somewhere that survives the current frame).
 // Call StartScroll right after StartGroup, and EndScroll right before EndGroup.
-void StartScroll(const vec2 &size, vec2i *offset);
+void StartScroll(const vec2 &size, vec2 *offset);
 void EndScroll();
 
 // Make the current group into a slider group that can handle a basic slider
 // behavior. The group captures/releases the pointer as necessary.
 // Call StartSlider right after StartGroup, and EndSlider right before EndGroup.
-void StartSlider(Direction direction, float *value);
+void StartSlider(Direction direction, float scroll_margin, float *value);
 void EndSlider();
 
 // Put a custom element with given size.
@@ -285,6 +285,10 @@ void PositionGroup(Alignment horizontal, Alignment vertical,
 // Run() is called (which may be a 2D or 3D projection).
 // Specify the new canvas size for the UI to live inside of.
 void UseExistingProjection(const vec2i &canvas_size);
+
+// Retrieve current group's size. This API is useful to implement UI that
+// requires other element's size such as a scroll bar etc.
+vec2 GroupSize();
 
 }  // namespace gui
 }  // namespace fpl

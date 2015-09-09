@@ -62,6 +62,15 @@ Event Slider(const Texture &tex_bar, const Texture &tex_knob,
              const vec2 &size, float bar_height, const char *id,
              float *slider_value);
 
+// A scrollbar to indicate a position of a scroll view.
+// Pass textures for the background and the foreground both must be a ninepatch
+// texture.
+// Specify the size of the whole and a relative size of the scroll bar inside.
+// The scroll value is between 0.0 and 1.0 inclusive, which should be easy
+// to scale to any float/int range.
+Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
+                const vec2 &size, float bar_size, const char *id,
+                float *scroll_value);
 
 }  // namespace gui
 }  // namespace fpl

@@ -165,6 +165,11 @@ class InternalState : public Group {
     return mathfu::Vector<int, D>(v * pixel_scale_ + 0.5f);
   }
 
+  template <int D>
+  mathfu::Vector<float, D> PhysicalToVirtual(const mathfu::Vector<int, D> &v) {
+    return mathfu::Vector<float, D>(v - 0.5f) / pixel_scale_;
+  }
+
   // Initialize the scaling factor for the virtual resolution.
   void SetScale() {
     auto scale = vec2(canvas_size_) / virtual_resolution_;
@@ -694,8 +699,9 @@ class InternalState : public Group {
     margin_ = VirtualToPhysical(margin.borders);
   }
 
-  void StartScroll(const vec2 &size, vec2i *offset) {
+  void StartScroll(const vec2 &size, vec2 *virtual_offset) {
     auto psize = VirtualToPhysical(size);
+    auto offset = VirtualToPhysical(*virtual_offset);
 
     if (layout_pass_) {
       // If you hit this assert, you are nesting scrolling areas, which is
@@ -750,9 +756,9 @@ class InternalState : public Group {
       }
 
       // Scroll the pane on user input.
-      *offset = vec2i::Max(mathfu::kZeros2i,
-                           vec2i::Min(elements_[element_idx_].extra_size,
-                                      *offset - pointer_delta * scroll_speed));
+      offset = vec2i::Max(mathfu::kZeros2i,
+                          vec2i::Min(elements_[element_idx_].extra_size,
+                                     offset - pointer_delta * scroll_speed));
 
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
@@ -769,8 +775,10 @@ class InternalState : public Group {
       clip_position_ = position_;
       // Start the rendering of this group at the offset before the start of
       // the window to clip against. Also makes events work correctly.
-      position_ -= *offset;
+      position_ -= offset;
     }
+
+    *virtual_offset = PhysicalToVirtual(offset);
   }
 
   void EndScroll() {
@@ -788,7 +796,7 @@ class InternalState : public Group {
     }
   }
 
-  void StartSlider(Direction direction, float *value) {
+  void StartSlider(Direction direction, float scroll_margin, float *value) {
     auto event = CheckEvent(false);
     if (!layout_pass_) {
       if (event & kEventStartDrag) {
@@ -802,13 +810,13 @@ class InternalState : public Group {
         switch (direction) {
           case kDirHorizontal:
             *value = static_cast<float>(GetPointerPosition().x() -
-                                        position_.x() - size_.y() * 0.5f) /
-                     static_cast<float>(size_.x() - size_.y());
+                                        position_.x() - scroll_margin) /
+                     static_cast<float>(size_.x() - scroll_margin * 2.0f);
             break;
           case kDirVertical:
             *value = static_cast<float>(GetPointerPosition().y() -
-                                        position_.y() - size_.x() * 0.5f) /
-                     static_cast<float>(size_.y() - size_.x());
+                                        position_.y() - scroll_margin) /
+                     static_cast<float>(size_.y() - scroll_margin * 2.0f);
             break;
           default:
             assert(0);
@@ -1211,14 +1219,14 @@ void EndGroup() { Gui()->EndGroup(); }
 
 void SetMargin(const Margin &margin) { Gui()->SetMargin(margin); }
 
-void StartScroll(const vec2 &size, vec2i *offset) {
+void StartScroll(const vec2 &size, vec2 *offset) {
   Gui()->StartScroll(size, offset);
 }
 
 void EndScroll() { Gui()->EndScroll(); }
 
-void StartSlider(Direction direction, float *value) {
-  Gui()->StartSlider(direction, value);
+void StartSlider(Direction direction, float scroll_margin, float *value) {
+  Gui()->StartSlider(direction, scroll_margin, value);
 }
 
 void EndSlider() { Gui()->EndSlider(); }
@@ -1289,6 +1297,8 @@ void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
 void SetDragStartThreshold(int drag_start_threshold) {
   Gui()->SetDragStartThreshold(drag_start_threshold);
 }
+
+vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 }  // namespace gui
 }  // namespace fpl
