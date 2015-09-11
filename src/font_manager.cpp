@@ -270,9 +270,10 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       // performs a line break if either current word exceeds the max line
       // width or indicated a line break must happen due to a line break
       // character etc.
-      uint32_t word_width = LayoutText(text + word_enum.GetCurrentWordIndex(),
-                                       word_enum.GetCurrentWordLength()) *
-                            scale;
+      uint32_t word_width = static_cast<uint32_t>(
+          LayoutText(text + word_enum.GetCurrentWordIndex(),
+                     word_enum.GetCurrentWordLength()) *
+          scale);
       if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
                                      static_cast<uint32_t>(size.x())) {
         // Line break.

@@ -383,9 +383,9 @@ class InternalState : public Group {
       // Get a text from the micro editor when it's editing.
       ui_text = persistent_.text_edit_.GetEditingText();
     }
-    auto parameter = FontBufferParameters(fontman_.GetCurrentFace()->font_id_,
-                                          HashId(ui_text->c_str()), size.y(),
-                                          physical_label_size, true);
+    auto parameter = FontBufferParameters(
+        fontman_.GetCurrentFace()->font_id_, HashId(ui_text->c_str()),
+        static_cast<float>(size.y()), physical_label_size, true);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
@@ -538,9 +538,9 @@ class InternalState : public Group {
 
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto parameter =
-        FontBufferParameters(fontman_.GetCurrentFace()->font_id_, HashId(text),
-                             size.y(), physical_label_size, false);
+    auto parameter = FontBufferParameters(
+        fontman_.GetCurrentFace()->font_id_, HashId(text),
+        static_cast<float>(size.y()), physical_label_size, false);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));

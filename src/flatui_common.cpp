@@ -122,10 +122,12 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
     // Set up the bar position and size.
     auto bar_render_pos = pos;
     bar_render_pos[dimension] +=
-    *scroll_value * (render_size[dimension] - margin * 2.0f * gui::GetScale());
+        static_cast<int>(*scroll_value * (render_size[dimension] -
+                                          margin * 2.0f * gui::GetScale()));
 
     auto bar_render_size = vec2i(render_size.x(), render_size.y());
-    bar_render_size[dimension] *= bar_size;
+    bar_render_size[dimension] =
+        static_cast<int>(bar_render_size[dimension] * bar_size);
 
     RenderTextureNinePatch(tex_background, vec4(0.5f, 0.5f, 0.5f, 0.5f), pos,
                            render_size);
