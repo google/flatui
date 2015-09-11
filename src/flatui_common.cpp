@@ -15,6 +15,7 @@
 #include "precompiled.h"
 #include "fplbase/renderer.h"
 #include "flatui/flatui.h"
+#include "flatui/flatui_common.h"
 
 namespace fpl {
 namespace gui {
@@ -51,6 +52,41 @@ Event TextButton(const char *text, float size, const Margin &margin) {
   auto event = CheckEvent();
   EventBackground(event);
   Label(text, size);
+  EndGroup();
+  return event;
+}
+
+void ShowTexture(const Texture &texture, const Margin &texture_margin,
+                 float size) {
+  StartGroup(kLayoutVerticalLeft, size);
+  SetMargin(texture_margin);
+  Image(texture, size);
+  EndGroup();
+}
+
+Event TextButton(const Texture &texture, const Margin &texture_margin,
+                 const char *text, float size, const Margin &text_margin,
+                 const ButtonProperty property) {
+  StartGroup(kLayoutHorizontalCenter);
+  auto event = kEventNone;
+  if (!(property & kButtonPropertyDisabled)) {
+    event = CheckEvent();
+    EventBackground(event);
+  }
+
+  if (property & kButtonPropertyImageLeft) {
+    ShowTexture(texture, texture_margin, size);
+  }
+
+  StartGroup(kLayoutVerticalLeft, size, text);
+  SetMargin(text_margin);
+  Label(text, size);
+  EndGroup();
+
+  if (property & kButtonPropertyImageRight) {
+    ShowTexture(texture, texture_margin, size);
+  }
+
   EndGroup();
   return event;
 }

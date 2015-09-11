@@ -29,6 +29,16 @@
 namespace fpl {
 namespace gui {
 
+// Definitions to specify button properties used in common widget.
+enum ButtonProperty {
+  kButtonPropertyDisabled = 1,
+  kButtonPropertyImageLeft = 2,
+  kButtonPropertyImageRight = 4,
+};
+inline ButtonProperty operator|(ButtonProperty a, ButtonProperty b) {
+  return static_cast<ButtonProperty>(static_cast<int>(a) | static_cast<int>(b));
+}
+
 // Some of the widgets below give user feedback by rendering a transparent
 // background to signal user hovering over (or selected widgets in case of
 // gamepad/keyboard navigation) and clicking/touching/interacting with the
@@ -44,6 +54,11 @@ Event TextButton(const char *text, float size, const Margin &margin);
 // vertical height. Uses the colors set above.
 Event ImageButton(const Texture &texture, float size, const Margin &margin,
                   const char *id);
+
+// A text button showing an image shown on the left.
+Event TextButton(const Texture &texture, const Margin &texure_margin,
+                 const char *text, float size,
+                 const Margin &margin, const ButtonProperty property);
 
 // A checkbox with a label next to it. Pass textures for the two states,
 // the label, the height (for both image & label).
