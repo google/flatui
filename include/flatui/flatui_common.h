@@ -38,6 +38,9 @@ enum ButtonProperty {
 inline ButtonProperty operator|(ButtonProperty a, ButtonProperty b) {
   return static_cast<ButtonProperty>(static_cast<int>(a) | static_cast<int>(b));
 }
+inline ButtonProperty operator|=(ButtonProperty a, ButtonProperty b) {
+  return a | b;
+}
 
 // Some of the widgets below give user feedback by rendering a transparent
 // background to signal user hovering over (or selected widgets in case of
