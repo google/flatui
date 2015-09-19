@@ -339,7 +339,8 @@ void MicroEdit::PickRow(const vec2i &pointer_position,
   auto compare = [](const vec2i &lhs,
                     const vec2i &rhs) { return lhs.y() < rhs.y(); };
   *start_it = std::lower_bound(*start_it, *end_it, pointer_position, compare);
-  *end_it = std::upper_bound(*start_it, *end_it, **start_it, compare) - 1;
+  if (*start_it < *end_it)
+    *end_it = std::upper_bound(*start_it, *end_it, **start_it, compare) - 1;
 }
 
 int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
