@@ -973,6 +973,8 @@ class InternalState : public Group {
               }
             }
 
+            if (event) persistent_.is_last_event_pointer_type = true;
+
             if (!event) event = kEventHover;
 
             gamepad_has_focus_element = true;
@@ -993,6 +995,10 @@ class InternalState : public Group {
     return kEventNone;
   }
 
+  bool IsLastEventPointerType() {
+    return persistent_.is_last_event_pointer_type;
+  }
+
   void CheckGamePadFocus() {
     if (!gamepad_has_focus_element)
       // This may happen when a GUI first appears or when elements get removed.
@@ -1008,18 +1014,21 @@ class InternalState : public Group {
     }
 
     int dir = 0;
-// FIXME: this should work on other platforms too.
+    // FIXME: this should work on other platforms too.
 #   ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
       dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
                          gamepad.second.GetButton(Gamepad::kRight),
+                         gamepad.second.GetButton(Gamepad::kUp),
+                         gamepad.second.GetButton(Gamepad::kDown),
                          gamepad.second.GetButton(Gamepad::kButtonA));
     }
 #   endif
     // For testing, also support keyboard:
     dir =
         CheckButtons(input_.GetButton(FPLK_LEFT), input_.GetButton(FPLK_RIGHT),
+                     input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
                      input_.GetButton(FPLK_RETURN));
     // Now find the current element, and move to the next.
     if (dir) {
@@ -1034,13 +1043,18 @@ class InternalState : public Group {
   }
 
   int CheckButtons(const Button &left, const Button &right,
+                   const Button &up, const Button &down,
                    const Button &action) {
     int dir = 0;
     if (left.went_up()) dir = -1;
     if (right.went_up()) dir = 1;
+    if (up.went_up()) dir = -1;
+    if (down.went_up()) dir = 1;
     if (action.went_up()) gamepad_event = kEventWentUp;
     if (action.went_down()) gamepad_event = kEventWentDown;
     if (action.is_down()) gamepad_event = kEventIsDown;
+    if (dir || gamepad_event != kEventHover)
+      persistent_.is_last_event_pointer_type = false;
     return dir;
   }
 
@@ -1131,7 +1145,7 @@ class InternalState : public Group {
 
   // Intra-frame persistent state.
   static struct PersistentState {
-    PersistentState() {
+    PersistentState() : is_last_event_pointer_type(true) {
       // This is effectively a global, so no memory allocation or other
       // complex initialization here.
       for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
@@ -1161,9 +1175,11 @@ class InternalState : public Group {
     // Keep tracking a pointer position of a drag start.
     vec2i drag_start_position_;
     int32_t dragging_pointer_;
+
+    // If yes, then touch/mouse, else gamepad/keyboard.
+    bool is_last_event_pointer_type;
   } persistent_;
 
- private:
   // Disable copy constructor.
   InternalState(const InternalState &);
   InternalState &operator=(const InternalState &);
@@ -1299,6 +1315,8 @@ void SetDragStartThreshold(int drag_start_threshold) {
 }
 
 vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
+
+bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
 
 }  // namespace gui
 }  // namespace fpl

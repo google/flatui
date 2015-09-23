@@ -290,6 +290,10 @@ void UseExistingProjection(const vec2i &canvas_size);
 // requires other element's size such as a scroll bar etc.
 vec2 GroupSize();
 
+// If true, the last click event came a touch screen or mouse, if false, it
+// came from a gamepad or keyboard.
+bool IsLastEventPointerType();
+
 }  // namespace gui
 }  // namespace fpl
 
