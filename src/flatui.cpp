@@ -1026,10 +1026,13 @@ class InternalState : public Group {
     }
 #   endif
     // For testing, also support keyboard:
-    dir =
-        CheckButtons(input_.GetButton(FPLK_LEFT), input_.GetButton(FPLK_RIGHT),
-                     input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
-                     input_.GetButton(FPLK_RETURN));
+    if (!dir) {
+      dir =
+          CheckButtons(input_.GetButton(FPLK_LEFT),
+                       input_.GetButton(FPLK_RIGHT),
+                       input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
+                       input_.GetButton(FPLK_RETURN));
+    }
     // Now find the current element, and move to the next.
     if (dir) {
       for (auto &e : elements_) {
