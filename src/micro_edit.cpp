@@ -199,7 +199,8 @@ int32_t MicroEdit::GetNumCharacters(const std::string &text) {
   set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text.c_str()),
                       text.length(), language_.c_str(), &v[0]);
   auto characters = 0;
-  for (auto i : v) {
+  for (auto it = v.begin(); it != v.end(); ++it) {
+    auto i = *it;
     if (i != LINEBREAK_INSIDEACHAR) {
       characters++;
     }

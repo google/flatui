@@ -1035,7 +1035,8 @@ class InternalState : public Group {
     }
     // Now find the current element, and move to the next.
     if (dir) {
-      for (auto &e : elements_) {
+      for (auto it = elements_.begin(); it != elements_.end(); ++it) {
+        auto e = *it;
         if (EqualId(e.hash, persistent_.input_focus_)) {
           persistent_.input_focus_ =
               NextInteractiveElement(&e - &elements_[0], dir);

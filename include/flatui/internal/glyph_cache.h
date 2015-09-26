@@ -63,6 +63,12 @@ const int32_t kGlyphCacheHeightRound = 4;
 const int32_t kGlyphCachePaddingX = 1;
 const int32_t kGlyphCachePaddingY = 1;
 
+// TODO: Provide proper int specialization in mathfu.
+static inline int32_t RoundUpToPowerOf2(int32_t x) {
+  return static_cast<int32_t>(
+      mathfu::RoundUpToPowerOf2(static_cast<float>(x)));
+}
+
 // Class that includes glyph parameters.
 class GlyphKey {
 public:
@@ -271,8 +277,8 @@ class GlyphCache {
   GlyphCache(const mathfu::vec2i& size)
       : counter_(0), revision_(0), dirty_(false) {
     // Round up cache sizes to power of 2.
-    size_.x() = mathfu::RoundUpToPowerOf2(size.x());
-    size_.y() = mathfu::RoundUpToPowerOf2(size.y());
+    size_.x() = RoundUpToPowerOf2(size.x());
+    size_.y() = RoundUpToPowerOf2(size.y());
 
     // Allocate the glyph cache buffer.
     // A buffer format can be 8/32 bpp (32 bpp is mostly used for Emoji).
@@ -407,7 +413,7 @@ class GlyphCache {
       CopyImage(pos, image, it_entry->second.get());
 
       // Update UV of the entry.
-      auto p = mathfu::vec4(
+      mathfu::vec4 p(
           mathfu::vec2(pos) / mathfu::vec2(size_),
           mathfu::vec2(pos + entry.get_size()) / mathfu::vec2(size_));
       ret->set_uv(p);
@@ -424,7 +430,8 @@ class GlyphCache {
 
       // Try to find a row that is not used in current cycle and has enough
       // height from LRU list.
-      for (auto row : lru_row_) {
+      for (auto row_it = lru_row_.begin(); row_it != lru_row_.end(); ++row_it) {
+        auto& row = *row_it;
         if (row->get_last_used_counter() == counter_) {
           // The row is being used in current rendering cycle.
           // We can not evict the row.
@@ -556,8 +563,9 @@ class GlyphCache {
 
   void FlushRow(const GlyphCacheEntry::iterator_row row) {
     // Erase cached glyphs from look-up map.
-    for (auto entry : row->get_cached_entries()) {
-      map_entries_.erase(entry);
+    auto& entries = row->get_cached_entries();
+    for (auto entry = entries.begin(); entry != entries.end(); ++entry) {
+      map_entries_.erase(*entry);
     }
 
     // Update cache revision.

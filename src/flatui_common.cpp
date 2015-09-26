@@ -123,7 +123,7 @@ Event Slider(const Texture &tex_bar, const Texture &tex_knob, const vec2 &size,
                      static_cast<int>(bar_size.y() * bar_height));
 
     auto knob_pos = pos;
-    auto knob_sizes = vec2i(size.y(), size.y());
+    vec2i knob_sizes(size.y(), size.y());
     knob_pos.x() += static_cast<int>(*slider_value *
                                      static_cast<float>(size.x() - size.y()));
     RenderTextureNinePatch(tex_bar, vec4(0.5f, 0.5f, 0.5f, 0.5f), bar_pos,
@@ -161,7 +161,7 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
         static_cast<int>(*scroll_value * (render_size[dimension] -
                                           margin * 2.0f * gui::GetScale()));
 
-    auto bar_render_size = vec2i(render_size.x(), render_size.y());
+    vec2i bar_render_size(render_size.x(), render_size.y());
     bar_render_size[dimension] =
         static_cast<int>(bar_render_size[dimension] * bar_size);
 

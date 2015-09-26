@@ -24,6 +24,7 @@
 #include <hb-ot.h>
 
 #include "font_manager.h"
+#include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 
 #ifdef FLATUI_USE_LIBUNIBREAK
@@ -339,7 +340,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
 
         // Construct indices array.
         const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
-        for (auto index : kIndices) {
+        for (size_t j = 0; j < FPL_ARRAYSIZE(kIndices); ++j) {
+          auto index = kIndices[j];
           buffer->get_indices()->push_back(
               static_cast<unsigned short>(index + (total_glyph_count + i) * 4));
         }
@@ -514,8 +516,8 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
 
   // Calculate texture size. The texture may be expanded later depending on
   // glyph sizes.
-  int32_t width = mathfu::RoundUpToPowerOf2(string_width);
-  int32_t height = mathfu::RoundUpToPowerOf2(ysize);
+  int32_t width = RoundUpToPowerOf2(string_width);
+  int32_t height = RoundUpToPowerOf2(ysize);
 
   // Initialize font metrics parameters.
   int32_t base_line = ysize * current_face_->face_->ascender /
@@ -556,7 +558,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
       if (new_metrics.total() != initial_metrics.total()) {
         // Expand buffer and update height if necessary.
         if (ExpandBuffer(width, height, initial_metrics, new_metrics, &image)) {
-          height = mathfu::RoundUpToPowerOf2(new_metrics.total());
+          height = RoundUpToPowerOf2(new_metrics.total());
         }
       }
       initial_metrics = new_metrics;
@@ -614,7 +616,7 @@ bool FontManager::ExpandBuffer(const int32_t width, const int32_t height,
     return false;
   }
 
-  int32_t new_height = mathfu::RoundUpToPowerOf2(new_metrics.total());
+  int32_t new_height = RoundUpToPowerOf2(new_metrics.total());
   int32_t internal_leading_change =
       new_metrics.internal_leading() - original_metrics.internal_leading();
   // Internal leading tracks max value of it in rendering glyphs, so we can
@@ -874,14 +876,14 @@ void FontBuffer::AddVertices(const vec2 &pos, const int32_t base_line,
 
   auto x = rounded_pos.x() + scaled_offset.x();
   auto y = rounded_pos.y() + scaled_base_line - scaled_offset.y();
-  vertices_.emplace_back(x, y, 0.0f, 0.0f, 0.0f);
+  vertices_.push_back(FontVertex(x, y, 0.0f, 0.0f, 0.0f));
 
-  vertices_.emplace_back(x, y + scaled_size.y(), 0.0f, 0.0f, 0.0f);
+  vertices_.push_back(FontVertex(x, y + scaled_size.y(), 0.0f, 0.0f, 0.0f));
 
-  vertices_.emplace_back(x + scaled_size.x(), y, 0.0f, 0.0f, 0.0f);
+  vertices_.push_back(FontVertex(x + scaled_size.x(), y, 0.0f, 0.0f, 0.0f));
 
-  vertices_.emplace_back(x + scaled_size.x(), y + scaled_size.y(), 0.0f, 0.0f,
-                         0.0f);
+  vertices_.push_back(FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f, 0.0f,
+                         0.0f));
 }
 
 void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
@@ -893,7 +895,7 @@ void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
 
 void FontBuffer::AddCaretPosition(float x, float y) {
   assert(caret_positions_.capacity());
-  caret_positions_.emplace_back(static_cast<int>(x), static_cast<int>(y));
+  caret_positions_.push_back(mathfu::vec2i(static_cast<int>(x), static_cast<int>(y)));
 }
 
 void FaceData::Close() {
