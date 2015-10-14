@@ -984,9 +984,10 @@ class InternalState : public Group {
             return static_cast<Event>(event);
           }
         }
-        // Generate hover events for the current element the gamepad is focused
-        // on.
-        if (EqualId(persistent_.input_focus_, hash)) {
+        // Generate hover events for the current element the gamepad/keyboard
+        // is focused on, but only if the gamepad/keyboard is active.
+        if (!persistent_.is_last_event_pointer_type &&
+            EqualId(persistent_.input_focus_, hash)) {
           gamepad_has_focus_element = true;
           return gamepad_event;
         }
