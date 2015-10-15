@@ -193,7 +193,7 @@ class InternalState : public Group {
     auto ortho_mat = mathfu::OrthoHelper<float>(
         0.0f, static_cast<float>(canvas_size_.x()),
         static_cast<float>(canvas_size_.y()), 0.0f, -1.0f, 1.0f);
-    renderer_.model_view_projection() = ortho_mat;
+    renderer_.set_model_view_projection(ortho_mat);
   }
 
   // Compute a space offset for a particular alignment for just the x or y
@@ -319,7 +319,7 @@ class InternalState : public Group {
 
   void RenderQuad(Shader *sh, const vec4 &color, const vec2i &pos,
                   const vec2i &size, const vec4 &uv) {
-    renderer_.color() = color;
+    renderer_.set_color(color);
     sh->Set(renderer_);
     Mesh::RenderAAQuadAlongX(vec3(vec2(pos), 0), vec3(vec2(pos + size), 0),
                              uv.xy(), uv.zw());
@@ -368,7 +368,7 @@ class InternalState : public Group {
     auto event = CheckEvent(false);
 
     // Set text color
-    renderer_.color() = text_color_;
+    renderer_.set_color(text_color_);
 
     auto physical_label_size = VirtualToPhysical(edit_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
@@ -534,7 +534,7 @@ class InternalState : public Group {
   // Multi line Text label.
   void Label(const char *text, float ysize, const vec2 &label_size) {
     // Set text color.
-    renderer_.color() = text_color_;
+    renderer_.set_color(text_color_);
 
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
@@ -632,7 +632,7 @@ class InternalState : public Group {
                               const vec2i &pos, const vec2i &size) {
     if (!layout_pass_) {
       tex.Set(0);
-      renderer_.color() = mathfu::kOnes4f;
+      renderer_.set_color(mathfu::kOnes4f);
       image_shader_->Set(renderer_);
       Mesh::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
                                         vec3(vec2(pos + size), 0), tex.size(),
