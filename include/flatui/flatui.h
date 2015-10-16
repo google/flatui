@@ -18,10 +18,10 @@
 #include <functional>
 #include <string>
 
+#include "font_manager.h"
 #include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
-#include "font_manager.h"
 
 namespace fpl {
 namespace gui {
@@ -81,6 +81,7 @@ enum Event {
   // kEventStartDrag, kEventIsDragging and kEventEndDrag.
 };
 
+// clang-format off
 // Alignment and Direction of groups.
 // Note that Top & Left (as well as Bottom & Right) are intended to be aliases
 // of eachother, as they both express the same thing on their respective axis.
@@ -96,7 +97,9 @@ enum Direction {
   kDirVertical = 8,
   kDirOverlay = 12
 };
+// clang-format on
 
+// clang-format off
 // Specify how to layout a group. Elements can be positioned either
 // horizontally next to eachother or vertically, with elements aligned
 // to either side or centered.
@@ -114,13 +117,14 @@ enum Layout {
   kLayoutVerticalRight =    kDirVertical  | kAlignRight,
   kLayoutOverlay =          kDirOverlay   | kAlignCenter,
 };
+// clang-format on
 
 // Specify margins for a group, in units of virtual resolution.
 struct Margin {
   // Create a margin with all 4 sides equal size.
   Margin(float m) : borders(m) {}
   // Create a margin with left/right set to x, and top/bottom to y.
-  Margin(float x, float y) : borders(x, x, y, y) {}
+  Margin(float x, float y) : borders(x, y, x, y) {}
   // Create a margin specifying all 4 sides individually.
   Margin(float left, float top, float right, float bottom)
       : borders(left, top, right, bottom) {}
