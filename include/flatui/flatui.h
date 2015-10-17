@@ -138,6 +138,9 @@ struct Margin {
 // Convert virtual screen coordinate to physical value.
 mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v);
 
+/// Convert physical screen coordinate to virtual value.
+mathfu::vec2 PhysicalToVirtual(const mathfu::vec2i &v);
+
 // Retrieve the scaling factor for the virtual resolution.
 float GetScale();
 
@@ -214,6 +217,11 @@ void CapturePointer(const char *element_id);
 // Release a pointer capture.
 void ReleasePointer();
 
+// Get the index of the captured pointer, -1 if no pointer is captured.
+// This should be used in conjunction with CheckEvent() to determine whether
+// a drag operation is in progress.
+ssize_t GetCapturedPointerIndex();
+
 // Set scroll speeds of drag and mouse wheel operations.
 // default: kScrollSpeedDragDefault & kScrollSpeedWheelgDefault
 void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel);
@@ -259,10 +267,18 @@ void CustomElement(
 
 // Render a texture to specific position & size. Usually used in CustomElement's
 // Render callback.
+// Position and size are specified in physical screen coordinates.
 void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size);
+
+// Render a texture to specific position, size and color.
+// Usually used in CustomElement's Render callback.
+// Position and size are specified in physical screen coordinates.
+void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size,
+                   const vec4 &color);
 
 // Render a nine-patch texture to specific position & size. Usually used in
 // CustomElement's Render callback.
+// Position and size are specified in physical screen coordinates.
 void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
                             const vec2i &pos, const vec2i &size);
 
@@ -293,8 +309,13 @@ void PositionGroup(Alignment horizontal, Alignment vertical,
 // Specify the new canvas size for the UI to live inside of.
 void UseExistingProjection(const vec2i &canvas_size);
 
-// Retrieve current group's size. This API is useful to implement UI that
-// requires other element's size such as a scroll bar etc.
+// Get the position of the current group in virtual coordinates.  This is the
+// top / left location of the group.  In conjunction with GroupSize() this can
+// be used to calculate the extents of the group.
+vec2 GroupPosition();
+
+// Retrieve current group's size (in virtual coordinates). This API is useful
+// to implement UI that requires other element's size such as a scroll bar etc.
 vec2 GroupSize();
 
 // If true, the last click event came a touch screen or mouse, if false, it

@@ -451,13 +451,15 @@ class InternalState : public Group {
 
           // Specify IME rect to input system.
           auto ime_rect = pos + buffer->GetCaretPosition(input_region_start);
-          auto ime_size = pos + buffer->GetCaretPosition(input_region_start +
-                                                         input_region_length) -
+          auto ime_size = pos +
+                          buffer->GetCaretPosition(input_region_start +
+                                                   input_region_length) -
                           ime_rect;
           if (focus_region_length) {
             ime_rect = pos + buffer->GetCaretPosition(focus_region_start);
-            ime_size = pos + buffer->GetCaretPosition(focus_region_start +
-                                                      focus_region_length) -
+            ime_size = pos +
+                       buffer->GetCaretPosition(focus_region_start +
+                                                focus_region_length) -
                        ime_rect;
           }
           vec4 rect;
@@ -625,9 +627,15 @@ class InternalState : public Group {
 
   // Render texture on the screen.
   void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size) {
+    RenderTexture(tex, pos, size, mathfu::kOnes4f);
+  }
+
+  // Render texture on the screen with color.
+  void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size,
+                     const vec4 &color) {
     if (!layout_pass_) {
       tex.Set(0);
-      RenderQuad(image_shader_, mathfu::kOnes4f, pos, size);
+      RenderQuad(image_shader_, color, pos, size);
     }
   }
 
@@ -894,6 +902,8 @@ class InternalState : public Group {
     return EqualId(persistent_.mouse_capture_, hash);
   }
 
+  vec2i GroupPosition() { return position_; }
+
   vec2i GroupSize() { return size_ + elements_[element_idx_].extra_size; }
 
   void RecordId(HashedId hash, int i) { persistent_.pointer_element[i] = hash; }
@@ -921,7 +931,6 @@ class InternalState : public Group {
       // Check if this is an inactive part of an overlay.
       if (element.interactive) {
         auto hash = element.hash;
-
         // pointer_max_active_index_ is typically 0, so loop not expensive.
         for (int i = 0; i <= pointer_max_active_index_; i++) {
           if ((CanReceivePointerEvent(hash) && clip_mouse_inside_[i] &&
@@ -980,10 +989,10 @@ class InternalState : public Group {
                   mathfu::InRange2D(persistent_.drag_start_position_, position_,
                                     position_ + size_) &&
                   !mathfu::InRange2D(
-                       input_.get_pointers()[i].mousepos,
-                       persistent_.drag_start_position_ - drag_start_threshold_,
-                       persistent_.drag_start_position_ +
-                           drag_start_threshold_)) {
+                      input_.get_pointers()[i].mousepos,
+                      persistent_.drag_start_position_ - drag_start_threshold_,
+                      persistent_.drag_start_position_ +
+                          drag_start_threshold_)) {
                 // Start drag event.
                 // Note that any element the event can recieve the drag start
                 // event, so that parent layer can start a dragging operation
@@ -1017,6 +1026,8 @@ class InternalState : public Group {
     }
     return kEventNone;
   }
+
+  ssize_t GetCapturedPointerIndex() { return persistent_.dragging_pointer_; }
 
   bool IsLastEventPointerType() {
     return persistent_.is_last_event_pointer_type;
@@ -1281,6 +1292,11 @@ void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size) {
   Gui()->RenderTexture(tex, pos, size);
 }
 
+void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size,
+                   const vec4 &color) {
+  Gui()->RenderTexture(tex, pos, size, color);
+}
+
 void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
                             const vec2i &pos, const vec2i &size) {
   Gui()->RenderTextureNinePatch(tex, patch_info, pos, size);
@@ -1294,6 +1310,8 @@ Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {
   return Gui()->CheckEvent(check_dragevent_only);
 }
+
+ssize_t GetCapturedPointerIndex() { return Gui()->GetCapturedPointerIndex(); }
 
 void ModalGroup() { Gui()->ModalGroup(); }
 
@@ -1322,6 +1340,10 @@ mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
   return Gui()->VirtualToPhysical(v);
 }
 
+mathfu::vec2 PhysicalToVirtual(const mathfu::vec2i &v) {
+  return Gui()->PhysicalToVirtual(v);
+}
+
 float GetScale() { return Gui()->GetScale(); }
 
 void CapturePointer(const char *element_id) {
@@ -1338,6 +1360,9 @@ void SetDragStartThreshold(int drag_start_threshold) {
   Gui()->SetDragStartThreshold(drag_start_threshold);
 }
 
+vec2 GroupPosition() {
+  return Gui()->PhysicalToVirtual(Gui()->GroupPosition());
+}
 vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
