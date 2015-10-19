@@ -5,7 +5,7 @@ FlatUI    {#flatui_index}
 
 [FlatUI][] is an *immediate mode* C++ GUI library that aims to be a simple,
 efficient and easy to use way to add menus,
-[HUDs][https://en.wikipedia.org/wiki/Head-up_display] and any kind of other UI
+[HUDs][] and any kind of other UI
 to your game or graphical application.
 
 [FlatUI] is available as open source from
@@ -102,6 +102,7 @@ upon so download the source using:
   [OpenGL]: https://www.opengl.org/
   [WebP]: https://developers.google.com/speed/webp/?hl=en
   [googletest]: https://code.google.com/p/googletest/
+  [HUDs]: https://en.wikipedia.org/wiki/Head-up_display
 
 
 
