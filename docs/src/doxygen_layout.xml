@@ -35,6 +35,7 @@
         </tab>
       </tab>
     </tab>
+    <!--
     <tab type="usergroup" url="@ref flatui_api_reference"
          title="API reference">
       <tab type="modules" visible="yes" title="" intro=""/>
@@ -49,6 +50,7 @@
         <tab type="globals" visible="yes" title="" intro=""/>
       </tab>
     </tab>
+    -->
     <tab type="user" url="@ref contributing" title="Contributing"/>
   </navindex>
 
