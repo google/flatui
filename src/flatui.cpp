@@ -533,11 +533,11 @@ class InternalState : public Group {
     // TODO: Make the caret rendering configurable.
 
     // Caret blink duration.
-    // 1.0f/100.0f indicates the counter value increased by 10 for each seconds,
+    // 10.0 indicates the counter value increased by 10 for each seconds,
     // so the caret blink cycle becomes 10 / (2 * M_PI) second.
-    const float kCareteBlinkDuration = 1.0f / 100.0f;
-    auto t = GetTicks();
-    if (sinf(static_cast<float>(t) * kCareteBlinkDuration) > 0.0f) {
+    const double kCareteBlinkDuration = 10.0;
+    auto t = input_.Time();
+    if (sin(t * kCareteBlinkDuration) > 0.0) {
       RenderQuad(color_shader_, mathfu::kOnes4f, caret_pos, caret_size);
     }
   }
