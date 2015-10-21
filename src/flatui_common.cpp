@@ -67,7 +67,7 @@ void ShowTexture(const Texture &texture, const Margin &texture_margin,
 Event TextButton(const Texture &texture, const Margin &texture_margin,
                  const char *text, float size, const Margin &text_margin,
                  const ButtonProperty property) {
-  StartGroup(kLayoutHorizontalCenter);
+  StartGroup(kLayoutHorizontalCenter, 0, text);
   auto event = kEventNone;
   if (!(property & kButtonPropertyDisabled)) {
     event = CheckEvent();
@@ -78,7 +78,7 @@ Event TextButton(const Texture &texture, const Margin &texture_margin,
     ShowTexture(texture, texture_margin, size);
   }
 
-  StartGroup(kLayoutVerticalLeft, size, text);
+  StartGroup(kLayoutVerticalLeft, size);
   SetMargin(text_margin);
   Label(text, size);
   EndGroup();

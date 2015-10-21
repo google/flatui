@@ -33,6 +33,9 @@ static const float kScrollSpeedWheelgDefault = 16.0f;
 static const int32_t kDragStartThresholdDefault = 8;
 static const int32_t kPointerIndexInvalid = -1;
 static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
+#if !defined(NDEBUG)
+static const uint32_t kDefaultGroupHashedId = HashId(kDefaultGroupID);
+#endif
 
 // This holds the transient state of a group while its layout is being
 // calculated / rendered.
@@ -902,6 +905,17 @@ class InternalState : public Group {
     auto &element = elements_[element_idx_];
     if (layout_pass_) {
       element.interactive = true;
+#if !defined(NDEBUG)
+      // Sanity check for not to have default ID in an interactive element.
+      // Also each interactive elements should have unique IDs
+      // (not checking here for a performance reason).
+      // When some elements has same ID, a game pad navigation wouldn't work
+      // as expected.
+      if (element.hash == kDefaultGroupHashedId) {
+        LogInfo("An interactive element %d shouldn't have a default group ID.",
+                element_idx_);
+      }
+#endif
     } else {
       // We only fire events after the layout pass.
       // Check if this is an inactive part of an overlay.
@@ -1023,8 +1037,8 @@ class InternalState : public Group {
     }
 
     int dir = 0;
-    // FIXME: this should work on other platforms too.
-#   ifdef ANDROID_GAMEPAD
+// FIXME: this should work on other platforms too.
+#ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
       dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
@@ -1033,14 +1047,13 @@ class InternalState : public Group {
                          gamepad.second.GetButton(Gamepad::kDown),
                          gamepad.second.GetButton(Gamepad::kButtonA));
     }
-#   endif
+#endif
     // For testing, also support keyboard:
     if (!dir) {
-      dir =
-          CheckButtons(input_.GetButton(FPLK_LEFT),
-                       input_.GetButton(FPLK_RIGHT),
-                       input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
-                       input_.GetButton(FPLK_RETURN));
+      dir = CheckButtons(input_.GetButton(FPLK_LEFT),
+                         input_.GetButton(FPLK_RIGHT),
+                         input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
+                         input_.GetButton(FPLK_RETURN));
     }
     // Now find the current element, and move to the next.
     if (dir) {
@@ -1054,9 +1067,8 @@ class InternalState : public Group {
     }
   }
 
-  int CheckButtons(const Button &left, const Button &right,
-                   const Button &up, const Button &down,
-                   const Button &action) {
+  int CheckButtons(const Button &left, const Button &right, const Button &up,
+                   const Button &down, const Button &action) {
     int dir = 0;
     if (left.went_up()) dir = -1;
     if (right.went_up()) dir = 1;

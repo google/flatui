@@ -119,6 +119,9 @@ enum Layout {
 };
 // clang-format on
 
+// Constants.
+const char* const kDefaultGroupID = "__group_id__";
+
 // Specify margins for a group, in units of virtual resolution.
 struct Margin {
   // Create a margin with all 4 sides equal size.
@@ -177,7 +180,7 @@ bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
 // Start/end calls must be matched and may be nested to create more complex
 // layouts.
 void StartGroup(Layout layout, float spacing = 0,
-                const char *id = "__group_id__");
+                const char *id = kDefaultGroupID);
 void EndGroup();
 
 // The following functions are specific to a group and should be called
