@@ -917,14 +917,22 @@ class InternalState : public Group {
             auto &button = *pointer_buttons_[i];
             int event = 0;
 
-            if (persistent_.dragging_pointer_ == i) {
+            if (persistent_.dragging_pointer_ == i && !button.went_down()) {
               // The pointer is in drag operation.
               if (button.went_up()) {
                 event |= kEventEndDrag;
                 persistent_.dragging_pointer_ = kPointerIndexInvalid;
                 persistent_.drag_start_position_ = kDragStartPoisitionInvalid;
+                if (SameId(hash, i)) {
+                  event |= kEventWentUp;
+                }
               } else if (button.is_down()) {
                 event |= kEventIsDragging;
+                if (SameId(hash, i)) {
+                  event |= kEventIsDown;
+                }
+              } else {
+                persistent_.dragging_pointer_ = kPointerIndexInvalid;
               }
             } else {
               if (!check_dragevent_only) {
