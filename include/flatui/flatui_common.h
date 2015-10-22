@@ -90,6 +90,9 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
                 const vec2 &size, float bar_size, const char *id,
                 float *scroll_value);
 
+// Set a background color of the widget based on the event status.
+void EventBackground(Event event);
+
 }  // namespace gui
 }  // namespace fpl
 

@@ -29,7 +29,8 @@ Alignment GetAlignment(Layout layout) {
 }
 
 static const float kScrollSpeedDragDefault = 2.0f;
-static const float kScrollSpeedWheelgDefault = 16.0f;
+static const float kScrollSpeedWheelDefault = 16.0f;
+static const float kScrollSpeedGamepadDefault = 0.1f;
 static const int32_t kDragStartThresholdDefault = 8;
 static const int32_t kPointerIndexInvalid = -1;
 static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
@@ -118,7 +119,9 @@ class InternalState : public Group {
         clip_inside_(false),
         pointer_max_active_index_(kPointerIndexInvalid),
         gamepad_has_focus_element(false),
-        gamepad_event(kEventHover) {
+        gamepad_event(kEventHover),
+        latest_event_(kEventNone),
+        latest_event_element_idx_(0) {
     SetScale();
 
     // Cache the state of multiple pointers, so we have to do less work per
@@ -153,7 +156,8 @@ class InternalState : public Group {
     text_color_ = mathfu::kOnes4f;
 
     scroll_speed_drag_ = kScrollSpeedDragDefault;
-    scroll_speed_wheel_ = kScrollSpeedWheelgDefault;
+    scroll_speed_wheel_ = kScrollSpeedWheelDefault;
+    scroll_speed_gamepad_ = kScrollSpeedGamepadDefault;
     drag_start_threshold_ =
         vec2i(kDragStartThresholdDefault, kDragStartThresholdDefault);
     current_pointer_ = kPointerIndexInvalid;
@@ -418,7 +422,7 @@ class InternalState : public Group {
           persistent_.text_edit_.SetLanguage(fontman_.GetLanguage());
           persistent_.text_edit_.SetBuffer(buffer);
           pick_caret = true;
-          CaptureInput(hash);
+          CaptureInput(hash, true);
         }
         show_caret = true;
       }
@@ -495,7 +499,7 @@ class InternalState : public Group {
             input_.GetTextInputEvents());
         input_.ClearTextInputEvents();
         if (finished_input) {
-          CaptureInput(kNullHash);
+          CaptureInput(kNullHash, true);
         }
       }
     }
@@ -759,10 +763,35 @@ class InternalState : public Group {
         }
         pointer_delta = input_.get_pointers()[0].mousedelta;
       } else {
+        // Wheel scroll
         if (mathfu::InRange2D(input_.get_pointers()[0].mousepos, position_,
                               position_ + psize)) {
           pointer_delta = input_.mousewheel_delta();
           scroll_speed = static_cast<int32_t>(-scroll_speed_wheel_);
+        }
+      }
+
+      if (!IsLastEventPointerType()) {
+        // Gamepad/keyboard control.
+        // Note that a scroll group is not an interactive group by default.
+        // If the user want to nagivate a scroll group with a game pad,
+        // the user need to make a group interactive by invoking CheckEvent()
+        // right after StartGroup().
+        if (event & kEventWentUp) {
+          // Toggle capture.
+          if (!IsInputCaptured(element.hash)) {
+            CaptureInput(element.hash, false);
+          } else {
+            CaptureInput(kNullHash, false);
+          }
+        }
+
+        if (IsInputCaptured(element.hash)) {
+          // Gamepad navigation.
+          pointer_delta = GetNavigationDirection2D();
+          pointer_delta *= vec2i(vec2(element.extra_size) *
+                                 scroll_speed_gamepad_);
+          scroll_speed = 1;
         }
       }
 
@@ -810,31 +839,53 @@ class InternalState : public Group {
   void StartSlider(Direction direction, float scroll_margin, float *value) {
     auto event = CheckEvent(false);
     if (!layout_pass_) {
+      auto hash = elements_[element_idx_].hash;
       if (event & kEventStartDrag) {
-        CapturePointer(elements_[element_idx_].hash);
+        CapturePointer(hash);
       } else if (event & kEventEndDrag) {
         ReleasePointer();
       }
-      // Update the knob position.
-      if (event & kEventIsDragging || event & kEventWentDown ||
-          event & kEventIsDown) {
-        switch (direction) {
-          case kDirHorizontal:
-            *value = static_cast<float>(GetPointerPosition().x() -
-                                        position_.x() - scroll_margin) /
-                     static_cast<float>(size_.x() - scroll_margin * 2.0f);
-            break;
-          case kDirVertical:
-            *value = static_cast<float>(GetPointerPosition().y() -
-                                        position_.y() - scroll_margin) /
-                     static_cast<float>(size_.y() - scroll_margin * 2.0f);
-            break;
-          default:
-            assert(0);
+
+      if (IsLastEventPointerType()) {
+        // Update the knob position.
+        if (event & kEventIsDragging || event & kEventWentDown ||
+            event & kEventIsDown) {
+          switch (direction) {
+            case kDirHorizontal:
+              *value = static_cast<float>(GetPointerPosition().x() -
+                                          position_.x() - scroll_margin) /
+              static_cast<float>(size_.x() - scroll_margin * 2.0f);
+              break;
+            case kDirVertical:
+              *value = static_cast<float>(GetPointerPosition().y() -
+                                          position_.y() - scroll_margin) /
+              static_cast<float>(size_.y() - scroll_margin * 2.0f);
+              break;
+            default:
+              assert(0);
+          }
+          // Clamp the slider value.
+          *value = mathfu::Clamp(*value, 0.0f, 1.0f);
         }
-        // Clamp the slider value.
-        *value = std::max(0.0f, std::min(1.0f, *value));
-        fpl::LogInfo("Changed Slider Value:%f", *value);
+      } else {
+        // Gamepad/keyboard control.
+        if (event & kEventWentUp) {
+          // Toggle capture.
+          if (!IsInputCaptured(hash)) {
+            CaptureInput(hash, false);
+          } else {
+            CaptureInput(kNullHash, false);
+          }
+        }
+
+        if (IsInputCaptured(hash)) {
+          // Accept gamepad navigation.
+          int dir = GetNavigationDirection();
+          if (dir) {
+            *value += dir * scroll_speed_gamepad_;
+            *value = mathfu::Clamp(*value, 0.0f, 1.0f);
+          }
+        }
       }
     }
   }
@@ -844,9 +895,12 @@ class InternalState : public Group {
   // Set scroll speed of the scroll group.
   // scroll_speed_drag: Scroll speed with a pointer drag operation.
   // scroll_speed_wheel: Scroll speed with a mouse wheel operation.
-  void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
+  // scroll_speed_gamepad: Scroll speed with a gamepad operation.
+  void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel,
+                      float scroll_speed_gamepad) {
     scroll_speed_drag_ = scroll_speed_drag;
     scroll_speed_wheel_ = scroll_speed_wheel;
+    scroll_speed_gamepad_ = scroll_speed_gamepad;
   }
 
   // Set drag start threshold.
@@ -857,27 +911,36 @@ class InternalState : public Group {
   }
 
   // Capture the input to an element.
-  void CaptureInput(HashedId hash) {
+  void CaptureInput(HashedId hash, bool control_text_input) {
     persistent_.input_capture_ = hash;
     if (!EqualId(hash, kNullHash)) {
-      // Start recording input events.
-      if (!input_.IsRecordingTextInput()) {
-        input_.RecordTextInput(true);
-      }
+      if (control_text_input) {
+        // Start recording input events.
+        if (!input_.IsRecordingTextInput()) {
+          input_.RecordTextInput(true);
+        }
 
-      // Enable IME.
-      input_.StartTextInput();
+        // Enable IME.
+        input_.StartTextInput();
+      }
     } else {
       // The element releases keyboard focus as well.
       persistent_.input_focus_ = kNullHash;
 
-      // Stop recording input events.
-      if (input_.IsRecordingTextInput()) {
-        input_.RecordTextInput(false);
+      if (control_text_input) {
+        // Stop recording input events.
+        if (input_.IsRecordingTextInput()) {
+          input_.RecordTextInput(false);
+        }
+        // Disable IME
+        input_.StopTextInput();
       }
-      // Disable IME
-      input_.StopTextInput();
     }
+  }
+
+  // Check if the element is capturing input events.
+  bool IsInputCaptured(HashedId hash) {
+    return EqualId(persistent_.input_capture_, hash);
   }
 
   // Capture the pointer to an element.
@@ -897,7 +960,7 @@ class InternalState : public Group {
            EqualId(persistent_.mouse_capture_, hash);
   }
 
-  // Check if the element is capturing a pointer events.
+  // Check if the element is capturing pointer events.
   bool IsPointerCaptured(HashedId hash) {
     return EqualId(persistent_.mouse_capture_, hash);
   }
@@ -912,6 +975,9 @@ class InternalState : public Group {
   }
 
   Event CheckEvent(bool check_dragevent_only) {
+    if (latest_event_element_idx_ == element_idx_)
+      return latest_event_;
+
     auto &element = elements_[element_idx_];
     if (layout_pass_) {
       element.interactive = true;
@@ -972,7 +1038,7 @@ class InternalState : public Group {
 
                   if (persistent_.input_focus_ != hash) {
                     // Stop input handling.
-                    CaptureInput(kNullHash);
+                    CaptureInput(kNullHash, true);
                     // Record the last element we received an up on, as the
                     // target for keyboard input.
                     persistent_.input_focus_ = hash;
@@ -1012,6 +1078,9 @@ class InternalState : public Group {
             current_pointer_ = i;
             // We only report an event for the first finger to touch an element.
             // This is intentional.
+
+            latest_event_ = static_cast<Event>(event);
+            latest_event_element_idx_ = element_idx_;
             return static_cast<Event>(event);
           }
         }
@@ -1020,6 +1089,8 @@ class InternalState : public Group {
         if (!persistent_.is_last_event_pointer_type &&
             EqualId(persistent_.input_focus_, hash)) {
           gamepad_has_focus_element = true;
+          latest_event_ = gamepad_event;
+          latest_event_element_idx_ = element_idx_;
           return gamepad_event;
         }
       }
@@ -1041,31 +1112,15 @@ class InternalState : public Group {
   }
 
   void CheckGamePadNavigation() {
+    // Update state.
+    int dir = GetNavigationDirection();
+
     // Gamepad/keyboard navigation only happens when the keyboard is not
     // captured.
     if (persistent_.input_capture_ != kNullHash) {
       return;
     }
 
-    int dir = 0;
-// FIXME: this should work on other platforms too.
-#ifdef ANDROID_GAMEPAD
-    auto &gamepads = input_.GamepadMap();
-    for (auto &gamepad : gamepads) {
-      dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
-                         gamepad.second.GetButton(Gamepad::kRight),
-                         gamepad.second.GetButton(Gamepad::kUp),
-                         gamepad.second.GetButton(Gamepad::kDown),
-                         gamepad.second.GetButton(Gamepad::kButtonA));
-    }
-#endif
-    // For testing, also support keyboard:
-    if (!dir) {
-      dir = CheckButtons(input_.GetButton(FPLK_LEFT),
-                         input_.GetButton(FPLK_RIGHT),
-                         input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
-                         input_.GetButton(FPLK_RETURN));
-    }
     // Now find the current element, and move to the next.
     if (dir) {
       for (auto it = elements_.begin(); it != elements_.end(); ++it) {
@@ -1078,17 +1133,47 @@ class InternalState : public Group {
     }
   }
 
-  int CheckButtons(const Button &left, const Button &right, const Button &up,
+  vec2i GetNavigationDirection2D() {
+    vec2i dir = mathfu::kZeros2i;
+    // FIXME: this should work on other platforms too.
+#ifdef ANDROID_GAMEPAD
+    auto &gamepads = input_.GamepadMap();
+    for (auto &gamepad : gamepads) {
+      dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
+                         gamepad.second.GetButton(Gamepad::kRight),
+                         gamepad.second.GetButton(Gamepad::kUp),
+                         gamepad.second.GetButton(Gamepad::kDown),
+                         gamepad.second.GetButton(Gamepad::kButtonA));
+    }
+#endif
+    // For testing, also support keyboard:
+    if (!dir.x() && !dir.y()) {
+      dir = CheckButtons(input_.GetButton(FPLK_LEFT),
+                         input_.GetButton(FPLK_RIGHT),
+                         input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
+                         input_.GetButton(FPLK_RETURN));
+    }
+    return dir;
+  }
+
+  int GetNavigationDirection() {
+    auto dir = GetNavigationDirection2D();
+    if (dir.y())
+      return dir.y();
+    return dir.x();
+  }
+
+  vec2i CheckButtons(const Button &left, const Button &right, const Button &up,
                    const Button &down, const Button &action) {
-    int dir = 0;
-    if (left.went_up()) dir = -1;
-    if (right.went_up()) dir = 1;
-    if (up.went_up()) dir = -1;
-    if (down.went_up()) dir = 1;
+    vec2i dir = mathfu::kZeros2i;
+    if (left.went_up()) dir.x() = -1;
+    if (right.went_up()) dir.x() = 1;
+    if (up.went_up()) dir.y() = -1;
+    if (down.went_up()) dir.y() = 1;
     if (action.went_up()) gamepad_event = kEventWentUp;
     if (action.went_down()) gamepad_event = kEventWentDown;
     if (action.is_down()) gamepad_event = kEventIsDown;
-    if (dir || gamepad_event != kEventHover)
+    if (dir.x() || dir.y() || gamepad_event != kEventHover)
       persistent_.is_last_event_pointer_type = false;
     return dir;
   }
@@ -1173,10 +1258,15 @@ class InternalState : public Group {
   // Drag operations.
   float scroll_speed_drag_;
   float scroll_speed_wheel_;
+  float scroll_speed_gamepad_;
   vec2i drag_start_threshold_;
 
   // The latest pointer that returned an event.
   int32_t current_pointer_;
+
+  // Cache the latest event so that multiple call to CheckEvent() can be safe.
+  Event latest_event_;
+  size_t latest_event_element_idx_;
 
   // Intra-frame persistent state.
   static struct PersistentState {
@@ -1352,8 +1442,10 @@ void CapturePointer(const char *element_id) {
 
 void ReleasePointer() { Gui()->CapturePointer(kNullHash); }
 
-void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel) {
-  Gui()->SetScrollSpeed(scroll_speed_drag, scroll_speed_wheel);
+void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel,
+                    float scroll_speed_gamepad) {
+  Gui()->SetScrollSpeed(scroll_speed_drag, scroll_speed_wheel,
+                        scroll_speed_gamepad);
 }
 
 void SetDragStartThreshold(int drag_start_threshold) {

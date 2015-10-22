@@ -222,9 +222,11 @@ void ReleasePointer();
 // a drag operation is in progress.
 ssize_t GetCapturedPointerIndex();
 
-// Set scroll speeds of drag and mouse wheel operations.
-// default: kScrollSpeedDragDefault & kScrollSpeedWheelgDefault
-void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel);
+// Set scroll speeds of drag, mouse wheel and gamepad operations.
+// default: kScrollSpeedDragDefault, kScrollSpeedWheelDefault,
+// kScrollSpeedGamepadDefault
+void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel,
+                    float scroll_speed_gamepad);
 
 // Set a threshold value of a drag operation start.
 // default: kDragStartThresholdDefault
