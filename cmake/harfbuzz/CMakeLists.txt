@@ -18,34 +18,36 @@ project(harfbuzz)
 set(harfbuzz_dir ${dependencies_harfbuzz_distr_dir})
 
 if(use_pregenerated_headers)
-# Include pregeneraged harfbuzz header files on Windows.
-# On Windows, building harfbuzz requires prerequisites set up properly
-# (e.g.ragel, auto tools). To make the build process easier, we commit
-# pre-generated header files to our repository and include them only on Windows.
-include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
+  # Include pregeneraged harfbuzz header files on Windows.
+  # On Windows, building harfbuzz requires prerequisites set up properly
+  # (e.g.ragel, auto tools). To make the build process easier, we commit
+  # pre-generated header files to our repository and include them only on
+  # Windows.
+  include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
 else()
-# Execute configuration script and make
-# Need ragel, autoconf, automake, libtool, pkg-config and freetype to configure
-# This process is required to generate header files
-set(libharfbuzz_generated_headers
+  # Execute configuration script and make
+  # Need ragel, autoconf, automake, libtool, pkg-config and freetype to
+  # configure.  This process is required to generate header files.
+  set(libharfbuzz_generated_headers
     ${harfbuzz_dir}/src/hb-buffer-deserialize-json.hh
     ${harfbuzz_dir}/src/hb-buffer-deserialize-text.hh
     ${harfbuzz_dir}/src/hb-ot-shape-complex-indic-machine.hh
     ${harfbuzz_dir}/src/hb-ot-shape-complex-myanmar-machine.hh
     ${harfbuzz_dir}/src/hb-ot-shape-complex-sea-machine.hh)
-set(configure_cmd "./autogen.sh")
-set(make_cmd "make")
-set(make_arg "dist")
-execute_process(COMMAND ${configure_cmd} WORKING_DIRECTORY ${harfbuzz_dir}
-                RESULT_VARIABLE autogen_result)
-add_custom_command(OUTPUT ${libharfbuzz_generated_headers} PRE_BUILD
-                   COMMAND ${make_cmd} ${make_arg} WORKING_DIRECTORY ${harfbuzz_dir})
-if (NOT ${autogen_result} EQUAL 0)
+  set(configure_cmd "${CMAKE_CURRENT_SOURCE_DIR}/autogen_if_changed.sh")
+  set(make_cmd "make")
+  set(make_arg "dist")
+  execute_process(COMMAND ${configure_cmd} ${harfbuzz_dir}
+                  RESULT_VARIABLE autogen_result)
+  add_custom_command(OUTPUT ${libharfbuzz_generated_headers} PRE_BUILD
+                     COMMAND ${make_cmd} ${make_arg} WORKING_DIRECTORY
+                     ${harfbuzz_dir})
+  if (NOT ${autogen_result} EQUAL 0)
     message(FATAL_ERROR
             "CMake encountered an error while configuring harfbuzz.\n"
             "You must have autoconf, automake, libtool, pkg-config and ragel\n"
             "installed to build on Linux/OSX.")
-endif()
+  endif()
 endif()
 
 add_definitions(-DHB_NO_MT)
