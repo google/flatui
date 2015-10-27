@@ -124,6 +124,7 @@ class InternalState : public Group {
         latest_event_element_idx_(0) {
     SetScale();
 
+    bool flush_pointer_capture = true;
     // Cache the state of multiple pointers, so we have to do less work per
     // interactive element.
     pointer_max_active_index_ = 0;  // Mouse is always active.
@@ -135,7 +136,14 @@ class InternalState : public Group {
       if (pointer_buttons_[i]->is_down() || pointer_buttons_[i]->went_down() ||
           pointer_buttons_[i]->went_up()) {
         pointer_max_active_index_ = std::max(pointer_max_active_index_, i);
+        flush_pointer_capture = false;
       }
+    }
+
+    // If no pointer is active, flush the pointer capture status.
+    if (flush_pointer_capture) {
+      persistent_.dragging_pointer_ = kPointerIndexInvalid;
+      persistent_.mouse_capture_ = kNullHash;
     }
 
     // If this assert hits, you likely are trying to created nested GUIs.
