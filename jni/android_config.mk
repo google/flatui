@@ -13,17 +13,20 @@
 # limitations under the License.
 
 # Locations of 3rd party and FPL libraries.
-THIRD_PARTY_ROOT:=$(PIE_NOON_DIR)/../../../../external
-PREBUILTS_ROOT:=$(PIE_NOON_DIR)/../../../../prebuilts
-FPL_ROOT:=$(PIE_NOON_DIR)/../../libs
+FPL_ROOT:=$(FLATUI_DIR)/../../libs
 # If the dependencies directory exists either as a subdirectory or as the
 # container of this project directory, assume the dependencies directory is
 # the root directory for all libraries required by this project.
-DEPENDENCIES_ROOT?=$(wildcard $(PIE_NOON_DIR)/dependencies)
+$(foreach dep_dir,$(wildcard $(FLATUI_DIR)/dependencies) \
+                  $(wildcard $(FLATUI_DIR)/../../dependencies),\
+  $(eval DEPENDENCIES_ROOT?=$(dep_dir)))
 ifneq ($(DEPENDENCIES_ROOT),)
   THIRD_PARTY_ROOT:=$(DEPENDENCIES_ROOT)
   FPL_ROOT:=$(DEPENDENCIES_ROOT)
   PREBUILTS_ROOT:=$(DEPENDENCIES_ROOT)
+else
+  THIRD_PARTY_ROOT:=$(FPL_ROOT)/../../../external
+  PREBUILTS_ROOT:=$(FPL_ROOT)/../../../prebuilts
 endif
 
 # Location of the SDL library.
@@ -40,6 +43,12 @@ DEPENDENCIES_HARFBUZZ_DIR?=$(THIRD_PARTY_ROOT)/harfbuzz
 DEPENDENCIES_LIBUNIBREAK_DIR?=$(THIRD_PARTY_ROOT)/libunibreak
 # Location of the MathFu library.
 DEPENDENCIES_MATHFU_DIR?=$(FPL_ROOT)/mathfu
+# Location of the fplbase library.
+DEPENDENCIES_FPLBASE_DIR?=$(FPL_ROOT)/fplbase
+# Location of the Cardboard java library (required for fplbase)
+DEPENDENCIES_CARDBOARD_DIR?=$(PREBUILTS_ROOT)/cardboard-java/CardboardSample
+# Location of the flatui library (for samples and tests).
+DEPENDENCIES_FLATUI_DIR?=$(FLATUI_DIR)
 
 ifeq (,$(DETERMINED_DEPENDENCY_DIRS))
 DETERMINED_DEPENDENCY_DIRS:=1

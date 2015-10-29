@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "precompiled.h"
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
 #include "flatui/flatui.h"
@@ -20,7 +19,7 @@
 
 using namespace fpl;
 
-int main() {
+extern "C" int FPL_main() {
   Renderer renderer;
   renderer.Initialize();
 
@@ -48,10 +47,10 @@ int main() {
     renderer.AdvanceFrame(input.minimized(), input.Time());
   }
 
-  while (!input.exit_requested()) {
+  while (!(input.exit_requested() ||
+           input.GetButton(fpl::FPLK_AC_BACK).went_down())) {
     input.AdvanceFrame(&renderer.window_size());
     renderer.AdvanceFrame(input.minimized(), input.Time());
-
     const float kColorGray = 0.5f;
     renderer.ClearFrameBuffer(
         vec4(kColorGray, kColorGray, kColorGray, 1.0f));

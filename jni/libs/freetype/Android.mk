@@ -15,11 +15,12 @@
 LOCAL_PATH:=$(call my-dir)
 
 # Project directory relative to this file.
-UP_DIR:=../../..
-PIE_NOON_DIR:=$(LOCAL_PATH)/$(UP_DIR)
-include $(PIE_NOON_DIR)/jni/android_config.mk
+FLATUI_RELATIVE_DIR:=../../..
+FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
+include $(FLATUI_DIR)/jni/android_config.mk
+FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
 
-FREETYPE_DIR := $(UP_DIR)/${THIRD_PARTY_ROOT}/freetype
+LOCAL_PATH:=$(DEPENDENCIES_FREETYPE_DIR)
 
 ###########################
 #
@@ -28,27 +29,26 @@ FREETYPE_DIR := $(UP_DIR)/${THIRD_PARTY_ROOT}/freetype
 ###########################
 
 FREETYPE_SRC_FILES = \
-    ${FREETYPE_DIR}/src/base/ftbbox.c \
-    ${FREETYPE_DIR}/src/base/ftbitmap.c \
-    ${FREETYPE_DIR}/src/base/ftfstype.c \
-    ${FREETYPE_DIR}/src/base/ftglyph.c \
-    ${FREETYPE_DIR}/src/base/ftlcdfil.c \
-    ${FREETYPE_DIR}/src/base/ftstroke.c \
-    ${FREETYPE_DIR}/src/base/fttype1.c \
-    ${FREETYPE_DIR}/src/base/ftbase.c \
-    ${FREETYPE_DIR}/src/base/ftsystem.c \
-    ${FREETYPE_DIR}/src/base/ftinit.c \
-    ${FREETYPE_DIR}/src/base/ftgasp.c \
-    ${FREETYPE_DIR}/src/gzip/ftgzip.c \
-    ${FREETYPE_DIR}/src/raster/raster.c \
-    ${FREETYPE_DIR}/src/sfnt/sfnt.c \
-    ${FREETYPE_DIR}/src/smooth/smooth.c \
-    ${FREETYPE_DIR}/src/autofit/autofit.c \
-    ${FREETYPE_DIR}/src/truetype/truetype.c \
-    ${FREETYPE_DIR}/src/cff/cff.c \
-    ${FREETYPE_DIR}/src/psnames/psnames.c \
-    ${FREETYPE_DIR}/src/pshinter/pshinter.c \
-    $(NULL)
+    src/base/ftbbox.c \
+    src/base/ftbitmap.c \
+    src/base/ftfstype.c \
+    src/base/ftglyph.c \
+    src/base/ftlcdfil.c \
+    src/base/ftstroke.c \
+    src/base/fttype1.c \
+    src/base/ftbase.c \
+    src/base/ftsystem.c \
+    src/base/ftinit.c \
+    src/base/ftgasp.c \
+    src/gzip/ftgzip.c \
+    src/raster/raster.c \
+    src/sfnt/sfnt.c \
+    src/smooth/smooth.c \
+    src/autofit/autofit.c \
+    src/truetype/truetype.c \
+    src/cff/cff.c \
+    src/psnames/psnames.c \
+    src/pshinter/pshinter.c
 
 #############################################################
 #   build the harfbuzz shared library
@@ -56,13 +56,11 @@ FREETYPE_SRC_FILES = \
 include $(CLEAR_VARS)
 
 LOCAL_ARM_MODE := arm
-LOCAL_SRC_FILES := \
-    $(FREETYPE_SRC_FILES)
-LOCAL_C_INCLUDES += \
-    $(PIE_NOON_DIR) \
-    ${DEPENDENCIES_FREETYPE_DIR}/include
-
-LOCAL_CFLAGS += -DFT2_BUILD_LIBRARY -DFT_CONFIG_MODULES_H=\"$(PIE_NOON_DIR)/cmake/freetype/ftmodule.h\"
+LOCAL_SRC_FILES := $(FREETYPE_SRC_FILES)
+LOCAL_C_INCLUDES += $(DEPENDENCIES_FREETYPE_DIR)/include
+LOCAL_CFLAGS += \
+  -DFT2_BUILD_LIBRARY \
+  -DFT_CONFIG_MODULES_H=\"$(FLATUI_ABSPATH)/cmake/freetype/ftmodule.h\"
 LOCAL_MODULE := libfreetype
 LOCAL_MODULE_FILENAME := libfreetype
 

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "precompiled.h"
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
 #include "fplbase/utilities.h"
@@ -22,7 +21,7 @@
 
 using namespace fpl;
 
-int main() {
+extern "C" int FPL_main() {
   Renderer renderer;
   InputSystem input;
   FontManager fontman;

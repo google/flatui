@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOCAL_PATH:=$(call my-dir)
+LOCAL_PATH:=$(call my-dir)/../../..
 
 # Project directory relative to this file.
-FLATUI_RELATIVE_DIR:=../../..
-FLATUI_DIR:=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
+FLATUI_DIR:=$(LOCAL_PATH)
 include $(FLATUI_DIR)/jni/android_config.mk
 include $(DEPENDENCIES_FLATBUFFERS_DIR)/android/jni/include.mk
 
@@ -29,39 +28,34 @@ LOCAL_EXPORT_C_INCLUDES := $(FLATUI_DIR)/include
 
 LOCAL_C_INCLUDES := \
   $(LOCAL_EXPORT_C_INCLUDES) \
-  $(DEPENDENCIES_SDL_DIR) \
-  $(DEPENDENCIES_SDL_DIR)/include \
-  $(DEPENDENCIES_FPLBASE_DIR)/include \
-  $(DEPENDENCIES_FPLUTIL_DIR)/libfplutil/include \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
   $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
-  ${FLATUI_DIR}/external/include/harfbuzz \
-  ${FLATUI_DIR}/include/ \
-  ${FLATUI_DIR}/include/flatui \
-  ${FLATUI_DIR}/src \
+  $(FLATUI_DIR)/external/include/harfbuzz \
+  $(FLATUI_DIR)/include/ \
+  $(FLATUI_DIR)/include/flatui \
+  $(FLATUI_DIR)/src
+
+LOCAL_CPPFLAGS := -std=c++11
 
 LOCAL_SRC_FILES := \
-  $(FLATUI_RELATIVE_DIR)/src/flatui.cpp \
-  $(FLATUI_RELATIVE_DIR)/src/flatui_common.cpp \
-  $(FLATUI_RELATIVE_DIR)/src/font_manager.cpp \
-  $(FLATUI_RELATIVE_DIR)/src/micro_edit.cpp \
-
-.PHONY: clean
-clean: clean_assets clean_generated_includes
+  src/flatui.cpp \
+  src/flatui_common.cpp \
+  src/font_manager.cpp \
+  src/micro_edit.cpp
 
 LOCAL_STATIC_LIBRARIES := \
+  fplbase \
   libmathfu \
-  SDL2 \
   libfreetype \
   libharfbuzz \
   libunibreak
 
-LOCAL_SHARED_LIBRARIES :=
-
 include $(BUILD_STATIC_LIBRARY)
 
 $(call import-add-path,$(DEPENDENCIES_MATHFU_DIR)/..)
+$(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
 
 $(call import-module,mathfu/jni)
+$(call import-module,fplbase/jni)
 

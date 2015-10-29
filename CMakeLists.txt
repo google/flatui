@@ -69,9 +69,9 @@ message(STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR})
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR})
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
   set(flatui_standalone_mode ON)
-  message(STATUS "FlatUI standalone: building tests and samples")
+  message(STATUS "FlatUI standalone: building tests and sample")
 else()
-  message(STATUS "FlatUI library: not building tests and samples")
+  message(STATUS "FlatUI library: not building tests and sample")
 endif()
 
 # Option to enable / disable the sample build.
@@ -200,5 +200,5 @@ endif()
 
 # Samples.
 if(flatui_build_samples)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/samples)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sample)
 endif()

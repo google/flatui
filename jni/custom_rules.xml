@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2015 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<project name="setup_flatui">
+  <!--Get the location of fplbase and flatui by running
+      ndk-build print_dependency.-->
+  <condition property="ndkbuild_exe" value="ndk-build.cmd" else="ndk-build">
+    <os family="windows"/>
+  </condition>
+  <exec executable="${ndkbuild_exe}" outputproperty="fplbase_path">
+    <arg value="print_dependency"/>
+    <arg value="DEP_DIR=FPLBASE"/>
+  </exec>
+  <include file="${fplbase_path}/jni/custom_rules.xml" as="fplbase"/>
+
+  <target name="get-flatui-path"
+          description="Get FlatUI's location and save it in flatuipath.">
+    <exec executable="${ndkbuild_exe}" outputproperty="flatui_path">
+      <arg value="print_dependency"/>
+      <arg value="DEP_DIR=FLATUI"/>
+    </exec>
+  </target>
+
+  <target name="copy-flatui-assets"
+          description="Copy FlatUI assets into the assets directory."
+          depends="get-flatui-path">
+    <copy todir="assets">
+      <fileset dir="${flatui_path}/assets/"/>
+    </copy>
+  </target>
+
+  <!-- Override the -pre-build target in sdk/tools/ant/build.xml to copy
+       FlatUI assets before the build process starts. -->
+  <target name="setup-flatui" depends="copy-flatui-assets,
+                                       fplbase.setup-fplbase" />
+  <target name="-pre-build" depends="setup-flatui" />
+
+</project>

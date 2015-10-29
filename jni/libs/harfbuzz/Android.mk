@@ -15,11 +15,12 @@
 LOCAL_PATH:=$(call my-dir)
 
 # Project directory relative to this file.
-UP_DIR:=../../..
-PIE_NOON_DIR:=$(LOCAL_PATH)/$(UP_DIR)
-include $(PIE_NOON_DIR)/jni/android_config.mk
+FLATUI_RELATIVE_DIR:=../../..
+FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
+include $(FLATUI_DIR)/jni/android_config.mk
+FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
 
-HARFBUZZ_DIR := $(UP_DIR)/${THIRD_PARTY_ROOT}/harfbuzz
+LOCAL_PATH:=$(DEPENDENCIES_HARFBUZZ_DIR)
 
 ###########################
 #
@@ -28,37 +29,36 @@ HARFBUZZ_DIR := $(UP_DIR)/${THIRD_PARTY_ROOT}/harfbuzz
 ###########################
 
 HARFBUZZ_SRC_FILES = \
-    $(HARFBUZZ_DIR)/src/hb-blob.cc \
-    $(HARFBUZZ_DIR)/src/hb-buffer-serialize.cc \
-    $(HARFBUZZ_DIR)/src/hb-buffer.cc \
-    $(HARFBUZZ_DIR)/src/hb-common.cc \
-    $(HARFBUZZ_DIR)/src/hb-face.cc \
-    $(HARFBUZZ_DIR)/src/hb-font.cc \
-    $(HARFBUZZ_DIR)/src/hb-ft.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-tag.cc \
-    $(HARFBUZZ_DIR)/src/hb-set.cc \
-    $(HARFBUZZ_DIR)/src/hb-shape.cc \
-    $(HARFBUZZ_DIR)/src/hb-shape-plan.cc \
-    $(HARFBUZZ_DIR)/src/hb-shaper.cc \
-    $(HARFBUZZ_DIR)/src/hb-unicode.cc \
-    $(HARFBUZZ_DIR)/src/hb-warning.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-font.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-layout.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-map.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-arabic.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-default.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-hangul.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-hebrew.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-indic.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-indic-table.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-myanmar.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-sea.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-thai.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-complex-tibetan.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-normalize.cc \
-    $(HARFBUZZ_DIR)/src/hb-ot-shape-fallback.cc \
-    $(NULL)
+    src/hb-blob.cc \
+    src/hb-buffer-serialize.cc \
+    src/hb-buffer.cc \
+    src/hb-common.cc \
+    src/hb-face.cc \
+    src/hb-font.cc \
+    src/hb-ft.cc \
+    src/hb-ot-tag.cc \
+    src/hb-set.cc \
+    src/hb-shape.cc \
+    src/hb-shape-plan.cc \
+    src/hb-shaper.cc \
+    src/hb-unicode.cc \
+    src/hb-warning.cc \
+    src/hb-ot-font.cc \
+    src/hb-ot-layout.cc \
+    src/hb-ot-map.cc \
+    src/hb-ot-shape.cc \
+    src/hb-ot-shape-complex-arabic.cc \
+    src/hb-ot-shape-complex-default.cc \
+    src/hb-ot-shape-complex-hangul.cc \
+    src/hb-ot-shape-complex-hebrew.cc \
+    src/hb-ot-shape-complex-indic.cc \
+    src/hb-ot-shape-complex-indic-table.cc \
+    src/hb-ot-shape-complex-myanmar.cc \
+    src/hb-ot-shape-complex-sea.cc \
+    src/hb-ot-shape-complex-thai.cc \
+    src/hb-ot-shape-complex-tibetan.cc \
+    src/hb-ot-shape-normalize.cc \
+    src/hb-ot-shape-fallback.cc
 
 #############################################################
 #   build the harfbuzz shared library
@@ -66,16 +66,16 @@ HARFBUZZ_SRC_FILES = \
 include $(CLEAR_VARS)
 
 LOCAL_ARM_MODE := arm
-LOCAL_SRC_FILES := \
-    $(HARFBUZZ_SRC_FILES)
+LOCAL_SRC_FILES := $(HARFBUZZ_SRC_FILES)
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES += \
-    ${PIE_NOON_DIR}/external/include/harfbuzz \
+    $(FLATUI_ABSPATH)/external/include/harfbuzz \
     $(DEPENDENCIES_HARFBUZZ_DIR)/src \
     $(DEPENDENCIES_HARFBUZZ_DIR)/src/hb-ucdn \
-    ${DEPENDENCIES_FREETYPE_DIR}/include
+    $(DEPENDENCIES_FREETYPE_DIR)/include
 LOCAL_CFLAGS += -DHAVE_OT -DHB_NO_MT -DHB_NO_UNICODE_FUNCS
 LOCAL_MODULE := libharfbuzz
 LOCAL_MODULE_FILENAME := libharfbuzz
+LOCAL_STATIC_LIBRARIES := libfreetype
 
 include $(BUILD_STATIC_LIBRARY)
