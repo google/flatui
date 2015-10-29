@@ -193,6 +193,16 @@ void EndGroup();
 void SetMargin(const Margin &margin);
 
 // Check for events on the current group.
+// Calling CheckEvent() API makes the current element as an 'interactive'
+// element. Each interactive element needs to have unique ID to recieve a
+// keyboard/gamepad focus properly.
+// IDs for some elements such as Slider/Scroll are inheritted implicitly from
+// current group's ID.
+// IDs for Label and Image are derived via hashing it's contents.
+// The user can specify IDs for CustomElement and Edit elements as an argument.
+// If multiple interactive elements has same ID, a keyboard/gamepad focus
+// navigation wouldn't work as expected. (e.g. a focus jump to other element
+// which has same ID while navigating by a gamepad.)
 Event CheckEvent();
 
 // Check for events on the current group.
