@@ -183,7 +183,7 @@ class InternalState : public Group {
 
   template <int D>
   mathfu::Vector<float, D> PhysicalToVirtual(const mathfu::Vector<int, D> &v) {
-    return (mathfu::Vector<float, D>(v) - 0.5f) / pixel_scale_;
+    return mathfu::Vector<float, D>(v) / pixel_scale_;
   }
 
   // Initialize the scaling factor for the virtual resolution.
@@ -234,6 +234,10 @@ class InternalState : public Group {
       virtual_resolution_ = virtual_resolution;
       SetScale();
     }
+  }
+
+  vec2 GetVirtualResolution() {
+    return vec2(canvas_size_) / pixel_scale_;
   }
 
   // Determines placement for the UI as a whole inside the available space
@@ -1425,6 +1429,11 @@ void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info) {
 void SetVirtualResolution(float virtual_resolution) {
   Gui()->SetVirtualResolution(virtual_resolution);
 }
+
+vec2 GetVirtualResolution() {
+  return Gui()->GetVirtualResolution();
+}
+
 
 void PositionGroup(Alignment horizontal, Alignment vertical,
                    const vec2 &offset) {

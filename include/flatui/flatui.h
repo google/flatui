@@ -306,6 +306,9 @@ const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 // Call this as first thing in your gui definition.
 void SetVirtualResolution(float virtual_resolution);
 
+// Get the virtual resolution of the screen.
+vec2 GetVirtualResolution();
+
 // Position a group within the screen as a whole using 9 possible alignments.
 // Call this as first thing in any top level groups (either your root group,
 // or the children of your root if the root is a kLayoutOverlay.
