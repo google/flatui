@@ -313,14 +313,13 @@ class FontManager {
   FaceData *current_face_;
 
   // Texture cache for a rendered string image.
-  // Using the std::string & its' vertical size in pixels (int32_t) as keys.
+  // Using the FontBufferParameters as keys.
   // The map is used for GetTexture() API.
-  std::unordered_map<std::string,
-                     std::unordered_map<int32_t, std::unique_ptr<FontTexture>>>
-      map_textures_;
+  std::unordered_map<FontBufferParameters, std::unique_ptr<FontTexture>,
+                     FontBufferParameters> map_textures_;
 
   // Cache for a texture atlas + vertex array rendering.
-  // Using the std:;string & its' vertical size in pixels (int32_t) as keys.
+  // Using the FontBufferParameters as keys.
   // The map is used for GetBuffer() API.
   std::unordered_map<FontBufferParameters, std::unique_ptr<FontBuffer>,
                      FontBufferParameters> map_buffers_;

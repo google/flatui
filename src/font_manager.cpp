@@ -492,11 +492,14 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   // Round up y size if the size selector is set.
   int32_t ysize = ConvertSize(static_cast<int32_t>(original_ysize));
 
+  auto parameter =
+      FontBufferParameters(GetCurrentFace()->font_id_, gui::HashId(text), ysize,
+                           mathfu::kZeros2i, false);
+
   // Check cache if we already have a texture.
-  auto it = map_textures_.find(text);
+  auto it = map_textures_.find(parameter);
   if (it != map_textures_.end()) {
-    auto t = it->second.find(ysize);
-    if (t != it->second.end()) return t->second.get();
+    return it->second.get();
   }
 
   // Otherwise, create new texture.
@@ -602,7 +605,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   hb_buffer_clear_contents(harfbuzz_buf_);
 
   // Put to the dic.
-  map_textures_[text][ysize].reset(tex);
+  map_textures_[parameter].reset(tex);
 
   return tex;
 }
@@ -882,8 +885,8 @@ void FontBuffer::AddVertices(const vec2 &pos, const int32_t base_line,
 
   vertices_.push_back(FontVertex(x + scaled_size.x(), y, 0.0f, 0.0f, 0.0f));
 
-  vertices_.push_back(FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f, 0.0f,
-                         0.0f));
+  vertices_.push_back(
+      FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f, 0.0f, 0.0f));
 }
 
 void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
@@ -895,7 +898,8 @@ void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
 
 void FontBuffer::AddCaretPosition(float x, float y) {
   assert(caret_positions_.capacity());
-  caret_positions_.push_back(mathfu::vec2i(static_cast<int>(x), static_cast<int>(y)));
+  caret_positions_.push_back(
+      mathfu::vec2i(static_cast<int>(x), static_cast<int>(y)));
 }
 
 void FaceData::Close() {
