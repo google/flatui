@@ -21,7 +21,7 @@ using namespace fpl;
 
 extern "C" int FPL_main() {
   Renderer renderer;
-  renderer.Initialize();
+  renderer.Initialize(mathfu::vec2i(800, 600), "FlatUI sample");
 
   InputSystem input;
   input.Initialize();

@@ -28,7 +28,7 @@ extern "C" int FPL_main() {
   AssetManager assetman(renderer);
 
   // Initialize stuff.
-  renderer.Initialize();
+  renderer.Initialize(mathfu::vec2i(800, 600), "FlatUI test");
   renderer.SetCulling(Renderer::kCullBack);
   input.Initialize();
 
