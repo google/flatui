@@ -19,6 +19,7 @@ Set up your build environment for Android builds by following these steps.
       applications.<br/>
         * Download and unpack the latest version of the [Android NDK][] to a
           directory on your machine.
+          * Tested using `android-ndk-r10e`.
 
    4. Add the [Android SDK][]'s `sdk/tools` directory and the [Android NDK][]
       directory to the [PATH variable][].
@@ -36,7 +37,7 @@ Set up your build environment for Android builds by following these steps.
           `export PATH="$PATH:/home/androiddev/adt/sdk/tools:/home/androiddev/ndk"`
         * **OS X**: if the [Android SDK][] is installed in
           `~/Library/Android/` and the [Android NDK][] is
-          installed in `~/bin/android_ndk-r10d` the following line should be
+          installed in `~/bin/android_ndk-r10e` the following line should be
           added to `~/.bash_profile`.<br/>
           `export PATH=$PATH:~/bin/android_ndk-r10d:~/Library/Android/sdk/tools`
 
