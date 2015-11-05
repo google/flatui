@@ -145,6 +145,9 @@ class InternalState : public Group {
     if (flush_pointer_capture) {
       persistent_.dragging_pointer_ = kPointerIndexInvalid;
       persistent_.mouse_capture_ = kNullHash;
+      for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
+        persistent_.pointer_element[i] = kNullHash;
+      }
     }
 
     // If this assert hits, you likely are trying to created nested GUIs.
