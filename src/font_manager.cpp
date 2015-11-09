@@ -178,7 +178,7 @@ void FontManager::SetRenderer(Renderer &renderer) {
   renderer_ = &renderer;
 
   // Initialize the font atlas texture.
-  atlas_texture_.reset(new Texture(renderer));
+  atlas_texture_.reset(new Texture());
   atlas_texture_.get()->LoadFromMemory(glyph_cache_->get_buffer(),
                                        glyph_cache_->get_size(),
                                        kFormatLuminance, false, false);
@@ -588,7 +588,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   }
 
   // Create new texture.
-  FontTexture *tex = new FontTexture(*renderer_);
+  FontTexture *tex = new FontTexture();
   tex->LoadFromMemory(image.get(), vec2i(width, height), kFormatLuminance,
                       false, false);
 
@@ -752,7 +752,7 @@ void FontManager::UpdatePass(const bool start_subpass) {
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
     auto rect = glyph_cache_->get_dirty_rect();
     atlas_texture_.get()->Set(0);
-    renderer_->UpdateTexture(
+    Texture::UpdateTexture(
         kFormatLuminance, 0, rect.y(), glyph_cache_.get()->get_size().x(),
         rect.w() - rect.y(), glyph_cache_.get()->get_buffer() +
                                  glyph_cache_.get()->get_size().x() * rect.y());

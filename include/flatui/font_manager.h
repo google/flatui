@@ -458,7 +458,7 @@ class FontMetrics {
 // Font texture class
 class FontTexture : public Texture {
  public:
-  FontTexture(Renderer &renderer) : Texture(renderer) {}
+  FontTexture() : Texture() {}
   ~FontTexture() {}
 
   // Setter/Getter of the metrics parameter of the font texture.
