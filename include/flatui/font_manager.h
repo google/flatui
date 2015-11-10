@@ -458,7 +458,7 @@ class FontMetrics {
 // Font texture class
 class FontTexture : public Texture {
  public:
-  FontTexture() : Texture() {}
+  FontTexture() : Texture(nullptr, kFormatLuminance, false) {}
   ~FontTexture() {}
 
   // Setter/Getter of the metrics parameter of the font texture.
