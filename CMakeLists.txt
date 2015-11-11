@@ -185,12 +185,12 @@ target_link_libraries(flatui libfreetype libharfbuzz libunibreak)
 mathfu_configure_flags(flatui)
 
 # Post process function.
-function(flatui_post_process target)
+function(flatui_post_process target folder_name)
 # Copy flatui resource files
 add_custom_command(TARGET ${target} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${dependencies_flatui_dir}/assets
-                       $<TARGET_FILE_DIR:${target}>)
+                       ${dependencies_flatui_dir}/${folder_name}/assets)
 endfunction()
 
 # Tests.

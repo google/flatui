@@ -14,17 +14,22 @@
 
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
+#include "fplbase/utilities.h"
 #include "flatui/flatui.h"
 #include <cassert>
 
 using namespace fpl;
 
-extern "C" int FPL_main() {
+extern "C" int FPL_main(int /*argc*/, char **argv) {
   Renderer renderer;
   renderer.Initialize(mathfu::vec2i(800, 600), "FlatUI sample");
 
   InputSystem input;
   input.Initialize();
+
+  // Set the local directory to the assets folder for this sample.
+  bool result = ChangeToUpstreamDir(argv[0], "sample/assets");
+  assert(result);
 
   AssetManager assetman(renderer);
 
