@@ -1,0 +1,65 @@
+{
+  "package": {
+    "name": "flatui",
+    "url": "http://github.com/google/flatui.git",
+    "branch": "develop",
+    "is_library": 1,
+    "third_party": 0,
+    "push": 1
+  },
+  "dependencies": [
+    {
+      "name": "fplutil",
+      "url": "http://github.com/google/fplutil.git",
+      "branch": "develop",
+      "is_library": 1,
+      "third_party": 0,
+      "push": 0
+    },
+    {
+      "name": "mathfu",
+      "url": "http://github.com/google/mathfu.git",
+      "branch": "develop",
+      "is_library": 1,
+      "third_party": 0,
+      "push": 0,
+      "fetch_dependencies": 1
+    },
+    {
+      "name": "fplbase",
+      "url": "http://github.com/google/fplbase.git",
+      "branch": "develop",
+      "is_library": 1,
+      "third_party": 0,
+      "push": 0,
+      "fetch_dependencies": 1
+    },
+    {
+      "name": "freetype",
+      "url": "git://git.sv.nongnu.org/freetype/freetype2.git",
+      "branch": "master",
+      "revision": "f353a38e87a894a0a3280f5e27278831a1a2aaad",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
+      "name": "harfbuzz",
+      "url": "http://github.com/behdad/harfbuzz.git",
+      "branch": "master",
+      "revision": "aee685086c8fde6f6c4590e483a177c19f222540",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
+      "name": "libunibreak",
+      "url": "https://github.com/adah1972/libunibreak.git",
+      "branch": "master",
+      "revision": "0e8e32dcd0d8f9d2744026bef591b16af1ddd0ff",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    }
+  ]
+}
