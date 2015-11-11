@@ -21,11 +21,4 @@ mathfu_configure_flags(flatuitest)
 target_link_libraries(flatuitest fplbase flatui)
 
 # FlatUI postprocess
-flatui_post_process(flatuitest)
-
-# Copy test resource files
-add_custom_command(TARGET flatuitest POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_CURRENT_SOURCE_DIR}/assets
-                       $<TARGET_FILE_DIR:flatuitest>)
-
+flatui_post_process(flatuitest "test")

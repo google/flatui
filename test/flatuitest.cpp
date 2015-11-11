@@ -21,11 +21,15 @@
 
 using namespace fpl;
 
-extern "C" int FPL_main() {
+extern "C" int FPL_main(int /*argc*/, char **argv) {
   Renderer renderer;
   InputSystem input;
   FontManager fontman;
   AssetManager assetman(renderer);
+
+  // Set the local directory to the assets for this test.
+  bool result = ChangeToUpstreamDir(argv[0], "test/assets");
+  assert(result);
 
   // Initialize stuff.
   renderer.Initialize(mathfu::vec2i(800, 600), "FlatUI test");
