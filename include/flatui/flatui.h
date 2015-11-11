@@ -28,8 +28,7 @@ typedef SSIZE_T ssize_t;
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
 
-namespace fpl {
-namespace gui {
+namespace flatui {
 
 // The core function that drives the GUI.
 // assetman: the AssetManager you want to use textures from.
@@ -41,7 +40,8 @@ namespace gui {
 // API below using AssetManager.
 // shaders/color.glslv & .glslf, shaders/font.glslv & .glslf
 // shaders/textured.glslv & .glslf
-void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
+void Run(fplbase::AssetManager &assetman, FontManager &fontman,
+         fplbase::InputSystem &input,
          const std::function<void()> &gui_definition);
 
 // Event types returned by most interactive elements. These are flags because
@@ -137,7 +137,7 @@ struct Margin {
   Margin(float left, float top, float right, float bottom)
       : borders(left, top, right, bottom) {}
 
-  vec4 borders;
+  mathfu::vec4 borders;
 };
 
 // Convert virtual screen coordinate to physical value.
@@ -152,7 +152,7 @@ float GetScale();
 // Render an image as a GUI element.
 // ysize: vertical size in virtual resolution. xsize will be derived
 // automatically based on the image dimensions.
-void Image(const Texture &texture, float ysize);
+void Image(const fplbase::Texture &texture, float ysize);
 
 // Render an label as a GUI element.
 // text: label string in UTF8
@@ -169,7 +169,7 @@ void Label(const char *text, float ysize);
 void Label(const char *text, float ysize, const mathfu::vec2 &size);
 
 // Set Label's text color.
-void SetTextColor(const vec4 &color);
+void SetTextColor(const mathfu::vec4 &color);
 
 // Set Label's font.
 void SetTextFont(const char *font_name);
@@ -248,10 +248,10 @@ void SetScrollSpeed(float scroll_speed_drag, float scroll_speed_wheel,
 void SetDragStartThreshold(int drag_start_threshold);
 
 // Set the background for the group. May use alpha.
-void ColorBackground(const vec4 &color);
+void ColorBackground(const mathfu::vec4 &color);
 
 // Set the background texture for the group.
-void ImageBackground(const Texture &tex);
+void ImageBackground(const fplbase::Texture &tex);
 
 // Set the background texture for the group with nine patch settings.
 // In the patch_info, the user can define nine patch settings
@@ -261,13 +261,14 @@ void ImageBackground(const Texture &tex);
 // The coordinates are in UV value in the texture (0.0 ~ 1.0).
 // For more information for nine patch, refer
 // http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch
-void ImageBackgroundNinePatch(const Texture &tex, const vec4 &patch_info);
+void ImageBackgroundNinePatch(const fplbase::Texture &tex,
+                              const mathfu::vec4 &patch_info);
 
 // Make the current group into a scrolling group that can display arbitrary
 // sized elements inside a window of "size", scrolled to the current "offset"
 // (which the caller should store somewhere that survives the current frame).
 // Call StartScroll right after StartGroup, and EndScroll right before EndGroup.
-void StartScroll(const vec2 &size, vec2 *offset);
+void StartScroll(const mathfu::vec2 &size, mathfu::vec2 *offset);
 void EndScroll();
 
 // Make the current group into a slider group that can handle a basic slider
@@ -279,25 +280,29 @@ void EndSlider();
 // Put a custom element with given size.
 // Renderer function is invoked while render pass to render the element.
 void CustomElement(
-    const vec2 &virtual_size, const char *id,
-    const std::function<void(const vec2i &pos, const vec2i &size)> renderer);
+    const mathfu::vec2 &virtual_size, const char *id,
+    const std::function<void(const mathfu::vec2i &pos,
+                             const mathfu::vec2i &size)> renderer);
 
 // Render a texture to specific position & size. Usually used in CustomElement's
 // Render callback.
 // Position and size are specified in physical screen coordinates.
-void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size);
+void RenderTexture(const fplbase::Texture &tex, const mathfu::vec2i &pos,
+                   const mathfu::vec2i &size);
 
 // Render a texture to specific position, size and color.
 // Usually used in CustomElement's Render callback.
 // Position and size are specified in physical screen coordinates.
-void RenderTexture(const Texture &tex, const vec2i &pos, const vec2i &size,
-                   const vec4 &color);
+void RenderTexture(const fplbase::Texture &tex, const mathfu::vec2i &pos,
+                   const mathfu::vec2i &size, const mathfu::vec4 &color);
 
 // Render a nine-patch texture to specific position & size. Usually used in
 // CustomElement's Render callback.
 // Position and size are specified in physical screen coordinates.
-void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
-                            const vec2i &pos, const vec2i &size);
+void RenderTextureNinePatch(const fplbase::Texture &tex,
+                            const mathfu::vec4 &patch_info,
+                            const mathfu::vec2i &pos,
+                            const mathfu::vec2i &size);
 
 // The default virtual resolution used if none is set.
 const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
@@ -312,7 +317,7 @@ const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION = 1000.0f;
 void SetVirtualResolution(float virtual_resolution);
 
 // Get the virtual resolution of the screen.
-vec2 GetVirtualResolution();
+mathfu::vec2 GetVirtualResolution();
 
 // Position a group within the screen as a whole using 9 possible alignments.
 // Call this as first thing in any top level groups (either your root group,
@@ -320,29 +325,28 @@ vec2 GetVirtualResolution();
 // "offset" allows you to displace from the given alignment.
 // If this function is not called, it defaults to top/left placement.
 void PositionGroup(Alignment horizontal, Alignment vertical,
-                   const vec2 &offset);
+                   const mathfu::vec2 &offset);
 
 // By default, FlatUI sets up a projection matrix for all rendering that
 // covers the entire screen (as given by Renderer::window_size().
 // Call this function to instead use whatever projection is in place before
 // Run() is called (which may be a 2D or 3D projection).
 // Specify the new canvas size for the UI to live inside of.
-void UseExistingProjection(const vec2i &canvas_size);
+void UseExistingProjection(const mathfu::vec2i &canvas_size);
 
 // Get the position of the current group in virtual coordinates.  This is the
 // top / left location of the group.  In conjunction with GroupSize() this can
 // be used to calculate the extents of the group.
-vec2 GroupPosition();
+mathfu::vec2 GroupPosition();
 
 // Retrieve current group's size (in virtual coordinates). This API is useful
 // to implement UI that requires other element's size such as a scroll bar etc.
-vec2 GroupSize();
+mathfu::vec2 GroupSize();
 
 // If true, the last click event came a touch screen or mouse, if false, it
 // came from a gamepad or keyboard.
 bool IsLastEventPointerType();
 
-}  // namespace gui
-}  // namespace fpl
+}  // namespace flatui
 
 #endif  // FPL_FLATUI_H

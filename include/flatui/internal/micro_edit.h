@@ -21,7 +21,7 @@
 #include "mathfu/constants.h"
 #include "flatui/font_manager.h"
 
-namespace fpl {
+namespace flatui {
 
 const int32_t kCaretPosInvalid = -1;
 
@@ -53,7 +53,7 @@ class MicroEdit {
   // In FlatUI, the library will call this function in the render pass.
   // Since SDL can generates multiple input events at a time, we accepts events
   // as a vector.
-  bool HandleInputEvents(const std::vector<TextInputEvent> *events);
+  bool HandleInputEvents(const std::vector<fplbase::TextInputEvent> *events);
 
   // Get a caret position in current text.
   int32_t GetCaretPosition();
@@ -88,10 +88,10 @@ class MicroEdit {
   // show a part of the editting string.
   // Returns mathfu::kZeros4i if the FontBuffer size is smaller than the given
   // window size.
-  const vec4i &GetWindow();
+  const mathfu::vec4i &GetWindow();
 
   // Set a window size of the editor in UI in pixels.
-  void SetWindowSize(const vec2i &size) {
+  void SetWindowSize(const mathfu::vec2i &size) {
     window_.z() = size.x();
     window_.w() = size.y();
   }
@@ -99,7 +99,7 @@ class MicroEdit {
   // Pick a caret position from the pointer position.
   // Pointer position should be a relative offset value from the top left corner
   // of the edit window.
-  int32_t Pick(const vec2i &pointer_position, float offset);
+  int32_t Pick(const mathfu::vec2i &pointer_position, float offset);
 
   // Set caret position as a character index. The charactor index can be
   // retrieved Pick() or other APIs.
@@ -155,12 +155,12 @@ class MicroEdit {
   void RemoveText(int32_t num_remove);
 
   // Helper for Pick() API.
-  int32_t PickColumn(const vec2i &pointer_position,
-                     std::vector<vec2i>::const_iterator start_it,
-                     std::vector<vec2i>::const_iterator end_it);
-  void PickRow(const vec2i &pointer_position,
-               std::vector<vec2i>::const_iterator *start_it,
-               std::vector<vec2i>::const_iterator *end_it);
+  int32_t PickColumn(const mathfu::vec2i &pointer_position,
+                     std::vector<mathfu::vec2i>::const_iterator start_it,
+                     std::vector<mathfu::vec2i>::const_iterator end_it);
+  void PickRow(const mathfu::vec2i &pointer_position,
+               std::vector<mathfu::vec2i>::const_iterator *start_it,
+               std::vector<mathfu::vec2i>::const_iterator *end_it);
 
   int32_t caret_pos_;
   int32_t wordbreak_index_;
@@ -190,13 +190,13 @@ class MicroEdit {
   std::string editing_text_;
 
   // Window offset and size of the editor in UI.
-  vec4i window_;
-  vec2i window_offset_;
+  mathfu::vec4i window_;
+  mathfu::vec2i window_offset_;
 
   // Expected caret position, when moving a caret upward/downward, the editor
   // will pick a caret positon closest to this position. This position is
   // updated when a caret is moved explicitly.
-  vec2i expected_caret_position_;
+  mathfu::vec2i expected_caret_position_;
 
   // A flag indicating the editor is for single line edit.
   bool single_line_;
@@ -205,6 +205,6 @@ class MicroEdit {
   const FontBuffer *buffer_;
 };
 
-}  // namespace fpl
+}  // namespace flatui
 
 #endif  // FPL_MICRO_EDIT_H

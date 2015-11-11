@@ -26,8 +26,7 @@
 
 #include "fplbase/material.h"
 
-namespace fpl {
-namespace gui {
+namespace flatui {
 
 // Definitions to specify button properties used in common widget.
 enum ButtonProperty {
@@ -47,7 +46,8 @@ inline ButtonProperty operator|=(ButtonProperty a, ButtonProperty b) {
 // gamepad/keyboard navigation) and clicking/touching/interacting with the
 // widget. By default, these are a dark grey and a middle grey, respectively,
 // both semi-transparent.
-void SetHoverClickColor(const vec4 &hover_color, const vec4 &click_color);
+void SetHoverClickColor(const mathfu::vec4 &hover_color,
+                        const mathfu::vec4 &click_color);
 
 // A simple button showing a text to click on, with `size` indicating
 // vertical height. Uses the colors set above.
@@ -55,18 +55,18 @@ Event TextButton(const char *text, float size, const Margin &margin);
 
 // A simple button showing an image to click on, with `size` indicating
 // vertical height. Uses the colors set above.
-Event ImageButton(const Texture &texture, float size, const Margin &margin,
-                  const char *id);
+Event ImageButton(const fplbase::Texture &texture, float size,
+                  const Margin &margin, const char *id);
 
 // A text button showing an image shown on the left.
-Event TextButton(const Texture &texture, const Margin &texure_margin,
+Event TextButton(const fplbase::Texture &texture, const Margin &texure_margin,
                  const char *text, float size,
                  const Margin &margin, const ButtonProperty property);
 
 // A checkbox with a label next to it. Pass textures for the two states,
 // the label, the height (for both image & label).
-Event CheckBox(const Texture &texture_checked,
-               const Texture &texture_unchecked,
+Event CheckBox(const fplbase::Texture &texture_checked,
+               const fplbase::Texture &texture_unchecked,
                const char *label, float size, const Margin &margin,
                bool *is_checked);
 
@@ -76,8 +76,8 @@ Event CheckBox(const Texture &texture_checked,
 // Specify the size of the whole, at what Y ratio the bar sits (usually 0.5).
 // The slider value is between 0.0 and 1.0 inclusive, which should be easy
 // to scale to any float/int range.
-Event Slider(const Texture &tex_bar, const Texture &tex_knob,
-             const vec2 &size, float bar_height, const char *id,
+Event Slider(const fplbase::Texture &tex_bar, const fplbase::Texture &tex_knob,
+             const mathfu::vec2 &size, float bar_height, const char *id,
              float *slider_value);
 
 // A scrollbar to indicate a position of a scroll view.
@@ -86,14 +86,14 @@ Event Slider(const Texture &tex_bar, const Texture &tex_knob,
 // Specify the size of the whole and a relative size of the scroll bar inside.
 // The scroll value is between 0.0 and 1.0 inclusive, which should be easy
 // to scale to any float/int range.
-Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
-                const vec2 &size, float bar_size, const char *id,
+Event ScrollBar(const fplbase::Texture &tex_background,
+                const fplbase::Texture &tex_foreground,
+                const mathfu::vec2 &size, float bar_size, const char *id,
                 float *scroll_value);
 
 // Set a background color of the widget based on the event status.
 void EventBackground(Event event);
 
-}  // namespace gui
-}  // namespace fpl
+}  // namespace flatui
 
 #endif  // FPL_FLATUI_COMMON_H

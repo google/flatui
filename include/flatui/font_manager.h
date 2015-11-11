@@ -33,7 +33,7 @@ struct hb_font_t;
 struct hb_buffer_t;
 struct hb_glyph_info_t;
 
-namespace fpl {
+namespace flatui {
 
 // Forward decl.
 class FontTexture;
@@ -58,7 +58,7 @@ const int32_t kGlyphCacheHeight = 1024;
 const float kLineHeightDefault = 1.2f;
 
 // Caret position indicating invalid result.
-const vec2i kCaretPositionInvalid = vec2i(-1, -1);
+const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 
 // Default language used for a line break.
 const char *const kLineBreakDefaultLanguage = "en";
@@ -69,12 +69,12 @@ class FontBufferParameters {
  public:
   // Constructors.
   FontBufferParameters()
-      : font_id_(gui::kNullHash),
-        text_id_(gui::kNullHash),
+      : font_id_(kNullHash),
+        text_id_(kNullHash),
         font_size_(0),
         size_(mathfu::kZeros2i),
         caret_info_(false) {}
-  FontBufferParameters(const gui::HashedId font_id, const gui::HashedId text_id,
+  FontBufferParameters(const HashedId font_id, const HashedId text_id,
                        float font_size, const mathfu::vec2i &size,
                        bool caret_info) {
     font_id_ = font_id;
@@ -92,7 +92,7 @@ class FontBufferParameters {
   }
 
   // Hash function.
-  size_t operator()(const fpl::FontBufferParameters &key) const {
+  size_t operator()(const FontBufferParameters &key) const {
     // Note that font_id_ and text_id_ are already hashed values.
     size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
     value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
@@ -103,7 +103,7 @@ class FontBufferParameters {
   }
 
   // Retrieve a hash value of a text.
-  gui::HashedId get_text_id() const { return text_id_; }
+  HashedId get_text_id() const { return text_id_; }
 
   // Retrieve a size value.
   const mathfu::vec2i &get_size() const { return size_; }
@@ -115,8 +115,8 @@ class FontBufferParameters {
   bool get_caret_info_flag() const { return caret_info_; }
 
  private:
-  gui::HashedId font_id_;
-  gui::HashedId text_id_;
+  HashedId font_id_;
+  HashedId text_id_;
   float font_size_;
   mathfu::vec2i size_;
   bool caret_info_;
@@ -171,7 +171,7 @@ class FontManager {
                         const FontBufferParameters &parameters);
 
   // Set renderer. Renderer is used to create a texture instance.
-  void SetRenderer(Renderer &renderer);
+  void SetRenderer(fplbase::Renderer &renderer);
 
   // Returns if a font has been loaded.
   bool FontLoaded() { return face_initialized_; }
@@ -203,7 +203,7 @@ class FontManager {
   void StartRenderPass() { UpdatePass(false); }
 
   // Getter of the font atlas texture.
-  Texture *GetAtlasTexture() { return atlas_texture_.get(); }
+  fplbase::Texture *GetAtlasTexture() { return atlas_texture_.get(); }
 
   // The user can supply a size selector function to adjust glyph sizes when
   // storing a glyph cache entry.
@@ -301,7 +301,7 @@ class FontManager {
                            const FontBufferParameters &parameters);
 
   // Renderer instance.
-  Renderer *renderer_;
+  fplbase::Renderer *renderer_;
 
   // flag indicating if a font file has loaded.
   bool face_initialized_;
@@ -337,7 +337,7 @@ class FontManager {
   uint32_t current_atlas_revision_;
 
   // Unique pointer to a font atlas texture.
-  std::unique_ptr<Texture> atlas_texture_;
+  std::unique_ptr<fplbase::Texture> atlas_texture_;
 
   // Current pass counter.
   // Current implementation only supports up to 2 passes in a rendering cycle.
@@ -456,9 +456,9 @@ class FontMetrics {
 };
 
 // Font texture class
-class FontTexture : public Texture {
+class FontTexture : public fplbase::Texture {
  public:
-  FontTexture() : Texture(nullptr, kFormatLuminance, false) {}
+  FontTexture() : fplbase::Texture(nullptr, fplbase::kFormatLuminance, false) {}
   ~FontTexture() {}
 
   // Setter/Getter of the metrics parameter of the font texture.
@@ -529,8 +529,8 @@ class FontBuffer {
   const std::vector<uint32_t> *get_code_points() const { return &code_points_; }
 
   // Getter/Setter of the size of the string.
-  const vec2i &get_size() const { return size_; }
-  void set_size(const vec2i &size) { size_ = size; }
+  const mathfu::vec2i &get_size() const { return size_; }
+  void set_size(const mathfu::vec2i &size) { size_ = size; }
 
   // Getter/Setter of the glyph cache revision counter.
   // Each time a contents of the glyph cache is updated, the revision of the
@@ -547,8 +547,8 @@ class FontBuffer {
   void set_pass(const int32_t pass) { pass_ = pass; }
 
   // Add 4 vertices used for a glyph rendering to the vertex array.
-  void AddVertices(const vec2 &pos, const int32_t base_line, const float scale,
-                   const GlyphCacheEntry &entry);
+  void AddVertices(const mathfu::vec2 &pos, const int32_t base_line,
+                   const float scale, const GlyphCacheEntry &entry);
 
   // Add caret position to the buffer.
   void AddCaretPosition(float x, float y);
@@ -556,7 +556,7 @@ class FontBuffer {
   // Update UV information of a glyph entry.
   // uv vector should include top left corner of UV value as xy, and
   // bottom right of UV value s wz component of the vector.
-  void UpdateUV(const int32_t index, const vec4 &uv);
+  void UpdateUV(const int32_t index, const mathfu::vec4 &uv);
 
   // Verify sizes of arrays used in the buffer are correct.
   bool Verify() {
@@ -568,13 +568,13 @@ class FontBuffer {
   // Retrieve a caret position with a specified character.
   // Returns kCaretPositionInvalid if the buffer doesn't contain caret
   // information or the index is out of a range.
-  vec2i GetCaretPosition(size_t index) const {
+  mathfu::vec2i GetCaretPosition(size_t index) const {
     if (!caret_positions_.capacity() || index > caret_positions_.size())
       return kCaretPositionInvalid;
     return caret_positions_[index];
   }
   // Accessor to the caret positon buffer.
-  const std::vector<vec2i> &GetCaretPositions() const {
+  const std::vector<mathfu::vec2i> &GetCaretPositions() const {
     return caret_positions_;
   }
   bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
@@ -600,10 +600,10 @@ class FontBuffer {
   // Caret positions in the buffer. We need to track them differently than a
   // vertices information because we support ligatures so that single glyph
   // can include multiple caret positions.
-  std::vector<vec2i> caret_positions_;
+  std::vector<mathfu::vec2i> caret_positions_;
 
   // Size of the string in pixels.
-  vec2i size_;
+  mathfu::vec2i size_;
 
   // Revision of the FontBuffer corresponding glyph cache revision.
   // Caller needs to check the revision value if glyph texture has referencing
@@ -620,7 +620,7 @@ class FontBuffer {
 class FaceData {
  public:
   FaceData()
-      : face_(nullptr), harfbuzz_font_(nullptr), font_id_(gui::kNullHash) {}
+      : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
   ~FaceData() { Close(); }
   void Close();
 
@@ -635,9 +635,9 @@ class FaceData {
   std::string font_data_;
 
   // Hashed value of font face.
-  gui::HashedId font_id_;
+  HashedId font_id_;
 };
 
-}  // namespace fpl
+}  // namespace flatui
 
 #endif  // FONT_MANAGER_H

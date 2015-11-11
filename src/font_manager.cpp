@@ -31,7 +31,14 @@
 #include "linebreak.h"
 #endif
 
-namespace fpl {
+using fplbase::LogInfo;
+using fplbase::LogError;
+using fplbase::Texture;
+using mathfu::vec2;
+using mathfu::vec2i;
+using mathfu::vec4;
+
+namespace flatui {
 
 // Singleton object of FreeType&Harfbuzz.
 FT_Library *FontManager::ft_;
@@ -147,7 +154,7 @@ void FontManager::Initialize() {
     FT_Error err = FT_Init_FreeType(ft_);
     if (err) {
       // Error! Please fix me.
-      fpl::LogError("Can't initialize freetype. FT_Error:%d\n", err);
+      LogError("Can't initialize freetype. FT_Error:%d\n", err);
       assert(0);
     }
   }
@@ -174,11 +181,11 @@ void FontManager::Terminate() {
   ft_ = nullptr;
 }
 
-void FontManager::SetRenderer(Renderer &renderer) {
+void FontManager::SetRenderer(fplbase::Renderer &renderer) {
   renderer_ = &renderer;
 
   // Initialize the font atlas texture.
-  atlas_texture_.reset(new Texture(nullptr, kFormatLuminance, false));
+  atlas_texture_.reset(new Texture(nullptr, fplbase::kFormatLuminance, false));
   atlas_texture_.get()->LoadFromMemory(glyph_cache_->get_buffer(),
                                        glyph_cache_->get_size(), false);
   atlas_texture_.get()->Set(0);
@@ -194,7 +201,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
     // Try to create buffer again.
     buffer = CreateBuffer(text, length, parameter);
     if (buffer == nullptr) {
-      fpl::LogError("The given text '%s' with ",
+      LogError("The given text '%s' with ",
                     "size:%d does not fit a glyph cache. Try to "
                     "increase a cache size or use GetTexture() API ",
                     "instead.\n", text, parameter.get_size().y());
@@ -294,7 +301,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         if (line_width > static_cast<uint32_t>(size.x()) * kFreeTypeUnit) {
           std::string s = std::string(&text[word_enum.GetCurrentWordIndex()],
                                       word_enum.GetCurrentWordLength());
-          fpl::LogInfo(
+          LogInfo(
               "A single word '%s' exceeded the given line width setting.\n"
               "Currently multiline label doesn't support a hyphenation",
               s.c_str());
@@ -492,8 +499,9 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   int32_t ysize = ConvertSize(static_cast<int32_t>(original_ysize));
 
   auto parameter =
-      FontBufferParameters(GetCurrentFace()->font_id_, gui::HashId(text),
-                           static_cast<float>(ysize), mathfu::kZeros2i, false);
+      FontBufferParameters(GetCurrentFace()->font_id_, flatui::HashId(text),
+                           static_cast<float>(ysize),
+                           mathfu::kZeros2i, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -549,7 +557,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
     if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
-      fpl::LogInfo("Can't load glyph %c FT_Error:%d\n", text[i], err);
+      LogInfo("Can't load glyph %c FT_Error:%d\n", text[i], err);
       return nullptr;
     }
 
@@ -671,8 +679,8 @@ bool FontManager::Open(const char *font_name) {
   auto face = insert.first->second.get();
 
   // Load the font file of assets.
-  if (!LoadFile(font_name, &face->font_data_)) {
-    fpl::LogInfo("Can't load font reource: %s\n", font_name);
+  if (!fplbase::LoadFile(font_name, &face->font_data_)) {
+    LogInfo("Can't load font reource: %s\n", font_name);
     return false;
   }
 
@@ -682,7 +690,7 @@ bool FontManager::Open(const char *font_name) {
       face->font_data_.size(), 0, &face->face_);
   if (err) {
     // Failed to open font.
-    fpl::LogInfo("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
+    LogInfo("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
     return false;
   }
 
@@ -690,14 +698,14 @@ bool FontManager::Open(const char *font_name) {
   face->harfbuzz_font_ = hb_ft_font_create(face->face_, NULL);
   if (!face->harfbuzz_font_) {
     // Failed to open font.
-    fpl::LogInfo("Failed to initialize harfbuzz layout information:%s\n",
+    LogInfo("Failed to initialize harfbuzz layout information:%s\n",
                  font_name);
     face->font_data_.clear();
     FT_Done_Face(face->face_);
     return false;
   }
 
-  face->font_id_ = gui::HashId(font_name);
+  face->font_id_ = HashId(font_name);
 
   // Set first opened font as a default font.
   if (!face_initialized_) {
@@ -751,7 +759,8 @@ void FontManager::UpdatePass(const bool start_subpass) {
     auto rect = glyph_cache_->get_dirty_rect();
     atlas_texture_.get()->Set(0);
     Texture::UpdateTexture(
-        kFormatLuminance, 0, rect.y(), glyph_cache_.get()->get_size().x(),
+        fplbase::kFormatLuminance, 0, rect.y(),
+        glyph_cache_.get()->get_size().x(),
         rect.w() - rect.y(), glyph_cache_.get()->get_buffer() +
                                  glyph_cache_.get()->get_size().x() * rect.y());
     current_atlas_revision_ = glyph_cache_->get_revision();
@@ -760,7 +769,7 @@ void FontManager::UpdatePass(const bool start_subpass) {
 
   if (start_subpass) {
     if (current_pass_ > 0) {
-      fpl::LogInfo(
+      LogInfo(
           "Multiple subpasses in one rendering pass is not supported. "
           "When this happens, increase the glyph cache size not to "
           "flush the atlas texture multiple times in one rendering "
@@ -836,7 +845,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
     if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
-      fpl::LogInfo("Can't load glyph %c FT_Error:%d\n", code_point, err);
+      LogInfo("Can't load glyph %c FT_Error:%d\n", code_point, err);
       return nullptr;
     }
 
@@ -853,7 +862,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
     if (cache == nullptr) {
       // Glyph cache need to be flushed.
       // Returning nullptr here for a retry.
-      fpl::LogInfo("Glyph cache is full. Need to flush and re-create.\n");
+      LogInfo("Glyph cache is full. Need to flush and re-create.\n");
       return nullptr;
     }
   }
@@ -906,4 +915,4 @@ void FaceData::Close() {
   font_data_.clear();
 }
 
-}  // namespace fpl
+}  // namespace flatui

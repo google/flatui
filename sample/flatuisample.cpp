@@ -18,22 +18,29 @@
 #include "flatui/flatui.h"
 #include <cassert>
 
-using namespace fpl;
+using flatui::EndGroup;
+using flatui::Image;
+using flatui::Label;
+using flatui::SetVirtualResolution;
+using flatui::StartGroup;
+using mathfu::vec2;
+using mathfu::vec2i;
+using mathfu::vec4;
 
 extern "C" int FPL_main(int /*argc*/, char **argv) {
-  Renderer renderer;
-  renderer.Initialize(mathfu::vec2i(800, 600), "FlatUI sample");
+  fplbase::Renderer renderer;
+  renderer.Initialize(vec2i(800, 600), "FlatUI sample");
 
-  InputSystem input;
+  fplbase::InputSystem input;
   input.Initialize();
 
   // Set the local directory to the assets folder for this sample.
-  bool result = ChangeToUpstreamDir(argv[0], "sample/assets");
+  bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample/assets");
   assert(result);
 
-  AssetManager assetman(renderer);
+  fplbase::AssetManager assetman(renderer);
 
-  FontManager fontman;
+  flatui::FontManager fontman;
   fontman.SetRenderer(renderer);
   // Open OpenType font.
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
@@ -53,7 +60,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   }
 
   while (!(input.exit_requested() ||
-           input.GetButton(fpl::FPLK_AC_BACK).went_down())) {
+           input.GetButton(fplbase::FPLK_AC_BACK).went_down())) {
     input.AdvanceFrame(&renderer.window_size());
     renderer.AdvanceFrame(input.minimized(), input.Time());
     const float kColorGray = 0.5f;
@@ -64,26 +71,26 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     // In this sample, it shows basic UI elements of a label and an image.
     // Define flatui block. Note that the block is executed multiple times,
     // One for a layout pass and another for a rendering pass.
-    gui::Run(assetman, fontman, input, [&]() {
+    Run(assetman, fontman, input, [&]() {
       // Set a virtual resolution all coordinates will use. 1000 is now the
       // size of the smallest dimension (Y in landscape mode).
-      gui::SetVirtualResolution(1000);
+      SetVirtualResolution(1000);
 
       // Start our root group.
-      gui::StartGroup(gui::kLayoutVerticalLeft);
+      StartGroup(flatui::kLayoutVerticalLeft);
 
       // Position group in the center of the screen.
-      gui::PositionGroup(gui::kAlignCenter, gui::kAlignCenter,
-                              mathfu::kZeros2f);
+      PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+                    mathfu::kZeros2f);
 
       // Show a label with a font size of 40px in a virtual resotuion.
-      gui::Label("The quick brown fox jumps over the lazy dog.", 40);
+      Label("The quick brown fox jumps over the lazy dog.", 40);
 
       // Show an image with a virtical size of 60px in a virtual resotuion.
       // A width is automatically derived from the image size.
-      gui::Image(*tex_about, 60);
+      Image(*tex_about, 60);
 
-      gui::EndGroup();
+      EndGroup();
     });
   }
 

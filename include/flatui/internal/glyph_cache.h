@@ -22,7 +22,7 @@
 #include "flatui_util.h"
 #include "mathfu/constants.h"
 
-namespace fpl {
+namespace flatui {
 
 // The glyph cache maintains a list of GlyphCacheRow. Each row has a fixed sizes
 // of height, which is determined at a row creation time. A row can include
@@ -73,8 +73,8 @@ static inline int32_t RoundUpToPowerOf2(int32_t x) {
 class GlyphKey {
 public:
   // Constructors.
-  GlyphKey() : font_id_(gui::kNullHash), code_point_(0), glyph_size_(0) {}
-  GlyphKey(const gui::HashedId font_id, uint32_t code_point,
+  GlyphKey() : font_id_(kNullHash), code_point_(0), glyph_size_(0) {}
+  GlyphKey(const HashedId font_id, uint32_t code_point,
            uint32_t glyph_size) {
     font_id_ = font_id;
     code_point_ = code_point;
@@ -88,7 +88,7 @@ public:
   }
 
   // Hash function.
-  size_t operator()(const fpl::GlyphKey& key) const {
+  size_t operator()(const GlyphKey& key) const {
     // Note that font_id_ is an already hashed value.
     return ((std::hash<uint32_t>()(key.code_point_) ^ (key.font_id_ << 1)) >>
             1) ^
@@ -96,7 +96,7 @@ public:
   }
 
 private:
-  gui::HashedId font_id_;
+  HashedId font_id_;
   uint32_t code_point_;
   uint32_t glyph_size_;
 };
@@ -673,6 +673,6 @@ class GlyphCache {
 #endif
 };
 
-}  // namespace fpl
+}  // namespace flatui
 
 #endif  // GLYPH_CACH_H

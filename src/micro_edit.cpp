@@ -16,7 +16,10 @@
 #include "flatui/internal/micro_edit.h"
 #include "linebreak.h"
 
-namespace fpl {
+using mathfu::vec2i;
+using mathfu::vec4i;
+
+namespace flatui {
 
 void MicroEdit::Initialize(std::string *text, EditorMode mode) {
   Reset();
@@ -282,16 +285,16 @@ const vec4i &MicroEdit::GetWindow() {
       window_offset_.x() += static_cast<int>(threshold);
     }
 
-    if (window_start.y()  < 0) {
+    if (window_start.y() < 0) {
       window_offset_.y() -= buffer_->metrics().total();
     } else if (window_start.y() > window_.w()) {
       window_offset_.y() += buffer_->metrics().total();
     }
 
-    window_.x() = std::max(std::min(window_offset_.x(),
-                                    buffer_size.x() - window_.z()), 0);
-    window_.y() = std::max(std::min(window_offset_.y(),
-                                    buffer_size.y() - window_.w()), 0);
+    window_.x() = std::max(
+        std::min(window_offset_.x(), buffer_size.x() - window_.z()), 0);
+    window_.y() = std::max(
+        std::min(window_offset_.y(), buffer_size.y() - window_.w()), 0);
   } else {
     window_.x() = 0;
     window_.y() = 0;
@@ -355,17 +358,18 @@ int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
   return index;
 }
 
-bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
+bool MicroEdit::HandleInputEvents(
+    const std::vector<fplbase::TextInputEvent> *events) {
   bool ret = false;
   auto event = events->begin();
   while (event != events->end()) {
     switch (event->type) {
-      case kTextInputEventTypeKey:
+      case fplbase::kTextInputEventTypeKey:
         // Do nothing when a key is released.
         if (!event->key.state) break;
         switch (event->key.symbol) {
-          case FPLK_RETURN:
-          case FPLK_RETURN2:
+          case fplbase::FPLK_RETURN:
+          case fplbase::FPLK_RETURN2:
             if (!single_line_ && (event->key.modifier & FPL_KMOD_SHIFT)) {
               InsertText("\n");
             } else {
@@ -373,39 +377,39 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               if (!in_text_input_) ret = true;
             }
             break;
-          case FPLK_LEFT:
+          case fplbase::FPLK_LEFT:
             if (event->key.modifier & FPL_KMOD_GUI) {
               MoveCaretInLine(kHeadOfLine);
-            } else if (event->key.modifier & FPL_KMOD_ALT){
+            } else if (event->key.modifier & FPL_KMOD_ALT) {
               MoveCaretToWordBoundary(false);
             } else {
               MoveCaret(false);
             }
             break;
-          case FPLK_RIGHT:
+          case fplbase::FPLK_RIGHT:
             if (event->key.modifier & FPL_KMOD_GUI) {
               MoveCaretInLine(kTailOfLine);
-            } else if (event->key.modifier & FPL_KMOD_ALT){
+            } else if (event->key.modifier & FPL_KMOD_ALT) {
               MoveCaretToWordBoundary(true);
             } else {
               MoveCaret(true);
             }
             break;
-          case FPLK_UP:
+          case fplbase::FPLK_UP:
             if (event->key.modifier & FPL_KMOD_GUI) {
               SetCaret(0);
             } else {
               MoveCaretVertical(-buffer_->metrics().total());
             }
             break;
-          case FPLK_DOWN:
+          case fplbase::FPLK_DOWN:
             if (event->key.modifier & FPL_KMOD_GUI) {
               SetCaret(num_characters_ + input_text_characters_);
             } else {
               MoveCaretVertical(buffer_->metrics().total());
             }
             break;
-          case FPLK_BACKSPACE:
+          case fplbase::FPLK_BACKSPACE:
             // Delete a character before the caret position.
             if (!in_text_input_) {
               if (MoveCaret(false)) {
@@ -413,7 +417,7 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               }
             }
             break;
-          case FPLK_DELETE:
+          case fplbase::FPLK_DELETE:
             // Delete a character at the caret position.
             if (!in_text_input_) {
               if (num_characters_ && caret_pos_ < num_characters_) {
@@ -421,7 +425,7 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               }
             }
             break;
-          case FPLK_ESCAPE:
+          case fplbase::FPLK_ESCAPE:
             // Reset the edit session.
             if (!in_text_input_) {
               *text_ = initial_string_;
@@ -431,15 +435,15 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
               ResetEditingText();
             }
             break;
-          case FPLK_HOME:
+          case fplbase::FPLK_HOME:
             SetCaret(0);
             break;
-          case FPLK_END:
+          case fplbase::FPLK_END:
             SetCaret(num_characters_ + input_text_characters_);
             break;
         }
         break;
-      case kTextInputEventTypeEdit:
+      case fplbase::kTextInputEventTypeEdit:
         // Note: Due to SDL bug #3006,
         // https://bugzilla.libsdl.org/show_bug.cgi?id=3006
         // we can only recieve an input string up to32 bytes from IME now.
@@ -447,7 +451,7 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
         input_text_selection_start_ = event->edit.start;
         input_text_selection_length_ = event->edit.length;
         break;
-      case kTextInputEventTypeText:
+      case fplbase::kTextInputEventTypeText:
         InsertText(event->text);
         ResetEditingText();
         break;
@@ -457,4 +461,4 @@ bool MicroEdit::HandleInputEvents(const std::vector<TextInputEvent> *events) {
   return ret;
 }
 
-}  // namespace fpl
+}  // namespace flatui

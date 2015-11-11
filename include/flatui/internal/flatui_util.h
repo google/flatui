@@ -15,8 +15,7 @@
 #ifndef FPL_FLATUI_UTIL_H
 #define FPL_FLATUI_UTIL_H
 
-namespace fpl {
-namespace gui {
+namespace flatui {
 
 // HashId related definitions and implementations.
 typedef uint32_t HashedId;
@@ -57,7 +56,6 @@ inline bool EqualId(HashedId hash1, HashedId hash2) {
   return hash1 == hash2;
 }
 
-}  // namespace gui
-}  // namespace fpl
+}  // namespace flatui
 
 #endif  // FPL_FLATUI_UTIL_H

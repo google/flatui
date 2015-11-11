@@ -17,8 +17,12 @@
 #include "flatui/flatui.h"
 #include "flatui/flatui_common.h"
 
-namespace fpl {
-namespace gui {
+using fplbase::Texture;
+using mathfu::vec2;
+using mathfu::vec2i;
+using mathfu::vec4;
+
+namespace flatui {
 
 vec4 g_hover_color = vec4(0.5f, 0.5f, 0.5f, 0.5f);
 vec4 g_click_color = vec4(1.0f, 1.0f, 1.0f, 0.5f);
@@ -165,7 +169,7 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
     auto bar_render_pos = pos;
     bar_render_pos[dimension] +=
         static_cast<int>(*scroll_value * (render_size[dimension] -
-                                          margin * 2.0f * gui::GetScale()));
+                                          margin * 2.0f * GetScale()));
 
     vec2i bar_render_size(render_size.x(), render_size.y());
     bar_render_size[dimension] =
@@ -181,5 +185,4 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
   return event;
 }
 
-}  // gui
-}  // fpl
+}  // namespace flatui

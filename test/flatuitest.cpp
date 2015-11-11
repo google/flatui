@@ -19,21 +19,37 @@
 #include "flatui/flatui_common.h"
 #include <cassert>
 
-using namespace fpl;
+using flatui::ColorBackground;
+using flatui::Edit;
+using flatui::EndGroup;
+using flatui::EndScroll;
+using flatui::Image;
+using flatui::ImageBackgroundNinePatch;
+using flatui::Label;
+using flatui::Margin;
+using flatui::ModalGroup;
+using flatui::SetVirtualResolution;
+using flatui::SetTextColor;
+using flatui::Slider;
+using flatui::StartGroup;
+using flatui::StartScroll;
+using mathfu::vec2;
+using mathfu::vec2i;
+using mathfu::vec4;
 
 extern "C" int FPL_main(int /*argc*/, char **argv) {
-  Renderer renderer;
-  InputSystem input;
-  FontManager fontman;
-  AssetManager assetman(renderer);
+  fplbase::Renderer renderer;
+  fplbase::InputSystem input;
+  flatui::FontManager fontman;
+  fplbase::AssetManager assetman(renderer);
 
   // Set the local directory to the assets for this test.
-  bool result = ChangeToUpstreamDir(argv[0], "test/assets");
+  bool result = fplbase::ChangeToUpstreamDir(argv[0], "test/assets");
   assert(result);
 
   // Initialize stuff.
-  renderer.Initialize(mathfu::vec2i(800, 600), "FlatUI test");
-  renderer.SetCulling(Renderer::kCullBack);
+  renderer.Initialize(vec2i(800, 600), "FlatUI test");
+  renderer.SetCulling(fplbase::Renderer::kCullBack);
   input.Initialize();
 
   // Open OpenType font.
@@ -77,73 +93,74 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                             "The quick brown fox jumps over the lazy dog. ");
 
     auto click_about_example = [&](const char *id, bool about_on) {
-      if (gui::ImageButton(*tex_about, 50, gui::Margin(10), id) ==
-          gui::kEventWentUp) {
-        LogInfo("You clicked: %s", id);
+      if (ImageButton(*tex_about, 50, Margin(10), id) ==
+          flatui::kEventWentUp) {
+        fplbase::LogInfo("You clicked: %s", id);
         show_about = about_on;
       }
     };
 
-    gui::Run(assetman, fontman, input, [&]() {
-      gui::SetVirtualResolution(1000);
-      gui::StartGroup(gui::kLayoutOverlay, 0);
-        gui::StartGroup(gui::kLayoutHorizontalTop, 10);
-          gui::PositionGroup(gui::kAlignCenter, gui::kAlignCenter,
-                             mathfu::kZeros2f);
-          gui::StartGroup(gui::kLayoutVerticalLeft, 20);
+    Run(assetman, fontman, input, [&]() {
+      SetVirtualResolution(1000);
+      StartGroup(flatui::kLayoutOverlay, 0);
+        StartGroup(flatui::kLayoutHorizontalTop, 10);
+          PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+                        mathfu::kZeros2f);
+          StartGroup(flatui::kLayoutVerticalLeft, 20);
             click_about_example("my_id1", true);
-            gui::Edit(30, vec2(400, 30), "edit2", &str2);
-            gui::StartGroup(gui::kLayoutHorizontalTop, 0);
-              gui::Edit(30, vec2(0, 30), "edit", &str);
-              gui::Label(">Tail", 30);
-            gui::EndGroup();
-            gui::Slider(*tex_circle, *tex_bar,
-                        vec2(300, 25), 0.5f, "slider", &slider_value);
-            gui::CheckBox(*tex_check_on, *tex_check_off, "CheckBox", 30,
-                          gui::Margin(6, 0), &checkbox1_checked);
-            gui::StartGroup(gui::kLayoutHorizontalTop, 0);
-              gui::Label("Property T", 30);
-              gui::SetTextColor(mathfu::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-              gui::Label("Test ", 30);
-              gui::SetTextColor(mathfu::kOnes4f);
-              gui::Label("ffWAWÄテスト", 30);
-            gui::EndGroup();
-            if (gui::TextButton("text button test", 20, gui::Margin(10)) ==
-                gui::kEventWentUp) {
-              LogInfo("You clicked: text button");
+            Edit(30, vec2(400, 30), "edit2", &str2);
+            StartGroup(flatui::kLayoutHorizontalTop, 0);
+              Edit(30, vec2(0, 30), "edit", &str);
+              Label(">Tail", 30);
+            EndGroup();
+            Slider(*tex_circle, *tex_bar,
+                   vec2(300, 25), 0.5f, "slider", &slider_value);
+            CheckBox(*tex_check_on, *tex_check_off, "CheckBox", 30,
+                          Margin(6, 0), &checkbox1_checked);
+            StartGroup(flatui::kLayoutHorizontalTop, 0);
+              Label("Property T", 30);
+              SetTextColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+              Label("Test ", 30);
+              SetTextColor(mathfu::kOnes4f);
+              Label("ffWAWÄテスト", 30);
+            EndGroup();
+            if (TextButton("text button test", 20, Margin(10)) ==
+                flatui::kEventWentUp) {
+              fplbase::LogInfo("You clicked: text button");
             }
-            gui::StartGroup(gui::kLayoutVerticalLeft, 20, "scroll");
-              gui::StartScroll(vec2(200, 100), &scroll_offset);
-                gui::ImageBackgroundNinePatch(*tex_about,
-                                              vec4(0.2f, 0.2f, 0.8f, 0.8f));
+            StartGroup(flatui::kLayoutVerticalLeft, 20, "scroll");
+            StartScroll(vec2(200, 100), &scroll_offset);
+                ImageBackgroundNinePatch(*tex_about,
+                                         vec4(0.2f, 0.2f, 0.8f, 0.8f));
                 click_about_example("my_id4", true);
-                gui::Label("The quick brown fox jumps over the lazy dog", 24);
-                gui::Label("The quick brown fox jumps over the lazy dog", 20);
-              gui::EndScroll();
-            gui::EndGroup();
-          gui::EndGroup();
-          gui::StartGroup(gui::kLayoutVerticalCenter, 40);
+                Label("The quick brown fox jumps over the lazy dog", 24);
+                Label("The quick brown fox jumps over the lazy dog", 20);
+              EndScroll();
+            EndGroup();
+          EndGroup();
+          StartGroup(flatui::kLayoutVerticalCenter, 40);
             click_about_example("my_id2", true);
-            gui::Image(*tex_about, 40);
-            gui::Image(*tex_about, 30);
-          gui::EndGroup();
-          gui::StartGroup(gui::kLayoutVerticalRight, 0);
-            gui::Edit(24, vec2(400, 400), "edit3", &str3);
-          gui::EndGroup();
-        gui::EndGroup();
+            Image(*tex_about, 40);
+            Image(*tex_about, 30);
+          EndGroup();
+          StartGroup(flatui::kLayoutVerticalRight, 0);
+            Edit(24, vec2(400, 400), "edit3", &str3);
+          EndGroup();
+        EndGroup();
         if (show_about) {
-          gui::StartGroup(gui::kLayoutVerticalLeft, 20, "about_overlay");
-            gui::ModalGroup();
-            gui::PositionGroup(gui::kAlignRight, gui::kAlignTop, vec2(-30, 30));
-            gui::SetMargin(gui::Margin(10));
-            gui::ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
+          StartGroup(flatui::kLayoutVerticalLeft, 20, "about_overlay");
+            ModalGroup();
+            PositionGroup(flatui::kAlignRight,
+                          flatui::kAlignTop, vec2(-30, 30));
+            SetMargin(Margin(10));
+            ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
             click_about_example("my_id3", false);
-            gui::Label("This is the about window! すし!", 32);
-            gui::Label("You should only be able to click on the", 24);
-            gui::Label("about button above, not anywhere else", 20);
-          gui::EndGroup();
+            Label("This is the about window! すし!", 32);
+            Label("You should only be able to click on the", 24);
+            Label("about button above, not anywhere else", 20);
+          EndGroup();
         }
-      gui::EndGroup();
+      EndGroup();
     });
   }
 

@@ -18,8 +18,21 @@
 #include "flatui/internal/flatui_util.h"
 #include "flatui/internal/micro_edit.h"
 
-namespace fpl {
-namespace gui {
+using fplbase::Button;
+using fplbase::InputSystem;
+using fplbase::LogError;
+using fplbase::LogInfo;
+using fplbase::Mesh;
+using fplbase::Shader;
+using fplbase::Texture;
+using mathfu::vec2;
+using mathfu::vec2i;
+using mathfu::vec3;
+using mathfu::vec3i;
+using mathfu::vec4;
+using mathfu::vec4i;
+
+namespace flatui {
 
 Direction GetDirection(Layout layout) {
   return static_cast<Direction>(layout & ~(kDirHorizontal - 1));
@@ -104,8 +117,8 @@ class InternalState : public Group {
     bool interactive;  // Wants to respond to user input.
   };
 
-  InternalState(AssetManager &assetman, FontManager &fontman,
-                InputSystem &input)
+  InternalState(fplbase::AssetManager &assetman, FontManager &fontman,
+                fplbase::InputSystem &input)
       : Group(kDirVertical, kAlignLeft, 0, 0),
         layout_pass_(true),
         canvas_size_(assetman.renderer().window_size()),
@@ -615,7 +628,8 @@ class InternalState : public Group {
                                         static_cast<float>(pos.y()), 0.0f));
         }
 
-        const Attribute kFormat[] = {kPosition3f, kTexCoord2f, kEND};
+        const fplbase::Attribute kFormat[] = {fplbase::kPosition3f,
+          fplbase::kTexCoord2f, fplbase::kEND};
         Mesh::RenderArray(
             Mesh::kTriangles, buffer.get_indices()->size(), kFormat,
             sizeof(FontVertex),
@@ -1155,19 +1169,20 @@ class InternalState : public Group {
 #ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
-      dir = CheckButtons(gamepad.second.GetButton(Gamepad::kLeft),
-                         gamepad.second.GetButton(Gamepad::kRight),
-                         gamepad.second.GetButton(Gamepad::kUp),
-                         gamepad.second.GetButton(Gamepad::kDown),
-                         gamepad.second.GetButton(Gamepad::kButtonA));
+      dir = CheckButtons(gamepad.second.GetButton(fplbase::Gamepad::kLeft),
+                         gamepad.second.GetButton(fplbase::Gamepad::kRight),
+                         gamepad.second.GetButton(fplbase::Gamepad::kUp),
+                         gamepad.second.GetButton(fplbase::Gamepad::kDown),
+                         gamepad.second.GetButton(fplbase::Gamepad::kButtonA));
     }
 #endif
     // For testing, also support keyboard:
     if (!dir.x() && !dir.y()) {
-      dir = CheckButtons(input_.GetButton(FPLK_LEFT),
-                         input_.GetButton(FPLK_RIGHT),
-                         input_.GetButton(FPLK_UP), input_.GetButton(FPLK_DOWN),
-                         input_.GetButton(FPLK_RETURN));
+      dir = CheckButtons(input_.GetButton(fplbase::FPLK_LEFT),
+                         input_.GetButton(fplbase::FPLK_RIGHT),
+                         input_.GetButton(fplbase::FPLK_UP),
+                         input_.GetButton(fplbase::FPLK_DOWN),
+                         input_.GetButton(fplbase::FPLK_RETURN));
     }
     return dir;
   }
@@ -1247,8 +1262,8 @@ class InternalState : public Group {
   float virtual_resolution_;
   float pixel_scale_;
 
-  AssetManager &matman_;
-  Renderer &renderer_;
+  fplbase::AssetManager &matman_;
+  fplbase::Renderer &renderer_;
   InputSystem &input_;
   FontManager &fontman_;
   Shader *image_shader_;
@@ -1328,7 +1343,8 @@ class InternalState : public Group {
 
 InternalState::PersistentState InternalState::persistent_;
 
-void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
+void Run(fplbase::AssetManager &assetman, FontManager &fontman,
+         fplbase::InputSystem &input,
          const std::function<void()> &gui_definition) {
   // Create our new temporary state.
   InternalState internal_state(assetman, fontman, input);
@@ -1341,7 +1357,7 @@ void Run(AssetManager &assetman, FontManager &fontman, InputSystem &input,
   internal_state.StartRenderPass();
 
   auto &renderer = assetman.renderer();
-  renderer.SetBlendMode(kBlendModeAlpha);
+  renderer.SetBlendMode(fplbase::kBlendModeAlpha);
   renderer.DepthTest(false);
 
   gui_definition();
@@ -1480,5 +1496,4 @@ vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
 
-}  // namespace gui
-}  // namespace fpl
+}  // namespace flatui
