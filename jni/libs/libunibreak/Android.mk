@@ -19,7 +19,7 @@ FLATUI_RELATIVE_DIR:=../../..
 FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
 include $(FLATUI_DIR)/jni/android_config.mk
 
-LOCAL_PATH:=$(DEPENDENCIES_LIBUNIBREAK_DIR)
+LOCAL_PATH:=$(realpath $(DEPENDENCIES_LIBUNIBREAK_DIR))
 
 ###########################
 #

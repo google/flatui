@@ -20,7 +20,7 @@ FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
 include $(FLATUI_DIR)/jni/android_config.mk
 FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
 
-LOCAL_PATH:=$(DEPENDENCIES_HARFBUZZ_DIR)
+LOCAL_PATH:=$(realpath $(DEPENDENCIES_HARFBUZZ_DIR))
 
 ###########################
 #
