@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. All rights reserved.
+// Copyright 2015 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,11 @@ typedef SSIZE_T ssize_t;
 #include "mathfu/constants.h"
 
 namespace flatui {
+
+/// @file
+/// @addtogroup flatui_core
+//
+/// @{
 
 // The core function that drives the GUI.
 // assetman: the AssetManager you want to use textures from.
@@ -346,6 +351,7 @@ mathfu::vec2 GroupSize();
 // If true, the last click event came a touch screen or mouse, if false, it
 // came from a gamepad or keyboard.
 bool IsLastEventPointerType();
+/// @}
 
 }  // namespace flatui
 

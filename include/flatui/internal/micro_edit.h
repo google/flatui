@@ -23,6 +23,8 @@
 
 namespace flatui {
 
+/// @cond FLATUI_INTERNAL
+
 const int32_t kCaretPosInvalid = -1;
 
 enum CaretPosition {
@@ -204,6 +206,7 @@ class MicroEdit {
   // A pointer to the FontBuffer.
   const FontBuffer *buffer_;
 };
+/// @endcond
 
 }  // namespace flatui
 

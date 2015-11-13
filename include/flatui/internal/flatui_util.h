@@ -17,11 +17,28 @@
 
 namespace flatui {
 
-// HashId related definitions and implementations.
+/// @cond FLATUI_INTERNAL
+///
+/// @brief The hash ID related definitions and implementations.
+
+/// @typedef HashedId
+///
+/// @brief A typedef to represent the ID of a hash.
 typedef uint32_t HashedId;
 
+/// @var kNullHash
+///
+/// @brief A sentinel value to demarcate a `null` or invalid hash.
 static HashedId kNullHash = 0;
 
+/// @brief Hash a C-string into a `HashId`.
+///
+/// @warning This function asserts if the `id` collides with `kNullHash`.
+/// If you hit this assert, you will need to change your `id`.
+///
+/// @param[in] id A C-string representing the ID to hash.
+///
+/// @return Returns the HashId corresponding to the `id`.
 inline HashedId HashId(const char *id) {
   // A quick good hash, from:
   // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
@@ -33,8 +50,13 @@ inline HashedId HashId(const char *id) {
   return hash;
 }
 
-// Sometimes we may want to derive identity from an object of which there
-// is guaranteed only one (like e.g. a texture).
+/// @brief Hash a pointer to an object, of which there is guaranteed to be only
+/// one (e.g. a texture).
+///
+/// @param[in] ptr A const void pointer to an object, of which there is
+/// guranteed to be only one, that should be hashed.
+///
+/// @return Returns the HashId corresponding to the `ptr`.
 inline HashedId HashPointer(const void *ptr) {
   // This method of integer hashing simply randomizes the integer space given,
   // in case there is an uneven distribution in the input (like is often the
@@ -46,6 +68,13 @@ inline HashedId HashPointer(const void *ptr) {
   return hash;
 }
 
+/// @brief Compare two hashes for equality.
+///
+/// @param[in] hash1 The first HashedId to compare for equality.
+/// @param[in] hash2 The second HashedId to compare for equality.
+///
+/// @return Returns `true` if the two hashes were equal. Otherwise, it returns
+/// `false`.
 inline bool EqualId(HashedId hash1, HashedId hash2) {
   // We use hashes for comparison (rather that strcmp or pointer compare)
   // so the user can feel free to generate ids in temporary strings.
@@ -55,6 +84,7 @@ inline bool EqualId(HashedId hash1, HashedId hash2) {
   // elements was just inserted, etc.
   return hash1 == hash2;
 }
+/// @endcond
 
 }  // namespace flatui
 

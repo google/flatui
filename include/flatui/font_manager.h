@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. All rights reserved.
+// Copyright 2015 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,6 +34,10 @@ struct hb_buffer_t;
 struct hb_glyph_info_t;
 
 namespace flatui {
+
+/// @file
+/// @addtogroup flatui_font_manager
+/// @{
 
 // Forward decl.
 class FontTexture;
@@ -637,6 +641,7 @@ class FaceData {
   // Hashed value of font face.
   HashedId font_id_;
 };
+/// @}
 
 }  // namespace flatui
 

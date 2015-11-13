@@ -1,0 +1,9 @@
+/// @defgroup flatui_core FlatUI Core
+/// @brief The core FlatUI Library that drives the GUI.
+
+/// @defgroup flatui_common_widgets Common Widgets
+/// @brief A collection of common widgets, such as buttons, sliders, and scroll
+/// bars.
+
+/// @defgroup flatui_font_manager Font Manager
+/// @brief Classes and methods for handling fonts.
