@@ -492,8 +492,8 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   int32_t ysize = ConvertSize(static_cast<int32_t>(original_ysize));
 
   auto parameter =
-      FontBufferParameters(GetCurrentFace()->font_id_, gui::HashId(text), ysize,
-                           mathfu::kZeros2i, false);
+      FontBufferParameters(GetCurrentFace()->font_id_, gui::HashId(text),
+                           static_cast<float>(ysize), mathfu::kZeros2i, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);

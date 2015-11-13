@@ -18,6 +18,11 @@
 #include <functional>
 #include <string>
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include "font_manager.h"
 #include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
