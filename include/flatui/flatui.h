@@ -24,6 +24,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "font_manager.h"
+#include "flatui/version.h"
 #include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
@@ -346,6 +347,9 @@ mathfu::vec2 GroupSize();
 // If true, the last click event came a touch screen or mouse, if false, it
 // came from a gamepad or keyboard.
 bool IsLastEventPointerType();
+
+// Returns the version of the FlatUI Library.
+const FlatUiVersion* GetFlatUiVersion();
 
 }  // namespace flatui
 

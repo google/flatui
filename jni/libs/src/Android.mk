@@ -42,7 +42,8 @@ LOCAL_SRC_FILES := \
   src/flatui.cpp \
   src/flatui_common.cpp \
   src/font_manager.cpp \
-  src/micro_edit.cpp
+  src/micro_edit.cpp \
+  src/version.cpp
 
 LOCAL_STATIC_LIBRARIES := \
   fplbase \

@@ -119,10 +119,12 @@ set(flatui_SRCS
     include/flatui/internal/glyph_cache.h
     include/flatui/internal/flatui_util.h
     include/flatui/internal/micro_edit.h
+    include/flatui/version.h
     src/font_manager.cpp
     src/micro_edit.cpp
     src/flatui.cpp
-    src/flatui_common.cpp)
+    src/flatui_common.cpp
+    src/version.cpp)
 
 # Includes for this project.
 include_directories(src include include/flatui)
