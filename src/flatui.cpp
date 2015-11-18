@@ -135,7 +135,8 @@ class InternalState : public Group {
         gamepad_has_focus_element(false),
         gamepad_event(kEventHover),
         latest_event_(kEventNone),
-        latest_event_element_idx_(0) {
+        latest_event_element_idx_(0),
+        version_(&Version()){
     SetScale();
 
     bool flush_pointer_capture = true;
@@ -1248,6 +1249,9 @@ class InternalState : public Group {
   // Set Label's font.
   void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
 
+  // Return the version of the FlatUI Library
+  const FlatUiVersion* GetFlatUiVersion() const { return version_; }
+
  private:
   vec2i GetPointerDelta() { return input_.get_pointers()[0].mousedelta; }
 
@@ -1335,6 +1339,8 @@ class InternalState : public Group {
     // If yes, then touch/mouse, else gamepad/keyboard.
     bool is_last_event_pointer_type;
   } persistent_;
+
+  const FlatUiVersion* version_;
 
   // Disable copy constructor.
   InternalState(const InternalState &);
@@ -1495,5 +1501,9 @@ vec2 GroupPosition() {
 vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
+
+const FlatUiVersion* GetFlatUiVersion() {
+  return Gui()->GetFlatUiVersion();
+}
 
 }  // namespace flatui

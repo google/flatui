@@ -24,6 +24,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include "font_manager.h"
+#include "flatui/version.h"
 #include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
@@ -662,6 +663,9 @@ mathfu::vec2 GroupSize();
 /// event. Otherwise, it returns `false` (e.g. from a gamepad or keyboard).
 bool IsLastEventPointerType();
 /// @}
+
+// Returns the version of the FlatUI Library.
+const FlatUiVersion* GetFlatUiVersion();
 
 }  // namespace flatui
 
