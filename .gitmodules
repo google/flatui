@@ -1,0 +1,36 @@
+[submodule "dependencies/flatbuffers"]
+	path = dependencies/flatbuffers
+	url = http://github.com/google/flatbuffers.git
+[submodule "dependencies/harfbuzz"]
+	path = dependencies/harfbuzz
+	url = http://github.com/behdad/harfbuzz.git
+[submodule "dependencies/mathfu"]
+	path = dependencies/mathfu
+	url = http://github.com/google/mathfu.git
+[submodule "dependencies/cardboard-java"]
+	path = dependencies/cardboard-java
+	url = https://github.com/googlesamples/cardboard-java
+[submodule "dependencies/vectorial"]
+	path = dependencies/vectorial
+	url = http://github.com/scoopr/vectorial.git
+[submodule "dependencies/sdl"]
+	path = dependencies/sdl
+	url = http://github.com/google/fplbase.git
+[submodule "dependencies/webp"]
+	path = dependencies/webp
+	url = https://chromium.googlesource.com/webm/libwebp
+[submodule "dependencies/freetype"]
+	path = dependencies/freetype
+	url = git://git.sv.nongnu.org/freetype/freetype2.git
+[submodule "dependencies/fplbase"]
+	path = dependencies/fplbase
+	url = http://github.com/google/fplbase.git
+[submodule "dependencies/libunibreak"]
+	path = dependencies/libunibreak
+	url = https://github.com/adah1972/libunibreak.git
+[submodule "dependencies/fplutil"]
+	path = dependencies/fplutil
+	url = http://github.com/google/fplutil.git
+[submodule "dependencies/googletest"]
+	path = dependencies/googletest
+	url = http://github.com/google/fplutil.git
