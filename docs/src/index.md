@@ -4,9 +4,9 @@ FlatUI    {#flatui_index}
 # Overview    {#flatui_overview}
 
 [FlatUI][] is an *immediate mode* C++ GUI library that aims to be a simple,
-efficient and easy to use way to add menus,
-[HUDs][] and any kind of other UI
-to your game or graphical application.
+efficient and easy to use way to add menus, [HUDs][] and any kind of other UI
+to your game or graphical application. It also offers unicode & i18n aware
+font-rendering.
 
 [FlatUI] is available as open source from
 [GitHub](http://github.com/google/flatui) under the Apache license, v2
@@ -40,6 +40,8 @@ to your game or graphical application.
      to make your own with specialized rendering. No complicated templating /
      skinning required.
    * **Designed for games** - supports typical game use cases.
+   * **Unicode and i18n aware** - text rendering that builds on HardBuzz and
+     libunibreak.
 
 # Supported Platforms and Dependencies.
 
