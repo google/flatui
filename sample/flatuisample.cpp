@@ -18,6 +18,7 @@
 #include "flatui/flatui.h"
 #include <cassert>
 
+using flatui::Run;
 using flatui::EndGroup;
 using flatui::Image;
 using flatui::Label;

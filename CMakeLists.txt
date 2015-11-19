@@ -195,6 +195,12 @@ add_custom_command(TARGET ${target} POST_BUILD
                        ${dependencies_flatui_dir}/${folder_name}/assets)
 endfunction()
 
+if(MSVC)
+  # TODO: remove this. SDL sets this, but for some reason
+  # link_directories doesn't perculate up to parents.
+  link_directories($ENV{DXSDK_DIR}\\lib\\x86)
+endif()
+
 # Tests.
 if(flatui_build_tests)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)

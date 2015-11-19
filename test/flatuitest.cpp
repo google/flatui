@@ -19,6 +19,11 @@
 #include "flatui/flatui_common.h"
 #include <cassert>
 
+using flatui::Run;
+using flatui::ImageButton;
+using flatui::CheckBox;
+using flatui::TextButton;
+using flatui::SetMargin;
 using flatui::ColorBackground;
 using flatui::Edit;
 using flatui::EndGroup;
