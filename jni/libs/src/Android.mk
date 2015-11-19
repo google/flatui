@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOCAL_PATH:=$(realpath $(call my-dir)/../../..)
+LOCAL_PATH:=$(call my-dir)/../../..
 
 # Project directory relative to this file.
 FLATUI_DIR:=$(LOCAL_PATH)
 include $(FLATUI_DIR)/jni/android_config.mk
 include $(DEPENDENCIES_FLATBUFFERS_DIR)/android/jni/include.mk
+
+# realpath-portable from android_config.mk
+LOCAL_PATH:=$(call realpath-portable,$(LOCAL_PATH))
+FLATUI_DIR:=$(LOCAL_PATH)
 
 include $(CLEAR_VARS)
 

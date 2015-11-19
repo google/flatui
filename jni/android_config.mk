@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: Remove when the LOCAL_PATH expansion bug in the NDK is fixed.
+# Portable version of $(realpath) that omits drive letters on Windows.
+realpath-portable = $(join $(filter %:,$(subst :,: ,$1)),\
+                      $(realpath $(filter-out %:,$(subst :,: ,$1))))
+
 # Locations of 3rd party and FPL libraries.
 FPL_ROOT:=$(FLATUI_DIR)/../../libs
 # If the dependencies directory exists either as a subdirectory or as the
