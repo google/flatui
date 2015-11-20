@@ -95,6 +95,5 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     });
   }
 
-  renderer.ShutDown();
   return 0;
 }

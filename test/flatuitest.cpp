@@ -169,8 +169,5 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     });
   }
 
-  // Shut down the renderer.
-  renderer.ShutDown();
-
   return 0;
 }
