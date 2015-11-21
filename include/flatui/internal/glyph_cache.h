@@ -415,10 +415,10 @@ class GlyphCache {
       CopyImage(pos, image, it_entry->second.get());
 
       // Update UV of the entry.
-      mathfu::vec4 p(
+      mathfu::vec4 uv(
           mathfu::vec2(pos) / mathfu::vec2(size_),
           mathfu::vec2(pos + entry.get_size()) / mathfu::vec2(size_));
-      ret->set_uv(p);
+      ret->set_uv(uv);
 
       // Establish links.
       ret->it_row = it_row;
