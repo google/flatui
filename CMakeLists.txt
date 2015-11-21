@@ -161,7 +161,7 @@ endif()
 set(C_FLAGS_WARNINGS "")
 if(MSVC)
   # warning C4503: decorated name length exceeded, name was truncated
-  set(C_FLAGS_WARNINGS "/W4 /WX /wd4065 /wd4355 /wd4503")
+  set(C_FLAGS_WARNINGS "/W4 /WX /wd4065 /wd4355 /wd4503 /wd4316")
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR
        CMAKE_COMPILER_IS_CLANGXX)
   add_definitions(-g)
