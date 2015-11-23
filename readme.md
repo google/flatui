@@ -1,4 +1,5 @@
-FlatUI Version 0.9.0
+FlatUI Version 0.9.0    {#flatui_readme}
+====================
 
 # Welcome to FlatUI!
 
@@ -18,6 +19,13 @@ Discuss FlatUI with other developers and users on the
 [FlatUI Google Group][]. File issues on the [FlatUI Issues Tracker][]
 or post your questions to [stackoverflow.com][] with a mention of
 **flatui**.
+
+**Important**: FlatUI uses submodules to reference other components it depends
+upon so download the source using:
+
+~~~{.sh}
+   git clone --recursive https://github.com/google/flatui.git
+~~~
 
 For applications on Google Play that integrate this tool, usage is tracked.
 This tracking is done automatically using the embedded version string
