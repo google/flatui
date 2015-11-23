@@ -508,6 +508,7 @@ class InternalState : public Group {
       if (show_caret) {
         // Render caret.
         const float kCaretPositionSizeFactor = 0.8f;
+        const float kCaretWidth = 2.0f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
 
@@ -520,7 +521,8 @@ class InternalState : public Group {
           // Caret Y position is at the base line, add some offset.
           caret_pos.y() -= static_cast<int>(caret_size);
 
-          RenderCaret(caret_pos, vec2i(1, size.y()));
+          auto caret_size = VirtualToPhysical(vec2(kCaretWidth, ysize));
+          RenderCaret(caret_pos, caret_size);
         }
 
         // Handle text input events only after the rendering for the pass is
@@ -945,6 +947,8 @@ class InternalState : public Group {
   void CaptureInput(HashedId hash, bool control_text_input) {
     persistent_.input_capture_ = hash;
     if (!EqualId(hash, kNullHash)) {
+      persistent_.input_focus_ = hash;
+
       if (control_text_input) {
         // Start recording input events.
         if (!input_.IsRecordingTextInput()) {
@@ -1136,10 +1140,11 @@ class InternalState : public Group {
   }
 
   void CheckGamePadFocus() {
-    if (!gamepad_has_focus_element)
+    if (!gamepad_has_focus_element && persistent_.input_capture_ == kNullHash) {
       // This may happen when a GUI first appears or when elements get removed.
       // TODO: only do this when there's an actual gamepad connected.
       persistent_.input_focus_ = NextInteractiveElement(-1, 1);
+    }
   }
 
   void CheckGamePadNavigation() {
