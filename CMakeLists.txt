@@ -18,7 +18,7 @@ project(flatui)
 # Compile the game with the debug flag
 set(flatui_DEBUG ON)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
@@ -27,15 +27,15 @@ set(tmp_dir ${CMAKE_CURRENT_BINARY_DIR}/obj)
 
 # Directory which contains the source for 3rd party libraries.
 get_filename_component(
-    third_party_root "${CMAKE_SOURCE_DIR}/../../../../external" REALPATH)
+    third_party_root "${CMAKE_CURRENT_LIST_DIR}/../../../../external" REALPATH)
 
 # Directory which contains source for FPL libraries.
 get_filename_component(
-    fpl_root "${CMAKE_SOURCE_DIR}/../../libs" REALPATH)
+    fpl_root "${CMAKE_CURRENT_LIST_DIR}/../../libs" REALPATH)
 
 # If the dependencies directory exists, assume this is the root directory for
 # all libraries required by this project.
-set(dependencies_root "${CMAKE_SOURCE_DIR}/dependencies" CACHE PATH
+set(dependencies_root "${CMAKE_CURRENT_LIST_DIR}/dependencies" CACHE PATH
     "Root directory for dependencies")
 if(EXISTS "${dependencies_root}")
   set(third_party_root "${dependencies_root}")
@@ -43,7 +43,7 @@ if(EXISTS "${dependencies_root}")
 endif()
 
 # Configurable locations of dependencies of this project.
-set(dependencies_flatui_dir "${CMAKE_CURRENT_SOURCE_DIR}"
+set(dependencies_flatui_dir "${CMAKE_CURRENT_LIST_DIR}"
     CACHE PATH "Directory containing the FlatUI library.")
 set(dependencies_mathfu_dir "${fpl_root}/mathfu"
     CACHE PATH "Directory containing the MathFu library.")
@@ -65,9 +65,7 @@ set(dependencies_sdl_dir "${third_party_root}/sdl"
     CACHE PATH "Directory containing the SDL library.")
 
 set(flatui_standalone_mode OFF)
-message(STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR})
-message(STATUS "CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR})
-if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+if("${CMAKE_CURRENT_LIST_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
   set(flatui_standalone_mode ON)
   message(STATUS "FlatUI standalone: building tests and sample")
 else()
@@ -203,10 +201,10 @@ endif()
 
 # Tests.
 if(flatui_build_tests)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/test)
 endif()
 
 # Samples.
 if(flatui_build_samples)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sample)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sample)
 endif()
