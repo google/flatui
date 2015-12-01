@@ -13,10 +13,10 @@
 // limitations under the License.
 
 #include <cstring>
-#include "fplbase/utilities.h"
 #include "flatui/flatui.h"
 #include "flatui/internal/flatui_util.h"
 #include "flatui/internal/micro_edit.h"
+#include "fplbase/utilities.h"
 
 using fplbase::Button;
 using fplbase::InputSystem;
@@ -136,7 +136,7 @@ class InternalState : public Group {
         gamepad_event(kEventHover),
         latest_event_(kEventNone),
         latest_event_element_idx_(0),
-        version_(&Version()){
+        version_(&Version()) {
     SetScale();
 
     bool flush_pointer_capture = true;
@@ -253,9 +253,7 @@ class InternalState : public Group {
     }
   }
 
-  vec2 GetVirtualResolution() {
-    return vec2(canvas_size_) / pixel_scale_;
-  }
+  vec2 GetVirtualResolution() { return vec2(canvas_size_) / pixel_scale_; }
 
   // Determines placement for the UI as a whole inside the available space
   // (screen).
@@ -508,6 +506,7 @@ class InternalState : public Group {
       if (show_caret) {
         // Render caret.
         const float kCaretPositionSizeFactor = 0.8f;
+        const float kCaretWidth = 2.0f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
 
@@ -520,7 +519,8 @@ class InternalState : public Group {
           // Caret Y position is at the base line, add some offset.
           caret_pos.y() -= static_cast<int>(caret_size);
 
-          RenderCaret(caret_pos, vec2i(1, size.y()));
+          auto caret_size = VirtualToPhysical(vec2(kCaretWidth, ysize));
+          RenderCaret(caret_pos, caret_size);
         }
 
         // Handle text input events only after the rendering for the pass is
@@ -629,8 +629,8 @@ class InternalState : public Group {
                                         static_cast<float>(pos.y()), 0.0f));
         }
 
-        const fplbase::Attribute kFormat[] = {fplbase::kPosition3f,
-          fplbase::kTexCoord2f, fplbase::kEND};
+        const fplbase::Attribute kFormat[] = {
+            fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
         Mesh::RenderArray(
             Mesh::kTriangles, buffer.get_indices()->size(), kFormat,
             sizeof(FontVertex),
@@ -820,8 +820,8 @@ class InternalState : public Group {
         if (IsInputCaptured(element.hash)) {
           // Gamepad navigation.
           pointer_delta = GetNavigationDirection2D();
-          pointer_delta *= vec2i(vec2(element.extra_size) *
-                                 scroll_speed_gamepad_);
+          pointer_delta *=
+              vec2i(vec2(element.extra_size) * scroll_speed_gamepad_);
           scroll_speed = 1;
         }
       }
@@ -885,12 +885,12 @@ class InternalState : public Group {
             case kDirHorizontal:
               *value = static_cast<float>(GetPointerPosition().x() -
                                           position_.x() - scroll_margin) /
-              static_cast<float>(size_.x() - scroll_margin * 2.0f);
+                       static_cast<float>(size_.x() - scroll_margin * 2.0f);
               break;
             case kDirVertical:
               *value = static_cast<float>(GetPointerPosition().y() -
                                           position_.y() - scroll_margin) /
-              static_cast<float>(size_.y() - scroll_margin * 2.0f);
+                       static_cast<float>(size_.y() - scroll_margin * 2.0f);
               break;
             default:
               assert(0);
@@ -945,6 +945,8 @@ class InternalState : public Group {
   void CaptureInput(HashedId hash, bool control_text_input) {
     persistent_.input_capture_ = hash;
     if (!EqualId(hash, kNullHash)) {
+      persistent_.input_focus_ = hash;
+
       if (control_text_input) {
         // Start recording input events.
         if (!input_.IsRecordingTextInput()) {
@@ -1006,8 +1008,7 @@ class InternalState : public Group {
   }
 
   Event CheckEvent(bool check_dragevent_only) {
-    if (latest_event_element_idx_ == element_idx_)
-      return latest_event_;
+    if (latest_event_element_idx_ == element_idx_) return latest_event_;
 
     auto &element = elements_[element_idx_];
     if (layout_pass_) {
@@ -1136,15 +1137,21 @@ class InternalState : public Group {
   }
 
   void CheckGamePadFocus() {
-    if (!gamepad_has_focus_element)
+    if (!gamepad_has_focus_element && persistent_.input_capture_ == kNullHash) {
       // This may happen when a GUI first appears or when elements get removed.
       // TODO: only do this when there's an actual gamepad connected.
       persistent_.input_focus_ = NextInteractiveElement(-1, 1);
+    }
   }
 
   void CheckGamePadNavigation() {
     // Update state.
     int dir = GetNavigationDirection();
+
+    // If "back" is pressed, clear the current focus.
+    if (BackPressed()) {
+      CaptureInput(kNullHash, true);
+    }
 
     // Gamepad/keyboard navigation only happens when the keyboard is not
     // captured.
@@ -1164,9 +1171,24 @@ class InternalState : public Group {
     }
   }
 
+  // Returns true if the "back" (leave this level of focus) button is pressed.
+  bool BackPressed() {
+    bool back_pressed = false;
+#ifdef ANDROID_GAMEPAD
+    auto &gamepads = input_.GamepadMap();
+    for (auto &gamepad : gamepads) {
+      back_pressed |=
+          gamepad.second.GetButton(fplbase::Gamepad::kButtonBack).is_down();
+    }
+#endif  // ANDROID_GAMEPAD
+    // Map escape to back by default.
+    back_pressed |= input_.GetButton(fplbase::FPLK_ESCAPE).is_down();
+    return back_pressed;
+  }
+
   vec2i GetNavigationDirection2D() {
     vec2i dir = mathfu::kZeros2i;
-    // FIXME: this should work on other platforms too.
+// FIXME: this should work on other platforms too.
 #ifdef ANDROID_GAMEPAD
     auto &gamepads = input_.GamepadMap();
     for (auto &gamepad : gamepads) {
@@ -1190,13 +1212,12 @@ class InternalState : public Group {
 
   int GetNavigationDirection() {
     auto dir = GetNavigationDirection2D();
-    if (dir.y())
-      return dir.y();
+    if (dir.y()) return dir.y();
     return dir.x();
   }
 
   vec2i CheckButtons(const Button &left, const Button &right, const Button &up,
-                   const Button &down, const Button &action) {
+                     const Button &down, const Button &action) {
     vec2i dir = mathfu::kZeros2i;
     if (left.went_up()) dir.x() = -1;
     if (right.went_up()) dir.x() = 1;
@@ -1250,7 +1271,7 @@ class InternalState : public Group {
   void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
 
   // Return the version of the FlatUI Library
-  const FlatUiVersion* GetFlatUiVersion() const { return version_; }
+  const FlatUiVersion *GetFlatUiVersion() const { return version_; }
 
  private:
   vec2i GetPointerDelta() { return input_.get_pointers()[0].mousedelta; }
@@ -1340,7 +1361,7 @@ class InternalState : public Group {
     bool is_last_event_pointer_type;
   } persistent_;
 
-  const FlatUiVersion* version_;
+  const FlatUiVersion *version_;
 
   // Disable copy constructor.
   InternalState(const InternalState &);
@@ -1455,10 +1476,7 @@ void SetVirtualResolution(float virtual_resolution) {
   Gui()->SetVirtualResolution(virtual_resolution);
 }
 
-vec2 GetVirtualResolution() {
-  return Gui()->GetVirtualResolution();
-}
-
+vec2 GetVirtualResolution() { return Gui()->GetVirtualResolution(); }
 
 void PositionGroup(Alignment horizontal, Alignment vertical,
                    const vec2 &offset) {
@@ -1502,8 +1520,6 @@ vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
 
-const FlatUiVersion* GetFlatUiVersion() {
-  return Gui()->GetFlatUiVersion();
-}
+const FlatUiVersion *GetFlatUiVersion() { return Gui()->GetFlatUiVersion(); }
 
 }  // namespace flatui

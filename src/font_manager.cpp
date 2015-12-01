@@ -379,9 +379,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         auto scaled_size = cache->get_size().x() * scale;
         float scaled_base_line = base_line * scale;
         // Add caret points
-        for (auto i = 0; i < carets; ++i) {
+        for (auto idx = 0; idx < carets; ++idx) {
           buffer->AddCaretPosition(
-              rounded_pos.x() + scaled_offset + i * scaled_size / carets,
+              rounded_pos.x() + scaled_offset + idx * scaled_size / carets,
               rounded_pos.y() + scaled_base_line);
         }
       }
@@ -392,7 +392,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       // Advance positions.
       pos += mathfu::vec2(static_cast<float>(glyph_pos[i].x_advance),
                           static_cast<float>(-glyph_pos[i].y_advance)) *
-             scale / kFreeTypeUnit;
+             scale / static_cast<float>(kFreeTypeUnit);
     }
 
     // Update total number of glyphs.
@@ -591,7 +591,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
     // Advance positions.
     pos += mathfu::vec2(static_cast<float>(glyph_pos[i].x_advance),
                         static_cast<float>(-glyph_pos[i].y_advance)) /
-           kFreeTypeUnit;
+           static_cast<float>(kFreeTypeUnit);
   }
 
   // Create new texture.
@@ -856,8 +856,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
     entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
     entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
 
-    GlyphKey key(current_face_->font_id_, entry.get_code_point(), ysize);
-    cache = glyph_cache_->Set(g->bitmap.buffer, key, entry);
+    GlyphKey new_key(current_face_->font_id_, entry.get_code_point(), ysize);
+    cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
 
     if (cache == nullptr) {
       // Glyph cache need to be flushed.

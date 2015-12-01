@@ -49,6 +49,7 @@
         <tab type="globals" visible="yes" title="" intro=""/>
       </tab>
     </tab>
+    <tab type="user" url="@ref flatui_readme" title="Readme"/>
     <tab type="user" url="@ref contributing" title="Contributing"/>
   </navindex>
 
