@@ -191,7 +191,7 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
   atlas_texture_.get()->Set(0);
 }
 
-FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
+FontBuffer *FontManager::GetBuffer(const char *text, const size_t length,
                                    const FontBufferParameters &parameter) {
   auto buffer = CreateBuffer(text, length, parameter);
   if (buffer == nullptr) {
