@@ -24,6 +24,85 @@
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 <link href="style.css" rel="stylesheet" type="text/css"/>
+<script>
+  /**
+   * Check if the browser rendering this page is being run on an Android device.
+   * It checks if the string 'android' is found in the browser's `userAgent`.
+   * @return {boolean} This returns `true` if the browser's `userAgent` contains
+   * the string 'android' (indicating that the browser is on an Android device).
+   * Otherwise, it returns `false`.
+   */
+  function isAndroidDevice() {
+    if (navigator && navigator.userAgent) {
+      return navigator.userAgent.toLowerCase().indexOf('android') != -1;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Check if an HTML `class` attribute is in the browser-specific format.
+   * @param {string} An HTML `class` attribute in the format 'browser-{device}'.
+   * @return {boolean} Returns `true` if `browserClass` was in the valid format,
+   * prefixed with 'browser-'. Otherwise, it returns false.
+   */
+  function isBrowserSpecificClassName(browserClass) {
+    if (browserClass && browserClass.substring(0, 8) == 'browser-' &&
+        browserClass.length > 8) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Get all the HTML Elements with browser-specific `class` attributes.
+   * @return {array} Returns an array of all the HTML Elements with a `class`
+   * attribute that is prefixed with `browser-`.
+   */
+  function getAllBrowserSpecificElements() {
+    if (document) {
+      var htmlElements = document.getElementsByTagName("*");
+      var browserSpecificElements = [];
+      for (var i = 0; i < htmlElements.length; i++) {
+        if (isBrowserSpecificClassName(htmlElements[i].className)) {
+          browserSpecificElements.push(htmlElements[i]);
+        }
+      }
+      return browserSpecificElements;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Given a browser-specific HTML `class` attribute, extract the device name.
+   * @param {string} browserClass The string name of an HTML `class` attribute,
+   * in the format `browser-{device}`.
+   * @return {string} Returns a string containing only the device portion of
+   * the class name. If the input was invalid, then it returns `null`.
+   */
+  function extractDeviceFromBrowserClass(browserClass) {
+    if (isBrowserSpecificClassName(browserClass)) {
+      return browserClass.substring(8);
+    }
+    else {
+      return null;
+    }
+  }
+  /**
+   * Hide device specific elements that do not apply to the current device.
+   */
+  function handleDeviceSpecificLoading() {
+    var browserSpecificElements = getAllBrowserSpecificElements();
+    for (var i = 0; i < browserSpecificElements.length; i++) {
+      var device = extractDeviceFromBrowserClass(browserSpecificElements[i].className);
+      if (device && !isAndroidDevice() && device == 'android') {
+        browserSpecificElements[i].innerHTML = '';
+      } else if(device && isAndroidDevice() && device == 'desktop') {
+        browserSpecificElements[i].innerHTML = '';
+      }
+    }
+  }
+  $(document).ready(handleDeviceSpecificLoading);
+</script>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -56,6 +135,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="usergroup0.html"><span>Programmer's&#160;Guide</span></a></li>
       <li class="current"><a href="flatui_api_reference.html"><span>API&#160;reference</span></a></li>
+      <li><a href="flatui_readme.html"><span>Readme</span></a></li>
       <li><a href="contributing.html"><span>Contributing</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -377,7 +457,7 @@ $(document).ready(function(){initNavTree('font__manager_8h_source.html','');});
 <div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;<span class="comment">  /// @return Returns `nullptr` if the string does not fit in the glyph cache.</span></div>
 <div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;<span class="comment">  ///  When this happens, caller may flush the glyph cache with</span></div>
 <div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;<span class="comment">  /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.</span></div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment"></span>  <a class="code" href="classflatui_1_1_font_buffer.html">FontBuffer</a> *<a class="code" href="classflatui_1_1_font_manager.html#aaff79ea52a46a4280495f35cac535ea7">GetBuffer</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *text, <span class="keyword">const</span> uint32_t length,</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment"></span>  <a class="code" href="classflatui_1_1_font_buffer.html">FontBuffer</a> *<a class="code" href="classflatui_1_1_font_manager.html#a2951b88e63131015a293ad14bc3fb499">GetBuffer</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *text, <span class="keyword">const</span> <span class="keywordtype">size_t</span> length,</div>
 <div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;                        <span class="keyword">const</span> <a class="code" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a> &amp;parameters);</div>
 <div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="comment">  /// @brief Set the renderer to be used to create texture instances.</span></div>
@@ -1009,7 +1089,6 @@ $(document).ready(function(){initNavTree('font__manager_8h_source.html','');});
 <div class="line"><a name="l00886"></a><span class="lineno">  886</span>&#160;<span class="preprocessor">#endif  // FONT_MANAGER_H</span></div>
 <div class="ttc" id="classflatui_1_1_font_buffer_html_abe2f01aa6f5e547f1d1baf549ee3b72a"><div class="ttname"><a href="classflatui_1_1_font_buffer.html#abe2f01aa6f5e547f1d1baf549ee3b72a">flatui::FontBuffer::AddCaretPosition</a></div><div class="ttdeci">void AddCaretPosition(float x, float y)</div><div class="ttdoc">Add the given caret position to the buffer. </div></div>
 <div class="ttc" id="group__flatui__font__manager_html_gad729960a0369eddb7cebac775a32af27"><div class="ttname"><a href="group__flatui__font__manager.html#gad729960a0369eddb7cebac775a32af27">flatui::kCaretPositionInvalid</a></div><div class="ttdeci">const mathfu::vec2i kCaretPositionInvalid</div><div class="ttdoc">A sentinel value representing an invalid caret position. </div><div class="ttdef"><b>Definition:</b> font_manager.h:83</div></div>
-<div class="ttc" id="classflatui_1_1_font_manager_html_aaff79ea52a46a4280495f35cac535ea7"><div class="ttname"><a href="classflatui_1_1_font_manager.html#aaff79ea52a46a4280495f35cac535ea7">flatui::FontManager::GetBuffer</a></div><div class="ttdeci">FontBuffer * GetBuffer(const char *text, const uint32_t length, const FontBufferParameters &amp;parameters)</div><div class="ttdoc">Retrieve a vertex buffer for a font rendering using glyph cache. </div></div>
 <div class="ttc" id="classflatui_1_1_font_buffer_html_acdf2bff3e53434e116470e2e3e70d0b2"><div class="ttname"><a href="classflatui_1_1_font_buffer.html#acdf2bff3e53434e116470e2e3e70d0b2">flatui::FontBuffer::Verify</a></div><div class="ttdeci">bool Verify()</div><div class="ttdoc">Verifies that the sizes of the arrays used in the buffer are correct. </div><div class="ttdef"><b>Definition:</b> font_manager.h:778</div></div>
 <div class="ttc" id="classflatui_1_1_font_buffer_parameters_html_ab34cf9663f21fbd3e2051fe291f30e91"><div class="ttname"><a href="classflatui_1_1_font_buffer_parameters.html#ab34cf9663f21fbd3e2051fe291f30e91">flatui::FontBufferParameters::FontBufferParameters</a></div><div class="ttdeci">FontBufferParameters(const HashedId font_id, const HashedId text_id, float font_size, const mathfu::vec2i &amp;size, bool caret_info)</div><div class="ttdoc">Constructor for a FontBufferParameters. </div><div class="ttdef"><b>Definition:</b> font_manager.h:112</div></div>
 <div class="ttc" id="group__flatui__font__manager_html_ga6adc9ca92e9e790a495a5608c4f8bda4"><div class="ttname"><a href="group__flatui__font__manager.html#ga6adc9ca92e9e790a495a5608c4f8bda4">flatui::kGlyphCacheWidth</a></div><div class="ttdeci">const int32_t kGlyphCacheWidth</div><div class="ttdoc">The Default size of the glyph cache width. </div><div class="ttdef"><b>Definition:</b> font_manager.h:65</div></div>
@@ -1097,6 +1176,7 @@ $(document).ready(function(){initNavTree('font__manager_8h_source.html','');});
 <div class="ttc" id="classflatui_1_1_font_metrics_html_ac807bc12846c23c0fc393353bcfaeeda"><div class="ttname"><a href="classflatui_1_1_font_metrics.html#ac807bc12846c23c0fc393353bcfaeeda">flatui::FontMetrics::total</a></div><div class="ttdeci">int32_t total() const </div><div class="ttdef"><b>Definition:</b> font_manager.h:556</div></div>
 <div class="ttc" id="classflatui_1_1_font_metrics_html_af6532bbffee632a57e3973b838ef00f9"><div class="ttname"><a href="classflatui_1_1_font_metrics.html#af6532bbffee632a57e3973b838ef00f9">flatui::FontMetrics::set_descender</a></div><div class="ttdeci">void set_descender(const int32_t descender)</div><div class="ttdoc">Set the descender value. </div><div class="ttdef"><b>Definition:</b> font_manager.h:538</div></div>
 <div class="ttc" id="classflatui_1_1_font_buffer_html_ac7a2ba236a66d613f6cc7f0fa99924b5"><div class="ttname"><a href="classflatui_1_1_font_buffer.html#ac7a2ba236a66d613f6cc7f0fa99924b5">flatui::FontBuffer::get_revision</a></div><div class="ttdeci">uint32_t get_revision() const </div><div class="ttdef"><b>Definition:</b> font_manager.h:720</div></div>
+<div class="ttc" id="classflatui_1_1_font_manager_html_a2951b88e63131015a293ad14bc3fb499"><div class="ttname"><a href="classflatui_1_1_font_manager.html#a2951b88e63131015a293ad14bc3fb499">flatui::FontManager::GetBuffer</a></div><div class="ttdeci">FontBuffer * GetBuffer(const char *text, const size_t length, const FontBufferParameters &amp;parameters)</div><div class="ttdoc">Retrieve a vertex buffer for a font rendering using glyph cache. </div></div>
 <div class="ttc" id="classflatui_1_1_font_buffer_html_a9384ae4696cc896a4d3f17798ddea5d5"><div class="ttname"><a href="classflatui_1_1_font_buffer.html#a9384ae4696cc896a4d3f17798ddea5d5">flatui::FontBuffer::kIndiciesPerCodePoint</a></div><div class="ttdeci">static const int32_t kIndiciesPerCodePoint</div><div class="ttdoc">The number of indices per code point. </div><div class="ttdef"><b>Definition:</b> font_manager.h:643</div></div>
 <div class="ttc" id="classflatui_1_1_font_manager_html_a89ea325d3f596eaf835c329cff95f62f"><div class="ttname"><a href="classflatui_1_1_font_manager.html#a89ea325d3f596eaf835c329cff95f62f">flatui::FontManager::FontManager</a></div><div class="ttdeci">FontManager()</div><div class="ttdoc">The default constructor for FontManager. </div></div>
 </div><!-- fragment --></div><!-- contents -->

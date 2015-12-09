@@ -8,7 +8,7 @@ var classflatui_1_1_font_manager =
     [ "FlushLayout", "classflatui_1_1_font_manager.html#a98f4b613205bdf288782980d694ac076", null ],
     [ "FontLoaded", "classflatui_1_1_font_manager.html#aa10c892f33183e25f7c60ea2b144cf10", null ],
     [ "GetAtlasTexture", "classflatui_1_1_font_manager.html#a21c3508d5dc2376270f25f6401ae8e73", null ],
-    [ "GetBuffer", "classflatui_1_1_font_manager.html#aaff79ea52a46a4280495f35cac535ea7", null ],
+    [ "GetBuffer", "classflatui_1_1_font_manager.html#a2951b88e63131015a293ad14bc3fb499", null ],
     [ "GetCurrentFace", "classflatui_1_1_font_manager.html#a377b34aab888b67d7db38a958a06a18e", null ],
     [ "GetLanguage", "classflatui_1_1_font_manager.html#a09edc1dadbb56e70636826e411c2664a", null ],
     [ "GetTexture", "classflatui_1_1_font_manager.html#a47026365b261a09f86746a3fe669a465", null ],

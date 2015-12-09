@@ -24,6 +24,85 @@
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
 <link href="style.css" rel="stylesheet" type="text/css"/>
+<script>
+  /**
+   * Check if the browser rendering this page is being run on an Android device.
+   * It checks if the string 'android' is found in the browser's `userAgent`.
+   * @return {boolean} This returns `true` if the browser's `userAgent` contains
+   * the string 'android' (indicating that the browser is on an Android device).
+   * Otherwise, it returns `false`.
+   */
+  function isAndroidDevice() {
+    if (navigator && navigator.userAgent) {
+      return navigator.userAgent.toLowerCase().indexOf('android') != -1;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Check if an HTML `class` attribute is in the browser-specific format.
+   * @param {string} An HTML `class` attribute in the format 'browser-{device}'.
+   * @return {boolean} Returns `true` if `browserClass` was in the valid format,
+   * prefixed with 'browser-'. Otherwise, it returns false.
+   */
+  function isBrowserSpecificClassName(browserClass) {
+    if (browserClass && browserClass.substring(0, 8) == 'browser-' &&
+        browserClass.length > 8) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Get all the HTML Elements with browser-specific `class` attributes.
+   * @return {array} Returns an array of all the HTML Elements with a `class`
+   * attribute that is prefixed with `browser-`.
+   */
+  function getAllBrowserSpecificElements() {
+    if (document) {
+      var htmlElements = document.getElementsByTagName("*");
+      var browserSpecificElements = [];
+      for (var i = 0; i < htmlElements.length; i++) {
+        if (isBrowserSpecificClassName(htmlElements[i].className)) {
+          browserSpecificElements.push(htmlElements[i]);
+        }
+      }
+      return browserSpecificElements;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Given a browser-specific HTML `class` attribute, extract the device name.
+   * @param {string} browserClass The string name of an HTML `class` attribute,
+   * in the format `browser-{device}`.
+   * @return {string} Returns a string containing only the device portion of
+   * the class name. If the input was invalid, then it returns `null`.
+   */
+  function extractDeviceFromBrowserClass(browserClass) {
+    if (isBrowserSpecificClassName(browserClass)) {
+      return browserClass.substring(8);
+    }
+    else {
+      return null;
+    }
+  }
+  /**
+   * Hide device specific elements that do not apply to the current device.
+   */
+  function handleDeviceSpecificLoading() {
+    var browserSpecificElements = getAllBrowserSpecificElements();
+    for (var i = 0; i < browserSpecificElements.length; i++) {
+      var device = extractDeviceFromBrowserClass(browserSpecificElements[i].className);
+      if (device && !isAndroidDevice() && device == 'android') {
+        browserSpecificElements[i].innerHTML = '';
+      } else if(device && isAndroidDevice() && device == 'desktop') {
+        browserSpecificElements[i].innerHTML = '';
+      }
+    }
+  }
+  $(document).ready(handleDeviceSpecificLoading);
+</script>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -56,6 +135,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="usergroup0.html"><span>Programmer's&#160;Guide</span></a></li>
       <li class="current"><a href="flatui_api_reference.html"><span>API&#160;reference</span></a></li>
+      <li><a href="flatui_readme.html"><span>Readme</span></a></li>
       <li><a href="contributing.html"><span>Contributing</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -512,287 +592,291 @@ $(document).ready(function(){initNavTree('flatui_8h_source.html','');});
 <div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment">///</span></div>
 <div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="comment">/// @return Returns the Event type for the group.</span></div>
 <div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="comment"></span><a class="code" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a> <a class="code" href="group__flatui__core.html#gaef4e23e695ed812c781cfb89f2267caf">CheckEvent</a>(<span class="keywordtype">bool</span> check_dragevent_only);</div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment">// Call inside of a group that is meant to be like a popup inside of a</span></div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment">// kLayoutOverlay. It will cause all interactive elements in all groups that</span></div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment">// precede it to not respond to input.</span><span class="comment"></span></div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="comment">/// @brief Called inside of a group that that is mean to act like a popup inside</span></div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment">/// of a `kLayoutOverlay`.</span></div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment">/// It will cause all interactive elements in the groups that precede it to not</span></div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment">/// respond to input.</span></div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gac54bb93d418f9bc5cf1f8d851eb95711">ModalGroup</a>();</div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment">/// @brief Caputre a pointer event.</span></div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment">/// After an API call, the element with `element_id` will exclusively receive</span></div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment">/// pointer events until `ReleasePointer()` is called. This API is used mainly</span></div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="comment">/// for a drag operation, when an element wants to receive events continuously.</span></div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment">/// @brief Set the default keyboard/gamepad focus to the current element.</span></div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gabb730fe61aaa858a03a527bf4ad31e51">SetDefaultFocus</a>();</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment">// Call inside of a group that is meant to be like a popup inside of a</span></div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment">// kLayoutOverlay. It will cause all interactive elements in all groups that</span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment">// precede it to not respond to input.</span><span class="comment"></span></div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment">/// @brief Called inside of a group that that is mean to act like a popup inside</span></div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment">/// of a `kLayoutOverlay`.</span></div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment">/// It will cause all interactive elements in the groups that precede it to not</span></div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment">/// respond to input.</span></div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gac54bb93d418f9bc5cf1f8d851eb95711">ModalGroup</a>();</div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="comment">/// @brief Caputre a pointer event.</span></div>
 <div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;<span class="comment">/// @param[in] element_id A C-string in UTF-8 format that contains the ID of the</span></div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="comment">/// element that should capture all pointer events.</span></div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaedeb8c08925f628ef393b0588a02585c">CapturePointer</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *element_id);</div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="comment">/// @brief Release a pointer capture.</span></div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga94fa80d13891084d0141ad36be774af0">ReleasePointer</a>();</div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment">/// @brief Get the index of th ecaptured pointer.</span></div>
-<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment">/// This should be used in conjunction with `CheckEvent()` to determine whether</span></div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">/// a drag operation is in progress.</span></div>
-<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="comment">/// @return Returns the index of the pointer as a `ssize_t`. Otherwise it</span></div>
-<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="comment">/// returns `-1` if no pointer was captured.</span></div>
-<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="comment"></span>ssize_t <a class="code" href="group__flatui__core.html#gaa4eb49a1362b417704016bba77755f2a">GetCapturedPointerIndex</a>();</div>
-<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="comment">/// @brief Set the scroll speed of the drag, mouse wheel, and gamepad</span></div>
-<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;<span class="comment">/// operations.</span></div>
-<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="comment">/// The defaults are `kScrollSpeedDragDefault`, `kScrollSpeedWheelDefault`,</span></div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;<span class="comment">/// and `kScrollSpeedGamepadDefault`.</span></div>
-<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="comment">/// @param[in] scroll_speed_drag A float determining the new scroll speed</span></div>
-<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;<span class="comment">/// for dragging.</span></div>
-<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;<span class="comment">/// @param[in] scroll_speed_wheel A float determining the new scroll speed</span></div>
-<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;<span class="comment">/// for the mouse scroll wheel.</span></div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;<span class="comment">/// @param[in] scroll_speed_gamepad A float determining the new scroll speed</span></div>
-<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;<span class="comment">/// for a gamepad.</span></div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gac9686325a3e8578f0aeb16892a050943">SetScrollSpeed</a>(<span class="keywordtype">float</span> scroll_speed_drag, <span class="keywordtype">float</span> scroll_speed_wheel,</div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;                    <span class="keywordtype">float</span> scroll_speed_gamepad);</div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;<span class="comment">/// @brief Set a threshold value for the start of a drag operation.</span></div>
-<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;<span class="comment">/// The default value is `kDragStartThresholdDefault`.</span></div>
-<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;<span class="comment">/// @param[in] drag_start_threshold An int determining the new threshold</span></div>
-<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;<span class="comment">/// value for the start of a drag operation.</span></div>
-<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga4d8ceca955c4537ea1b25b3a31df1e5b">SetDragStartThreshold</a>(<span class="keywordtype">int</span> drag_start_threshold);</div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;<span class="comment">/// @brief Set the background color for the group.</span></div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;<span class="comment">/// @param[in] color A vec4 representing the background color that should be</span></div>
-<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;<span class="comment">/// set in RGBA.</span></div>
-<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga32317b63f2d5533af1d84bf44df5bd25">ColorBackground</a>(<span class="keyword">const</span> mathfu::vec4 &amp;color);</div>
-<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;<span class="comment">/// @brief Set the background texture for the group.</span></div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;<span class="comment">/// @param[in] tex The Texture to be set as the background for the group.</span></div>
-<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga0ed5faf436dfcef470c955152f88af5c">ImageBackground</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex);</div>
-<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;<span class="comment">/// @brief Set the background texture for the group with nine patch settings.</span></div>
-<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;<span class="comment">/// In the `patch_info`, the user can define nine patch settings as</span></div>
-<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;<span class="comment">/// `vec4(x0, y0, x1, y1)`, where `(x0, y0)` corresponds to the top-left</span></div>
-<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;<span class="comment">/// corner of the stretchable area in UV coordinates and `(x1, y1)` corresponds</span></div>
-<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;<span class="comment">/// to the bottom-right corner of stretchable area in UV coordinates.</span></div>
-<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;<span class="comment">/// The coordinates are in UV value in the texture (0.0 ~ 1.0).</span></div>
-<div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;<span class="comment">/// For more information for nine patch, refer</span></div>
-<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;<span class="comment">/// http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch</span></div>
-<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
-<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
-<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;<span class="comment">/// @param[in] tex The Texture of the background image that should be rendered.</span></div>
-<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;<span class="comment">/// @param[in] patch_info The nine-patch settings for the corners of the</span></div>
-<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;<span class="comment">/// stretchable area in UV coordinates.</span></div>
-<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga7d1928896f4ede6c17e4ce1793b8f38e">ImageBackgroundNinePatch</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex,</div>
-<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;                              <span class="keyword">const</span> mathfu::vec4 &amp;patch_info);</div>
-<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;<span class="comment">/// @brief Make the current group into a scrolling group that can display</span></div>
-<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;<span class="comment">/// arbitrary sized elements inside a window of &quot;size&quot;, scrolled to the current</span></div>
-<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;<span class="comment">/// &quot;offset&quot; (which the caller should store somewhere that survives the current</span></div>
-<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;<span class="comment">/// frame).</span></div>
-<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;<span class="comment">/// @param[in] size A vec2 corresponding to the size of the window that the</span></div>
-<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;<span class="comment">/// elements should be displayed in.</span></div>
-<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;<span class="comment">/// @param[out] offset A vec2 that captures the value of the current scroll</span></div>
-<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;<span class="comment">/// location.</span></div>
-<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;<span class="comment">/// @note Call `StartScroll()` right after `StartGroup()`.</span></div>
-<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gacf997589896d841abe775d5e3633b5df">StartScroll</a>(<span class="keyword">const</span> mathfu::vec2 &amp;size, mathfu::vec2 *offset);</div>
-<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;<span class="comment">/// @brief Ends the current scrolling group.</span></div>
-<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;<span class="comment">/// @note Call `EndScroll()` right before `EndGroup()`.</span></div>
-<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga097d4aeb27b8ac6211d3a5be8398fd98">EndScroll</a>();</div>
-<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;<span class="comment">/// @brief Make the current group into a slider group that can handle basic</span></div>
-<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;<span class="comment">/// slider behavior. The group will capture/release the pointer as necessary.</span></div>
-<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;<span class="comment">/// @param[in] direction Sets the horizontal or vertical scroll direction.</span></div>
-<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;<span class="comment">/// @param[in] scroll_margin Sets the margin around the scroll bar.</span></div>
-<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;<span class="comment">/// @param[out] value Captures the float output of the slider value.</span></div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="comment">/// After an API call, the element with `element_id` will exclusively receive</span></div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;<span class="comment">/// pointer events until `ReleasePointer()` is called. This API is used mainly</span></div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="comment">/// for a drag operation, when an element wants to receive events continuously.</span></div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="comment">/// @param[in] element_id A C-string in UTF-8 format that contains the ID of the</span></div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment">/// element that should capture all pointer events.</span></div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaedeb8c08925f628ef393b0588a02585c">CapturePointer</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *element_id);</div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment">/// @brief Release a pointer capture.</span></div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga94fa80d13891084d0141ad36be774af0">ReleasePointer</a>();</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;<span class="comment">/// @brief Get the index of th ecaptured pointer.</span></div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment">/// This should be used in conjunction with `CheckEvent()` to determine whether</span></div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">/// a drag operation is in progress.</span></div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="comment">/// @return Returns the index of the pointer as a `ssize_t`. Otherwise it</span></div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;<span class="comment">/// returns `-1` if no pointer was captured.</span></div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="comment"></span>ssize_t <a class="code" href="group__flatui__core.html#gaa4eb49a1362b417704016bba77755f2a">GetCapturedPointerIndex</a>();</div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;<span class="comment">/// @brief Set the scroll speed of the drag, mouse wheel, and gamepad</span></div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;<span class="comment">/// operations.</span></div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;<span class="comment">/// The defaults are `kScrollSpeedDragDefault`, `kScrollSpeedWheelDefault`,</span></div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;<span class="comment">/// and `kScrollSpeedGamepadDefault`.</span></div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;<span class="comment">/// @param[in] scroll_speed_drag A float determining the new scroll speed</span></div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;<span class="comment">/// for dragging.</span></div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;<span class="comment">/// @param[in] scroll_speed_wheel A float determining the new scroll speed</span></div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;<span class="comment">/// for the mouse scroll wheel.</span></div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;<span class="comment">/// @param[in] scroll_speed_gamepad A float determining the new scroll speed</span></div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;<span class="comment">/// for a gamepad.</span></div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gac9686325a3e8578f0aeb16892a050943">SetScrollSpeed</a>(<span class="keywordtype">float</span> scroll_speed_drag, <span class="keywordtype">float</span> scroll_speed_wheel,</div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;                    <span class="keywordtype">float</span> scroll_speed_gamepad);</div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;<span class="comment">/// @brief Set a threshold value for the start of a drag operation.</span></div>
+<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;<span class="comment">/// The default value is `kDragStartThresholdDefault`.</span></div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;<span class="comment">/// @param[in] drag_start_threshold An int determining the new threshold</span></div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;<span class="comment">/// value for the start of a drag operation.</span></div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga4d8ceca955c4537ea1b25b3a31df1e5b">SetDragStartThreshold</a>(<span class="keywordtype">int</span> drag_start_threshold);</div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;<span class="comment">/// @brief Set the background color for the group.</span></div>
+<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;<span class="comment">/// @param[in] color A vec4 representing the background color that should be</span></div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;<span class="comment">/// set in RGBA.</span></div>
+<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga32317b63f2d5533af1d84bf44df5bd25">ColorBackground</a>(<span class="keyword">const</span> mathfu::vec4 &amp;color);</div>
+<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;<span class="comment">/// @brief Set the background texture for the group.</span></div>
+<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;<span class="comment">/// @param[in] tex The Texture to be set as the background for the group.</span></div>
+<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga0ed5faf436dfcef470c955152f88af5c">ImageBackground</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex);</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;<span class="comment">/// @brief Set the background texture for the group with nine patch settings.</span></div>
+<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;<span class="comment">/// In the `patch_info`, the user can define nine patch settings as</span></div>
+<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;<span class="comment">/// `vec4(x0, y0, x1, y1)`, where `(x0, y0)` corresponds to the top-left</span></div>
+<div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160;<span class="comment">/// corner of the stretchable area in UV coordinates and `(x1, y1)` corresponds</span></div>
+<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;<span class="comment">/// to the bottom-right corner of stretchable area in UV coordinates.</span></div>
+<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;<span class="comment">/// The coordinates are in UV value in the texture (0.0 ~ 1.0).</span></div>
+<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;<span class="comment">/// For more information for nine patch, refer</span></div>
+<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;<span class="comment">/// http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch</span></div>
+<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;<span class="comment">/// @note This function is specific to a group, and should be called after</span></div>
+<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;<span class="comment">/// `StartGroup()` and before any elements.</span></div>
+<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;<span class="comment">/// @param[in] tex The Texture of the background image that should be rendered.</span></div>
+<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;<span class="comment">/// @param[in] patch_info The nine-patch settings for the corners of the</span></div>
+<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;<span class="comment">/// stretchable area in UV coordinates.</span></div>
+<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga7d1928896f4ede6c17e4ce1793b8f38e">ImageBackgroundNinePatch</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex,</div>
+<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;                              <span class="keyword">const</span> mathfu::vec4 &amp;patch_info);</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;<span class="comment">/// @brief Make the current group into a scrolling group that can display</span></div>
+<div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;<span class="comment">/// arbitrary sized elements inside a window of &quot;size&quot;, scrolled to the current</span></div>
+<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;<span class="comment">/// &quot;offset&quot; (which the caller should store somewhere that survives the current</span></div>
+<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;<span class="comment">/// frame).</span></div>
+<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;<span class="comment">/// @param[in] size A vec2 corresponding to the size of the window that the</span></div>
+<div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;<span class="comment">/// elements should be displayed in.</span></div>
+<div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;<span class="comment">/// @param[out] offset A vec2 that captures the value of the current scroll</span></div>
+<div class="line"><a name="l00516"></a><span class="lineno">  516</span>&#160;<span class="comment">/// location.</span></div>
+<div class="line"><a name="l00517"></a><span class="lineno">  517</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00518"></a><span class="lineno">  518</span>&#160;<span class="comment">/// @note Call `StartScroll()` right after `StartGroup()`.</span></div>
+<div class="line"><a name="l00519"></a><span class="lineno">  519</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gacf997589896d841abe775d5e3633b5df">StartScroll</a>(<span class="keyword">const</span> mathfu::vec2 &amp;size, mathfu::vec2 *offset);</div>
+<div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;<span class="comment">/// @brief Ends the current scrolling group.</span></div>
+<div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;<span class="comment">/// @note Call `EndScroll()` right before `EndGroup()`.</span></div>
+<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga097d4aeb27b8ac6211d3a5be8398fd98">EndScroll</a>();</div>
+<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;<span class="comment">/// @brief Make the current group into a slider group that can handle basic</span></div>
+<div class="line"><a name="l00527"></a><span class="lineno">  527</span>&#160;<span class="comment">/// slider behavior. The group will capture/release the pointer as necessary.</span></div>
 <div class="line"><a name="l00528"></a><span class="lineno">  528</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;<span class="comment">/// @note Call `StartSlider()` right after `StartGroup()`.</span></div>
-<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga981b07bc2a76cf900a026a66f46b0734">StartSlider</a>(<a class="code" href="group__flatui__core.html#ga8eb9a6b547a433f118df8578e4eacd39">Direction</a> direction, <span class="keywordtype">float</span> scroll_margin, <span class="keywordtype">float</span> *value);</div>
-<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;<span class="comment">/// @brief Ends the current slider group.</span></div>
-<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;<span class="comment">/// @note Call `EndSlider()` right before `EndGroup()`.</span></div>
-<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga18d7d69aeadc752c1db77a75b6b751f6">EndSlider</a>();</div>
-<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;<span class="comment">/// @brief Create a custom element with a given size.</span></div>
-<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;<span class="comment">/// @param[in] virtual_size The size of the element in virtual screen</span></div>
-<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;<span class="comment">/// coordinates.</span></div>
-<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;<span class="comment">/// @param[in] id A C-string in UTF-8 format corresponding to the unique</span></div>
-<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;<span class="comment">/// ID for the CustomElement.</span></div>
-<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;<span class="comment">/// @param[in] renderer The function that is invoked during the render pass</span></div>
-<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;<span class="comment">/// to render the element.</span></div>
-<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaea2bd246a5c837f67c5eebe98cebdfba">CustomElement</a>(</div>
-<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;    <span class="keyword">const</span> mathfu::vec2 &amp;virtual_size, <span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>,</div>
-<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;    <span class="keyword">const</span> std::function&lt;<span class="keywordtype">void</span>(<span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
-<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;                             <span class="keyword">const</span> mathfu::vec2i &amp;size)&gt; renderer);</div>
-<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;<span class="comment">/// @brief Render a Texture to a specific position with a given size.</span></div>
-<div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;<span class="comment">/// @note This is usually called in `CustomElement()`&#39;s callback function.</span></div>
-<div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;<span class="comment">/// @param[in] tex The Texture to render.</span></div>
-<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;<span class="comment">/// @param[in] pos The position that `tex` should be rendered at, in physical</span></div>
-<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;<span class="comment">/// screen coordinates.</span></div>
-<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;<span class="comment">/// @param[in] size The size that `tex` should be rendered at, in physical</span></div>
-<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;<span class="comment">/// screen coordinates.</span></div>
-<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga208063f472369ce0df052986ebfda7be">RenderTexture</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex, <span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
-<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;                   <span class="keyword">const</span> mathfu::vec2i &amp;size);</div>
-<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;<span class="comment">/// @brief Render a Texture to a specific position with a given size and color.</span></div>
-<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;<span class="comment">/// @note This is usually called in `CustomElement()`&#39;s callback function.</span></div>
-<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;<span class="comment">/// @param[in] tex The Texture to render.</span></div>
-<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;<span class="comment">/// @param[in] pos The position that `tex` should be rendered at, in physical</span></div>
-<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;<span class="comment">/// screen coordinates.</span></div>
-<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;<span class="comment">/// @param[in] size The size that `tex` should be rendered at, in physical</span></div>
-<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;<span class="comment">/// screen coordinates.</span></div>
-<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;<span class="comment">/// @param[in] color A vec4 representing the color of the texture that should</span></div>
-<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;<span class="comment">/// be rendered in RGBA.</span></div>
-<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga208063f472369ce0df052986ebfda7be">RenderTexture</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex, <span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
-<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;                   <span class="keyword">const</span> mathfu::vec2i &amp;size, <span class="keyword">const</span> mathfu::vec4 &amp;color);</div>
-<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;<span class="comment">/// @brief Render a nine-patch texture at a specific position with a given</span></div>
-<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="comment">/// size.</span></div>
-<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;<span class="comment">/// @note This is usually used in `CustomElement()`&#39;s callback function.</span></div>
-<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;<span class="comment">/// In the `patch_info`, the user can define nine patch settings as</span></div>
-<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;<span class="comment">/// `vec4(x0, y0, x1, y1)`, where `(x0, y0)` corresponds to the top-left</span></div>
-<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;<span class="comment">/// corner of the stretchable area in UV coordinates and `(x1, y1)` corresponds</span></div>
-<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;<span class="comment">/// to the bottom-right corner of stretchable area in UV coordinates.</span></div>
-<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;<span class="comment">/// The coordinates are in UV value in the texture (0.0 ~ 1.0).</span></div>
-<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;<span class="comment">/// For more information for nine patch, refer</span></div>
-<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;<span class="comment">/// http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch</span></div>
-<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;<span class="comment">/// @param[in] tex The Texture to render.</span></div>
-<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;<span class="comment">/// @param[in] patch_info The nine-patch settings for the corners of the</span></div>
-<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;<span class="comment">/// stretchable area in UV coordinates.</span></div>
-<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;<span class="comment">/// @param[in] pos The position that `tex` should be rendered at, in physical</span></div>
-<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;<span class="comment">/// screen coordinates.</span></div>
-<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;<span class="comment">/// @param[in] size The size that `tex` should be rendered at, in physical</span></div>
-<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;<span class="comment">/// screen coordinates.</span></div>
-<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaafe9b1ae58bc55517f1b27840893f845">RenderTextureNinePatch</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex,</div>
-<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;                            <span class="keyword">const</span> mathfu::vec4 &amp;patch_info,</div>
-<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;                            <span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
-<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;                            <span class="keyword">const</span> mathfu::vec2i &amp;size);</div>
-<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="comment">/// @var FLATUI_DEFAULT_VIRTUAL_RESOLUTION</span></div>
-<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;<span class="comment">/// @brief The default virtual resolution, if none is set.</span></div>
-<div class="line"><a name="l00606"></a><span class="lineno"><a class="line" href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">  606</a></span>&#160;<span class="comment"></span><span class="keyword">const</span> <span class="keywordtype">float</span> <a class="code" href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">FLATUI_DEFAULT_VIRTUAL_RESOLUTION</a> = 1000.0f;</div>
-<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;<span class="comment">/// @brief Set the virtual resolution of the smallest dimension of the screen</span></div>
-<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;<span class="comment">/// (the Y size in landscape mode, or X in portrait).</span></div>
-<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;<span class="comment">/// All dimensions specified elsewhere (in floats) are relative to this value.</span></div>
-<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;<span class="comment">/// The default value, if this function is not called, is</span></div>
-<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="comment">/// `FLATUI_DEFAULT_VIRTUAL_RESOLUTION`.</span></div>
-<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;<span class="comment">/// If you wish to use native pixels, call this with `min(screen_x, screen_y)`.</span></div>
-<div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;<span class="comment">/// @note This should be called as the first thing in your GUI definition.</span></div>
+<div class="line"><a name="l00529"></a><span class="lineno">  529</span>&#160;<span class="comment">/// @param[in] direction Sets the horizontal or vertical scroll direction.</span></div>
+<div class="line"><a name="l00530"></a><span class="lineno">  530</span>&#160;<span class="comment">/// @param[in] scroll_margin Sets the margin around the scroll bar.</span></div>
+<div class="line"><a name="l00531"></a><span class="lineno">  531</span>&#160;<span class="comment">/// @param[out] value Captures the float output of the slider value.</span></div>
+<div class="line"><a name="l00532"></a><span class="lineno">  532</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00533"></a><span class="lineno">  533</span>&#160;<span class="comment">/// @note Call `StartSlider()` right after `StartGroup()`.</span></div>
+<div class="line"><a name="l00534"></a><span class="lineno">  534</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga981b07bc2a76cf900a026a66f46b0734">StartSlider</a>(<a class="code" href="group__flatui__core.html#ga8eb9a6b547a433f118df8578e4eacd39">Direction</a> direction, <span class="keywordtype">float</span> scroll_margin, <span class="keywordtype">float</span> *value);</div>
+<div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;<span class="comment">/// @brief Ends the current slider group.</span></div>
+<div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;<span class="comment">/// @note Call `EndSlider()` right before `EndGroup()`.</span></div>
+<div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga18d7d69aeadc752c1db77a75b6b751f6">EndSlider</a>();</div>
+<div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160;<span class="comment">/// @brief Create a custom element with a given size.</span></div>
+<div class="line"><a name="l00542"></a><span class="lineno">  542</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00543"></a><span class="lineno">  543</span>&#160;<span class="comment">/// @param[in] virtual_size The size of the element in virtual screen</span></div>
+<div class="line"><a name="l00544"></a><span class="lineno">  544</span>&#160;<span class="comment">/// coordinates.</span></div>
+<div class="line"><a name="l00545"></a><span class="lineno">  545</span>&#160;<span class="comment">/// @param[in] id A C-string in UTF-8 format corresponding to the unique</span></div>
+<div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;<span class="comment">/// ID for the CustomElement.</span></div>
+<div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;<span class="comment">/// @param[in] renderer The function that is invoked during the render pass</span></div>
+<div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;<span class="comment">/// to render the element.</span></div>
+<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaea2bd246a5c837f67c5eebe98cebdfba">CustomElement</a>(</div>
+<div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;    <span class="keyword">const</span> mathfu::vec2 &amp;virtual_size, <span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>,</div>
+<div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;    <span class="keyword">const</span> std::function&lt;<span class="keywordtype">void</span>(<span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
+<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;                             <span class="keyword">const</span> mathfu::vec2i &amp;size)&gt; renderer);</div>
+<div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;<span class="comment">/// @brief Render a Texture to a specific position with a given size.</span></div>
+<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;<span class="comment">/// @note This is usually called in `CustomElement()`&#39;s callback function.</span></div>
+<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;<span class="comment">/// @param[in] tex The Texture to render.</span></div>
+<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;<span class="comment">/// @param[in] pos The position that `tex` should be rendered at, in physical</span></div>
+<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;<span class="comment">/// screen coordinates.</span></div>
+<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;<span class="comment">/// @param[in] size The size that `tex` should be rendered at, in physical</span></div>
+<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;<span class="comment">/// screen coordinates.</span></div>
+<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga208063f472369ce0df052986ebfda7be">RenderTexture</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex, <span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
+<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;                   <span class="keyword">const</span> mathfu::vec2i &amp;size);</div>
+<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;<span class="comment">/// @brief Render a Texture to a specific position with a given size and color.</span></div>
+<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;<span class="comment">/// @note This is usually called in `CustomElement()`&#39;s callback function.</span></div>
+<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;<span class="comment">/// @param[in] tex The Texture to render.</span></div>
+<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;<span class="comment">/// @param[in] pos The position that `tex` should be rendered at, in physical</span></div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;<span class="comment">/// screen coordinates.</span></div>
+<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;<span class="comment">/// @param[in] size The size that `tex` should be rendered at, in physical</span></div>
+<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;<span class="comment">/// screen coordinates.</span></div>
+<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;<span class="comment">/// @param[in] color A vec4 representing the color of the texture that should</span></div>
+<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;<span class="comment">/// be rendered in RGBA.</span></div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga208063f472369ce0df052986ebfda7be">RenderTexture</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex, <span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
+<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;                   <span class="keyword">const</span> mathfu::vec2i &amp;size, <span class="keyword">const</span> mathfu::vec4 &amp;color);</div>
+<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;<span class="comment">/// @brief Render a nine-patch texture at a specific position with a given</span></div>
+<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;<span class="comment">/// size.</span></div>
+<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;<span class="comment">/// @note This is usually used in `CustomElement()`&#39;s callback function.</span></div>
+<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;<span class="comment">/// In the `patch_info`, the user can define nine patch settings as</span></div>
+<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;<span class="comment">/// `vec4(x0, y0, x1, y1)`, where `(x0, y0)` corresponds to the top-left</span></div>
+<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;<span class="comment">/// corner of the stretchable area in UV coordinates and `(x1, y1)` corresponds</span></div>
+<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;<span class="comment">/// to the bottom-right corner of stretchable area in UV coordinates.</span></div>
+<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;<span class="comment">/// The coordinates are in UV value in the texture (0.0 ~ 1.0).</span></div>
+<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;<span class="comment">/// For more information for nine patch, refer</span></div>
+<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;<span class="comment">/// http://developer.android.com/guide/topics/graphics/2d-graphics.html#nine-patch</span></div>
+<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;<span class="comment">/// @param[in] tex The Texture to render.</span></div>
+<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;<span class="comment">/// @param[in] patch_info The nine-patch settings for the corners of the</span></div>
+<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;<span class="comment">/// stretchable area in UV coordinates.</span></div>
+<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;<span class="comment">/// @param[in] pos The position that `tex` should be rendered at, in physical</span></div>
+<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;<span class="comment">/// screen coordinates.</span></div>
+<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;<span class="comment">/// @param[in] size The size that `tex` should be rendered at, in physical</span></div>
+<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;<span class="comment">/// screen coordinates.</span></div>
+<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaafe9b1ae58bc55517f1b27840893f845">RenderTextureNinePatch</a>(<span class="keyword">const</span> fplbase::Texture &amp;tex,</div>
+<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;                            <span class="keyword">const</span> mathfu::vec4 &amp;patch_info,</div>
+<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;                            <span class="keyword">const</span> mathfu::vec2i &amp;pos,</div>
+<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;                            <span class="keyword">const</span> mathfu::vec2i &amp;size);</div>
+<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;<span class="comment">/// @var FLATUI_DEFAULT_VIRTUAL_RESOLUTION</span></div>
+<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;<span class="comment">/// @brief The default virtual resolution, if none is set.</span></div>
+<div class="line"><a name="l00610"></a><span class="lineno"><a class="line" href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">  610</a></span>&#160;<span class="comment"></span><span class="keyword">const</span> <span class="keywordtype">float</span> <a class="code" href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">FLATUI_DEFAULT_VIRTUAL_RESOLUTION</a> = 1000.0f;</div>
+<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;<span class="comment">/// @brief Set the virtual resolution of the smallest dimension of the screen</span></div>
+<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;<span class="comment">/// (the Y size in landscape mode, or X in portrait).</span></div>
+<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;<span class="comment">/// All dimensions specified elsewhere (in floats) are relative to this value.</span></div>
+<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;<span class="comment">/// The default value, if this function is not called, is</span></div>
+<div class="line"><a name="l00618"></a><span class="lineno">  618</span>&#160;<span class="comment">/// `FLATUI_DEFAULT_VIRTUAL_RESOLUTION`.</span></div>
 <div class="line"><a name="l00619"></a><span class="lineno">  619</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;<span class="comment">/// @param[in] virtual_resolution A float representing the virtual resolution</span></div>
-<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;<span class="comment">/// of the smallest dimension of the screen.</span></div>
-<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga2829b8df1f592d4dfc12799d6da2dcf8">SetVirtualResolution</a>(<span class="keywordtype">float</span> virtual_resolution);</div>
-<div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;<span class="comment">/// @return Returns the virtual resolution of the screen.</span></div>
-<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;<span class="comment"></span>mathfu::vec2 <a class="code" href="group__flatui__core.html#gae96166747ff5d37e2fe329a4bf5af9a3">GetVirtualResolution</a>();</div>
-<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;<span class="comment">/// @brief Position a group within the screen as a whole.</span></div>
-<div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160;<span class="comment">/// @note This should be called as the first thing in any top level groups</span></div>
-<div class="line"><a name="l00630"></a><span class="lineno">  630</span>&#160;<span class="comment">/// (either your root group, or the children of your root, if the root is</span></div>
-<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160;<span class="comment">/// `kLayoutOverlay`.</span></div>
+<div class="line"><a name="l00620"></a><span class="lineno">  620</span>&#160;<span class="comment">/// If you wish to use native pixels, call this with `min(screen_x, screen_y)`.</span></div>
+<div class="line"><a name="l00621"></a><span class="lineno">  621</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00622"></a><span class="lineno">  622</span>&#160;<span class="comment">/// @note This should be called as the first thing in your GUI definition.</span></div>
+<div class="line"><a name="l00623"></a><span class="lineno">  623</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00624"></a><span class="lineno">  624</span>&#160;<span class="comment">/// @param[in] virtual_resolution A float representing the virtual resolution</span></div>
+<div class="line"><a name="l00625"></a><span class="lineno">  625</span>&#160;<span class="comment">/// of the smallest dimension of the screen.</span></div>
+<div class="line"><a name="l00626"></a><span class="lineno">  626</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga2829b8df1f592d4dfc12799d6da2dcf8">SetVirtualResolution</a>(<span class="keywordtype">float</span> virtual_resolution);</div>
+<div class="line"><a name="l00627"></a><span class="lineno">  627</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00628"></a><span class="lineno">  628</span>&#160;<span class="comment">/// @return Returns the virtual resolution of the screen.</span></div>
+<div class="line"><a name="l00629"></a><span class="lineno">  629</span>&#160;<span class="comment"></span>mathfu::vec2 <a class="code" href="group__flatui__core.html#gae96166747ff5d37e2fe329a4bf5af9a3">GetVirtualResolution</a>();</div>
+<div class="line"><a name="l00630"></a><span class="lineno">  630</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00631"></a><span class="lineno">  631</span>&#160;<span class="comment">/// @brief Position a group within the screen as a whole.</span></div>
 <div class="line"><a name="l00632"></a><span class="lineno">  632</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160;<span class="comment">/// @param[in] horizontal The alignment for the x-axis of the group (defaults</span></div>
-<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;<span class="comment">/// to `left`).</span></div>
-<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;<span class="comment">/// @param[in] vertical The alignment for the y-axis of the group (defaults to</span></div>
-<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;<span class="comment">/// `top`).</span></div>
-<div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;<span class="comment">/// @param[in] offset A vec2 that allows you to displace elements from the</span></div>
-<div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;<span class="comment">/// given alignment.</span></div>
-<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaf6cdb52ea14cc2bda8083bcbe990ed27">PositionGroup</a>(<a class="code" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> horizontal, <a class="code" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> vertical,</div>
-<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;                   <span class="keyword">const</span> mathfu::vec2 &amp;offset);</div>
-<div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;<span class="comment">/// @brief By default, FlatUI sets up a projection matrix for all the rendering</span></div>
-<div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;<span class="comment">/// that covers the entire screen (as given by `Renderer::window_size()`. You</span></div>
-<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;<span class="comment">/// can call to this function instead, to use whatever projection is in place</span></div>
-<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;<span class="comment">/// before `Run()` is called (which may be a 2D or 3D projection).</span></div>
-<div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;<span class="comment">/// @param[in] canvas_size Specifies the new canvas size for the UI to live</span></div>
-<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;<span class="comment">/// inside of.</span></div>
-<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga9d8f1cd5c820dfc45cc0a9c076e83183">UseExistingProjection</a>(<span class="keyword">const</span> mathfu::vec2i &amp;canvas_size);</div>
-<div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;<span class="comment">/// @return Returns the position of the current group in virtual coordinates.</span></div>
-<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;<span class="comment">///</span></div>
-<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;<span class="comment">/// This is the top/left location of the group. When used in conjunction with</span></div>
-<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;<span class="comment">/// `GroupSize()`, this can be used t ocalculate the extents of the group.</span></div>
-<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;<span class="comment"></span>mathfu::vec2 <a class="code" href="group__flatui__core.html#ga449b5f311ff3da7ab9d1a144a0a36413">GroupPosition</a>();</div>
-<div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160;<span class="comment">/// @return Returns the current group&#39;s size in virtual coordinates. This</span></div>
-<div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160;<span class="comment">/// function is useful to implement UI that requires other element&#39;s sizes, such</span></div>
-<div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;<span class="comment">/// as a scroll bar.</span></div>
-<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;<span class="comment"></span>mathfu::vec2 <a class="code" href="group__flatui__core.html#ga7bd8df45cf01110d4b711d43296e13d5">GroupSize</a>();</div>
-<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;<span class="comment">/// @return Returns `true` if the last click event was a touch screen or mouse</span></div>
-<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;<span class="comment">/// event. Otherwise, it returns `false` (e.g. from a gamepad or keyboard).</span></div>
-<div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;<span class="comment"></span><span class="keywordtype">bool</span> <a class="code" href="group__flatui__core.html#ga5af8f702174b48ae07d572ea4ef2d270">IsLastEventPointerType</a>();<span class="comment"></span></div>
-<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;<span class="comment">/// @}</span></div>
-<div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;<span class="comment">// Returns the version of the FlatUI Library.</span></div>
-<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;<span class="keyword">const</span> FlatUiVersion* GetFlatUiVersion();</div>
-<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160;</div>
-<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;}  <span class="comment">// namespace flatui</span></div>
-<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;</div>
-<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;<span class="preprocessor">#endif  // FPL_FLATUI_H</span></div>
+<div class="line"><a name="l00633"></a><span class="lineno">  633</span>&#160;<span class="comment">/// @note This should be called as the first thing in any top level groups</span></div>
+<div class="line"><a name="l00634"></a><span class="lineno">  634</span>&#160;<span class="comment">/// (either your root group, or the children of your root, if the root is</span></div>
+<div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;<span class="comment">/// `kLayoutOverlay`.</span></div>
+<div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00637"></a><span class="lineno">  637</span>&#160;<span class="comment">/// @param[in] horizontal The alignment for the x-axis of the group (defaults</span></div>
+<div class="line"><a name="l00638"></a><span class="lineno">  638</span>&#160;<span class="comment">/// to `left`).</span></div>
+<div class="line"><a name="l00639"></a><span class="lineno">  639</span>&#160;<span class="comment">/// @param[in] vertical The alignment for the y-axis of the group (defaults to</span></div>
+<div class="line"><a name="l00640"></a><span class="lineno">  640</span>&#160;<span class="comment">/// `top`).</span></div>
+<div class="line"><a name="l00641"></a><span class="lineno">  641</span>&#160;<span class="comment">/// @param[in] offset A vec2 that allows you to displace elements from the</span></div>
+<div class="line"><a name="l00642"></a><span class="lineno">  642</span>&#160;<span class="comment">/// given alignment.</span></div>
+<div class="line"><a name="l00643"></a><span class="lineno">  643</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#gaf6cdb52ea14cc2bda8083bcbe990ed27">PositionGroup</a>(<a class="code" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> horizontal, <a class="code" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> vertical,</div>
+<div class="line"><a name="l00644"></a><span class="lineno">  644</span>&#160;                   <span class="keyword">const</span> mathfu::vec2 &amp;offset);</div>
+<div class="line"><a name="l00645"></a><span class="lineno">  645</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00646"></a><span class="lineno">  646</span>&#160;<span class="comment">/// @brief By default, FlatUI sets up a projection matrix for all the rendering</span></div>
+<div class="line"><a name="l00647"></a><span class="lineno">  647</span>&#160;<span class="comment">/// that covers the entire screen (as given by `Renderer::window_size()`. You</span></div>
+<div class="line"><a name="l00648"></a><span class="lineno">  648</span>&#160;<span class="comment">/// can call to this function instead, to use whatever projection is in place</span></div>
+<div class="line"><a name="l00649"></a><span class="lineno">  649</span>&#160;<span class="comment">/// before `Run()` is called (which may be a 2D or 3D projection).</span></div>
+<div class="line"><a name="l00650"></a><span class="lineno">  650</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00651"></a><span class="lineno">  651</span>&#160;<span class="comment">/// @param[in] canvas_size Specifies the new canvas size for the UI to live</span></div>
+<div class="line"><a name="l00652"></a><span class="lineno">  652</span>&#160;<span class="comment">/// inside of.</span></div>
+<div class="line"><a name="l00653"></a><span class="lineno">  653</span>&#160;<span class="comment"></span><span class="keywordtype">void</span> <a class="code" href="group__flatui__core.html#ga9d8f1cd5c820dfc45cc0a9c076e83183">UseExistingProjection</a>(<span class="keyword">const</span> mathfu::vec2i &amp;canvas_size);</div>
+<div class="line"><a name="l00654"></a><span class="lineno">  654</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00655"></a><span class="lineno">  655</span>&#160;<span class="comment">/// @return Returns the position of the current group in virtual coordinates.</span></div>
+<div class="line"><a name="l00656"></a><span class="lineno">  656</span>&#160;<span class="comment">///</span></div>
+<div class="line"><a name="l00657"></a><span class="lineno">  657</span>&#160;<span class="comment">/// This is the top/left location of the group. When used in conjunction with</span></div>
+<div class="line"><a name="l00658"></a><span class="lineno">  658</span>&#160;<span class="comment">/// `GroupSize()`, this can be used t ocalculate the extents of the group.</span></div>
+<div class="line"><a name="l00659"></a><span class="lineno">  659</span>&#160;<span class="comment"></span>mathfu::vec2 <a class="code" href="group__flatui__core.html#ga449b5f311ff3da7ab9d1a144a0a36413">GroupPosition</a>();</div>
+<div class="line"><a name="l00660"></a><span class="lineno">  660</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00661"></a><span class="lineno">  661</span>&#160;<span class="comment">/// @return Returns the current group&#39;s size in virtual coordinates. This</span></div>
+<div class="line"><a name="l00662"></a><span class="lineno">  662</span>&#160;<span class="comment">/// function is useful to implement UI that requires other element&#39;s sizes, such</span></div>
+<div class="line"><a name="l00663"></a><span class="lineno">  663</span>&#160;<span class="comment">/// as a scroll bar.</span></div>
+<div class="line"><a name="l00664"></a><span class="lineno">  664</span>&#160;<span class="comment"></span>mathfu::vec2 <a class="code" href="group__flatui__core.html#ga7bd8df45cf01110d4b711d43296e13d5">GroupSize</a>();</div>
+<div class="line"><a name="l00665"></a><span class="lineno">  665</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160;<span class="comment">/// @return Returns `true` if the last click event was a touch screen or mouse</span></div>
+<div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;<span class="comment">/// event. Otherwise, it returns `false` (e.g. from a gamepad or keyboard).</span></div>
+<div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;<span class="comment"></span><span class="keywordtype">bool</span> <a class="code" href="group__flatui__core.html#ga5af8f702174b48ae07d572ea4ef2d270">IsLastEventPointerType</a>();<span class="comment"></span></div>
+<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160;<span class="comment">/// @}</span></div>
+<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;<span class="comment">// Returns the version of the FlatUI Library.</span></div>
+<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;<span class="keyword">const</span> FlatUiVersion* GetFlatUiVersion();</div>
+<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160;</div>
+<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;}  <span class="comment">// namespace flatui</span></div>
+<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;</div>
+<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;<span class="preprocessor">#endif  // FPL_FLATUI_H</span></div>
 <div class="ttc" id="group__flatui__core_html_ga981b07bc2a76cf900a026a66f46b0734"><div class="ttname"><a href="group__flatui__core.html#ga981b07bc2a76cf900a026a66f46b0734">flatui::StartSlider</a></div><div class="ttdeci">void StartSlider(Direction direction, float scroll_margin, float *value)</div><div class="ttdoc">Make the current group into a slider group that can handle basic slider behavior. The group will capt...</div></div>
 <div class="ttc" id="group__flatui__core_html_ga4d8ceca955c4537ea1b25b3a31df1e5b"><div class="ttname"><a href="group__flatui__core.html#ga4d8ceca955c4537ea1b25b3a31df1e5b">flatui::SetDragStartThreshold</a></div><div class="ttdeci">void SetDragStartThreshold(int drag_start_threshold)</div><div class="ttdoc">Set a threshold value for the start of a drag operation. </div></div>
 <div class="ttc" id="group__flatui__core_html_gaab319a2f038ff21cc4884e06f9477237"><div class="ttname"><a href="group__flatui__core.html#gaab319a2f038ff21cc4884e06f9477237">flatui::EndGroup</a></div><div class="ttdeci">void EndGroup()</div><div class="ttdoc">Clean up the Group element start by StartGroup(). </div></div>
@@ -812,13 +896,14 @@ $(document).ready(function(){initNavTree('flatui_8h_source.html','');});
 <div class="ttc" id="group__flatui__core_html_gaea2bd246a5c837f67c5eebe98cebdfba"><div class="ttname"><a href="group__flatui__core.html#gaea2bd246a5c837f67c5eebe98cebdfba">flatui::CustomElement</a></div><div class="ttdeci">void CustomElement(const mathfu::vec2 &amp;virtual_size, const char *id, const std::function&lt; void(const mathfu::vec2i &amp;pos, const mathfu::vec2i &amp;size)&gt; renderer)</div><div class="ttdoc">Create a custom element with a given size. </div></div>
 <div class="ttc" id="group__flatui__core_html_gaf6cdb52ea14cc2bda8083bcbe990ed27"><div class="ttname"><a href="group__flatui__core.html#gaf6cdb52ea14cc2bda8083bcbe990ed27">flatui::PositionGroup</a></div><div class="ttdeci">void PositionGroup(Alignment horizontal, Alignment vertical, const mathfu::vec2 &amp;offset)</div><div class="ttdoc">Position a group within the screen as a whole. </div></div>
 <div class="ttc" id="structflatui_1_1_margin_html_aba4390f0d401aad3675cee4d9a98da48"><div class="ttname"><a href="structflatui_1_1_margin.html#aba4390f0d401aad3675cee4d9a98da48">flatui::Margin::Margin</a></div><div class="ttdeci">Margin(float left, float top, float right, float bottom)</div><div class="ttdoc">Creates a margin specifying all four sides individually. </div><div class="ttdef"><b>Definition:</b> flatui.h:248</div></div>
+<div class="ttc" id="group__flatui__core_html_gabb730fe61aaa858a03a527bf4ad31e51"><div class="ttname"><a href="group__flatui__core.html#gabb730fe61aaa858a03a527bf4ad31e51">flatui::SetDefaultFocus</a></div><div class="ttdeci">void SetDefaultFocus()</div><div class="ttdoc">Set the default keyboard/gamepad focus to the current element. </div></div>
 <div class="ttc" id="group__flatui__core_html_ga2e9998f4760a457deaf0f6de1c0f8c57"><div class="ttname"><a href="group__flatui__core.html#ga2e9998f4760a457deaf0f6de1c0f8c57">flatui::kDefaultGroupID</a></div><div class="ttdeci">const char *const kDefaultGroupID</div><div class="ttdoc">A sentinel value for group IDs. </div><div class="ttdef"><b>Definition:</b> flatui.h:219</div></div>
 <div class="ttc" id="group__flatui__core_html_ga9c9b79ea513cd07ad97c4dd35cc16214"><div class="ttname"><a href="group__flatui__core.html#ga9c9b79ea513cd07ad97c4dd35cc16214">flatui::StartGroup</a></div><div class="ttdeci">void StartGroup(Layout layout, float spacing=0, const char *id=kDefaultGroupID)</div><div class="ttdoc">Create a group of elements with a given layout and intra-element spacing. </div></div>
 <div class="ttc" id="group__flatui__core_html_ga18d7d69aeadc752c1db77a75b6b751f6"><div class="ttname"><a href="group__flatui__core.html#ga18d7d69aeadc752c1db77a75b6b751f6">flatui::EndSlider</a></div><div class="ttdeci">void EndSlider()</div><div class="ttdoc">Ends the current slider group. </div></div>
 <div class="ttc" id="structflatui_1_1_margin_html_af80c0794c423dd1a5d6d9102eaef817b"><div class="ttname"><a href="structflatui_1_1_margin.html#af80c0794c423dd1a5d6d9102eaef817b">flatui::Margin::Margin</a></div><div class="ttdeci">Margin(float x, float y)</div><div class="ttdoc">Create a Margin with the left and right sizes of x, and top and bottom sizes of y. </div><div class="ttdef"><b>Definition:</b> flatui.h:238</div></div>
 <div class="ttc" id="group__flatui__core_html_ga077bf0bee4ab00e4d96c201629089eb1"><div class="ttname"><a href="group__flatui__core.html#ga077bf0bee4ab00e4d96c201629089eb1">flatui::SetMargin</a></div><div class="ttdeci">void SetMargin(const Margin &amp;margin)</div><div class="ttdoc">Sets the margin for the current group. </div></div>
 <div class="ttc" id="group__flatui__core_html_ga7d1928896f4ede6c17e4ce1793b8f38e"><div class="ttname"><a href="group__flatui__core.html#ga7d1928896f4ede6c17e4ce1793b8f38e">flatui::ImageBackgroundNinePatch</a></div><div class="ttdeci">void ImageBackgroundNinePatch(const fplbase::Texture &amp;tex, const mathfu::vec4 &amp;patch_info)</div><div class="ttdoc">Set the background texture for the group with nine patch settings. </div></div>
-<div class="ttc" id="group__flatui__core_html_ga4e791c6634e3fd3c845188222653ee64"><div class="ttname"><a href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">flatui::FLATUI_DEFAULT_VIRTUAL_RESOLUTION</a></div><div class="ttdeci">const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION</div><div class="ttdoc">The default virtual resolution, if none is set. </div><div class="ttdef"><b>Definition:</b> flatui.h:606</div></div>
+<div class="ttc" id="group__flatui__core_html_ga4e791c6634e3fd3c845188222653ee64"><div class="ttname"><a href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">flatui::FLATUI_DEFAULT_VIRTUAL_RESOLUTION</a></div><div class="ttdeci">const float FLATUI_DEFAULT_VIRTUAL_RESOLUTION</div><div class="ttdoc">The default virtual resolution, if none is set. </div><div class="ttdef"><b>Definition:</b> flatui.h:610</div></div>
 <div class="ttc" id="group__flatui__core_html_gadca7228a18f8993341d7f064b5260595"><div class="ttname"><a href="group__flatui__core.html#gadca7228a18f8993341d7f064b5260595">flatui::VirtualToPhysical</a></div><div class="ttdeci">mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &amp;v)</div><div class="ttdoc">Converts a virtual screen coordinate to a physical value. </div></div>
 <div class="ttc" id="group__flatui__core_html_gacf997589896d841abe775d5e3633b5df"><div class="ttname"><a href="group__flatui__core.html#gacf997589896d841abe775d5e3633b5df">flatui::StartScroll</a></div><div class="ttdeci">void StartScroll(const mathfu::vec2 &amp;size, mathfu::vec2 *offset)</div><div class="ttdoc">Make the current group into a scrolling group that can display arbitrary sized elements inside a wind...</div></div>
 <div class="ttc" id="structflatui_1_1_margin_html_a9aced5f8d2173b5d8f734637efe022ed"><div class="ttname"><a href="structflatui_1_1_margin.html#a9aced5f8d2173b5d8f734637efe022ed">flatui::Margin::Margin</a></div><div class="ttdeci">Margin(float m)</div><div class="ttdoc">Create a Margin with all four sides of equal size. </div><div class="ttdef"><b>Definition:</b> flatui.h:229</div></div>

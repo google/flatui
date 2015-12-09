@@ -60,6 +60,7 @@ var flatui_8h =
     [ "RenderTexture", "flatui_8h.html#ga208063f472369ce0df052986ebfda7be", null ],
     [ "RenderTextureNinePatch", "flatui_8h.html#gaafe9b1ae58bc55517f1b27840893f845", null ],
     [ "Run", "flatui_8h.html#gafd84cdd31aa697070e14d5e70c84d48e", null ],
+    [ "SetDefaultFocus", "flatui_8h.html#gabb730fe61aaa858a03a527bf4ad31e51", null ],
     [ "SetDragStartThreshold", "flatui_8h.html#ga4d8ceca955c4537ea1b25b3a31df1e5b", null ],
     [ "SetMargin", "flatui_8h.html#ga077bf0bee4ab00e4d96c201629089eb1", null ],
     [ "SetScrollSpeed", "flatui_8h.html#gac9686325a3e8578f0aeb16892a050943", null ],

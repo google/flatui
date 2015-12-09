@@ -10,7 +10,7 @@ var searchData=
   ['get_5ftext_5fid',['get_text_id',['../classflatui_1_1_font_buffer_parameters.html#adef5351b236634f93eaac0db10f9cbdc',1,'flatui::FontBufferParameters']]],
   ['get_5fvertices',['get_vertices',['../classflatui_1_1_font_buffer.html#a0ecc725cadf9517e987bd5676dc40833',1,'flatui::FontBuffer::get_vertices()'],['../classflatui_1_1_font_buffer.html#ad690ab8150ab0128fb5dfdd6a58468b8',1,'flatui::FontBuffer::get_vertices() const ']]],
   ['getatlastexture',['GetAtlasTexture',['../classflatui_1_1_font_manager.html#a21c3508d5dc2376270f25f6401ae8e73',1,'flatui::FontManager']]],
-  ['getbuffer',['GetBuffer',['../classflatui_1_1_font_manager.html#aaff79ea52a46a4280495f35cac535ea7',1,'flatui::FontManager']]],
+  ['getbuffer',['GetBuffer',['../classflatui_1_1_font_manager.html#a2951b88e63131015a293ad14bc3fb499',1,'flatui::FontManager']]],
   ['getcapturedpointerindex',['GetCapturedPointerIndex',['../group__flatui__core.html#gaa4eb49a1362b417704016bba77755f2a',1,'flatui']]],
   ['getcaretposition',['GetCaretPosition',['../classflatui_1_1_font_buffer.html#ac74ed8ae0e7c4f00039aee1877895178',1,'flatui::FontBuffer']]],
   ['getcaretpositions',['GetCaretPositions',['../classflatui_1_1_font_buffer.html#a8d59631cbbbfc19813475a3ed25ee82b',1,'flatui::FontBuffer']]],

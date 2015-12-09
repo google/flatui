@@ -27,6 +27,7 @@ var NAVTREE =
         [ "File List", "files.html", "files" ]
       ] ]
     ] ],
+    [ "Readme", "flatui_readme.html", null ],
     [ "Contributing", "contributing.html", null ]
   ] ]
 ];
@@ -34,7 +35,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"group__flatui__core.html#gafcf8893309e570bbed12cc0884f4c998"
+"group__flatui__core.html#gaedeb8c08925f628ef393b0588a02585c"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -11,6 +11,7 @@ var searchData=
   ['set_5fpass',['set_pass',['../classflatui_1_1_font_buffer.html#a1d6d8ae685dfa6c6f8bb97ccefc5bb30',1,'flatui::FontBuffer']]],
   ['set_5frevision',['set_revision',['../classflatui_1_1_font_buffer.html#a66bdb57ac5a373b307dfdebcd3d229ca',1,'flatui::FontBuffer']]],
   ['set_5fsize',['set_size',['../classflatui_1_1_font_buffer.html#a751f470e787f61eb4c677a86ca767051',1,'flatui::FontBuffer']]],
+  ['setdefaultfocus',['SetDefaultFocus',['../group__flatui__core.html#gabb730fe61aaa858a03a527bf4ad31e51',1,'flatui']]],
   ['setdragstartthreshold',['SetDragStartThreshold',['../group__flatui__core.html#ga4d8ceca955c4537ea1b25b3a31df1e5b',1,'flatui']]],
   ['sethoverclickcolor',['SetHoverClickColor',['../group__flatui__common__widgets.html#gaab3bbd5a005039ae9da2f8aa66123ace',1,'flatui']]],
   ['setlanguage',['SetLanguage',['../classflatui_1_1_font_manager.html#a2f570a0a5ff5e06e5744480f87930676',1,'flatui::FontManager']]],
