@@ -390,6 +390,10 @@ Event CheckEvent();
 /// @return Returns the Event type for the group.
 Event CheckEvent(bool check_dragevent_only);
 
+/// @brief Set the default keyboard/gamepad focus to the current element.
+///
+void SetDefaultFocus();
+
 // Call inside of a group that is meant to be like a popup inside of a
 // kLayoutOverlay. It will cause all interactive elements in all groups that
 // precede it to not respond to input.
