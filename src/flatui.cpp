@@ -47,6 +47,7 @@ static const float kScrollSpeedWheelDefault = 16.0f;
 static const float kScrollSpeedGamepadDefault = 0.1f;
 static const int32_t kDragStartThresholdDefault = 8;
 static const int32_t kPointerIndexInvalid = -1;
+static const int32_t kElementIndexInvalid = -1;
 static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
 #if !defined(NDEBUG)
 static const uint32_t kDefaultGroupHashedId = HashId(kDefaultGroupID);
@@ -133,6 +134,7 @@ class InternalState : public Group {
         clip_inside_(false),
         pointer_max_active_index_(kPointerIndexInvalid),
         gamepad_has_focus_element(false),
+        default_focus_element_(kElementIndexInvalid),
         gamepad_event(kEventHover),
         latest_event_(kEventNone),
         latest_event_element_idx_(0),
@@ -483,15 +485,13 @@ class InternalState : public Group {
 
           // Specify IME rect to input system.
           auto ime_rect = pos + buffer->GetCaretPosition(input_region_start);
-          auto ime_size = pos +
-                          buffer->GetCaretPosition(input_region_start +
-                                                   input_region_length) -
+          auto ime_size = pos + buffer->GetCaretPosition(input_region_start +
+                                                         input_region_length) -
                           ime_rect;
           if (focus_region_length) {
             ime_rect = pos + buffer->GetCaretPosition(focus_region_start);
-            ime_size = pos +
-                       buffer->GetCaretPosition(focus_region_start +
-                                                focus_region_length) -
+            ime_size = pos + buffer->GetCaretPosition(focus_region_start +
+                                                      focus_region_length) -
                        ime_rect;
           }
           vec4 rect;
@@ -632,8 +632,8 @@ class InternalState : public Group {
         const fplbase::Attribute kFormat[] = {
             fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
         Mesh::RenderArray(
-            Mesh::kTriangles, buffer.get_indices()->size(), kFormat,
-            sizeof(FontVertex),
+            Mesh::kTriangles, static_cast<int>(buffer.get_indices()->size()),
+            kFormat, sizeof(FontVertex),
             reinterpret_cast<const char *>(buffer.get_vertices()->data()),
             buffer.get_indices()->data());
         Advance(element->size);
@@ -1087,10 +1087,10 @@ class InternalState : public Group {
                   mathfu::InRange2D(persistent_.drag_start_position_, position_,
                                     position_ + size_) &&
                   !mathfu::InRange2D(
-                      input_.get_pointers()[i].mousepos,
-                      persistent_.drag_start_position_ - drag_start_threshold_,
-                      persistent_.drag_start_position_ +
-                          drag_start_threshold_)) {
+                       input_.get_pointers()[i].mousepos,
+                       persistent_.drag_start_position_ - drag_start_threshold_,
+                       persistent_.drag_start_position_ +
+                           drag_start_threshold_)) {
                 // Start drag event.
                 // Note that any element the event can recieve the drag start
                 // event, so that parent layer can start a dragging operation
@@ -1136,11 +1136,22 @@ class InternalState : public Group {
     return persistent_.is_last_event_pointer_type;
   }
 
+  void SetDefaultFocus() {
+    // Need to keep an index rather than the hash to check if the element is
+    // an interactive element later.
+    default_focus_element_ = element_idx_;
+  }
+
   void CheckGamePadFocus() {
     if (!gamepad_has_focus_element && persistent_.input_capture_ == kNullHash) {
       // This may happen when a GUI first appears or when elements get removed.
       // TODO: only do this when there's an actual gamepad connected.
-      persistent_.input_focus_ = NextInteractiveElement(-1, 1);
+      if (default_focus_element_ != kElementIndexInvalid &&
+          elements_[default_focus_element_].interactive) {
+        persistent_.input_focus_ = elements_[default_focus_element_].hash;
+      } else {
+        persistent_.input_focus_ = NextInteractiveElement(-1, 1);
+      }
     }
   }
 
@@ -1163,8 +1174,8 @@ class InternalState : public Group {
     if (dir) {
       for (auto it = elements_.begin(); it != elements_.end(); ++it) {
         if (EqualId(it->hash, persistent_.input_focus_)) {
-          persistent_.input_focus_ =
-              NextInteractiveElement(&*it - &elements_[0], dir);
+          persistent_.input_focus_ = NextInteractiveElement(
+              static_cast<int>(&*it - &elements_[0]), dir);
           break;
         }
       }
@@ -1239,10 +1250,11 @@ class InternalState : public Group {
       if (i < 0)
         i = range - 1;
       else if (i >= range)
-        i = -1;
+        i = 0;
       // Back where we started, either there's no interactive elements, or
       // the vector is empty.
       if (i == start) return kNullHash;
+
       if (elements_[i].interactive) return elements_[i].hash;
     }
   }
@@ -1309,6 +1321,7 @@ class InternalState : public Group {
   int pointer_max_active_index_;
   const Button *pointer_buttons_[InputSystem::kMaxSimultanuousPointers];
   bool gamepad_has_focus_element;
+  int32_t default_focus_element_;
   Event gamepad_event;
 
   // Drag operations.
@@ -1459,6 +1472,8 @@ Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {
   return Gui()->CheckEvent(check_dragevent_only);
 }
+
+void SetDefaultFocus() { Gui()->SetDefaultFocus(); }
 
 ssize_t GetCapturedPointerIndex() { return Gui()->GetCapturedPointerIndex(); }
 

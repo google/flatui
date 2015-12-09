@@ -90,7 +90,7 @@ class WordEnumerator {
   }
 
   // Get an index of the current word in the given text buffer.
-  uint32_t GetCurrentWordIndex() const {
+  size_t GetCurrentWordIndex() const {
     assert(buffer_);
     return current_index_;
   }
@@ -191,7 +191,7 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
   atlas_texture_.get()->Set(0);
 }
 
-FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
+FontBuffer *FontManager::GetBuffer(const char *text, const size_t length,
                                    const FontBufferParameters &parameter) {
   auto buffer = CreateBuffer(text, length, parameter);
   if (buffer == nullptr) {
@@ -202,9 +202,9 @@ FontBuffer *FontManager::GetBuffer(const char *text, const uint32_t length,
     buffer = CreateBuffer(text, length, parameter);
     if (buffer == nullptr) {
       LogError("The given text '%s' with ",
-                    "size:%d does not fit a glyph cache. Try to "
-                    "increase a cache size or use GetTexture() API ",
-                    "instead.\n", text, parameter.get_size().y());
+               "size:%d does not fit a glyph cache. Try to "
+               "increase a cache size or use GetTexture() API ",
+               "instead.\n", text, parameter.get_size().y());
     }
   }
   return buffer;
@@ -281,8 +281,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
           LayoutText(text + word_enum.GetCurrentWordIndex(),
                      word_enum.GetCurrentWordLength()) *
           scale);
-      if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
-                                     static_cast<uint32_t>(size.x())) {
+      if (lastline_must_break ||
+          (line_width + word_width) / kFreeTypeUnit >
+              static_cast<uint32_t>(size.x())) {
         // Line break.
         auto line_height = ysize * line_height_;
         pos = vec2(0.f, pos.y() + line_height);
@@ -360,7 +361,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         buffer->AddVertices(pos, base_line, scale, *cache);
 
         // Update UV.
-        buffer->UpdateUV(total_glyph_count + i, cache->get_uv());
+        buffer->UpdateUV(static_cast<int32_t>(total_glyph_count + i),
+                         cache->get_uv());
       } else {
         total_glyph_count--;
       }
@@ -372,7 +374,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         // work with existing fonts.
         // https://bugs.freedesktop.org/show_bug.cgi?id=90962 tracks a request
         // for the issue.
-        auto carets = GetCaretPosCount(word_enum, glyph_info, glyph_count, i);
+        auto carets = GetCaretPosCount(word_enum, glyph_info,
+                                       static_cast<int32_t>(glyph_count),
+                                       static_cast<int32_t>(i));
 
         mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
         auto scaled_offset = cache->get_offset().x() * scale;
@@ -451,7 +455,7 @@ int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
     byte_size = glyph_info[index + 1].cluster - byte_index;
   } else {
     // Up until end of the buffer.
-    byte_size = word_enum.GetCurrentWordLength() - byte_index;
+    byte_size = static_cast<int>(word_enum.GetCurrentWordLength() - byte_index);
   }
 
   // Count the number of characters in the given range in the wordbreak bufer.
@@ -484,7 +488,7 @@ FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
       }
 
       // Update UV.
-      buffer->UpdateUV(i, cache->get_uv());
+      buffer->UpdateUV(static_cast<int32_t>(i), cache->get_uv());
 
       // Update revision.
       buffer->set_revision(glyph_cache_->get_revision());
@@ -500,8 +504,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
 
   auto parameter =
       FontBufferParameters(GetCurrentFace()->font_id_, flatui::HashId(text),
-                           static_cast<float>(ysize),
-                           mathfu::kZeros2i, false);
+                           static_cast<float>(ysize), mathfu::kZeros2i, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -687,7 +690,7 @@ bool FontManager::Open(const char *font_name) {
   // Open the font.
   FT_Error err = FT_New_Memory_Face(
       *ft_, reinterpret_cast<const unsigned char *>(&face->font_data_[0]),
-      face->font_data_.size(), 0, &face->face_);
+      static_cast<FT_Long>(face->font_data_.size()), 0, &face->face_);
   if (err) {
     // Failed to open font.
     LogInfo("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
@@ -698,8 +701,7 @@ bool FontManager::Open(const char *font_name) {
   face->harfbuzz_font_ = hb_ft_font_create(face->face_, NULL);
   if (!face->harfbuzz_font_) {
     // Failed to open font.
-    LogInfo("Failed to initialize harfbuzz layout information:%s\n",
-                 font_name);
+    LogInfo("Failed to initialize harfbuzz layout information:%s\n", font_name);
     face->font_data_.clear();
     FT_Done_Face(face->face_);
     return false;
@@ -758,11 +760,11 @@ void FontManager::UpdatePass(const bool start_subpass) {
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
     auto rect = glyph_cache_->get_dirty_rect();
     atlas_texture_.get()->Set(0);
-    Texture::UpdateTexture(
-        fplbase::kFormatLuminance, 0, rect.y(),
-        glyph_cache_.get()->get_size().x(),
-        rect.w() - rect.y(), glyph_cache_.get()->get_buffer() +
-                                 glyph_cache_.get()->get_size().x() * rect.y());
+    Texture::UpdateTexture(fplbase::kFormatLuminance, 0, rect.y(),
+                           glyph_cache_.get()->get_size().x(),
+                           rect.w() - rect.y(),
+                           glyph_cache_.get()->get_buffer() +
+                               glyph_cache_.get()->get_size().x() * rect.y());
     current_atlas_revision_ = glyph_cache_->get_revision();
     glyph_cache_->set_dirty_state(false);
   }
@@ -789,10 +791,12 @@ uint32_t FontManager::LayoutText(const char *text, const size_t length) {
   // Set harfbuzz settings.
   hb_buffer_set_direction(harfbuzz_buf_, HB_DIRECTION_LTR);
   hb_buffer_set_script(harfbuzz_buf_, HB_SCRIPT_LATIN);
-  hb_buffer_set_language(harfbuzz_buf_, hb_language_from_string(text, length));
+  hb_buffer_set_language(
+      harfbuzz_buf_, hb_language_from_string(text, static_cast<int>(length)));
 
   // Layout the text.
-  hb_buffer_add_utf8(harfbuzz_buf_, text, length, 0, length);
+  hb_buffer_add_utf8(harfbuzz_buf_, text, static_cast<unsigned int>(length), 0,
+                     static_cast<int>(length));
   hb_shape(current_face_->harfbuzz_font_, harfbuzz_buf_, nullptr, 0);
 
   // Retrieve layout info.

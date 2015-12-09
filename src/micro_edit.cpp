@@ -65,7 +65,7 @@ void MicroEdit::UpdateWordBreakIndex() {
   // TODO: Update for a better look up rather than a linear search.
   // Check for the last caret position.
   if (caret_pos_ == num_characters_) {
-    wordbreak_index_ = wordbreak_info_.size();
+    wordbreak_index_ = static_cast<int32_t>(wordbreak_info_.size());
     return;
   }
 
@@ -75,7 +75,7 @@ void MicroEdit::UpdateWordBreakIndex() {
     if (wordbreak_info_[i - 1] != LINEBREAK_INSIDEACHAR) {
       if (caret_pos_ == current_pos) {
         // Update an index of wordbreak info for the current caret position.
-        wordbreak_index_ = i;
+        wordbreak_index_ = static_cast<int32_t>(i);
         break;
       }
       current_pos++;
@@ -103,13 +103,13 @@ bool MicroEdit::MoveCaretInLine(CaretPosition position) {
   auto pos = buffer_->GetCaretPositions()[GetCaretPosition()];
   PickRow(pos, &start_of_line, &end_of_line);
 
-  int32_t index = 0;
+  ptrdiff_t index = 0;
   if (position == kTailOfLine) {
     index = std::distance(buffer_->GetCaretPositions().begin(), end_of_line);
   } else if (position == kHeadOfLine) {
     index = std::distance(buffer_->GetCaretPositions().begin(), start_of_line);
   }
-  return SetCaret(index);
+  return SetCaret(static_cast<int32_t>(index));
 }
 
 bool MicroEdit::MoveCaretToWordBoundary(bool forward) {
@@ -271,7 +271,6 @@ const vec4i &MicroEdit::GetWindow() {
 
   auto buffer_size = buffer_->get_size();
   if (buffer_size.x() > window_.z() || buffer_size.y() > window_.w()) {
-
     // Check if we need to scroll inside the edit box.
     const float kWindowThresholdFactor = 0.15f;
     auto caret_pos = buffer_->GetCaretPosition(GetCaretPosition());
@@ -340,8 +339,9 @@ void MicroEdit::PickRow(const vec2i &pointer_position,
                         std::vector<vec2i>::const_iterator *start_it,
                         std::vector<vec2i>::const_iterator *end_it) {
   // Perform a binary search in the caret position buffer.
-  auto compare = [](const vec2i &lhs,
-                    const vec2i &rhs) { return lhs.y() < rhs.y(); };
+  auto compare = [](const vec2i &lhs, const vec2i &rhs) {
+    return lhs.y() < rhs.y();
+  };
   *start_it = std::lower_bound(*start_it, *end_it, pointer_position, compare);
   if (*start_it < *end_it)
     *end_it = std::upper_bound(*start_it, *end_it, **start_it, compare) - 1;
@@ -354,7 +354,8 @@ int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
       start_it, end_it, pointer_position,
       [](const vec2i &lhs, const vec2i &rhs) { return lhs.x() <= rhs.x(); });
 
-  auto index = std::distance(buffer_->GetCaretPositions().begin(), it);
+  int32_t index = static_cast<int32_t>(
+      std::distance(buffer_->GetCaretPositions().begin(), it));
   return index;
 }
 

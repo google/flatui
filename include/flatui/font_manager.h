@@ -254,7 +254,7 @@ class FontManager {
   /// @return Returns `nullptr` if the string does not fit in the glyph cache.
   ///  When this happens, caller may flush the glyph cache with
   /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
-  FontBuffer *GetBuffer(const char *text, const uint32_t length,
+  FontBuffer *GetBuffer(const char *text, const size_t length,
                         const FontBufferParameters &parameters);
 
   /// @brief Set the renderer to be used to create texture instances.
