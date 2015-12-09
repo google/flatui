@@ -632,8 +632,8 @@ class InternalState : public Group {
         const fplbase::Attribute kFormat[] = {
             fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
         Mesh::RenderArray(
-            Mesh::kTriangles, buffer.get_indices()->size(), kFormat,
-            sizeof(FontVertex),
+            Mesh::kTriangles, static_cast<int>(buffer.get_indices()->size()),
+            kFormat, sizeof(FontVertex),
             reinterpret_cast<const char *>(buffer.get_vertices()->data()),
             buffer.get_indices()->data());
         Advance(element->size);
@@ -1163,8 +1163,8 @@ class InternalState : public Group {
     if (dir) {
       for (auto it = elements_.begin(); it != elements_.end(); ++it) {
         if (EqualId(it->hash, persistent_.input_focus_)) {
-          persistent_.input_focus_ =
-              NextInteractiveElement(&*it - &elements_[0], dir);
+          persistent_.input_focus_ = NextInteractiveElement(
+              static_cast<int>(&*it - &elements_[0]), dir);
           break;
         }
       }

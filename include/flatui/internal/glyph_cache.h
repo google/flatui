@@ -217,7 +217,7 @@ class GlyphCacheRow {
   void set_y_pos(const int32_t y_pos) { y_pos_ = y_pos; }
 
   // Getter of cached glyphs.
-  int32_t get_num_glyphs() const { return cached_entries_.size(); }
+  size_t get_num_glyphs() const { return cached_entries_.size(); }
 
   // Setter/Getter of iterator to row LRU.
   const std::list<GlyphCacheEntry::iterator_row>::iterator get_it_lru_row()
