@@ -151,7 +151,7 @@ include_directories(${dependencies_freetype_distr_dir}/include)
 include_directories(${dependencies_libunibreak_distr_dir}/src)
 
 # Detect clang
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
   set(CMAKE_COMPILER_IS_CLANGXX 1)
 endif()
 

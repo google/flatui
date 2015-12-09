@@ -15,12 +15,15 @@
 #ifndef GLYPH_CACH_H
 #define GLYPH_CACH_H
 
+#include <list>
 #include <map>
 #include <unordered_map>
-#include <list>
 
 #include "flatui_util.h"
+#include "fplbase/utilities.h"
 #include "mathfu/constants.h"
+
+using fplbase::LogInfo;
 
 namespace flatui {
 
@@ -67,17 +70,15 @@ const int32_t kGlyphCachePaddingY = 1;
 
 // TODO: Provide proper int specialization in mathfu.
 static inline int32_t RoundUpToPowerOf2(int32_t x) {
-  return static_cast<int32_t>(
-      mathfu::RoundUpToPowerOf2(static_cast<float>(x)));
+  return static_cast<int32_t>(mathfu::RoundUpToPowerOf2(static_cast<float>(x)));
 }
 
 // Class that includes glyph parameters.
 class GlyphKey {
-public:
+ public:
   // Constructors.
   GlyphKey() : font_id_(kNullHash), code_point_(0), glyph_size_(0) {}
-  GlyphKey(const HashedId font_id, uint32_t code_point,
-           uint32_t glyph_size) {
+  GlyphKey(const HashedId font_id, uint32_t code_point, uint32_t glyph_size) {
     font_id_ = font_id;
     code_point_ = code_point;
     glyph_size_ = glyph_size;
@@ -97,7 +98,7 @@ public:
            (std::hash<uint32_t>()(key.glyph_size_) << 1);
   }
 
-private:
+ private:
   HashedId font_id_;
   uint32_t code_point_;
   uint32_t glyph_size_;
@@ -233,8 +234,9 @@ class GlyphCacheRow {
   get_it_row_height_map() const {
     return it_row_height_map_;
   }
-  void set_it_row_height_map(const std::multimap<
-      int32_t, GlyphCacheEntry::iterator_row>::iterator it_row_height_map) {
+  void set_it_row_height_map(
+      const std::multimap<int32_t, GlyphCacheEntry::iterator_row>::iterator
+          it_row_height_map) {
     it_row_height_map_ = it_row_height_map;
   }
 
@@ -297,7 +299,7 @@ class GlyphCache {
     ResetStats();
 #endif
   }
-  ~GlyphCache() {};
+  ~GlyphCache(){};
 
   // Look up a cached entries.
   // Return value: A pointer to a cached glyph entry.
@@ -516,9 +518,7 @@ class GlyphCache {
   void set_revision(const uint32_t revision) { revision_ = revision; }
 
   // Getter/Setter of dirty state.
-  bool get_dirty_state() const {
-    return dirty_;
-  };
+  bool get_dirty_state() const { return dirty_; };
   void set_dirty_state(const bool dirty) { dirty_ = dirty; }
 
   // Getter of dirty rect.

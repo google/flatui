@@ -510,14 +510,14 @@ class InternalState : public Group {
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
 
-        auto caret_size = size.y() * kCaretPositionSizeFactor;
+        auto caret_height = size.y() * kCaretPositionSizeFactor;
         if (caret_pos.x() >= window.x() &&
             caret_pos.x() <= window.x() + window.z() &&
             caret_pos.y() >= window.y() &&
-            caret_pos.y() - caret_size <= window.y() + window.w()) {
+            caret_pos.y() - caret_height <= window.y() + window.w()) {
           caret_pos += pos;
           // Caret Y position is at the base line, add some offset.
-          caret_pos.y() -= static_cast<int>(caret_size);
+          caret_pos.y() -= static_cast<int>(caret_height);
 
           auto caret_size = VirtualToPhysical(vec2(kCaretWidth, ysize));
           RenderCaret(caret_pos, caret_size);
