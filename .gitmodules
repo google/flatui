@@ -1,6 +1,3 @@
-[submodule "dependencies/flatbuffers"]
-	path = dependencies/flatbuffers
-	url = http://github.com/google/flatbuffers.git
 [submodule "dependencies/harfbuzz"]
 	path = dependencies/harfbuzz
 	url = http://github.com/behdad/harfbuzz.git
