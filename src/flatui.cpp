@@ -1244,19 +1244,12 @@ class InternalState : public Group {
 
   HashedId NextInteractiveElement(int start, int direction) {
     auto range = static_cast<int>(elements_.size());
-    for (auto i = start;;) {
-      i += direction;
-      // Wrap around.. just once.
-      if (i < 0)
-        i = range - 1;
-      else if (i >= range)
-        i = 0;
-      // Back where we started, either there's no interactive elements, or
-      // the vector is empty.
-      if (i == start) return kNullHash;
-
+    auto count = range;
+    for (auto i = start; count > 0; --count) {
+      i = (i + direction + range) % range;
       if (elements_[i].interactive) return elements_[i].hash;
     }
+    return kNullHash;
   }
 
   void ColorBackground(const vec4 &color) {
