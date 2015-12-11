@@ -350,9 +350,14 @@ void MicroEdit::PickRow(const vec2i &pointer_position,
 int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
                               std::vector<vec2i>::const_iterator start_it,
                               std::vector<vec2i>::const_iterator end_it) {
-  const auto it = std::upper_bound(
-      start_it, end_it, pointer_position,
-      [](const vec2i &lhs, const vec2i &rhs) { return lhs.x() <= rhs.x(); });
+  auto compare = [this](const vec2i &lhs, const vec2i &rhs) {
+    if (direction_ == TextLayoutDirectionRTL) {
+      return lhs.x() >= rhs.x();
+    } else {
+      return lhs.x() <= rhs.x();
+    }
+  };
+  const auto it = std::upper_bound(start_it, end_it, pointer_position, compare);
 
   int32_t index = static_cast<int32_t>(
       std::distance(buffer_->GetCaretPositions().begin(), it));
@@ -364,6 +369,10 @@ bool MicroEdit::HandleInputEvents(
   bool ret = false;
   auto event = events->begin();
   while (event != events->end()) {
+    bool forward = true;
+    if (direction_ == TextLayoutDirectionRTL) {
+      forward = false;
+    }
     switch (event->type) {
       case fplbase::kTextInputEventTypeKey:
         // Do nothing when a key is released.
@@ -380,20 +389,28 @@ bool MicroEdit::HandleInputEvents(
             break;
           case fplbase::FPLK_LEFT:
             if (event->key.modifier & FPL_KMOD_GUI) {
-              MoveCaretInLine(kHeadOfLine);
+              if (direction_ == TextLayoutDirectionRTL) {
+                MoveCaretInLine(kTailOfLine);
+              } else {
+                MoveCaretInLine(kHeadOfLine);
+              }
             } else if (event->key.modifier & FPL_KMOD_ALT) {
-              MoveCaretToWordBoundary(false);
+              MoveCaretToWordBoundary(!forward);
             } else {
-              MoveCaret(false);
+              MoveCaret(!forward);
             }
             break;
           case fplbase::FPLK_RIGHT:
             if (event->key.modifier & FPL_KMOD_GUI) {
-              MoveCaretInLine(kTailOfLine);
+              if (direction_ == TextLayoutDirectionRTL) {
+                MoveCaretInLine(kHeadOfLine);
+              } else {
+                MoveCaretInLine(kTailOfLine);
+              }
             } else if (event->key.modifier & FPL_KMOD_ALT) {
-              MoveCaretToWordBoundary(true);
+              MoveCaretToWordBoundary(forward);
             } else {
-              MoveCaret(true);
+              MoveCaret(forward);
             }
             break;
           case fplbase::FPLK_UP:

@@ -82,10 +82,20 @@ const float kLineHeightDefault = 1.2f;
 /// @brief A sentinel value representing an invalid caret position.
 const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 
-/// @var kLineBreakDefaultLanguage
+/// @var kDefaultLanguage
 ///
 /// @brief The default language used for a line break.
-const char *const kLineBreakDefaultLanguage = "en";
+const char *const kDefaultLanguage = "en";
+
+/// @enum TextLayoutDirection
+///
+/// @brief Specify how to layout texts.
+/// Default value is TextLayoutDirectionLTR.
+///
+enum TextLayoutDirection {
+  TextLayoutDirectionLTR = 0,
+  TextLayoutDirectionRTL = 1,
+};
 
 /// @class FontBufferParameters
 ///
@@ -313,8 +323,6 @@ class FontManager {
     size_selector_.swap(selector);
   }
 
-  /// @brief Set a langauge used to determine line breaking.
-  ///
   /// @param[in] language ISO 639-1 based language code. Default setting is
   /// 'en' (English).
   ///
@@ -325,6 +333,25 @@ class FontManager {
 
   /// @return Returns the current language setting as a std::string.
   const std::string &GetLanguage() { return language_; }
+
+  /// @brief Set a script used for a script layout.
+  ///
+  /// @param[in] language ISO 15924 based script code. Default setting is
+  /// 'Latn' (Latin).
+  /// For more detail, refer http://unicode.org/iso15924/iso15924-codes.html
+  ///
+  void SetScript(const std::string &script);
+
+  /// @brief Set a script layout direction.
+  ///
+  /// @param[in] .
+  ///
+  void SetLayoutDirection(const TextLayoutDirection direction) {
+    layout_direction_ = direction;
+  }
+
+  /// @return Returns the current layout direciton.
+  TextLayoutDirection GetLayoutDirection() { return layout_direction_; }
 
   /// @brief Set a line height for a multi-line text.
   ///
@@ -402,6 +429,9 @@ class FontManager {
   FontBuffer *CreateBuffer(const char *text, const uint32_t length,
                            const FontBufferParameters &parameters);
 
+  // Update language related settings.
+  void SetLanguageSettings();
+
   // Renderer instance.
   fplbase::Renderer *renderer_;
 
@@ -448,9 +478,11 @@ class FontManager {
   // Size selector function object used to adjust a glyph size.
   std::function<int32_t(const int32_t)> size_selector_;
 
-  // Language of input string.
+  // Language of input strings.
   // Used to determine line breaking depending on a language.
+  uint32_t script_;
   std::string language_;
+  TextLayoutDirection layout_direction_;
 
   // Line height for a multi line text.
   float line_height_;
@@ -847,8 +879,7 @@ class FontBuffer {
 class FaceData {
  public:
   /// @brief The default constructor for FaceData.
-  FaceData()
-      : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
+  FaceData() : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
 
   /// @brief The destructor for FaceData.
   ///

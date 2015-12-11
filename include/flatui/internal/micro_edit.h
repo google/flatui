@@ -43,7 +43,6 @@ enum EditorMode {
 class MicroEdit {
  public:
   MicroEdit() {
-    language_ = kLineBreakDefaultLanguage;
     Reset();
   }
 
@@ -81,6 +80,13 @@ class MicroEdit {
   // As of libunibreak version 3.0, a list of supported languages is,
   // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
   void SetLanguage(const std::string &language) { language_ = language; }
+
+
+  // Set a layout direction in the editor.
+  // This setting affects forward/backward direction of a cursor control.
+  void SetDirection(const TextLayoutDirection direction) {
+    direction_ = direction;
+  }
 
   // Set a FontBuffer to the editor.
   // The FontBuffer data is used to move a caret, pick a letter etc.
@@ -125,6 +131,8 @@ class MicroEdit {
     buffer_ = nullptr;
     expected_caret_position_ = mathfu::kZeros2i;
     single_line_ = true;
+    language_ = kDefaultLanguage;
+    direction_ = TextLayoutDirectionLTR;
   }
 
   // Helper to count a number of characters in a text.
@@ -176,6 +184,9 @@ class MicroEdit {
 
   // Language setting used for line break operation.
   std::string language_;
+
+  // Text layout direciton.
+  TextLayoutDirection direction_;
 
   // Word breaking info retrieved by libUnibreak.
   std::vector<char> wordbreak_info_;
