@@ -601,12 +601,6 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   FontTexture *tex = new FontTexture();
   tex->LoadFromMemory(image.get(), vec2i(width, height), false);
 
-  // Setup UV.
-  tex->set_uv(vec4(0.0f, 0.0f,
-                   static_cast<float>(string_width) / static_cast<float>(width),
-                   static_cast<float>(initial_metrics.total()) /
-                       static_cast<float>(height)));
-
   // Setup font metrics.
   tex->set_metrics(initial_metrics);
 
