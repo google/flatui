@@ -40,7 +40,7 @@ font-rendering.
      to make your own with specialized rendering. No complicated templating /
      skinning required.
    * **Designed for games** - supports typical game use cases.
-   * **Unicode and i18n aware** - text rendering that builds on HardBuzz and
+   * **Unicode and i18n aware** - text rendering that builds on HarfBuzz and
      libunibreak.
 
 # Supported Platforms and Dependencies.
