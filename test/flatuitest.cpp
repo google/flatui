@@ -42,8 +42,6 @@ using mathfu::vec2;
 using mathfu::vec2i;
 using mathfu::vec4;
 
-//#define TEST_RTL (1)
-
 extern "C" int FPL_main(int /*argc*/, char **argv) {
   fplbase::Renderer renderer;
   fplbase::InputSystem input;
@@ -91,6 +89,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     static bool show_about = false;
     static vec2 scroll_offset(mathfu::kZeros2f);
     static bool checkbox1_checked;
+    static bool test_rtl;
     static float slider_value;
     static std::string str("Edit box.");
     static std::string str2("More Edit box.");
@@ -109,14 +108,18 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
     Run(assetman, fontman, input, [&]() {
       SetVirtualResolution(1000);
-#ifdef TEST_RTL
-     flatui::SetTextDirection(flatui::TextLayoutDirectionRTL);
-#endif
+      if (test_rtl) {
+        flatui::SetTextLocale("ar");
+      } else {
+        flatui::SetTextLocale("en");
+      }
       StartGroup(flatui::kLayoutOverlay, 0);
         StartGroup(flatui::kLayoutHorizontalTop, 10);
           PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
                         mathfu::kZeros2f);
           StartGroup(flatui::kLayoutVerticalLeft, 20);
+           CheckBox(*tex_check_on, *tex_check_off, "Test RTL", 30,
+               Margin(6, 0), &test_rtl);
             click_about_example("my_id1", true);
             Edit(30, vec2(400, 30), "edit2", &str2);
             StartGroup(flatui::kLayoutHorizontalTop, 0);

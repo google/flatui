@@ -316,23 +316,16 @@ void SetTextColor(const mathfu::vec4 &color);
 /// that should be set.
 void SetTextFont(const char *font_name);
 
-/// @brief Set a language used for the text rendering.
-/// The setting will affet line break settings.
+/// @brief Set a locale used for the text rendering.
 ///
-/// @param[in] language_name A C-string corresponding to the name of the
-/// language defined in ISO 639-1 based language code. Default setting is
-/// 'en' (English).
-void SetTextLanguage(const char *language_name);
+/// @param[in] locale A C-string corresponding to the of the
+/// language defined in ISO 639 and country code defined in ISO 3166 connected
+/// by '-'. (e.g. 'en-US').
+/// The API sets language, script and layout direction used for following text
+/// renderings.
+void SetTextLocale(const char *locale);
 
-/// @brief Set a script used for the text rendering.
-/// The setting will affet a glyph layout in labels.
-///
-/// @param[in] script_name A C-string corresponding to the name of the
-/// language defined in ISO 15924.
-/// Default setting is 'Latn' (Latin).
-void SetTextScript(const char *script_name);
-
-/// @brief Set a text layout direction.
+/// @brief Override a text layout direction set by SetTextLocale() API.
 ///
 /// @param[in] direction TextLayoutDirection specifying text layout direction.
 void SetTextDirection(const TextLayoutDirection direction);

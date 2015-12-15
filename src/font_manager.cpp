@@ -92,6 +92,11 @@ class WordEnumerator {
     return true;
   }
 
+  // Check if current word is the last one.
+  bool IsLastWord() {
+    return current_index_ + current_length_ >= buffer_->size() || finished_;
+  }
+
   // Get an index of the current word in the given text buffer.
   size_t GetCurrentWordIndex() const {
     assert(buffer_);
@@ -265,7 +270,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   float pos_start = 0;
   if (layout_direction_ == TextLayoutDirectionRTL) {
     // In RTL layout, the glyph position start from right.
-    pos_start = size.x();
+    pos_start = static_cast<float>(size.x());
   }
   mathfu::vec2 pos(pos_start, 0);
   FT_GlyphSlot glyph = current_face_->face_->glyph;
@@ -275,6 +280,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   uint32_t total_glyph_count = 0;
   uint32_t total_height = ysize;
   bool lastline_must_break = false;
+  bool first_character = true;
+  auto line_height = ysize * line_height_;
 
   // Find words and layout them.
   while (word_enum.Advance()) {
@@ -283,7 +290,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       // In this mode, it layouts all string into single line.
       max_line_width = static_cast<uint32_t>(LayoutText(text, length) * scale);
       if (layout_direction_ == TextLayoutDirectionRTL && size.x() == 0) {
-        pos.x() = max_line_width / kFreeTypeUnit;
+        pos.x() = static_cast<float>(max_line_width / kFreeTypeUnit);
       }
     } else {
       // Multi line text.
@@ -298,9 +305,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
                                      static_cast<uint32_t>(size.x())) {
         // Line break.
-        auto line_height = ysize * line_height_;
         pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
+        first_character = lastline_must_break;
         if (size.y() && total_height > static_cast<uint32_t>(size.y()) &&
             !caret_info) {
           // The text size exceeds given size.
@@ -327,6 +334,12 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       lastline_must_break = word_enum.CurrentWordMustBreak();
     }
 
+    // Update the first caret position.
+    if (caret_info && first_character) {
+      buffer->AddCaretPosition(pos + vec2(0, base_line * scale));
+      first_character = false;
+    }
+
     // Retrieve layout info.
     uint32_t glyph_count;
     auto glyph_info = hb_buffer_get_glyph_infos(harfbuzz_buf_, &glyph_count);
@@ -350,30 +363,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
         // Cleanup buffer contents.
         hb_buffer_clear_contents(harfbuzz_buf_);
         return nullptr;
-      }
-
-      // Update caret information if it has been requested.
-      if (caret_info) {
-        // Is the current glyph a ligature?
-        // We are not using hb_ot_layout_get_ligature_carets() as the API barely
-        // work with existing fonts.
-        // https://bugs.freedesktop.org/show_bug.cgi?id=90962 tracks a request
-        // for the issue.
-        auto carets = GetCaretPosCount(word_enum, glyph_info,
-                                       static_cast<int32_t>(glyph_count),
-                                       static_cast<int32_t>(idx));
-
-        mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
-        auto scaled_offset = cache->get_offset().x() * scale;
-        auto scaled_size = cache->get_size().x() * scale;
-        float scaled_base_line = base_line * scale;
-        // Add caret points
-        for (auto caret = 0; caret < carets; ++caret) {
-          buffer->AddCaretPosition(
-              rounded_pos.x() + scaled_offset +
-                  idx_advance * caret * scaled_size / carets,
-              rounded_pos.y() + scaled_base_line);
-        }
       }
 
       auto pos_advance =
@@ -424,6 +413,30 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       if (layout_direction_ == TextLayoutDirectionLTR) {
         pos += pos_advance;
       }
+
+      // Update caret information if it has been requested.
+      bool end_of_line = lastline_must_break == true && i == glyph_count - 1;
+      if (caret_info && end_of_line == false) {
+        // Is the current glyph a ligature?
+        // We are not using hb_ot_layout_get_ligature_carets() as the API barely
+        // work with existing fonts.
+        // https://bugs.freedesktop.org/show_bug.cgi?id=90962 tracks a request
+        // for the issue.
+        auto carets = GetCaretPosCount(word_enum, glyph_info,
+                                       static_cast<int32_t>(glyph_count),
+                                       static_cast<int32_t>(idx));
+
+        auto scaled_offset = cache->get_offset().x() * scale;
+        auto scaled_size = cache->get_size().x() * scale;
+        float scaled_base_line = base_line * scale;
+        // Add caret points
+        for (auto caret = 0; caret < carets; ++caret) {
+          buffer->AddCaretPosition(
+              pos +
+              vec2(scaled_offset + idx_advance * caret * scaled_size / carets,
+                   scaled_base_line));
+        }
+      }
     }
 
     // Set buffer revision using glyph cache revision.
@@ -436,12 +449,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
     hb_buffer_clear_contents(harfbuzz_buf_);
   }
 
-  // Update the last caret position.
+  // Add the last caret.
   if (caret_info) {
-    mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
-    float scaled_base_line = base_line * scale;
-    buffer->AddCaretPosition(rounded_pos.x(),
-                             rounded_pos.y() + scaled_base_line);
+    buffer->AddCaretPosition(pos + vec2(0, base_line * scale));
   }
 
   // Setup size.
@@ -851,8 +861,35 @@ bool FontManager::UpdateMetrics(const FT_GlyphSlot g,
   return false;
 }
 
-void FontManager::SetScript(const std::string &script) {
-  uint32_t s = *reinterpret_cast<const uint32_t *>(script.c_str());
+void FontManager::SetLocale(const char *locale) {
+  if (locale_ == locale) {
+    return;
+  }
+  // Retrieve the language in the locale string.
+  std::string language = locale;
+  language = language.substr(0, language.find("-"));
+  // Set the linebreak language.
+  if (IsLanguageSupported(language.c_str())) {
+    language_ = language;
+  } else {
+    language_ = kDefaultLanguage;
+  }
+
+  // Set the script and the layout direction.
+  auto layout_info = FindLocale(locale);
+  if (layout_info == nullptr) {
+    // Lookup with the language.
+    layout_info = FindLocale(language.c_str());
+  }
+  if (layout_info != nullptr) {
+    SetLayoutDirection(layout_info->direction);
+    SetScript(layout_info->script);
+  }
+  locale_ = locale;
+}
+
+void FontManager::SetScript(const char *script) {
+  uint32_t s = *reinterpret_cast<const uint32_t *>(script);
   script_ = static_cast<hb_script_t>(s >> 24 | (s & 0xff0000) >> 8 |
                                      (s & 0xff00) << 8 | s << 24);
 }
@@ -939,10 +976,14 @@ void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
   vertices_[index * 4 + 3].uv_ = uv.zw();
 }
 
-void FontBuffer::AddCaretPosition(float x, float y) {
+void FontBuffer::AddCaretPosition(const vec2 &pos) {
+  mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
+  AddCaretPosition(rounded_pos.x(), rounded_pos.y());
+}
+
+void FontBuffer::AddCaretPosition(int32_t x, int32_t y) {
   assert(caret_positions_.capacity());
-  caret_positions_.push_back(
-      mathfu::vec2i(static_cast<int>(x), static_cast<int>(y)));
+  caret_positions_.push_back(mathfu::vec2i(x, y));
 }
 
 void FaceData::Close() {

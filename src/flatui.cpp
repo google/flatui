@@ -507,13 +507,12 @@ class InternalState : public Group {
       if (show_caret) {
         // Render caret.
         const float kCaretPositionSizeFactor = 0.8f;
-        const float kCaretWidth = 2.0f;
+        const float kCaretWidth = 4.0f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
-
         auto caret_height = size.y() * kCaretPositionSizeFactor;
-        if (caret_pos.x() >= window.x() &&
-            caret_pos.x() <= window.x() + window.z() &&
+        if (caret_pos.x() >= window.x() - kCaretWidth &&
+            caret_pos.x() <= window.x() + window.z() + kCaretWidth&&
             caret_pos.y() >= window.y() &&
             caret_pos.y() - caret_height <= window.y() + window.w()) {
           caret_pos += pos;
@@ -1276,17 +1275,12 @@ class InternalState : public Group {
   // Set Label's font.
   void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
 
-  // Set text rendering language.
-  void SetTextLanguage(const char *language_name) {
-    fontman_.SetLanguage(language_name);
+  // Set a locale used for the text rendering.
+  void SetTextLocale(const char *locale) {
+    fontman_.SetLocale(locale);
   }
 
-  // Set text script.
-  void SetTextScript(const char *script_name) {
-    fontman_.SetScript(script_name);
-  }
-
-  // Set text layout direction.
+  // Override text layout direction that is set by SetTextLanguage() API.
   void SetTextDirection(TextLayoutDirection direction) {
     fontman_.SetLayoutDirection(direction);
   }
@@ -1476,11 +1470,8 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
 void SetTextFont(const char *font_name) { Gui()->SetTextFont(font_name); }
-void SetTextLanguage(const char *language_name) {
-  Gui()->SetTextLanguage(language_name);
-}
-void SetTextScript(const char *script_name) {
-  Gui()->SetTextScript(script_name);
+void SetTextLocale(const char *locale) {
+  Gui()->SetTextLocale(locale);
 }
 void SetTextDirection(const TextLayoutDirection direction) {
   Gui()->SetTextDirection(direction);

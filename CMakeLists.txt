@@ -122,6 +122,7 @@ set(flatui_SRCS
     src/micro_edit.cpp
     src/flatui.cpp
     src/flatui_common.cpp
+    src/script_table.cpp
     src/version.cpp)
 
 # Includes for this project.
