@@ -42,6 +42,8 @@ using mathfu::vec2;
 using mathfu::vec2i;
 using mathfu::vec4;
 
+//#define TEST_RTL (1)
+
 extern "C" int FPL_main(int /*argc*/, char **argv) {
   fplbase::Renderer renderer;
   fplbase::InputSystem input;
@@ -107,6 +109,9 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
     Run(assetman, fontman, input, [&]() {
       SetVirtualResolution(1000);
+#ifdef TEST_RTL
+     flatui::SetTextDirection(flatui::TextLayoutDirectionRTL);
+#endif
       StartGroup(flatui::kLayoutOverlay, 0);
         StartGroup(flatui::kLayoutHorizontalTop, 10);
           PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
@@ -134,7 +139,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               fplbase::LogInfo("You clicked: text button");
             }
             StartGroup(flatui::kLayoutVerticalLeft, 20, "scroll");
-            StartScroll(vec2(200, 100), &scroll_offset);
+            StartScroll(vec2(300, 200), &scroll_offset);
                 ImageBackgroundNinePatch(*tex_about,
                                          vec4(0.2f, 0.2f, 0.8f, 0.8f));
                 click_about_example("my_id4", true);

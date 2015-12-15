@@ -450,6 +450,7 @@ class InternalState : public Group {
           // Initialize the editor.
           persistent_.text_edit_.Initialize(text, edit_mode);
           persistent_.text_edit_.SetLanguage(fontman_.GetLanguage());
+          persistent_.text_edit_.SetDirection(fontman_.GetLayoutDirection());
           persistent_.text_edit_.SetBuffer(buffer);
           pick_caret = true;
           CaptureInput(hash, true);
@@ -1275,6 +1276,21 @@ class InternalState : public Group {
   // Set Label's font.
   void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
 
+  // Set text rendering language.
+  void SetTextLanguage(const char *language_name) {
+    fontman_.SetLanguage(language_name);
+  }
+
+  // Set text script.
+  void SetTextScript(const char *script_name) {
+    fontman_.SetScript(script_name);
+  }
+
+  // Set text layout direction.
+  void SetTextDirection(TextLayoutDirection direction) {
+    fontman_.SetLayoutDirection(direction);
+  }
+
   // Return the version of the FlatUI Library
   const FlatUiVersion *GetFlatUiVersion() const { return version_; }
 
@@ -1460,6 +1476,15 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
 void SetTextFont(const char *font_name) { Gui()->SetTextFont(font_name); }
+void SetTextLanguage(const char *language_name) {
+  Gui()->SetTextLanguage(language_name);
+}
+void SetTextScript(const char *script_name) {
+  Gui()->SetTextScript(script_name);
+}
+void SetTextDirection(const TextLayoutDirection direction) {
+  Gui()->SetTextDirection(direction);
+}
 
 Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {
