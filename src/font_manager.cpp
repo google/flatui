@@ -427,14 +427,13 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
                                        static_cast<int32_t>(idx));
 
         auto scaled_offset = cache->get_offset().x() * scale;
-        auto scaled_size = cache->get_size().x() * scale;
         float scaled_base_line = base_line * scale;
         // Add caret points
-        for (auto caret = 0; caret < carets; ++caret) {
+        for (auto caret = 1; caret <= carets; ++caret) {
           buffer->AddCaretPosition(
-              pos +
-              vec2(scaled_offset + idx_advance * caret * scaled_size / carets,
-                   scaled_base_line));
+              pos + vec2(idx_advance * (scaled_offset - pos_advance.x() +
+                                        caret * pos_advance.x() / carets),
+                         scaled_base_line));
         }
       }
     }
