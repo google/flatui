@@ -68,15 +68,17 @@ inline ButtonProperty operator|(ButtonProperty a, ButtonProperty b) {
 ///
 /// E.g. `a |= b;`
 ///
-/// @param[in] a The implicit, first ButtonProperty whose `int` value should be
-/// used in the bitwise OR. It also captures the return value of the function.
-/// @param[in] b The explicit, second ButtonProperty whose `int` value is used
-/// in the bitwise OR.
+/// @param[in] a The modifiable ButtonProperty lvalue whose `int` value should
+/// be used in the bitwise OR. It also captures the return value of the
+/// function.
+/// @param[in] b The second ButtonProperty whose `int` value is used in the
+/// bitwise OR.
 ///
 /// @return Returns a new ButtonProperty that is formed from the result of the
 /// bitwise OR of the two input ButtonProperties' `int` values.
-inline ButtonProperty operator|=(ButtonProperty a, ButtonProperty b) {
-  return a | b;
+inline ButtonProperty operator|=(ButtonProperty &a, const ButtonProperty &b) {
+  a = a | b;
+  return a;
 }
 
 /// @brief Some of the widgets provide user feedback by rendering a transparent
@@ -131,8 +133,8 @@ Event ImageButton(const fplbase::Texture &texture, float size,
 ///
 /// @return Returns the Event type for the button.
 Event TextButton(const fplbase::Texture &texture, const Margin &texture_margin,
-                 const char *text, float size,
-                 const Margin &margin, const ButtonProperty property);
+                 const char *text, float size, const Margin &margin,
+                 const ButtonProperty property);
 
 /// @brief A checkbox with a label next to it.
 ///
@@ -149,9 +151,8 @@ Event TextButton(const fplbase::Texture &texture, const Margin &texture_margin,
 ///
 /// @return Returns the Event type for the checkbox.
 Event CheckBox(const fplbase::Texture &texture_checked,
-               const fplbase::Texture &texture_unchecked,
-               const char *label, float size, const Margin &margin,
-               bool *is_checked);
+               const fplbase::Texture &texture_unchecked, const char *label,
+               float size, const Margin &margin, bool *is_checked);
 
 /// @brief A clider to change a numeric value.
 ///

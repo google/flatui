@@ -85,14 +85,18 @@ void MicroEdit::UpdateWordBreakIndex() {
 
 bool MicroEdit::MoveCaretVertical(int32_t offset) {
   if (buffer_ == nullptr) return false;
-  auto expected_caret_position = expected_caret_position_;
-  auto position = Pick(expected_caret_position, static_cast<float>(offset));
+  auto pos = buffer_->GetCaretPosition(caret_pos_);
+  if (expected_caret_x_position_ != kCaretPosInvalid) {
+    pos.x() = expected_caret_x_position_;
+  }
+
+  auto position = Pick(pos, static_cast<float>(offset));
   if (position == kCaretPosInvalid) {
     return false;
   }
   auto ret = SetCaret(position);
-  // Restore caret x pos.
-  expected_caret_position_.x() = expected_caret_position.x();
+  // Restore caret x position which is updated inside SetCaret().
+  expected_caret_x_position_ = pos.x();
   return ret;
 }
 
@@ -164,7 +168,7 @@ bool MicroEdit::SetCaret(int32_t position) {
   }
 
   if (buffer_ && buffer_->HasCaretPositions()) {
-    expected_caret_position_ = buffer_->GetCaretPosition(position);
+    expected_caret_x_position_ = buffer_->GetCaretPosition(position).x();
   }
   return true;
 }
@@ -172,6 +176,7 @@ bool MicroEdit::SetCaret(int32_t position) {
 void MicroEdit::InsertText(const std::string &text) {
   text_->insert(wordbreak_index_, text);
   caret_pos_ += GetNumCharacters(text);
+  expected_caret_x_position_ = kCaretPosInvalid;
   UpdateWordBreakInfo();
 }
 
@@ -274,6 +279,9 @@ const vec4i &MicroEdit::GetWindow() {
     // Check if we need to scroll inside the edit box.
     const float kWindowThresholdFactor = 0.15f;
     auto caret_pos = buffer_->GetCaretPosition(GetCaretPosition());
+    if (direction_ == TextLayoutDirectionRTL) {
+      caret_pos.x() = window_.z() - caret_pos.x();
+    }
     auto threshold = window_.z() * kWindowThresholdFactor;
     auto window_start = caret_pos - window_offset_;
 
@@ -294,6 +302,9 @@ const vec4i &MicroEdit::GetWindow() {
         std::min(window_offset_.x(), buffer_size.x() - window_.z()), 0);
     window_.y() = std::max(
         std::min(window_offset_.y(), buffer_size.y() - window_.w()), 0);
+    if (direction_ == TextLayoutDirectionRTL) {
+      window_.x() = -window_.x();
+    }
   } else {
     window_.x() = 0;
     window_.y() = 0;
@@ -321,7 +332,6 @@ int32_t MicroEdit::Pick(const vec2i &pointer_position, float offset) {
     end_it = start_it - 1;
     start_it = buffer_begin;
     PickRow(*end_it, &start_it, &end_it);
-    end_it++;
   } else if (offset > 0) {
     if (end_it == buffer_end - 1) {
       return kCaretPosInvalid;
@@ -339,9 +349,8 @@ void MicroEdit::PickRow(const vec2i &pointer_position,
                         std::vector<vec2i>::const_iterator *start_it,
                         std::vector<vec2i>::const_iterator *end_it) {
   // Perform a binary search in the caret position buffer.
-  auto compare = [](const vec2i &lhs, const vec2i &rhs) {
-    return lhs.y() < rhs.y();
-  };
+  auto compare = [](const vec2i &lhs,
+                    const vec2i &rhs) { return lhs.y() < rhs.y(); };
   *start_it = std::lower_bound(*start_it, *end_it, pointer_position, compare);
   if (*start_it < *end_it)
     *end_it = std::upper_bound(*start_it, *end_it, **start_it, compare) - 1;
@@ -350,9 +359,14 @@ void MicroEdit::PickRow(const vec2i &pointer_position,
 int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
                               std::vector<vec2i>::const_iterator start_it,
                               std::vector<vec2i>::const_iterator end_it) {
-  const auto it = std::upper_bound(
-      start_it, end_it, pointer_position,
-      [](const vec2i &lhs, const vec2i &rhs) { return lhs.x() <= rhs.x(); });
+  auto compare = [this](const vec2i &lhs, const vec2i &rhs) {
+    if (direction_ == TextLayoutDirectionRTL) {
+      return lhs.x() >= rhs.x();
+    } else {
+      return lhs.x() <= rhs.x();
+    }
+  };
+  const auto it = std::upper_bound(start_it, end_it, pointer_position, compare);
 
   int32_t index = static_cast<int32_t>(
       std::distance(buffer_->GetCaretPositions().begin(), it));
@@ -364,6 +378,10 @@ bool MicroEdit::HandleInputEvents(
   bool ret = false;
   auto event = events->begin();
   while (event != events->end()) {
+    bool forward = true;
+    if (direction_ == TextLayoutDirectionRTL) {
+      forward = false;
+    }
     switch (event->type) {
       case fplbase::kTextInputEventTypeKey:
         // Do nothing when a key is released.
@@ -380,20 +398,28 @@ bool MicroEdit::HandleInputEvents(
             break;
           case fplbase::FPLK_LEFT:
             if (event->key.modifier & FPL_KMOD_GUI) {
-              MoveCaretInLine(kHeadOfLine);
+              if (direction_ == TextLayoutDirectionRTL) {
+                MoveCaretInLine(kTailOfLine);
+              } else {
+                MoveCaretInLine(kHeadOfLine);
+              }
             } else if (event->key.modifier & FPL_KMOD_ALT) {
-              MoveCaretToWordBoundary(false);
+              MoveCaretToWordBoundary(!forward);
             } else {
-              MoveCaret(false);
+              MoveCaret(!forward);
             }
             break;
           case fplbase::FPLK_RIGHT:
             if (event->key.modifier & FPL_KMOD_GUI) {
-              MoveCaretInLine(kTailOfLine);
+              if (direction_ == TextLayoutDirectionRTL) {
+                MoveCaretInLine(kHeadOfLine);
+              } else {
+                MoveCaretInLine(kTailOfLine);
+              }
             } else if (event->key.modifier & FPL_KMOD_ALT) {
-              MoveCaretToWordBoundary(true);
+              MoveCaretToWordBoundary(forward);
             } else {
-              MoveCaret(true);
+              MoveCaret(forward);
             }
             break;
           case fplbase::FPLK_UP:

@@ -89,6 +89,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     static bool show_about = false;
     static vec2 scroll_offset(mathfu::kZeros2f);
     static bool checkbox1_checked;
+    static bool test_rtl;
     static float slider_value;
     static std::string str("Edit box.");
     static std::string str2("More Edit box.");
@@ -107,11 +108,18 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
     Run(assetman, fontman, input, [&]() {
       SetVirtualResolution(1000);
+      if (test_rtl) {
+        flatui::SetTextLocale("ar");
+      } else {
+        flatui::SetTextLocale("en");
+      }
       StartGroup(flatui::kLayoutOverlay, 0);
         StartGroup(flatui::kLayoutHorizontalTop, 10);
           PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
                         mathfu::kZeros2f);
           StartGroup(flatui::kLayoutVerticalLeft, 20);
+           CheckBox(*tex_check_on, *tex_check_off, "Test RTL", 30,
+               Margin(6, 0), &test_rtl);
             click_about_example("my_id1", true);
             Edit(30, vec2(400, 30), "edit2", &str2);
             StartGroup(flatui::kLayoutHorizontalTop, 0);
@@ -134,7 +142,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               fplbase::LogInfo("You clicked: text button");
             }
             StartGroup(flatui::kLayoutVerticalLeft, 20, "scroll");
-            StartScroll(vec2(200, 100), &scroll_offset);
+            StartScroll(vec2(300, 200), &scroll_offset);
                 ImageBackgroundNinePatch(*tex_about,
                                          vec4(0.2f, 0.2f, 0.8f, 0.8f));
                 click_about_example("my_id4", true);

@@ -15,6 +15,8 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
+#include <set>
+
 /// @cond FLATUI_INTERNAL
 // Use libunibreak for a line breaking
 #if !defined(FLATUI_USE_LIBUNIBREAK)
@@ -48,6 +50,7 @@ class FontBuffer;
 class FontMetrics;
 class WordEnumerator;
 class FaceData;
+struct ScriptInfo;
 /// @endcond
 
 /// @var kFreeTypeUnit
@@ -82,10 +85,21 @@ const float kLineHeightDefault = 1.2f;
 /// @brief A sentinel value representing an invalid caret position.
 const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 
-/// @var kLineBreakDefaultLanguage
+/// @var kDefaultLanguage
 ///
 /// @brief The default language used for a line break.
-const char *const kLineBreakDefaultLanguage = "en";
+const char *const kDefaultLanguage = "en";
+
+/// @enum TextLayoutDirection
+///
+/// @brief Specify how to layout texts.
+/// Default value is TextLayoutDirectionLTR.
+///
+enum TextLayoutDirection {
+  TextLayoutDirectionLTR = 0,
+  TextLayoutDirectionRTL = 1,
+  TextLayoutDirectionTTB = 2,
+};
 
 /// @class FontBufferParameters
 ///
@@ -313,18 +327,46 @@ class FontManager {
     size_selector_.swap(selector);
   }
 
-  /// @brief Set a langauge used to determine line breaking.
+  /// @param[in] locale  A C-string corresponding to the of the
+  /// language defined in ISO 639 and the country code difined in ISO 3166
+  /// separated
+  /// by '-'. (e.g. 'en-US').
   ///
-  /// @param[in] language ISO 639-1 based language code. Default setting is
-  /// 'en' (English).
-  ///
-  /// @note The value is passed to libunibreak. As of libunibreak version 3.0, a
-  /// list of supported languages is, "en", "de", "es", "fr", "ru", "zh", "ja",
-  /// "ko"
-  void SetLanguage(const std::string &language) { language_ = language; }
+  /// @note The API sets language, script and layout direction used for
+  /// following text renderings based on the locale.
+  void SetLocale(const char *locale);
 
   /// @return Returns the current language setting as a std::string.
-  const std::string &GetLanguage() { return language_; }
+  const char *GetLanguage() { return language_.c_str(); }
+
+  /// @brief Set a script used for a script layout.
+  ///
+  /// @param[in] language ISO 15924 based script code. Default setting is
+  /// 'Latn' (Latin).
+  /// For more detail, refer http://unicode.org/iso15924/iso15924-codes.html
+  ///
+  void SetScript(const char *script);
+
+  /// @brief Set a script layout direction.
+  ///
+  /// @param[in] direction Text layout direction.
+  ///            TextLayoutDirectionLTR & TextLayoutDirectionRTL are supported.
+  ///
+  void SetLayoutDirection(const TextLayoutDirection direction) {
+    if (direction == TextLayoutDirectionTTB) {
+      fplbase::LogError("TextLayoutDirectionTTB is not supported yet.");
+      return;
+    }
+
+    // Flush layout cache if we switch a directin.
+    if (direction != layout_direction_) {
+      FlushLayout();
+    }
+    layout_direction_ = direction;
+  }
+
+  /// @return Returns the current layout direciton.
+  TextLayoutDirection GetLayoutDirection() { return layout_direction_; }
 
   /// @brief Set a line height for a multi-line text.
   ///
@@ -402,6 +444,16 @@ class FontManager {
   FontBuffer *CreateBuffer(const char *text, const uint32_t length,
                            const FontBufferParameters &parameters);
 
+  // Update language related settings.
+  void SetLanguageSettings();
+
+  // Look up a supported locale.
+  // Returns nullptr if the API doesn't find the specified locale.
+  const ScriptInfo *FindLocale(const char *locale);
+
+  // Check if speficied language is supported in the font manager engine.
+  bool IsLanguageSupported(const char *language);
+
   // Renderer instance.
   fplbase::Renderer *renderer_;
 
@@ -448,9 +500,14 @@ class FontManager {
   // Size selector function object used to adjust a glyph size.
   std::function<int32_t(const int32_t)> size_selector_;
 
-  // Language of input string.
+  // Language of input strings.
   // Used to determine line breaking depending on a language.
+  uint32_t script_;
   std::string language_;
+  std::string locale_;
+  TextLayoutDirection layout_direction_;
+  static const ScriptInfo script_table_[];
+  static const char *language_table_[];
 
   // Line height for a multi line text.
   float line_height_;
@@ -759,7 +816,10 @@ class FontBuffer {
   ///
   /// @param[in] x The `x` position of the caret.
   /// @param[in] y The `y` position of the caret.
-  void AddCaretPosition(float x, float y);
+  void AddCaretPosition(int32_t x, int32_t y);
+  ///
+  /// @param[in] pos The position of the caret.
+  void AddCaretPosition(const mathfu::vec2 &pos);
 
   /// @brief Update UV information of a glyph entry.
   ///
@@ -847,8 +907,7 @@ class FontBuffer {
 class FaceData {
  public:
   /// @brief The default constructor for FaceData.
-  FaceData()
-      : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
+  FaceData() : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
 
   /// @brief The destructor for FaceData.
   ///
@@ -878,6 +937,26 @@ class FaceData {
   /// @var font_id_
   /// @brief Hashed value of the font face.
   HashedId font_id_;
+};
+
+/// @struct ScriptInfo
+///
+/// @brief This struct holds the script information used for a text layout.
+///
+struct ScriptInfo {
+  /// @var locale
+  /// @brief A C-string corresponding to the of the
+  /// language defined in ISO 639 and the country code difined in ISO 3166
+  /// separated
+  /// by '-'. (e.g. 'en-US').
+  const char *locale;
+
+  /// @var script
+  /// @brief ISO 15924 Script code.
+  const char *script;
+  /// @var direction
+  /// @brief Script layout direciton.
+  TextLayoutDirection direction;
 };
 /// @}
 

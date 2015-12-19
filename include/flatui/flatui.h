@@ -216,7 +216,7 @@ enum Layout {
 /// @var kDefaultGroupID
 ///
 /// @brief A sentinel value for group IDs.
-const char* const kDefaultGroupID = "__group_id__";
+const char *const kDefaultGroupID = "__group_id__";
 
 /// @struct Margin
 ///
@@ -315,6 +315,20 @@ void SetTextColor(const mathfu::vec4 &color);
 /// @param[in] font_name A C-string corresponding to the name of the font
 /// that should be set.
 void SetTextFont(const char *font_name);
+
+/// @brief Set a locale used for the text rendering.
+///
+/// @param[in] locale A C-string corresponding to the of the
+/// language defined in ISO 639 and country code defined in ISO 3166 connected
+/// by '-'. (e.g. 'en-US').
+/// The API sets language, script and layout direction used for following text
+/// renderings.
+void SetTextLocale(const char *locale);
+
+/// @brief Override a text layout direction set by SetTextLocale() API.
+///
+/// @param[in] direction TextLayoutDirection specifying text layout direction.
+void SetTextDirection(const TextLayoutDirection direction);
 
 /// @brief Renders an edit text box as a GUI element.
 ///
@@ -548,8 +562,8 @@ void EndSlider();
 /// to render the element.
 void CustomElement(
     const mathfu::vec2 &virtual_size, const char *id,
-    const std::function<void(const mathfu::vec2i &pos,
-                             const mathfu::vec2i &size)> renderer);
+    const std::function<
+        void(const mathfu::vec2i &pos, const mathfu::vec2i &size)> renderer);
 
 /// @brief Render a Texture to a specific position with a given size.
 ///
@@ -669,7 +683,7 @@ bool IsLastEventPointerType();
 /// @}
 
 // Returns the version of the FlatUI Library.
-const FlatUiVersion* GetFlatUiVersion();
+const FlatUiVersion *GetFlatUiVersion();
 
 }  // namespace flatui
 

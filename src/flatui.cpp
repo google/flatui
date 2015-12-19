@@ -450,6 +450,7 @@ class InternalState : public Group {
           // Initialize the editor.
           persistent_.text_edit_.Initialize(text, edit_mode);
           persistent_.text_edit_.SetLanguage(fontman_.GetLanguage());
+          persistent_.text_edit_.SetDirection(fontman_.GetLayoutDirection());
           persistent_.text_edit_.SetBuffer(buffer);
           pick_caret = true;
           CaptureInput(hash, true);
@@ -506,13 +507,12 @@ class InternalState : public Group {
       if (show_caret) {
         // Render caret.
         const float kCaretPositionSizeFactor = 0.8f;
-        const float kCaretWidth = 2.0f;
+        const float kCaretWidth = 4.0f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
-
         auto caret_height = size.y() * kCaretPositionSizeFactor;
-        if (caret_pos.x() >= window.x() &&
-            caret_pos.x() <= window.x() + window.z() &&
+        if (caret_pos.x() >= window.x() - kCaretWidth &&
+            caret_pos.x() <= window.x() + window.z() + kCaretWidth&&
             caret_pos.y() >= window.y() &&
             caret_pos.y() - caret_height <= window.y() + window.w()) {
           caret_pos += pos;
@@ -1244,19 +1244,12 @@ class InternalState : public Group {
 
   HashedId NextInteractiveElement(int start, int direction) {
     auto range = static_cast<int>(elements_.size());
-    for (auto i = start;;) {
-      i += direction;
-      // Wrap around.. just once.
-      if (i < 0)
-        i = range - 1;
-      else if (i >= range)
-        i = 0;
-      // Back where we started, either there's no interactive elements, or
-      // the vector is empty.
-      if (i == start) return kNullHash;
-
+    auto count = range;
+    for (auto i = start; count > 0; --count) {
+      i = (i + direction + range) % range;
       if (elements_[i].interactive) return elements_[i].hash;
     }
+    return kNullHash;
   }
 
   void ColorBackground(const vec4 &color) {
@@ -1281,6 +1274,16 @@ class InternalState : public Group {
 
   // Set Label's font.
   void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
+
+  // Set a locale used for the text rendering.
+  void SetTextLocale(const char *locale) {
+    fontman_.SetLocale(locale);
+  }
+
+  // Override text layout direction that is set by SetTextLanguage() API.
+  void SetTextDirection(TextLayoutDirection direction) {
+    fontman_.SetLayoutDirection(direction);
+  }
 
   // Return the version of the FlatUI Library
   const FlatUiVersion *GetFlatUiVersion() const { return version_; }
@@ -1467,6 +1470,12 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
 void SetTextFont(const char *font_name) { Gui()->SetTextFont(font_name); }
+void SetTextLocale(const char *locale) {
+  Gui()->SetTextLocale(locale);
+}
+void SetTextDirection(const TextLayoutDirection direction) {
+  Gui()->SetTextDirection(direction);
+}
 
 Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {

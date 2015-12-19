@@ -43,7 +43,6 @@ enum EditorMode {
 class MicroEdit {
  public:
   MicroEdit() {
-    language_ = kLineBreakDefaultLanguage;
     Reset();
   }
 
@@ -76,11 +75,18 @@ class MicroEdit {
                        int32_t *focus_region_length);
 
   // Set a langauge used to determine line breaking.
-  // language: ISO 639-1 based language code. Default setting is 'en'(English).
+  // language: ISO 639 based language code. Default setting is 'en'(English).
   // The value is passed to libunibreak.
   // As of libunibreak version 3.0, a list of supported languages is,
   // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
   void SetLanguage(const std::string &language) { language_ = language; }
+
+
+  // Set a layout direction in the editor.
+  // This setting affects forward/backward direction of a cursor control.
+  void SetDirection(const TextLayoutDirection direction) {
+    direction_ = direction;
+  }
 
   // Set a FontBuffer to the editor.
   // The FontBuffer data is used to move a caret, pick a letter etc.
@@ -123,8 +129,10 @@ class MicroEdit {
     window_ = mathfu::kZeros4i;
     window_offset_ = mathfu::kZeros2i;
     buffer_ = nullptr;
-    expected_caret_position_ = mathfu::kZeros2i;
+    expected_caret_x_position_ = kCaretPosInvalid;
     single_line_ = true;
+    language_ = kDefaultLanguage;
+    direction_ = TextLayoutDirectionLTR;
   }
 
   // Helper to count a number of characters in a text.
@@ -177,6 +185,9 @@ class MicroEdit {
   // Language setting used for line break operation.
   std::string language_;
 
+  // Text layout direciton.
+  TextLayoutDirection direction_;
+
   // Word breaking info retrieved by libUnibreak.
   std::vector<char> wordbreak_info_;
 
@@ -196,9 +207,9 @@ class MicroEdit {
   mathfu::vec2i window_offset_;
 
   // Expected caret position, when moving a caret upward/downward, the editor
-  // will pick a caret positon closest to this position. This position is
+  // will pick a caret positon closest to this x position. This position is
   // updated when a caret is moved explicitly.
-  mathfu::vec2i expected_caret_position_;
+  int32_t expected_caret_x_position_;
 
   // A flag indicating the editor is for single line edit.
   bool single_line_;

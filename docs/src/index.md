@@ -40,7 +40,7 @@ font-rendering.
      to make your own with specialized rendering. No complicated templating /
      skinning required.
    * **Designed for games** - supports typical game use cases.
-   * **Unicode and i18n aware** - text rendering that builds on HardBuzz and
+   * **Unicode and i18n aware** - text rendering that builds on HarfBuzz and
      libunibreak.
 
 # Supported Platforms and Dependencies.
@@ -58,7 +58,7 @@ following libraries (included in the download / submodules):
    * [FreeType][] for font rendering.
    * [HarfBuzz][] and [Libunibreak][] for handling unicode text correctly.
    * [MathFu][] for vector math.
-   * FPLBase for rendering and input, which in turn uses:
+   * [FPLBase][] for rendering and input, which in turn uses:
      * [SDL][] as a cross-platform layer.
      * [OpenGL][] (desktop/ES).
      * [FlatBuffers][] for serialization.
@@ -100,6 +100,7 @@ upon so download the source using:
   [MathFu]: https://google.github.io/mathfu/
   [FlatBuffers]: https://google.github.io/flatbuffers/
   [FPLUtil]: https://google.github.io/fplutil/
+  [FPLBase]: https://google.github.io/fplbase/
   [SDL]: https://www.libsdl.org/
   [OpenGL]: https://www.opengl.org/
   [WebP]: https://developers.google.com/speed/webp/?hl=en
