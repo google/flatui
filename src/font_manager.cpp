@@ -158,6 +158,7 @@ void FontManager::Initialize() {
   language_ = kDefaultLanguage;
   layout_direction_ = TextLayoutDirectionLTR;
   line_height_ = kLineHeightDefault;
+  current_font_ = nullptr;
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
@@ -246,7 +247,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   // Otherwise, create new FontBuffer.
 
   // Set freetype settings.
-  FT_Set_Pixel_Sizes(current_face_->face_, 0, converted_ysize);
+  current_font_->SetPixelSize(converted_ysize);
 
   // Create FontBuffer with derived string length.
   std::unique_ptr<FontBuffer> buffer(new FontBuffer(length, caret_info));
@@ -260,11 +261,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   WordEnumerator word_enum(wordbreak_info_, !multi_line);
 
   // Initialize font metrics parameters.
-  int32_t base_line = ysize * current_face_->face_->ascender /
-                      current_face_->face_->units_per_EM;
-  if (base_line > ysize) {
-    base_line = ysize;
-  }
+  int32_t base_line = current_font_->GetBaseLine(ysize);
   FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
 
   float pos_start = 0;
@@ -273,7 +270,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
     pos_start = static_cast<float>(size.x());
   }
   mathfu::vec2 pos(pos_start, 0);
-  FT_GlyphSlot glyph = current_face_->face_->glyph;
 
   uint32_t line_width = 0;
   uint32_t max_line_width = 0;
@@ -382,6 +378,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
 
         // Calculate internal/external leading value and expand a buffer if
         // necessary.
+        auto glyph_info = current_font_->GetGlyphInfo(code_point);
+        FT_GlyphSlot glyph = glyph_info->GetFtFace()->glyph;
         FontMetrics new_metrics;
         if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
           initial_metrics = new_metrics;
@@ -510,7 +508,7 @@ FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
     // layout information.
 
     // Set freetype settings.
-    FT_Set_Pixel_Sizes(current_face_->face_, 0, ysize);
+    current_font_->SetPixelSize(ysize);
 
     auto code_points = buffer->get_code_points();
     for (size_t i = 0; i < code_points->size(); ++i) {
@@ -535,8 +533,11 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   // Round up y size if the size selector is set.
   int32_t ysize = ConvertSize(static_cast<int32_t>(original_ysize));
 
+  // Note: In the API it uses HbFont's fontID (would include multiple fonts)
+  // rather than a fontID for single font file. A texture can have multiple font
+  // faces so that we need a fontID that represents all fonts used.
   auto parameter =
-      FontBufferParameters(GetCurrentFace()->font_id_, flatui::HashId(text),
+      FontBufferParameters(current_font_->GetFontId(), flatui::HashId(text),
                            static_cast<float>(ysize), mathfu::kZeros2i, false);
 
   // Check cache if we already have a texture.
@@ -547,8 +548,8 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
 
   // Otherwise, create new texture.
 
-  // Set freetype settings.
-  FT_Set_Pixel_Sizes(current_face_->face_, 0, ysize);
+  // Set font size.
+  current_font_->SetPixelSize(ysize);
 
   // Layout text.
   auto string_width = LayoutText(text, length) / kFreeTypeUnit;
@@ -566,11 +567,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   int32_t height = RoundUpToPowerOf2(ysize);
 
   // Initialize font metrics parameters.
-  int32_t base_line = ysize * current_face_->face_->ascender /
-                      current_face_->face_->units_per_EM;
-  if (base_line > ysize) {
-    base_line = ysize;
-  }
+  int32_t base_line = current_font_->GetBaseLine(ysize);
   FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
 
   // rasterized image format in FreeType is 8 bit gray scale format.
@@ -580,13 +577,15 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   // TODO: make padding values configurable.
   float kGlyphPadding = 0.0f;
   mathfu::vec2 pos(kGlyphPadding, kGlyphPadding);
-  FT_GlyphSlot glyph = current_face_->face_->glyph;
 
   for (size_t i = 0; i < glyph_count; ++i) {
     auto code_point = glyph_info[i].codepoint;
     if (!code_point) continue;
-    FT_Error err =
-        FT_Load_Glyph(current_face_->face_, code_point, FT_LOAD_RENDER);
+
+    auto glyph_info = current_font_->GetGlyphInfo(code_point);
+    FT_GlyphSlot glyph = glyph_info->GetFtFace()->glyph;
+    FT_Error err = FT_Load_Glyph(glyph_info->GetFtFace(),
+                                 glyph_info->GetCodepoint(), FT_LOAD_RENDER);
 
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
@@ -724,21 +723,19 @@ bool FontManager::Open(const char *font_name) {
     return false;
   }
 
-  // Create harfbuzz font information from freetype face.
-  face->harfbuzz_font_ = hb_ft_font_create(face->face_, NULL);
-  if (!face->harfbuzz_font_) {
-    // Failed to open font.
-    LogInfo("Failed to initialize harfbuzz layout information:%s\n", font_name);
-    face->font_data_.clear();
-    FT_Done_Face(face->face_);
-    return false;
-  }
-
   face->font_id_ = HashId(font_name);
 
   // Set first opened font as a default font.
   if (!face_initialized_) {
-    current_face_ = face;
+    current_font_ = HbFont::Open(*face);
+    if (current_font_ == nullptr) {
+      // Failed to open font.
+      LogInfo("Failed to initialize harfbuzz layout information:%s\n",
+              font_name);
+      face->font_data_.clear();
+      FT_Done_Face(face->face_);
+      return false;
+    }
   }
 
   face_initialized_ = true;
@@ -771,8 +768,31 @@ bool FontManager::SelectFont(const char *font_name) {
   if (it == map_faces_.end()) {
     return false;
   }
-  current_face_ = it->second.get();
-  return true;
+  current_font_ = HbFont::Open(*it->second.get());
+  return current_font_ != nullptr;
+}
+
+bool FontManager::SelectFont(const char *font_names[], int32_t count) {
+  if (count == 1) {
+    return SelectFont(font_names[0]);
+  }
+
+  // Check if the font is already created.
+  auto id = HashId(font_names, count);
+  current_font_ = HbFont::Open(id);
+
+  if (current_font_ == nullptr) {
+    std::vector<FaceData *> v;
+    for (auto i = 0; i < count; ++i) {
+      auto it = map_faces_.find(font_names[i]);
+      if (it == map_faces_.end()) {
+        return false;
+      }
+      v.push_back(it->second.get());
+    }
+    current_font_ = HbComplexFont::Open(id, &v);
+  }
+  return current_font_ != nullptr;
 }
 
 void FontManager::StartLayoutPass() {
@@ -821,7 +841,7 @@ uint32_t FontManager::LayoutText(const char *text, const size_t length) {
   // Layout the text.
   hb_buffer_add_utf8(harfbuzz_buf_, text, static_cast<unsigned int>(length), 0,
                      static_cast<int>(length));
-  hb_shape(current_face_->harfbuzz_font_, harfbuzz_buf_, nullptr, 0);
+  hb_shape(current_font_->GetHbFont(), harfbuzz_buf_, nullptr, 0);
 
   // Retrieve layout info.
   uint32_t glyph_count;
@@ -906,14 +926,15 @@ void FontManager::SetLanguageSettings() {
 
 const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
                                                    const int32_t ysize) {
-  GlyphKey key(current_face_->font_id_, code_point, ysize);
+  auto glyph_info = current_font_->GetGlyphInfo(code_point);
+  GlyphKey key(glyph_info->GetFaceData()->font_id_, code_point, ysize);
   auto cache = glyph_cache_->Find(key);
 
   if (cache == nullptr) {
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
-    FT_Error err =
-        FT_Load_Glyph(current_face_->face_, code_point, FT_LOAD_RENDER);
+    FT_Error err = FT_Load_Glyph(glyph_info->GetFtFace(),
+                                 glyph_info->GetCodepoint(), FT_LOAD_RENDER);
     if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
@@ -922,13 +943,14 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
     }
 
     // Store the glyph to cache.
-    FT_GlyphSlot g = current_face_->face_->glyph;
+    FT_GlyphSlot g = glyph_info->GetFtFace()->glyph;
     GlyphCacheEntry entry;
     entry.set_code_point(code_point);
     entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
     entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
 
-    GlyphKey new_key(current_face_->font_id_, entry.get_code_point(), ysize);
+    GlyphKey new_key(glyph_info->GetFaceData()->font_id_,
+                     entry.get_code_point(), ysize);
     cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
 
     if (cache == nullptr) {
@@ -986,7 +1008,8 @@ void FontBuffer::AddCaretPosition(int32_t x, int32_t y) {
 }
 
 void FaceData::Close() {
-  hb_font_destroy(harfbuzz_font_);
+  // Remove the font data associated to this face data.
+  HbFont::Close(*this);
   FT_Done_Face(face_);
   font_data_.clear();
 }

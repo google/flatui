@@ -58,7 +58,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   input.Initialize();
 
   // Open OpenType font.
-  fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
+  const char* fonts[] = {
+    "fonts/NotoSansCJKjp-Bold.otf",
+    "fonts/NotoNaskhArabic-Regular.ttf"
+  };
+  for (size_t i = 0; i < FPL_ARRAYSIZE(fonts); ++i) {
+    fontman.Open(fonts[i]);
+  }
   fontman.SetRenderer(renderer);
 
   // Load textures.
@@ -97,6 +103,15 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                             "The quick brown fox jumps over the lazy dog. "
                             "The quick brown fox jumps over the lazy dog. "
                             "The quick brown fox jumps over the lazy dog. ");
+    // Sample Arabic string encoded Unicode entities.
+    auto rtl_string =
+    "\u064A\u064E\u062C\u0650\u0628\u064F : \u0645\u0650\u0646 "
+    "\u0648\u064E\u062C\u064E\u0628\u064E "
+    "(\u0645\u0650\u062B\u064E\u0627\u0644 ) , "
+    "\u0641\u0650\u0639\u0652\u0644\u064C "
+    "\u0645\u064F\u0636\u064E\u0627\u0631\u0650\u0639\u064C "
+    "\u0645\u064E\u0631\u0652\u0641\u064F\u0648\u0639\u064C "
+    "\u0628\u0650\u0636\u064E\u0645\u0651\u064E\u0629\u064D .It is necessary";
 
     auto click_about_example = [&](const char *id, bool about_on) {
       if (ImageButton(*tex_about, 50, Margin(10), id) ==
@@ -113,6 +128,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       } else {
         flatui::SetTextLocale("en");
       }
+      flatui::SetTextFont(fonts, 2);
+
       StartGroup(flatui::kLayoutOverlay, 0);
         StartGroup(flatui::kLayoutHorizontalTop, 10);
           PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
@@ -158,6 +175,10 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
           EndGroup();
           StartGroup(flatui::kLayoutVerticalRight, 0);
             Edit(24, vec2(400, 400), "edit3", &str3);
+            // Some arabic labels.
+            flatui::SetTextLocale("ar");
+            Label(rtl_string, 40, vec2(400,0));
+            flatui::SetTextLocale("en");
           EndGroup();
         EndGroup();
         if (show_about) {

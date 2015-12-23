@@ -16,25 +16,21 @@
 #define FONT_MANAGER_H
 
 #include <set>
+#include "fplbase/renderer.h"
+#include "flatui/internal/glyph_cache.h"
+#include "flatui/internal/flatui_util.h"
+#include "flatui/internal/hb_complex_font.h"
 
 /// @cond FLATUI_INTERNAL
-// Use libunibreak for a line breaking
+// Use libunibreak for a line breaking.
 #if !defined(FLATUI_USE_LIBUNIBREAK)
 // For now, it's automatically turned on.
 #define FLATUI_USE_LIBUNIBREAK 1
 #endif  // !defined(FLATUI_USE_LIBUNIBREAK)
 
-#include "fplbase/renderer.h"
-#include "flatui/internal/glyph_cache.h"
-#include "flatui/internal/flatui_util.h"
-
-// Forward decls for FreeType & Harfbuzz
+// Forward decls for FreeType.
 typedef struct FT_LibraryRec_ *FT_Library;
-typedef struct FT_FaceRec_ *FT_Face;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
-struct hb_font_t;
-struct hb_buffer_t;
-struct hb_glyph_info_t;
 /// @endcond
 
 namespace flatui {
@@ -45,11 +41,11 @@ namespace flatui {
 
 /// @cond FLATUI_INTERNAL
 // Forward decl.
+class FaceData;
 class FontTexture;
 class FontBuffer;
 class FontMetrics;
 class WordEnumerator;
-class FaceData;
 struct ScriptInfo;
 /// @endcond
 
@@ -242,6 +238,16 @@ class FontManager {
   /// returns false.
   bool SelectFont(const char *font_name);
 
+  /// @brief Select the current font faces with a fallback priority.
+  ///
+  /// @param[in] font_names An array of C-string corresponding to the name of
+  /// the font. Font names in the array are stored in a priority order.
+  /// @param[in] count A count of font names in the array.
+  ///
+  /// @return Returns `true` if the fonts were selected successfully. Otherwise
+  /// it returns false.
+  bool SelectFont(const char *font_names[], int32_t count);
+
   /// @brief Retrieve a texture with the given text.
   ///
   /// @note This API doesn't use the glyph cache, instead it writes the string
@@ -358,7 +364,7 @@ class FontManager {
       return;
     }
 
-    // Flush layout cache if we switch a directin.
+    // Flush layout cache if we switch a direction.
     if (direction != layout_direction_) {
       FlushLayout();
     }
@@ -374,8 +380,8 @@ class FontManager {
   /// multi-line text.
   void SetLineHeight(const float line_height) { line_height_ = line_height; }
 
-  /// @return Returns the current font face.
-  FaceData *GetCurrentFace() { return current_face_; }
+  /// @return Returns the current font.
+  HbFont *GetCurrentFont() { return current_font_; }
 
  private:
   // Pass indicating rendering pass.
@@ -463,8 +469,8 @@ class FontManager {
   // Map that keeps opened face data instances.
   std::unordered_map<std::string, std::unique_ptr<FaceData>> map_faces_;
 
-  // Pointer for current face.
-  FaceData *current_face_;
+  // Pointer to active font face instance.
+  HbFont *current_font_;
 
   // Texture cache for a rendered string image.
   // Using the FontBufferParameters as keys.
@@ -896,47 +902,6 @@ class FontBuffer {
 
   // Pass id. Each pass should have it's own texture atlas contents.
   int32_t pass_;
-};
-
-/// @class FaceData
-///
-/// @brief The font face instance data opened via the `Open()` API.
-///
-/// It keeps a font file data, FreeType fontface instance, and harfbuzz font
-/// information.
-class FaceData {
- public:
-  /// @brief The default constructor for FaceData.
-  FaceData() : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
-
-  /// @brief The destructor for FaceData.
-  ///
-  /// @note This calls the `Close()` function.
-  ~FaceData() { Close(); }
-
-  /// @brief Close the fontface.
-  void Close();
-
-  /// @var face_
-  ///
-  /// @brief freetype's fontface instance.
-  FT_Face face_;
-
-  /// @var harfbuzz_font_
-  ///
-  /// @brief harfbuzz's font information instance.
-  hb_font_t *harfbuzz_font_;
-
-  /// @var font_data_
-  ///
-  /// @brief Opened font file data.
-  ///
-  /// The file needs to be kept open until FreeType finishes using the file.
-  std::string font_data_;
-
-  /// @var font_id_
-  /// @brief Hashed value of the font face.
-  HashedId font_id_;
 };
 
 /// @struct ScriptInfo
