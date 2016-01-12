@@ -696,6 +696,17 @@ void SetGlobalListener(
 // Returns the version of the FlatUI Library.
 const FlatUiVersion *GetFlatUiVersion();
 
+/// @brief Enables depth testing, when needed for rendering a UI in 3D.
+///
+/// For example, a simple `FlatUI::Label()` could be rendered, with appropriate
+/// depth, on entities in the world to display the game's score as an overlay.
+///
+/// @warning This approach only works for 'simple' UIs, because more complex UIs
+/// require overlapping UI elements. Depending on the precision of the z-buffer,
+/// elements will be susceptible to z-fighting. That is, when the rectangles
+/// around UI elements overlap, flickering will occur.
+void SetDepthTest(bool enable);
+
 }  // namespace flatui
 
 #endif  // FPL_FLATUI_H

@@ -124,6 +124,7 @@ class InternalState : public Group {
         layout_pass_(true),
         canvas_size_(assetman.renderer().window_size()),
         default_projection_(true),
+        depth_test_(false),
         virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION),
         matman_(assetman),
         renderer_(assetman.renderer()),
@@ -218,6 +219,10 @@ class InternalState : public Group {
   void UseExistingProjection(const vec2i &canvas_size) {
     canvas_size_ = canvas_size;
     default_projection_ = false;
+  }
+
+  void SetDepthTest(bool enable) {
+    depth_test_ = enable;
   }
 
   // Set up an ortho camera for all 2D elements, with (0, 0) in the top left,
@@ -1145,6 +1150,10 @@ class InternalState : public Group {
     default_focus_element_ = element_idx_;
   }
 
+  bool depth_test() {
+    return depth_test_;
+  }
+
   void CheckGamePadFocus() {
     if (!gamepad_has_focus_element && persistent_.input_capture_ == kNullHash) {
       // This may happen when a GUI first appears or when elements get removed.
@@ -1307,6 +1316,7 @@ class InternalState : public Group {
   std::vector<Group> group_stack_;
   vec2i canvas_size_;
   bool default_projection_;
+  bool depth_test_;
   float virtual_resolution_;
   float pixel_scale_;
 
@@ -1411,7 +1421,7 @@ void Run(fplbase::AssetManager &assetman, FontManager &fontman,
 
   auto &renderer = assetman.renderer();
   renderer.SetBlendMode(fplbase::kBlendModeAlpha);
-  renderer.DepthTest(false);
+  renderer.DepthTest(internal_state.depth_test());
 
   gui_definition();
 
@@ -1519,6 +1529,10 @@ void PositionGroup(Alignment horizontal, Alignment vertical,
 
 void UseExistingProjection(const vec2i &canvas_size) {
   Gui()->UseExistingProjection(canvas_size);
+}
+
+void SetDepthTest(bool enable) {
+  Gui()->SetDepthTest(enable);
 }
 
 mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
