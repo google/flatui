@@ -682,6 +682,17 @@ mathfu::vec2 GroupSize();
 bool IsLastEventPointerType();
 /// @}
 
+/// @brief Set a global listener callback that receives all events to all
+/// interactive elements (useful for logging/debugging/analytics etc, NOT
+/// intended for normal event handling).
+/// Does not affect events in the rest of the API.
+/// Gets called for all events except None, you must do your own filtering.
+/// Call this function as the first thing inside of Run().
+/// Callback never fires outside of Run().
+/// Use HashId() to compare against ids of elements you may be interested in.
+void SetGlobalListener(
+    const std::function<void (HashedId id, Event event)> &callback);
+
 // Returns the version of the FlatUI Library.
 const FlatUiVersion *GetFlatUiVersion();
 

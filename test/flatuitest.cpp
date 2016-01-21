@@ -107,6 +107,12 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     };
 
     Run(assetman, fontman, input, [&]() {
+      flatui::SetGlobalListener([](flatui::HashedId id, flatui::Event event) {
+        // Example global event listener for logging / debugging / analytics.
+        // Don't use this for normal event handling, see examples below instead.
+        if (event & (flatui::kEventWentUp | flatui::kEventWentDown))
+          fplbase::LogInfo("Event Listener: %x -> %d", id, event);
+      });
       SetVirtualResolution(1000);
       if (test_rtl) {
         flatui::SetTextLocale("ar");

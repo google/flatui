@@ -1007,6 +1007,13 @@ class InternalState : public Group {
     return EqualId(hash, persistent_.pointer_element[i]);
   }
 
+  Event FireEvent(size_t element_idx, Event e) {
+    latest_event_ = e;
+    latest_event_element_idx_ = element_idx;
+    if (global_listener_) global_listener_(elements_[element_idx].hash, e);
+    return e;
+  }
+
   Event CheckEvent(bool check_dragevent_only) {
     if (latest_event_element_idx_ == element_idx_) return latest_event_;
 
@@ -1111,19 +1118,15 @@ class InternalState : public Group {
             // We only report an event for the first finger to touch an element.
             // This is intentional.
 
-            latest_event_ = static_cast<Event>(event);
-            latest_event_element_idx_ = element_idx_;
-            return static_cast<Event>(event);
+            return FireEvent(element_idx_, static_cast<Event>(event));
           }
         }
-        // Generate hover events for the current element the gamepad/keyboard
+        // Generate events for the current element the gamepad/keyboard
         // is focused on, but only if the gamepad/keyboard is active.
         if (!persistent_.is_last_event_pointer_type &&
             EqualId(persistent_.input_focus_, hash)) {
           gamepad_has_focus_element = true;
-          latest_event_ = gamepad_event;
-          latest_event_element_idx_ = element_idx_;
-          return gamepad_event;
+          return FireEvent(element_idx_, gamepad_event);
         }
       }
     }
@@ -1285,6 +1288,11 @@ class InternalState : public Group {
     fontman_.SetLayoutDirection(direction);
   }
 
+  void SetGlobalListener(
+      const std::function<void (HashedId id, Event event)> &callback) {
+    global_listener_ = callback;
+  }
+
   // Return the version of the FlatUI Library
   const FlatUiVersion *GetFlatUiVersion() const { return version_; }
 
@@ -1339,6 +1347,8 @@ class InternalState : public Group {
   // Cache the latest event so that multiple call to CheckEvent() can be safe.
   Event latest_event_;
   size_t latest_event_element_idx_;
+
+  std::function<void (HashedId id, Event event)> global_listener_;
 
   // Intra-frame persistent state.
   static struct PersistentState {
@@ -1543,6 +1553,11 @@ vec2 GroupPosition() {
 vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
+
+void SetGlobalListener(
+    const std::function<void (HashedId id, Event event)> &callback) {
+  Gui()->SetGlobalListener(callback);
+}
 
 const FlatUiVersion *GetFlatUiVersion() { return Gui()->GetFlatUiVersion(); }
 
