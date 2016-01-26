@@ -230,7 +230,7 @@ class InternalState : public Group {
   // This is currently hardcoded to use overlay on top of the entire GL window.
   // If that ever changes, we also need to change our use of glScissor below.
   void SetOrtho() {
-    auto ortho_mat = mathfu::OrthoHelper<float>(
+    auto ortho_mat = mathfu::mat4::Ortho(
         0.0f, static_cast<float>(canvas_size_.x()),
         static_cast<float>(canvas_size_.y()), 0.0f, -1.0f, 1.0f);
     renderer_.set_model_view_projection(ortho_mat);
