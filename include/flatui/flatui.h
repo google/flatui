@@ -314,7 +314,23 @@ void SetTextColor(const mathfu::vec4 &color);
 ///
 /// @param[in] font_name A C-string corresponding to the name of the font
 /// that should be set.
-void SetTextFont(const char *font_name);
+///
+/// @return Returns `true` if the font file is succeffully opened.
+bool SetTextFont(const char *font_name);
+
+/// @brief Set the Label's fonts with a fallback priority.
+/// When rendering a text, if a glyph is not found in the first font in the
+/// array,
+/// the renderer will look up the glyph in the second font and so on.
+/// If the glyph is not found in all font files, the glyph won't be rendered on
+/// the screen.
+///
+/// @param[in] font_names An array of C-string corresponding to the name of the
+/// font. Font names in the array are stored in a priority order.
+/// @param[in] count A count of font names in the array.
+///
+/// @return Returns `true` if the font files are succeffully opened.
+bool SetTextFont(const char *font_names[], int32_t count);
 
 /// @brief Set a locale used for the text rendering.
 ///

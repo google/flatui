@@ -46,6 +46,7 @@ LOCAL_SRC_FILES := \
   src/flatui.cpp \
   src/flatui_common.cpp \
   src/font_manager.cpp \
+  src/hb_complex_font.cpp \
   src/micro_edit.cpp \
   src/script_table.cpp \
   src/version.cpp

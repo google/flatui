@@ -31,6 +31,11 @@ typedef uint32_t HashedId;
 /// @brief A sentinel value to demarcate a `null` or invalid hash.
 static HashedId kNullHash = 0;
 
+/// @var kInitialHashValue
+///
+/// @brief An initial value of hash calculation.
+static HashedId kInitialHashValue = 0x84222325;
+
 /// @brief Hash a C-string into a `HashId`.
 ///
 /// @warning This function asserts if the `id` collides with `kNullHash`.
@@ -39,10 +44,9 @@ static HashedId kNullHash = 0;
 /// @param[in] id A C-string representing the ID to hash.
 ///
 /// @return Returns the HashId corresponding to the `id`.
-inline HashedId HashId(const char *id) {
+inline HashedId HashId(const char *id, HashedId hash = kInitialHashValue) {
   // A quick good hash, from:
   // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-  HashedId hash = 0x84222325;
   while (*id) hash = (hash ^ static_cast<uint8_t>(*id++)) * 0x000001b3;
   // We use kNullHash for special checks, so make sure it doesn't collide.
   // If you hit this assert, sorry, please change your id :)
@@ -64,6 +68,26 @@ inline HashedId HashPointer(const void *ptr) {
   // higher and lower bits to be similar).
   // Knuth: "The Art of Computer Programming", section 6.4
   auto hash = static_cast<HashedId>(reinterpret_cast<size_t>(ptr)) * 2654435761;
+  assert(hash != kNullHash);
+  return hash;
+}
+
+/// @brief Hash an array of C-string into a `HashId`.
+///
+/// @warning This function asserts if the `id` collides with `kNullHash`.
+/// If you hit this assert, you will need to change your `id`.
+///
+/// @param[in] id An array of C-string representing the ID to hash.
+/// @param[in] count A size of array.
+///
+/// @return Returns the HashId corresponding to the `id`.
+inline HashedId HashId(const char *id[], int32_t count) {
+  HashedId hash = kInitialHashValue;
+  for (auto i = 0; i < count; ++i) {
+    hash = HashId(id[i], hash);
+  }
+  // We use kNullHash for special checks, so make sure it doesn't collide.
+  // If you hit this assert, sorry, please change your id :)
   assert(hash != kNullHash);
   return hash;
 }

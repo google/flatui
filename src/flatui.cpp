@@ -15,6 +15,7 @@
 #include <cstring>
 #include "flatui/flatui.h"
 #include "flatui/internal/flatui_util.h"
+#include "flatui/internal/hb_complex_font.h"
 #include "flatui/internal/micro_edit.h"
 #include "fplbase/utilities.h"
 
@@ -426,7 +427,7 @@ class InternalState : public Group {
       ui_text = persistent_.text_edit_.GetEditingText();
     }
     auto parameter = FontBufferParameters(
-        fontman_.GetCurrentFace()->font_id_, HashId(ui_text->c_str()),
+        fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
         static_cast<float>(size.y()), physical_label_size, true);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
@@ -517,7 +518,7 @@ class InternalState : public Group {
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
         auto caret_height = size.y() * kCaretPositionSizeFactor;
         if (caret_pos.x() >= window.x() - kCaretWidth &&
-            caret_pos.x() <= window.x() + window.z() + kCaretWidth&&
+            caret_pos.x() <= window.x() + window.z() + kCaretWidth &&
             caret_pos.y() >= window.y() &&
             caret_pos.y() - caret_height <= window.y() + window.w()) {
           caret_pos += pos;
@@ -583,7 +584,7 @@ class InternalState : public Group {
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
     auto parameter = FontBufferParameters(
-        fontman_.GetCurrentFace()->font_id_, HashId(text),
+        fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y()), physical_label_size, false);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
@@ -1285,12 +1286,15 @@ class InternalState : public Group {
   void SetTextColor(const vec4 &color) { text_color_ = color; }
 
   // Set Label's font.
-  void SetTextFont(const char *font_name) { fontman_.SelectFont(font_name); }
+  bool SetTextFont(const char *font_name) {
+    return fontman_.SelectFont(font_name);
+  }
+  bool SetTextFont(const char *font_names[], int32_t count) {
+    return fontman_.SelectFont(font_names, count);
+  }
 
   // Set a locale used for the text rendering.
-  void SetTextLocale(const char *locale) {
-    fontman_.SetLocale(locale);
-  }
+  void SetTextLocale(const char *locale) { fontman_.SetLocale(locale); }
 
   // Override text layout direction that is set by SetTextLanguage() API.
   void SetTextDirection(TextLayoutDirection direction) {
@@ -1489,10 +1493,14 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
-void SetTextFont(const char *font_name) { Gui()->SetTextFont(font_name); }
-void SetTextLocale(const char *locale) {
-  Gui()->SetTextLocale(locale);
+bool SetTextFont(const char *font_name) {
+  return Gui()->SetTextFont(font_name);
 }
+bool SetTextFont(const char *font_names[], int32_t count) {
+  return Gui()->SetTextFont(font_names, count);
+}
+
+void SetTextLocale(const char *locale) { Gui()->SetTextLocale(locale); }
 void SetTextDirection(const TextLayoutDirection direction) {
   Gui()->SetTextDirection(direction);
 }
