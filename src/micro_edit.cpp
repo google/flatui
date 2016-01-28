@@ -279,7 +279,7 @@ const vec4i &MicroEdit::GetWindow() {
     // Check if we need to scroll inside the edit box.
     const float kWindowThresholdFactor = 0.15f;
     auto caret_pos = buffer_->GetCaretPosition(GetCaretPosition());
-    if (direction_ == TextLayoutDirectionRTL) {
+    if (direction_ == kTextLayoutDirectionRTL) {
       caret_pos.x() = window_.z() - caret_pos.x();
     }
     auto threshold = window_.z() * kWindowThresholdFactor;
@@ -302,7 +302,7 @@ const vec4i &MicroEdit::GetWindow() {
         std::min(window_offset_.x(), buffer_size.x() - window_.z()), 0);
     window_.y() = std::max(
         std::min(window_offset_.y(), buffer_size.y() - window_.w()), 0);
-    if (direction_ == TextLayoutDirectionRTL) {
+    if (direction_ == kTextLayoutDirectionRTL) {
       window_.x() = -window_.x();
     }
   } else {
@@ -360,7 +360,7 @@ int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
                               std::vector<vec2i>::const_iterator start_it,
                               std::vector<vec2i>::const_iterator end_it) {
   auto compare = [this](const vec2i &lhs, const vec2i &rhs) {
-    if (direction_ == TextLayoutDirectionRTL) {
+    if (direction_ == kTextLayoutDirectionRTL) {
       return lhs.x() >= rhs.x();
     } else {
       return lhs.x() <= rhs.x();
@@ -379,7 +379,7 @@ bool MicroEdit::HandleInputEvents(
   auto event = events->begin();
   while (event != events->end()) {
     bool forward = true;
-    if (direction_ == TextLayoutDirectionRTL) {
+    if (direction_ == kTextLayoutDirectionRTL) {
       forward = false;
     }
     switch (event->type) {
@@ -398,7 +398,7 @@ bool MicroEdit::HandleInputEvents(
             break;
           case fplbase::FPLK_LEFT:
             if (event->key.modifier & FPL_KMOD_GUI) {
-              if (direction_ == TextLayoutDirectionRTL) {
+              if (direction_ == kTextLayoutDirectionRTL) {
                 MoveCaretInLine(kTailOfLine);
               } else {
                 MoveCaretInLine(kHeadOfLine);
@@ -411,7 +411,7 @@ bool MicroEdit::HandleInputEvents(
             break;
           case fplbase::FPLK_RIGHT:
             if (event->key.modifier & FPL_KMOD_GUI) {
-              if (direction_ == TextLayoutDirectionRTL) {
+              if (direction_ == kTextLayoutDirectionRTL) {
                 MoveCaretInLine(kHeadOfLine);
               } else {
                 MoveCaretInLine(kTailOfLine);

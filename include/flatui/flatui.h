@@ -304,6 +304,17 @@ void Label(const char *text, float ysize);
 /// the label in this case.
 void Label(const char *text, float ysize, const mathfu::vec2 &size);
 
+/// @brief Render a multi-line label with a text alignment.
+///
+/// @param[in] text A C-string in UTF-8 format to be displayed as the label.
+/// @param[in] ysize A float containing the vertical size in virtual resolution.
+/// @param[in] alignment A text alignment in the label.
+/// @param[in] size The max size of the label in virtual resolution. A `0` for
+/// `size.y` indicates no height restriction. The API renders the whole text in
+/// the label in this case.
+void Label(const char *text, float ysize, const mathfu::vec2 &label_size,
+          TextAlignment alignment);
+
 /// @brief Set the Label's text color.
 ///
 /// @param[in] color A vec4 representing the RGBA values that the text color
@@ -359,6 +370,22 @@ void SetTextDirection(const TextLayoutDirection direction);
 /// @return Returns `true` if the widget is in edit.
 bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
           std::string *string);
+
+/// @brief Render an edit text box with a text alignment.
+///
+/// @param[in] ysize A float containing the vertical size in virtual resolution.
+/// @param[in] size A mathfu::vec2 reference to the size of the edit box in
+/// virtual resolution. A `0` for `size.x` indicates an auto expanding text box.
+/// A `0` for `size.y` indicates a single line label.
+/// @param[in] alignment An alignment of the text in the edit box.
+/// @param[in] id A C-string in UTF-8 format to uniquely idenitfy this edit box.
+/// @param[in] string A pointer to a C-string in UTF-8 format that should
+/// be used as the Label for the edit box.
+///
+/// @return Returns `true` if the widget is in edit.
+bool Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
+          const char *id, std::string *string);
+
 
 /// @brief Create a group of elements with a given layout and intra-element
 /// spacing.

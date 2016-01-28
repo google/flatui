@@ -156,7 +156,7 @@ void FontManager::Initialize() {
   current_pass_ = 0;
   script_ = kDefaultScript;
   language_ = kDefaultLanguage;
-  layout_direction_ = TextLayoutDirectionLTR;
+  layout_direction_ = kTextLayoutDirectionLTR;
   line_height_ = kLineHeightDefault;
   current_font_ = nullptr;
 
@@ -202,7 +202,7 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
   atlas_texture_.get()->Set(0);
 }
 
-FontBuffer *FontManager::GetBuffer(const char *text, const size_t length,
+FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
                                    const FontBufferParameters &parameter) {
   auto buffer = CreateBuffer(text, length, parameter);
   if (buffer == nullptr) {
@@ -221,7 +221,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, const size_t length,
   return buffer;
 }
 
-FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
+FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
                                       const FontBufferParameters &parameters) {
   // Adjust y size if the size selector is set.
   auto ysize = static_cast<int32_t>(parameters.get_font_size());
@@ -229,7 +229,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   auto caret_info = parameters.get_caret_info_flag();
   int32_t converted_ysize = ConvertSize(ysize);
   float scale = ysize / static_cast<float>(converted_ysize);
-  bool multi_line = size.y() == 0 || size.y() > ysize;
+  bool multi_line = parameters.get_multi_line_setting();
 
   // Check cache if we already have a FontBuffer generated.
   auto it = map_buffers_.find(parameters);
@@ -265,14 +265,14 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
 
   float pos_start = 0;
-  if (layout_direction_ == TextLayoutDirectionRTL) {
+  if (layout_direction_ == kTextLayoutDirectionRTL) {
     // In RTL layout, the glyph position start from right.
     pos_start = static_cast<float>(size.x());
   }
   mathfu::vec2 pos(pos_start, 0);
 
   uint32_t line_width = 0;
-  uint32_t max_line_width = 0;
+  uint32_t max_line_width = parameters.get_line_length();
   uint32_t total_glyph_count = 0;
   uint32_t total_height = ysize;
   bool lastline_must_break = false;
@@ -285,7 +285,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       // Single line text.
       // In this mode, it layouts all string into single line.
       max_line_width = static_cast<uint32_t>(LayoutText(text, length) * scale);
-      if (layout_direction_ == TextLayoutDirectionRTL && size.x() == 0) {
+      if (layout_direction_ == kTextLayoutDirectionRTL && size.x() == 0) {
         pos.x() = static_cast<float>(max_line_width / kFreeTypeUnit);
       }
     } else {
@@ -301,6 +301,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
                                      static_cast<uint32_t>(size.x())) {
         // Line break.
+        buffer->UpdateLine(parameters, layout_direction_,
+                           line_width / kFreeTypeUnit, lastline_must_break);
         pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = lastline_must_break;
@@ -326,6 +328,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       } else {
         line_width += word_width;
       }
+      // In case of the layout is left/center aligned, max line width is
+      // adjusted based on layout results.
       max_line_width = std::max(max_line_width, line_width);
       lastline_must_break = word_enum.CurrentWordMustBreak();
     }
@@ -343,7 +347,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
 
     auto idx = 0;
     auto idx_advance = 1;
-    if (layout_direction_ == TextLayoutDirectionRTL) {
+    if (layout_direction_ == kTextLayoutDirectionRTL) {
       idx = glyph_count - 1;
       idx_advance = -1;
     }
@@ -366,7 +370,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
                        static_cast<float>(-glyph_pos[idx].y_advance)) *
           scale / static_cast<float>(kFreeTypeUnit);
       // Advance positions before rendering in RTL.
-      if (layout_direction_ == TextLayoutDirectionRTL) {
+      if (layout_direction_ == kTextLayoutDirectionRTL) {
         pos -= pos_advance;
       }
 
@@ -374,7 +378,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       if (cache->get_size().x() && cache->get_size().y()) {
         // Add the code point to the buffer. This information is used when
         // re-fetching UV information when the texture atlas is updated.
-        buffer->get_code_points()->push_back(code_point);
+        buffer->AddCodepoint(code_point);
 
         // Calculate internal/external leading value and expand a buffer if
         // necessary.
@@ -408,7 +412,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       }
 
       // Advance positions after rendering in LTR.
-      if (layout_direction_ == TextLayoutDirectionLTR) {
+      if (layout_direction_ == kTextLayoutDirectionLTR) {
         pos += pos_advance;
       }
 
@@ -436,6 +440,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
       }
     }
 
+    // Add word boundary information.
+    buffer->AddWordBoundary(parameters);
+
     // Set buffer revision using glyph cache revision.
     buffer->set_revision(glyph_cache_->get_revision());
 
@@ -450,6 +457,10 @@ FontBuffer *FontManager::CreateBuffer(const char *text, const uint32_t length,
   if (caret_info) {
     buffer->AddCaretPosition(pos + vec2(0, base_line * scale));
   }
+
+  // Update the last line.
+  buffer->UpdateLine(parameters, layout_direction_, line_width / kFreeTypeUnit,
+                     true);
 
   // Setup size.
   buffer->set_size(vec2i(max_line_width / kFreeTypeUnit, total_height));
@@ -479,7 +490,7 @@ int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
   // buffer.
   auto byte_index = glyph_info[index].cluster;
   auto byte_size = 0;
-  auto direction = layout_direction_ == TextLayoutDirectionLTR ? 1 : -1;
+  auto direction = layout_direction_ == kTextLayoutDirectionLTR ? 1 : -1;
 
   if (index >= -direction && index < glyph_count - direction) {
     // Has next word. Calculate a difference between them.
@@ -500,7 +511,7 @@ int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
   return num_characters;
 }
 
-FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
+FontBuffer *FontManager::UpdateUV(int32_t ysize, FontBuffer *buffer) {
   if (buffer->get_revision() != current_atlas_revision_) {
     // Cache revision has been updated.
     // Some referencing glyph cache entries might have been evicted.
@@ -528,17 +539,17 @@ FontBuffer *FontManager::UpdateUV(const int32_t ysize, FontBuffer *buffer) {
   return buffer;
 }
 
-FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
-                                     const float original_ysize) {
+FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
+                                     float original_ysize) {
   // Round up y size if the size selector is set.
   int32_t ysize = ConvertSize(static_cast<int32_t>(original_ysize));
 
   // Note: In the API it uses HbFont's fontID (would include multiple fonts)
   // rather than a fontID for single font file. A texture can have multiple font
   // faces so that we need a fontID that represents all fonts used.
-  auto parameter =
-      FontBufferParameters(current_font_->GetFontId(), flatui::HashId(text),
-                           static_cast<float>(ysize), mathfu::kZeros2i, false);
+  auto parameter = FontBufferParameters(
+      current_font_->GetFontId(), flatui::HashId(text),
+      static_cast<float>(ysize), mathfu::kZeros2i, kTextAlignmentLeft, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -645,7 +656,7 @@ FontTexture *FontManager::GetTexture(const char *text, const uint32_t length,
   return tex;
 }
 
-bool FontManager::ExpandBuffer(const int32_t width, const int32_t height,
+bool FontManager::ExpandBuffer(int32_t width, int32_t height,
                                const FontMetrics &original_metrics,
                                const FontMetrics &new_metrics,
                                std::unique_ptr<uint8_t[]> *image) {
@@ -800,7 +811,7 @@ void FontManager::StartLayoutPass() {
   current_pass_ = 0;
 }
 
-void FontManager::UpdatePass(const bool start_subpass) {
+void FontManager::UpdatePass(bool start_subpass) {
   // Increment a cycle counter in glyph cache.
   glyph_cache_->Update();
 
@@ -833,7 +844,7 @@ void FontManager::UpdatePass(const bool start_subpass) {
   }
 }
 
-uint32_t FontManager::LayoutText(const char *text, const size_t length) {
+uint32_t FontManager::LayoutText(const char *text, size_t length) {
   SetLanguageSettings();
   hb_buffer_set_language(
       harfbuzz_buf_, hb_language_from_string(text, static_cast<int>(length)));
@@ -916,7 +927,7 @@ void FontManager::SetScript(const char *script) {
 void FontManager::SetLanguageSettings() {
   assert(harfbuzz_buf_);
   // Set harfbuzz settings.
-  if (layout_direction_ == TextLayoutDirectionRTL) {
+  if (layout_direction_ == kTextLayoutDirectionRTL) {
     hb_buffer_set_direction(harfbuzz_buf_, HB_DIRECTION_RTL);
   } else {
     hb_buffer_set_direction(harfbuzz_buf_, HB_DIRECTION_LTR);
@@ -924,8 +935,8 @@ void FontManager::SetLanguageSettings() {
   hb_buffer_set_script(harfbuzz_buf_, static_cast<hb_script_t>(script_));
 }
 
-const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
-                                                   const int32_t ysize) {
+const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
+                                                   int32_t ysize) {
   auto glyph_info = current_font_->GetGlyphInfo(code_point);
   GlyphKey key(glyph_info->GetFaceData()->font_id_, code_point, ysize);
   auto cache = glyph_cache_->Find(key);
@@ -963,7 +974,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(const uint32_t code_point,
   return cache;
 }
 
-int32_t FontManager::ConvertSize(const int32_t original_ysize) {
+int32_t FontManager::ConvertSize(int32_t original_ysize) {
   if (size_selector_ != nullptr) {
     return size_selector_(original_ysize);
   } else {
@@ -971,8 +982,8 @@ int32_t FontManager::ConvertSize(const int32_t original_ysize) {
   }
 }
 
-void FontBuffer::AddVertices(const vec2 &pos, const int32_t base_line,
-                             const float scale, const GlyphCacheEntry &entry) {
+void FontBuffer::AddVertices(const vec2 &pos, int32_t base_line, float scale,
+                             const GlyphCacheEntry &entry) {
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
   auto scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
   auto scaled_size = mathfu::vec2(entry.get_size()) * scale;
@@ -990,7 +1001,7 @@ void FontBuffer::AddVertices(const vec2 &pos, const int32_t base_line,
       FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f, 0.0f, 0.0f));
 }
 
-void FontBuffer::UpdateUV(const int32_t index, const vec4 &uv) {
+void FontBuffer::UpdateUV(int32_t index, const vec4 &uv) {
   vertices_[index * 4].uv_ = uv.xy();
   vertices_[index * 4 + 1].uv_ = mathfu::vec2(uv.x(), uv.w());
   vertices_[index * 4 + 2].uv_ = mathfu::vec2(uv.z(), uv.y());
@@ -1005,6 +1016,87 @@ void FontBuffer::AddCaretPosition(const vec2 &pos) {
 void FontBuffer::AddCaretPosition(int32_t x, int32_t y) {
   assert(caret_positions_.capacity());
   caret_positions_.push_back(mathfu::vec2i(x, y));
+}
+
+void FontBuffer::AddWordBoundary(const FontBufferParameters &parameters) {
+  if (parameters.get_text_alignment() & kTextAlignmentJustify) {
+    // Keep the word boundary info for a later use for a justificaiton.
+    word_boundary_.push_back(code_points_.size());
+    word_boundary_caret_.push_back(caret_positions_.size());
+  }
+}
+
+void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
+                            TextLayoutDirection layout_direction,
+                            int32_t line_width, bool last_line) {
+  // Update previous line layout if necessary.
+  auto align = parameters.get_text_alignment() & ~kTextAlignmentJustify;
+  auto justify = parameters.get_text_alignment() & kTextAlignmentJustify;
+  if (last_line) {
+    justify = false;
+  }
+
+  if (justify || align != kTextAlignmentLeft) {
+    // Adjust glyph positions.
+    auto offset = 0;  // Offset to add for each glyph position.
+                      // When we justify a text, the offset is increased for
+                      // each word boundary by boundary_offset_change.
+    auto boundary_offset_change = 0;
+    if (justify && word_boundary_.size() > 1) {
+      // With a justification, we add an offset for each word boundary.
+      // For each word boundary (e.g. spaces), we stretch them slightly to align
+      // both the left and right ends of each line of text.
+      boundary_offset_change = (parameters.get_size().x() - line_width) /
+                               (word_boundary_.size() - 1);
+    } else {
+      justify = false;
+      offset = parameters.get_size().x() - line_width;
+      if (align == kTextAlignmentCenter) {
+        offset = offset / 2;  // Centering.
+      }
+    }
+
+    // Flip the value if the text layout is in RTL.
+    if (layout_direction == kTextLayoutDirectionRTL) {
+      offset = -offset;
+      boundary_offset_change = -boundary_offset_change;
+    }
+    // Keep original offset value.
+    auto offset_caret = offset;
+
+    // Update each glyph's position.
+    auto boundary_index = 0;
+    for (auto idx = line_start_index_; idx < code_points_.size(); ++idx) {
+      if (justify && idx >= word_boundary_[boundary_index]) {
+        boundary_index++;
+        offset += boundary_offset_change;
+      }
+      auto it = vertices_.begin() + idx * kVerticesPerCodePoint;
+      for (auto i = 0; i < kVerticesPerCodePoint; ++i) {
+        it->position_.data[0] += offset;
+        it++;
+      }
+    }
+
+    // Update caret position, too.
+    if (HasCaretPositions()) {
+      boundary_index = 0;
+      for (auto idx = line_start_caret_index_; idx < caret_positions_.size();
+           ++idx) {
+        if (justify && idx >= word_boundary_caret_[boundary_index]) {
+          boundary_index++;
+          offset_caret += boundary_offset_change;
+        }
+        caret_positions_[idx].x() += offset_caret;
+      }
+    }
+  }
+
+  // Update current line information.
+  line_start_index_ = code_points_.size();
+  line_start_caret_index_ = caret_positions_.size();
+  word_boundary_.clear();
+  word_boundary_caret_.clear();
 }
 
 void FaceData::Close() {

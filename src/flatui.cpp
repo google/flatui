@@ -396,8 +396,8 @@ class InternalState : public Group {
     }
   }
 
-  bool Edit(float ysize, const mathfu::vec2 &edit_size, const char *id,
-            std::string *text) {
+  bool Edit(float ysize, const mathfu::vec2 &edit_size, TextAlignment alignment,
+            const char *id, std::string *text) {
     auto hash = HashId(id);
     StartGroup(GetDirection(kLayoutHorizontalBottom),
                GetAlignment(kLayoutHorizontalBottom), 0, hash);
@@ -428,7 +428,8 @@ class InternalState : public Group {
     }
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
-        static_cast<float>(size.y()), physical_label_size, true);
+        static_cast<float>(size.y()), physical_label_size,
+        alignment, true);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
@@ -570,14 +571,8 @@ class InternalState : public Group {
     }
   }
 
-  // Text label.
-  void Label(const char *text, float ysize) {
-    auto size = vec2(0, ysize);
-    Label(text, ysize, size);
-  }
-
-  // Multi line Text label.
-  void Label(const char *text, float ysize, const vec2 &label_size) {
+  void Label(const char *text, float ysize, const vec2 &label_size,
+             TextAlignment alignment) {
     // Set text color.
     renderer_.set_color(text_color_);
 
@@ -585,7 +580,8 @@ class InternalState : public Group {
     auto size = VirtualToPhysical(vec2(0, ysize));
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
-        static_cast<float>(size.y()), physical_label_size, false);
+        static_cast<float>(size.y()), physical_label_size,
+        alignment, false);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
@@ -1439,15 +1435,28 @@ InternalState *Gui() {
 
 void Image(const Texture &texture, float size) { Gui()->Image(texture, size); }
 
-void Label(const char *text, float font_size) { Gui()->Label(text, font_size); }
+void Label(const char *text, float font_size) {
+  auto size = vec2(0, font_size);
+  Gui()->Label(text, font_size, size, kTextAlignmentLeft);
+}
 
 void Label(const char *text, float font_size, const vec2 &size) {
-  Gui()->Label(text, font_size, size);
+  Gui()->Label(text, font_size, size, kTextAlignmentLeft);
+}
+
+void Label(const char *text, float font_size, const vec2 &size,
+           TextAlignment alignment) {
+  Gui()->Label(text, font_size, size, alignment);
 }
 
 bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
           std::string *string) {
-  return Gui()->Edit(ysize, size, id, string);
+  return Gui()->Edit(ysize, size, kTextAlignmentLeft, id, string);
+}
+
+bool Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
+          const char *id, std::string *string) {
+  return Gui()->Edit(ysize, size, alignment, id, string);
 }
 
 void StartGroup(Layout layout, float spacing, const char *id) {

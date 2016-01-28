@@ -92,9 +92,48 @@ const char *const kDefaultLanguage = "en";
 /// Default value is TextLayoutDirectionLTR.
 ///
 enum TextLayoutDirection {
-  TextLayoutDirectionLTR = 0,
-  TextLayoutDirectionRTL = 1,
-  TextLayoutDirectionTTB = 2,
+  kTextLayoutDirectionLTR = 0,
+  kTextLayoutDirectionRTL = 1,
+  kTextLayoutDirectionTTB = 2,
+};
+
+/// @enum TextAlignment
+///
+/// @brief Alignment of the text.
+///
+/// @note: Used for a typographic alignment in a label.
+/// The enumeration is different from flatui::Alignment as it supports
+/// justification setting.
+/// Note that in RTL layout direction mode, the setting is flipped.
+/// (e.g. kTextAlignmentLeft becomes kTextAlignmentRight)
+/// kTextAlignLeft/Right/CenterJustify variants specify how the last line is
+/// flushed left, right or centered.
+///
+/// **Enumerations**:
+/// * `kTextAlignmentLeft` - Text is aligned to the left of the given area.
+/// Default setting.
+/// * `kTextAlignmentRight` - Text is aligned to the right of the given area.
+/// * `kTextAlignmentCenter` - Text is aligned to the center of the given
+/// area.
+/// * `kTextAlignmentJustify` - Text is 'justified'. Spaces between words are
+/// stretched to align both the left and right ends of each line of text.
+/// * `kTextAlignmentLeftJustify` - An alias of kTextAlignmentJustify. The last
+/// line of a paragraph is aligned to the left.
+/// * `kTextAlignmentRightJustify` - Text is 'justified'. The last line of a
+/// paragraph is aligned to the right.
+/// * `kTextAlignmentCenterJustify` - Text is 'justified'. The last line of a
+/// paragraph is aligned to the center.
+///
+/// For more detail of each settings, refer:
+/// https://en.wikipedia.org/wiki/Typographic_alignment
+enum TextAlignment {
+  kTextAlignmentLeft = 0,
+  kTextAlignmentRight = 1,
+  kTextAlignmentCenter = 2,
+  kTextAlignmentJustify = 4,
+  kTextAlignmentLeftJustify = kTextAlignmentJustify,
+  kTextAlignmentRightJustify = kTextAlignmentJustify | kTextAlignmentRight,
+  kTextAlignmentCenterJustify = kTextAlignmentJustify | kTextAlignmentCenter,
 };
 
 /// @class FontBufferParameters
@@ -109,6 +148,7 @@ class FontBufferParameters {
         text_id_(kNullHash),
         font_size_(0),
         size_(mathfu::kZeros2i),
+        text_alignment_(kTextAlignmentLeft),
         caret_info_(false) {}
 
   /// @brief Constructor for a FontBufferParameters.
@@ -116,16 +156,21 @@ class FontBufferParameters {
   /// @param[in] font_id The HashedId for the font.
   /// @param[in] text_id The HashedID for the text.
   /// @param[in] font_size A float representing the size of the font.
-  /// @param[in] size The size of the FontBuffer.
+  /// @param[in] size The requested size of the FontBuffer in pixels.
+  /// The created FontBuffer size can be smaller than requested size as the
+  /// FontBuffer size is calcuated by the layout and rendering result.
+  /// @param[in] horizontal_alignment A horizontal alignment of multi line
+  /// buffer.
   /// @param[in] caret_info A bool determining if the font buffer contains caret
   /// info.
-  FontBufferParameters(const HashedId font_id, const HashedId text_id,
-                       float font_size, const mathfu::vec2i &size,
+  FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
+                       const mathfu::vec2i &size, TextAlignment text_alignment,
                        bool caret_info) {
     font_id_ = font_id;
     text_id_ = text_id;
     font_size_ = font_size;
     size_ = size;
+    text_alignment_ = text_alignment;
     caret_info_ = caret_info;
   }
 
@@ -140,7 +185,9 @@ class FontBufferParameters {
   bool operator==(const FontBufferParameters &other) const {
     return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
             font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
-            size_.y() == other.size_.y() && caret_info_ == other.caret_info_);
+            size_.y() == other.size_.y() &&
+            text_alignment_ == other.text_alignment_ &&
+            caret_info_ == other.caret_info_);
   }
 
   /// @brief The hash function for FontBufferParameters.
@@ -154,6 +201,7 @@ class FontBufferParameters {
     size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
     value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
     value = value ^ (std::hash<bool>()(key.caret_info_) << 1) >> 1;
+    value = value ^ (std::hash<int32_t>()(key.text_alignment_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
     return value;
@@ -168,14 +216,45 @@ class FontBufferParameters {
   /// @return Returns the font size.
   float get_font_size() const { return font_size_; }
 
+  /// @return Returns a text alignment info.
+  TextAlignment get_text_alignment() const { return text_alignment_; }
+
   /// @return Returns a flag to indicate if the buffer has caret info.
   bool get_caret_info_flag() const { return caret_info_; }
+
+  /// Retrieve a line length of the text based on given parameters.
+  /// a fixed line length (get_size.x()) will be used if the text is justified
+  /// or right aligned otherwise the line length will be determined by the text
+  /// layout phase.
+  /// @return Returns the expected line width.
+  int32_t get_line_length() const {
+    if (text_alignment_ == kTextAlignmentLeft ||
+        text_alignment_ == kTextAlignmentCenter) {
+      return 0;
+    } else {
+      // Other settings will use max width of the given area.
+      return size_.x() * kFreeTypeUnit;
+    }
+  }
+
+  /// @return Returns the multi line setting.
+  bool get_multi_line_setting() const {
+    if (!size_.x()) {
+      return false;
+    }
+    if (text_alignment_ != kTextAlignmentLeft) {
+      return true;
+    } else {
+      return size_.y() == 0 || size_.y() > font_size_;
+    }
+  }
 
  private:
   HashedId font_id_;
   HashedId text_id_;
   float font_size_;
   mathfu::vec2i size_;
+  TextAlignment text_alignment_;
   bool caret_info_;
 };
 
@@ -260,8 +339,7 @@ class FontManager {
   /// @param[in] ysize The height of the texture.
   ///
   /// @return Returns a pointer to the FontTexture.
-  FontTexture *GetTexture(const char *text, const uint32_t length,
-                          const float ysize);
+  FontTexture *GetTexture(const char *text, uint32_t length, float ysize);
 
   /// @brief Retrieve a vertex buffer for a font rendering using glyph cache.
   ///
@@ -274,7 +352,7 @@ class FontManager {
   /// @return Returns `nullptr` if the string does not fit in the glyph cache.
   ///  When this happens, caller may flush the glyph cache with
   /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
-  FontBuffer *GetBuffer(const char *text, const size_t length,
+  FontBuffer *GetBuffer(const char *text, size_t length,
                         const FontBufferParameters &parameters);
 
   /// @brief Set the renderer to be used to create texture instances.
@@ -359,7 +437,7 @@ class FontManager {
   ///            TextLayoutDirectionLTR & TextLayoutDirectionRTL are supported.
   ///
   void SetLayoutDirection(const TextLayoutDirection direction) {
-    if (direction == TextLayoutDirectionTTB) {
+    if (direction == kTextLayoutDirectionTTB) {
       fplbase::LogError("TextLayoutDirectionTTB is not supported yet.");
       return;
     }
@@ -378,7 +456,7 @@ class FontManager {
   ///
   /// @param[in] line_height A float representing the line height for a
   /// multi-line text.
-  void SetLineHeight(const float line_height) { line_height_ = line_height; }
+  void SetLineHeight(float line_height) { line_height_ = line_height; }
 
   /// @return Returns the current font.
   HbFont *GetCurrentFont() { return current_font_; }
@@ -397,14 +475,14 @@ class FontManager {
 
   // Expand a texture image buffer when the font metrics is changed.
   // Returns true if the image buffer was reallocated.
-  static bool ExpandBuffer(const int32_t width, const int32_t height,
+  static bool ExpandBuffer(int32_t width, int32_t height,
                            const FontMetrics &original_metrics,
                            const FontMetrics &new_metrics,
                            std::unique_ptr<uint8_t[]> *image);
 
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
-  uint32_t LayoutText(const char *text, const size_t length);
+  uint32_t LayoutText(const char *text, size_t length);
 
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
@@ -421,8 +499,7 @@ class FontManager {
   // - The glyph doesn't fit into the cache (even after trying to evict some
   // glyphs in cache based on LRU rule).
   // (e.g. Requested glyph size too large or the cache is highly fragmented.)
-  const GlyphCacheEntry *GetCachedEntry(const uint32_t code_point,
-                                        const int32_t y_size);
+  const GlyphCacheEntry *GetCachedEntry(uint32_t code_point, int32_t y_size);
 
   // Update font manager, check glyph cache if the texture atlas needs to be
   // updated.
@@ -430,14 +507,14 @@ class FontManager {
   // the API uploads the current atlas texture, flushes cache and starts
   // a sub layout pass. Use the feature when the cache is full and needs to
   // flushed during a rendering pass.
-  void UpdatePass(const bool start_subpass);
+  void UpdatePass(bool start_subpass);
 
   // Update UV value in the FontBuffer.
   // Returns nullptr if one of UV values couldn't be updated.
-  FontBuffer *UpdateUV(const int32_t ysize, FontBuffer *buffer);
+  FontBuffer *UpdateUV(int32_t ysize, FontBuffer *buffer);
 
   // Convert requested glyph size using SizeSelector if it's set.
-  int32_t ConvertSize(const int32_t size);
+  int32_t ConvertSize(int32_t size);
 
   // Retrieve a caret count in a specific glyph from linebreak and halfbuzz
   // glyph information.
@@ -447,7 +524,7 @@ class FontManager {
 
   // Create FontBuffer with requested parameters.
   // The function may return nullptr if the glyph cache is full.
-  FontBuffer *CreateBuffer(const char *text, const uint32_t length,
+  FontBuffer *CreateBuffer(const char *text, uint32_t length,
                            const FontBufferParameters &parameters);
 
   // Update language related settings.
@@ -544,9 +621,8 @@ class FontMetrics {
         external_leading_(0) {}
 
   /// The constructor with initialization parameters for FontMetrics.
-  FontMetrics(const int32_t base_line, const int32_t internal_leading,
-              const int32_t ascender, const int32_t descender,
-              const int32_t external_leading)
+  FontMetrics(int32_t base_line, int32_t internal_leading, int32_t ascender,
+              int32_t descender, int32_t external_leading)
       : base_line_(base_line),
         internal_leading_(internal_leading),
         ascender_(ascender),
@@ -567,7 +643,7 @@ class FontMetrics {
   /// @brief set the baseline value.
   ///
   /// @param[in] base_line An int32_t to set as the baseline value.
-  void set_base_line(const int32_t base_line) { base_line_ = base_line; }
+  void set_base_line(int32_t base_line) { base_line_ = base_line; }
 
   /// @return Returns the internal leading parameter as an int32_t.
   int32_t internal_leading() const { return internal_leading_; }
@@ -576,7 +652,7 @@ class FontMetrics {
   ///
   /// @param[in] internal_leading An int32_t to set as the internal
   /// leading value.
-  void set_internal_leading(const int32_t internal_leading) {
+  void set_internal_leading(int32_t internal_leading) {
     assert(internal_leading >= 0);
     internal_leading_ = internal_leading;
   }
@@ -587,7 +663,7 @@ class FontMetrics {
   /// @brief Set the ascender value.
   ///
   /// @param[in] ascender An int32_t to set as the ascender value.
-  void set_ascender(const int32_t ascender) {
+  void set_ascender(int32_t ascender) {
     assert(ascender >= 0);
     ascender_ = ascender;
   }
@@ -598,7 +674,7 @@ class FontMetrics {
   /// @brief Set the descender value.
   ///
   /// @param[in] descender An int32_t to set as the descender value.
-  void set_descender(const int32_t descender) {
+  void set_descender(int32_t descender) {
     assert(descender <= 0);
     descender_ = descender;
   }
@@ -610,7 +686,7 @@ class FontMetrics {
   ///
   /// @param[in] external_leading An int32_t to set as the external
   /// leading value.
-  void set_external_leading(const int32_t external_leading) {
+  void set_external_leading(int32_t external_leading) {
     assert(external_leading <= 0);
     external_leading_ = external_leading;
   }
@@ -680,8 +756,7 @@ struct FontVertex {
   /// @param[in] z A float representing the `z` position of the vertex.
   /// @param[in] u A float representing the `u` value in the UV mapping.
   /// @param[in] v A float representing the `v` value in the UV mapping.
-  FontVertex(const float x, const float y, const float z, const float u,
-             const float v) {
+  FontVertex(float x, float y, float z, float u, float v) {
     position_.data[0] = x;
     position_.data[1] = y;
     position_.data[2] = z;
@@ -711,7 +786,8 @@ class FontBuffer {
   static const int32_t kVerticesPerCodePoint = 4;
 
   /// @brief The default constructor for a FontBuffer.
-  FontBuffer() : revision_(0) {}
+  FontBuffer()
+      : revision_(0), line_start_index_(0), line_start_caret_index_(0) {}
 
   /// @brief The constructor for FontBuffer with a given buffer size.
   ///
@@ -725,7 +801,8 @@ class FontBuffer {
   ///
   /// Since it has a strong relationship to rendering positions, we store the
   /// caret position information in the FontBuffer.
-  FontBuffer(uint32_t size, bool caret_info) : revision_(0) {
+  FontBuffer(uint32_t size, bool caret_info)
+      : revision_(0), line_start_index_(0), line_start_caret_index_(0) {
     indices_.reserve(size * kIndiciesPerCodePoint);
     vertices_.reserve(size * kVerticesPerCodePoint);
     code_points_.reserve(size);
@@ -759,9 +836,6 @@ class FontBuffer {
   /// @return Returns the vertices array as a const std::vector<FontVertex>.
   const std::vector<FontVertex> *get_vertices() const { return &vertices_; }
 
-  /// @return Returns the array of code points as a std::vector<uint32_t>.
-  std::vector<uint32_t> *get_code_points() { return &code_points_; }
-
   /// @return Returns the array of code points as a const std::vector<uint32_t>.
   const std::vector<uint32_t> *get_code_points() const { return &code_points_; }
 
@@ -791,7 +865,7 @@ class FontBuffer {
   ///
   /// If the cache revision and the buffer revision is different, the
   /// font_manager try to re-construct the buffer.
-  void set_revision(const uint32_t revision) { revision_ = revision; }
+  void set_revision(uint32_t revision) { revision_ = revision; }
 
   /// @return Returns the pass counter as an int32_t.
   ///
@@ -803,7 +877,12 @@ class FontBuffer {
   ///
   /// @note In the render pass, this value is used if the user of the class
   /// needs to call `StartRenderPass()` to upload the atlas texture.
-  void set_pass(const int32_t pass) { pass_ = pass; }
+  void set_pass(int32_t pass) { pass_ = pass; }
+
+  /// @brief Adds a codepoint of a glyph to the codepoint array.
+  ///
+  /// @param[in] codepoint A codepoint of the glyph.
+  void AddCodepoint(uint32_t codepoint) { code_points_.push_back(codepoint); }
 
   /// @brief Adds 4 vertices to be used for a glyph rendering to the
   /// vertex array.
@@ -815,17 +894,24 @@ class FontBuffer {
   /// @param[in] scale A float used to scale the size and offset.
   /// @param[in] entry A const GlyphCacheEntry reference whose offset and size
   /// are used in the scaling.
-  void AddVertices(const mathfu::vec2 &pos, const int32_t base_line,
-                   const float scale, const GlyphCacheEntry &entry);
+  void AddVertices(const mathfu::vec2 &pos, int32_t base_line, float scale,
+                   const GlyphCacheEntry &entry);
 
   /// @brief Add the given caret position to the buffer.
   ///
   /// @param[in] x The `x` position of the caret.
   /// @param[in] y The `y` position of the caret.
   void AddCaretPosition(int32_t x, int32_t y);
+
   ///
   /// @param[in] pos The position of the caret.
   void AddCaretPosition(const mathfu::vec2 &pos);
+
+  /// @brief Tell the buffer a word boundary.
+  /// It may use the information to justify text layout later.
+  ///
+  /// @param[in] parameters Text layout parameters used to update the layout.
+  void AddWordBoundary(const FontBufferParameters &parameters);
 
   /// @brief Update UV information of a glyph entry.
   ///
@@ -833,7 +919,18 @@ class FontBuffer {
   /// @param[in] uv The `uv` vec4 should include the top-left corner of UV value
   /// as `x` and `y`, and the bottom-right of UV value as the `w` and `z`
   /// components of the vector.
-  void UpdateUV(const int32_t index, const mathfu::vec4 &uv);
+  void UpdateUV(int32_t index, const mathfu::vec4 &uv);
+
+  /// @brief Indicates a start of new line. It may update a previous line's
+  /// buffer contents based on typography layout settings.
+  ///
+  /// @param[in] parameters Text layout parameters used to update the layout.
+  /// @param[in] line_width Current line width.
+  /// @param[in] last_line Indicate if the line is the last line in the
+  /// paragraph.
+  void UpdateLine(const FontBufferParameters &parameters,
+                  TextLayoutDirection layout_direction, int32_t line_width,
+                  bool last_line);
 
   /// @brief Verifies that the sizes of the arrays used in the buffer are
   /// correct.
@@ -892,6 +989,11 @@ class FontBuffer {
   // can include multiple caret positions.
   std::vector<mathfu::vec2i> caret_positions_;
 
+  // Word boundary information. This information is used only with a typography
+  // layout with a justification.
+  std::vector<uint32_t> word_boundary_;
+  std::vector<uint32_t> word_boundary_caret_;
+
   // Size of the string in pixels.
   mathfu::vec2i size_;
 
@@ -902,6 +1004,10 @@ class FontBuffer {
 
   // Pass id. Each pass should have it's own texture atlas contents.
   int32_t pass_;
+
+  // Start index of current line.
+  uint32_t line_start_index_;
+  uint32_t line_start_caret_index_;
 };
 
 /// @struct ScriptInfo

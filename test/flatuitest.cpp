@@ -38,6 +38,7 @@ using flatui::SetTextColor;
 using flatui::Slider;
 using flatui::StartGroup;
 using flatui::StartScroll;
+using flatui::TextAlignment;
 using mathfu::vec2;
 using mathfu::vec2i;
 using mathfu::vec4;
@@ -92,6 +93,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     // Draw GUI test
     static float f = 0.0f;
     f += 0.04f;
+    const TextAlignment alignments[] = {TextAlignment::kTextAlignmentLeft,
+      TextAlignment::kTextAlignmentRight, TextAlignment::kTextAlignmentCenter,
+      TextAlignment::kTextAlignmentJustify,
+      TextAlignment::kTextAlignmentRightJustify,
+      TextAlignment::kTextAlignmentCenterJustify};
+    static int32_t alignment_idx = 0;
+
     static bool show_about = false;
     static vec2 scroll_offset(mathfu::kZeros2f);
     static bool checkbox1_checked;
@@ -180,7 +188,11 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             Image(*tex_about, 30);
           EndGroup();
           StartGroup(flatui::kLayoutVerticalRight, 0);
-            Edit(24, vec2(400, 400), "edit3", &str3);
+            if (TextButton("Change layout", 20, Margin(10)) ==
+                flatui::kEventWentUp) {
+              alignment_idx = (alignment_idx + 1) % FPL_ARRAYSIZE(alignments);
+            }
+            Edit(24, vec2(400, 400), alignments[alignment_idx], "edit3", &str3);
             // Some arabic labels.
             flatui::SetTextLocale("ar");
             Label(rtl_string, 40, vec2(400,0));

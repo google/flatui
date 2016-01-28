@@ -132,7 +132,7 @@ class MicroEdit {
     expected_caret_x_position_ = kCaretPosInvalid;
     single_line_ = true;
     language_ = kDefaultLanguage;
-    direction_ = TextLayoutDirectionLTR;
+    direction_ = kTextLayoutDirectionLTR;
   }
 
   // Helper to count a number of characters in a text.
