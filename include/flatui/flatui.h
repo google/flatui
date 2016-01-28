@@ -364,7 +364,7 @@ void SetTextDirection(const TextLayoutDirection direction);
 /// virtual resolution. A `0` for `size.x` indicates an auto expanding text box.
 /// A `0` for `size.y` indicates a single line label.
 /// @param[in] id A C-string in UTF-8 format to uniquely idenitfy this edit box.
-/// @param[in] string A pointer to a C-string in UTF-8 format that should
+/// @param[in/out] string A pointer to a C-string in UTF-8 format that should
 /// be used as the Label for the edit box.
 ///
 /// @return Returns `true` if the widget is in edit.

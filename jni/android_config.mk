@@ -34,6 +34,8 @@ else
   PREBUILTS_ROOT:=$(FPL_ROOT)/../../../prebuilts
 endif
 
+FLATUI_GENERATED_OUTPUT_DIR := $(FLATUI_DIR)/gen/include
+
 # Location of the SDL library.
 DEPENDENCIES_SDL_DIR?=$(THIRD_PARTY_ROOT)/sdl
 # Location of the Flatbuffers library.

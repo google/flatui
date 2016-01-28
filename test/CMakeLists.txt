@@ -22,3 +22,5 @@ target_link_libraries(flatuitest fplbase flatui)
 
 # FlatUI postprocess
 flatui_post_process(flatuitest "test")
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/unit_tests/serialization)

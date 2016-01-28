@@ -28,7 +28,10 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := flatui
 LOCAL_ARM_MODE := arm
 
-LOCAL_EXPORT_C_INCLUDES := $(FLATUI_DIR)/include
+LOCAL_EXPORT_C_INCLUDES := \
+  $(DEPENDENCIES_FLATBUFFERS_DIR)/include \
+  $(FLATUI_DIR)/include \
+  $(FLATUI_GENERATED_OUTPUT_DIR)
 
 LOCAL_C_INCLUDES := \
   $(LOCAL_EXPORT_C_INCLUDES) \
@@ -45,6 +48,7 @@ LOCAL_CPPFLAGS := -std=c++11
 LOCAL_SRC_FILES := \
   src/flatui.cpp \
   src/flatui_common.cpp \
+  src/flatui_serialization.cpp \
   src/font_manager.cpp \
   src/hb_complex_font.cpp \
   src/micro_edit.cpp \
@@ -53,16 +57,37 @@ LOCAL_SRC_FILES := \
 
 LOCAL_STATIC_LIBRARIES := \
   fplbase \
+  flatbuffers \
   libmathfu \
   libfreetype \
   libharfbuzz \
   libunibreak
 
+FLATUI_SCHEMA_DIR := $(FLATUI_DIR)/schemas
+FLATUI_SCHEMA_INCLUDE_DIRS := $(DEPENDENCIES_FPLBASE_DIR)/schemas
+FLATUI_SCHEMA_FILES := $(FLATUI_SCHEMA_DIR)/flatui.fbs
+
+FLATBUFFERS_FLATC_ARGS := --gen-mutable
+
+ifeq (,$(FLATUI_RUN_ONCE))
+  FLATUI_RUN_ONCE := 1
+$(call flatbuffers_header_build_rules, \
+  $(FLATUI_SCHEMA_FILES), \
+  $(FLATUI_SCHEMA_DIR), \
+  $(FLATUI_GENERATED_OUTPUT_DIR)/flatui, \
+  $(FLATUI_SCHEMA_INCLUDE_DIRS), \
+  $(LOCAL_SRC_FILES), \
+  flatui_generated_includes, \
+  fplbase_generated_includes)
+endif
+
 include $(BUILD_STATIC_LIBRARY)
 
+$(call import-add-path,$(DEPENDENCIES_FLATBUFFERS_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_MATHFU_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
 
+$(call import-module,flatbuffers/android/jni)
 $(call import-module,mathfu/jni)
 $(call import-module,fplbase/jni)
 

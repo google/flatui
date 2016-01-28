@@ -1,0 +1,56 @@
+{
+  elements: [
+    {
+      type: "flatui_data.Type.SetVirtualResolution",
+      id: "virtual resolution",
+      virtual_resolution: 1000
+    },
+    {
+      type: "flatui_data.Type.Group",
+      id: "second menu group",
+      layout: VerticalLeft,
+      horizontal: Center,
+      vertical: Center,
+      offset: {
+        x: 0.0,
+        y: 0.0
+      },
+      elements: [
+        {
+          type: "flatui_data.Type.Label",
+          id: "second menu label",
+          text: "This is the second menu.",
+          ysize: 40
+        },
+        {
+          type: "custom_widgets.Type.ChangeMenuButton",
+          id: "back button",
+          text: "Back",
+          layout: VerticalLeft,
+          size: 40,
+          margin: {
+            id: "back button margin",
+            size_left: 5,
+            size_top: 5,
+            size_right: 5,
+            size_bottom: 5
+          },
+          attributes: [
+            {
+              type: Vec4,  // color
+              vec4_attribute: { x: 153, y: 153, z: 153, w: 0.3 }
+            },
+            {
+              type: Vec4,  // hover_color
+              vec4_attribute: { x: 255, y: 0, z: 0, w: 0.7 }
+            },
+            {
+              type: Vec4,  // click_color
+              vec4_attribute: { x: 255, y: 0, z: 0, w: 1.0 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

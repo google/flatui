@@ -113,6 +113,7 @@ set(flatui_SRCS
     src/flatui.cpp
     src/flatui_common.cpp
     src/hb_complex_font.cpp
+    src/flatui_serialization.cpp
     src/script_table.cpp
     src/version.cpp)
 
@@ -124,6 +125,22 @@ if(use_pregenerated_headers)
 endif()
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
+
+include_directories(${dependencies_flatbuffers_dir}/include)
+
+# Generate source files for all FlatBuffers schema files under the schemas
+# directory.
+set(FLATUI_FLATBUFFERS_GENERATED_INCLUDES_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}${CMAKE_FILES_DIRECTORY}/include)
+file(GLOB_RECURSE FLATUI_FLATBUFFERS_SCHEMAS
+                  ${CMAKE_CURRENT_LIST_DIR}/schemas/*.fbs)
+build_flatbuffers("${FLATUI_FLATBUFFERS_SCHEMAS}"
+                  "${dependencies_fplbase_dir}/schemas"
+                  flatui_generated_includes
+                  ""
+                  ${FLATUI_FLATBUFFERS_GENERATED_INCLUDES_DIR}/flatui
+                  ""
+                  "")
 
 if(flatui_build_tests OR flatui_build_samples)
 # SDL includes.
@@ -142,6 +159,10 @@ include_directories(${dependencies_freetype_distr_dir}/include)
 # libunibreak includes.
 include_directories(${dependencies_libunibreak_distr_dir}/src)
 
+# Include generated FlatBuffer files.
+include_directories(${FLATUI_FLATBUFFERS_GENERATED_INCLUDES_DIR})
+include_directories(${dependencies_fplbase_dir}${CMAKE_FILES_DIRECTORY}/include)
+
 if(flatui_DEBUG)
   # if we want to define this, it needs to be only in debug builds
   #add_definitions(-D_DEBUG)
@@ -149,6 +170,10 @@ endif()
 
 # Executable target.
 add_library(flatui ${flatui_SRCS})
+
+# Dependencies on the generated FlatBuffer files.
+add_dependencies(flatui flatui_generated_includes)
+add_dependencies(flatui fplbase_generated_includes)
 
 # Dependencies to libraries.
 target_link_libraries(flatui libfreetype libharfbuzz libunibreak)
