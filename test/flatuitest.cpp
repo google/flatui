@@ -105,13 +105,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                             "The quick brown fox jumps over the lazy dog. ");
     // Sample Arabic string encoded Unicode entities.
     auto rtl_string =
-    "\u064A\u064E\u062C\u0650\u0628\u064F : \u0645\u0650\u0646 "
-    "\u0648\u064E\u062C\u064E\u0628\u064E "
-    "(\u0645\u0650\u062B\u064E\u0627\u0644 ) , "
-    "\u0641\u0650\u0639\u0652\u0644\u064C "
-    "\u0645\u064F\u0636\u064E\u0627\u0631\u0650\u0639\u064C "
-    "\u0645\u064E\u0631\u0652\u0641\u064F\u0648\u0639\u064C "
-    "\u0628\u0650\u0636\u064E\u0645\u0651\u064E\u0629\u064D .It is necessary";
+    "\xd9\x8a\xd9\x8e\xd8\xac\xd9\x90\xd8\xa8\xd9\x8f\x20\x3a\x20\xd9\x85\xd9"
+    "\x90\xd9\x86\x20\xd9\x88\xd9\x8e\xd8\xac\xd9\x8e\xd8\xa8\xd9\x8e\x20\x28"
+    "\xd9\x85\xd9\x90\xd8\xab\xd9\x8e\xd8\xa7\xd9\x84\x20\x29\x20\x2c\x20\xd9"
+    "\x81\xd9\x90\xd8\xb9\xd9\x92\xd9\x84\xd9\x8c\x20\xd9\x85\xd9\x8f\xd8\xb6"
+    "\xd9\x8e\xd8\xa7\xd8\xb1\xd9\x90\xd8\xb9\xd9\x8c\x20\xd9\x85\xd9\x8e\xd8"
+    "\xb1\xd9\x92\xd9\x81\xd9\x8f\xd9\x88\xd8\xb9\xd9\x8c\x20\xd8\xa8\xd9\x90"
+    "\xd8\xb6\xd9\x8e\xd9\x85\xd9\x91\xd9\x8e\xd8\xa9\xd9\x8d .It is necessary";
 
     auto click_about_example = [&](const char *id, bool about_on) {
       if (ImageButton(*tex_about, 50, Margin(10), id) ==

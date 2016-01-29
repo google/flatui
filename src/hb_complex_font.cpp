@@ -115,8 +115,10 @@ int32_t HbComplexFont::GetBaseLine(int32_t size) {
 }
 
 void HbComplexFont::SetPixelSize(uint32_t size) {
-  for (auto p : faces_) {
-    FT_Set_Pixel_Sizes(p->face_, 0, size);
+  auto it = faces_.begin();
+  auto end = faces_.end();
+  for (;it != end; ++it) {
+    FT_Set_Pixel_Sizes((*it)->face_, 0, size);
   }
 }
 
@@ -136,13 +138,15 @@ hb_bool_t HbComplexFont::HbGetGlyph(hb_font_t *font, void *font_data,
   }
 
   // Iterate all faces and check if one of faces supports specified glyph.
-  hb_codepoint_t code_point;
-  for (auto font : p->faces_) {
-    code_point = p->GetGlyph(font->face_, unicode, variation_selector);
+  hb_codepoint_t code_point = 0;
+  auto iterator = p->faces_.begin();
+  auto end = p->faces_.end();
+  for (; iterator != end; ++iterator) {
+    code_point = p->GetGlyph((*iterator)->face_, unicode, variation_selector);
     if (code_point) {
       *glyph = unicode;
       p->codepoint_cache_.emplace(
-          std::make_pair(unicode, GlyphInfo(font, code_point)));
+          std::make_pair(unicode, GlyphInfo(*iterator, code_point)));
       break;
     }
   }
@@ -411,7 +415,7 @@ bool HbFont::GetGlyphContourPoint(FT_Face face, hb_codepoint_t glyph,
 bool HbFont::GetGlyphName(FT_Face face, hb_codepoint_t glyph, char *name,
                           uint32_t size) {
   hb_bool_t ret = !FT_Get_Glyph_Name(face, glyph, name, size);
-  return (size && *name == 0) ? false : ret;
+  return (size && *name == 0) ? false : (ret != 0);
 }
 
 FT_Face GlyphInfo::GetFtFace() const { return face_->face_; }
