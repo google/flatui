@@ -321,6 +321,42 @@ void Label(const char *text, float ysize, const mathfu::vec2 &label_size,
 /// should be set to.
 void SetTextColor(const mathfu::vec4 &color);
 
+/// @brief Set the Label's outer color (e.g. drop shadow color).
+/// To use the feature, outer SDF generation needs to be enabled by
+/// EnableTextSDF() API. With SDF, each glyph image includes a distance to the
+/// nearest edge. The API utilizes the feature to render an outer region of a
+/// glyph.
+/// For more details of SDF, refer a paper from Valve:
+/// http://www.valvesoftware.com/publications/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf
+///
+/// @param[in] color A vec4 representing the RGBA values that the outer color
+/// should be set to.
+/// @param[in] size A float value that changes the size of outer color region in
+/// pixels.
+/// Typical value range is around 64.0f/255.0f but varies by font
+/// face. As the value get bigger, the shadow region gets spread out.
+/// @param[in] offset A vec2 value that controls a position of the outer color
+/// region in pixels.
+void SetTextOuterColor(const mathfu::vec4 &color,
+                       float size, const mathfu::vec2 & offset);
+
+/// @brief Enable/Disable a signed distance field generation with glyphs.
+/// A SDF generation of an inner region and an outer region is done separately
+/// and it costs some cycles. So if an application doesn't utilize inner SDF,
+/// just enable outer SDF.
+///
+/// @param[in] inner_sdf set true to enable a distance field generation for an
+/// inner region of a glyph. false to disable it.
+/// @param[in] outer_sdf set true to enable a distance field generation for an
+/// outer region of a glyph. false to disable it.
+/// @param[in] threshold Threshold value used in the SDF glyph rendering.
+/// The value controls a threshold if a pixel nearby a glyph edge is considered
+/// inside a glyph or not.
+/// Typical value range is around 8.0f/255.0f ~ 24.0f/255f and it varies by font
+/// face. As the speficied value get bigger, rendered glyph images become bold.
+/// Default value is 16.0f/255.0f.
+void EnableTextSDF(bool inner_sdf, bool outer_sdf, float threshold);
+
 /// @brief Set the Label's font.
 ///
 /// @param[in] font_name A C-string corresponding to the name of the font

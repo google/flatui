@@ -67,41 +67,65 @@ class GlyphKey;
 const int32_t kGlyphCacheHeightRound = 4;
 const int32_t kGlyphCachePaddingX = 1;
 const int32_t kGlyphCachePaddingY = 1;
+const int32_t kGlyphCachePaddingSDF = 4;
 
 // TODO: Provide proper int specialization in mathfu.
 static inline int32_t RoundUpToPowerOf2(int32_t x) {
   return static_cast<int32_t>(mathfu::RoundUpToPowerOf2(static_cast<float>(x)));
 }
 
+// Flags that controls glyph image generation.
+enum GlyphFlags {
+  kGlyphFlagsNone = 0,      // Normal glyph.
+  kGlyphFlagsOuterSDF = 1,  // Glyph image with an outer SDF information.
+  kGlyphFlagsInnerSDF = 2,  // Glyph image with an inner SDF information.
+};
+
+const float kSDFThresholdDefault = 16.0f / 255.0f;
+
+// Bitwise OR operator for GlyphFlags enumeration.
+inline GlyphFlags operator|(GlyphFlags a, GlyphFlags b) {
+  return static_cast<GlyphFlags>(static_cast<int>(a) | static_cast<int>(b));
+}
+
 // Class that includes glyph parameters.
 class GlyphKey {
  public:
   // Constructors.
-  GlyphKey() : font_id_(kNullHash), code_point_(0), glyph_size_(0) {}
-  GlyphKey(const HashedId font_id, uint32_t code_point, uint32_t glyph_size) {
+  GlyphKey()
+      : font_id_(kNullHash),
+        code_point_(0),
+        glyph_size_(0),
+        flags_(kGlyphFlagsNone) {}
+  GlyphKey(const HashedId font_id, uint32_t code_point, uint32_t glyph_size,
+           GlyphFlags flags) {
     font_id_ = font_id;
     code_point_ = code_point;
     glyph_size_ = glyph_size;
+    flags_ = flags;
   }
 
   // Compare operator.
   bool operator==(const GlyphKey& other) const {
     return (code_point_ == other.code_point_ && font_id_ == other.font_id_ &&
-            glyph_size_ == other.glyph_size_);
+            glyph_size_ == other.glyph_size_ && flags_ == other.flags_);
   }
 
   // Hash function.
   size_t operator()(const GlyphKey& key) const {
     // Note that font_id_ is an already hashed value.
-    return ((std::hash<uint32_t>()(key.code_point_) ^ (key.font_id_ << 1)) >>
-            1) ^
-           (std::hash<uint32_t>()(key.glyph_size_) << 1);
+    auto value =
+        ((std::hash<uint32_t>()(key.code_point_) ^ (key.font_id_ << 1)) >> 1) ^
+        (std::hash<uint32_t>()(key.glyph_size_) << 1);
+    value = value ^ (std::hash<int32_t>()(key.flags_) << 1) >> 1;
+    return value;
   }
 
  private:
   HashedId font_id_;
   uint32_t code_point_;
   uint32_t glyph_size_;
+  GlyphFlags flags_;
 };
 
 // Cache entry for a glyph.
@@ -127,6 +151,10 @@ class GlyphCacheEntry {
   mathfu::vec2i get_offset() const { return offset_; }
   void set_offset(const mathfu::vec2i& offset) { offset_ = offset; }
 
+  // Setter/Getter of the cache entry position.
+  mathfu::vec2i get_pos() const { return pos_; }
+  void set_pos(const mathfu::vec2i& pos) { pos_ = pos; }
+
   // Setter/Getter of UV
   mathfu::vec4 get_uv() const { return uv_; }
   void set_uv(const mathfu::vec4& uv) { uv_ = uv; }
@@ -150,6 +178,9 @@ class GlyphCacheEntry {
 
   // Glyph image's UV in the texture atlas.
   mathfu::vec4 uv_;
+
+  // Glyph image's position value in the buffer.
+  mathfu::vec2i pos_;
 
   // Iterator to the row entry.
   GlyphCacheEntry::iterator_row it_row;
@@ -236,9 +267,8 @@ class GlyphCacheRow {
   get_it_row_height_map() const {
     return it_row_height_map_;
   }
-  void set_it_row_height_map(
-      const std::multimap<int32_t, GlyphCacheEntry::iterator_row>::iterator
-          it_row_height_map) {
+  void set_it_row_height_map(const std::multimap<
+      int32_t, GlyphCacheEntry::iterator_row>::iterator it_row_height_map) {
     it_row_height_map_ = it_row_height_map;
   }
 
@@ -301,7 +331,7 @@ class GlyphCache {
     ResetStats();
 #endif
   }
-  ~GlyphCache(){};
+  ~GlyphCache() {};
 
   // Look up a cached entries.
   // Return value: A pointer to a cached glyph entry.
@@ -416,13 +446,18 @@ class GlyphCache {
           it_row->get_y_pos());
 
       // Store given image into the buffer.
-      CopyImage(pos, image, it_entry->second.get());
+      if (image != nullptr) {
+        CopyImage(pos, image, ret);
+      } else {
+        UpdateDirtyRect(mathfu::vec4i(pos, pos + ret->get_size()));
+      }
 
       // Update UV of the entry.
       mathfu::vec4 uv(
           mathfu::vec2(pos) / mathfu::vec2(size_),
           mathfu::vec2(pos + entry.get_size()) / mathfu::vec2(size_));
       ret->set_uv(uv);
+      ret->set_pos(pos);
 
       // Establish links.
       ret->it_row = it_row;
@@ -520,14 +555,16 @@ class GlyphCache {
   void set_revision(const uint32_t revision) { revision_ = revision; }
 
   // Getter/Setter of dirty state.
-  bool get_dirty_state() const { return dirty_; };
+  bool get_dirty_state() const {
+    return dirty_;
+  };
   void set_dirty_state(const bool dirty) { dirty_ = dirty; }
 
   // Getter of dirty rect.
   const mathfu::vec4i& get_dirty_rect() const { return dirty_rect_; }
 
   // Getter of allocated glyph cache buffer.
-  const T* get_buffer() const { return buffer_.get(); }
+  T* get_buffer() const { return buffer_.get(); }
 
   // Getter of the cache size.
   const mathfu::vec2i& get_size() const { return size_; }

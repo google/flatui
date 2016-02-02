@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,12 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(basic)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
+project(flatuisample_sdf)
+
+add_executable(flatuisample_sdf flatuisample_sdf.cpp)
+add_dependencies(flatuisample_sdf fplbase flatui)
+mathfu_configure_flags(flatuisample_sdf)
+target_link_libraries(flatuisample_sdf fplbase flatui)
+
+# FlatUI postprocess
+flatui_post_process(flatuisample_sdf "sample")

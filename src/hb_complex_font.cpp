@@ -117,7 +117,7 @@ int32_t HbComplexFont::GetBaseLine(int32_t size) {
 void HbComplexFont::SetPixelSize(uint32_t size) {
   auto it = faces_.begin();
   auto end = faces_.end();
-  for (;it != end; ++it) {
+  for (; it != end; ++it) {
     FT_Set_Pixel_Sizes((*it)->face_, 0, size);
   }
 }

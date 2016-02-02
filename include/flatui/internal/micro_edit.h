@@ -42,9 +42,7 @@ enum EditorMode {
 // them accordingly.
 class MicroEdit {
  public:
-  MicroEdit() {
-    Reset();
-  }
+  MicroEdit() { Reset(); }
 
   // Initialize an edit session with a given string.
   void Initialize(std::string *text, EditorMode mode);
@@ -80,7 +78,6 @@ class MicroEdit {
   // As of libunibreak version 3.0, a list of supported languages is,
   // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
   void SetLanguage(const std::string &language) { language_ = language; }
-
 
   // Set a layout direction in the editor.
   // This setting affects forward/backward direction of a cursor control.

@@ -240,7 +240,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     }
 
     // Update UV of the buffer
-    auto ret = UpdateUV(converted_ysize, it->second.get());
+    auto ret = UpdateUV(converted_ysize, parameters.get_glyph_flags(),
+                        it->second.get());
     return ret;
   }
 
@@ -358,7 +359,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
         total_glyph_count--;
         continue;
       }
-      auto cache = GetCachedEntry(code_point, converted_ysize);
+      auto cache = GetCachedEntry(code_point, converted_ysize,
+                                  parameters.get_glyph_flags());
       if (cache == nullptr) {
         // Cleanup buffer contents.
         hb_buffer_clear_contents(harfbuzz_buf_);
@@ -511,7 +513,8 @@ int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
   return num_characters;
 }
 
-FontBuffer *FontManager::UpdateUV(int32_t ysize, FontBuffer *buffer) {
+FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
+                                  FontBuffer *buffer) {
   if (buffer->get_revision() != current_atlas_revision_) {
     // Cache revision has been updated.
     // Some referencing glyph cache entries might have been evicted.
@@ -524,7 +527,7 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, FontBuffer *buffer) {
     auto code_points = buffer->get_code_points();
     for (size_t i = 0; i < code_points->size(); ++i) {
       auto code_point = code_points->at(i);
-      auto cache = GetCachedEntry(code_point, ysize);
+      auto cache = GetCachedEntry(code_point, ysize, flags);
       if (cache == nullptr) {
         return nullptr;
       }
@@ -549,7 +552,8 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
   // faces so that we need a fontID that represents all fonts used.
   auto parameter = FontBufferParameters(
       current_font_->GetFontId(), flatui::HashId(text),
-      static_cast<float>(ysize), mathfu::kZeros2i, kTextAlignmentLeft, false);
+      static_cast<float>(ysize), mathfu::kZeros2i, kTextAlignmentLeft,
+      kGlyphFlagsNone, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -936,9 +940,10 @@ void FontManager::SetLanguageSettings() {
 }
 
 const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
-                                                   int32_t ysize) {
+                                                   uint32_t ysize,
+                                                   GlyphFlags flags) {
   auto glyph_info = current_font_->GetGlyphInfo(code_point);
-  GlyphKey key(glyph_info->GetFaceData()->font_id_, code_point, ysize);
+  GlyphKey key(glyph_info->GetFaceData()->font_id_, code_point, ysize, flags);
   auto cache = glyph_cache_->Find(key);
 
   if (cache == nullptr) {
@@ -957,12 +962,33 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     FT_GlyphSlot g = glyph_info->GetFtFace()->glyph;
     GlyphCacheEntry entry;
     entry.set_code_point(code_point);
-    entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
-    entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
-
     GlyphKey new_key(glyph_info->GetFaceData()->font_id_,
-                     entry.get_code_point(), ysize);
-    cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
+                     code_point, ysize, flags);
+    if (flags & (kGlyphFlagsOuterSDF | kGlyphFlagsInnerSDF) &&
+        g->bitmap.width && g->bitmap.rows) {
+      // Adjust a glyph size and an offset with a padding.
+      entry.set_offset(vec2i(g->bitmap_left - kGlyphCachePaddingSDF,
+                             g->bitmap_top + kGlyphCachePaddingSDF));
+      entry.set_size(vec2i(g->bitmap.width + kGlyphCachePaddingSDF * 2,
+                           g->bitmap.rows + kGlyphCachePaddingSDF * 2));
+      cache = glyph_cache_->Set(nullptr, new_key, entry);
+      if (cache != nullptr) {
+        // Generates SDF.
+        auto pos = cache->get_pos();
+        auto stride = glyph_cache_->get_size().x();
+        auto p = glyph_cache_->get_buffer() + pos.x() + pos.y() * stride;
+        Grid<uint8_t> src(g->bitmap.buffer,
+                          vec2i(g->bitmap.width, g->bitmap.rows),
+                          kGlyphCachePaddingSDF,
+                          g->bitmap.width);
+        Grid<uint8_t> dest(p, cache->get_size(), 0, stride);
+        sdf_computer_.Compute(src, &dest, flags);
+      }
+    } else {
+      entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
+      entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
+      cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
+    }
 
     if (cache == nullptr) {
       // Glyph cache need to be flushed.

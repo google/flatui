@@ -17,6 +17,7 @@
 
 #include <set>
 #include "fplbase/renderer.h"
+#include "flatui/internal/distance_computer.h"
 #include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/flatui_util.h"
 #include "flatui/internal/hb_complex_font.h"
@@ -148,8 +149,7 @@ class FontBufferParameters {
         text_id_(kNullHash),
         font_size_(0),
         size_(mathfu::kZeros2i),
-        text_alignment_(kTextAlignmentLeft),
-        caret_info_(false) {}
+        flags_value_(0) {}
 
   /// @brief Constructor for a FontBufferParameters.
   ///
@@ -159,19 +159,21 @@ class FontBufferParameters {
   /// @param[in] size The requested size of the FontBuffer in pixels.
   /// The created FontBuffer size can be smaller than requested size as the
   /// FontBuffer size is calcuated by the layout and rendering result.
-  /// @param[in] horizontal_alignment A horizontal alignment of multi line
+  /// @param[in] text_alignment A horizontal alignment of multi line
   /// buffer.
+  /// @param[in] glyph_flags A flag determing SDF generation for the font.
   /// @param[in] caret_info A bool determining if the font buffer contains caret
   /// info.
   FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
                        const mathfu::vec2i &size, TextAlignment text_alignment,
-                       bool caret_info) {
+                       GlyphFlags glyph_flags, bool caret_info) {
     font_id_ = font_id;
     text_id_ = text_id;
     font_size_ = font_size;
     size_ = size;
-    text_alignment_ = text_alignment;
-    caret_info_ = caret_info;
+    flags_.text_alignement = text_alignment;
+    flags_.glyph_flags = glyph_flags;
+    flags_.caret_info = caret_info;
   }
 
   /// @brief The equal-to operator for comparing FontBufferParameters for
@@ -185,9 +187,7 @@ class FontBufferParameters {
   bool operator==(const FontBufferParameters &other) const {
     return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
             font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
-            size_.y() == other.size_.y() &&
-            text_alignment_ == other.text_alignment_ &&
-            caret_info_ == other.caret_info_);
+            size_.y() == other.size_.y() && flags_value_ == other.flags_value_);
   }
 
   /// @brief The hash function for FontBufferParameters.
@@ -200,8 +200,7 @@ class FontBufferParameters {
     // Note that font_id_ and text_id_ are already hashed values.
     size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
     value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
-    value = value ^ (std::hash<bool>()(key.caret_info_) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.text_alignment_) << 1) >> 1;
+    value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
     return value;
@@ -217,10 +216,17 @@ class FontBufferParameters {
   float get_font_size() const { return font_size_; }
 
   /// @return Returns a text alignment info.
-  TextAlignment get_text_alignment() const { return text_alignment_; }
+  TextAlignment get_text_alignment() const {
+    return flags_.text_alignement;
+  }
+
+  /// @return Returns a glyph setting info.
+  GlyphFlags get_glyph_flags() const {
+    return flags_.glyph_flags;
+  }
 
   /// @return Returns a flag to indicate if the buffer has caret info.
-  bool get_caret_info_flag() const { return caret_info_; }
+  bool get_caret_info_flag() const { return flags_.caret_info; }
 
   /// Retrieve a line length of the text based on given parameters.
   /// a fixed line length (get_size.x()) will be used if the text is justified
@@ -228,8 +234,8 @@ class FontBufferParameters {
   /// layout phase.
   /// @return Returns the expected line width.
   int32_t get_line_length() const {
-    if (text_alignment_ == kTextAlignmentLeft ||
-        text_alignment_ == kTextAlignmentCenter) {
+    auto alignment = get_text_alignment();
+    if (alignment == kTextAlignmentLeft || alignment == kTextAlignmentCenter) {
       return 0;
     } else {
       // Other settings will use max width of the given area.
@@ -242,7 +248,7 @@ class FontBufferParameters {
     if (!size_.x()) {
       return false;
     }
-    if (text_alignment_ != kTextAlignmentLeft) {
+    if (get_text_alignment() != kTextAlignmentLeft) {
       return true;
     } else {
       return size_.y() == 0 || size_.y() > font_size_;
@@ -254,8 +260,18 @@ class FontBufferParameters {
   HashedId text_id_;
   float font_size_;
   mathfu::vec2i size_;
-  TextAlignment text_alignment_;
-  bool caret_info_;
+
+  // A structure that defines bit fields to hold multiple flag values related to
+  // the font buffer.
+  struct FontBufferFlags {
+    bool caret_info:1;
+    GlyphFlags glyph_flags:2;
+    TextAlignment text_alignement:3;
+  };
+  union {
+    uint32_t flags_value_;
+    FontBufferFlags flags_;
+  };
 };
 
 /// @class FontManager
@@ -499,7 +515,8 @@ class FontManager {
   // - The glyph doesn't fit into the cache (even after trying to evict some
   // glyphs in cache based on LRU rule).
   // (e.g. Requested glyph size too large or the cache is highly fragmented.)
-  const GlyphCacheEntry *GetCachedEntry(uint32_t code_point, int32_t y_size);
+  const GlyphCacheEntry *GetCachedEntry(uint32_t code_point, uint32_t y_size,
+                                        GlyphFlags flags);
 
   // Update font manager, check glyph cache if the texture atlas needs to be
   // updated.
@@ -511,7 +528,7 @@ class FontManager {
 
   // Update UV value in the FontBuffer.
   // Returns nullptr if one of UV values couldn't be updated.
-  FontBuffer *UpdateUV(int32_t ysize, FontBuffer *buffer);
+  FontBuffer *UpdateUV(int32_t ysize, GlyphFlags flags, FontBuffer *buffer);
 
   // Convert requested glyph size using SizeSelector if it's set.
   int32_t ConvertSize(int32_t size);
@@ -597,6 +614,11 @@ class FontManager {
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;
+
+  // An instance of signed distance field generator.
+  // To avoid redundant initializations, the FontManager holds an instnce of the
+  // class.
+  DistanceComputer<uint8_t> sdf_computer_;
 };
 
 /// @class FontMetrics
@@ -1028,6 +1050,52 @@ struct ScriptInfo {
   /// @var direction
   /// @brief Script layout direciton.
   TextLayoutDirection direction;
+};
+/// @}
+
+/// @class FontShader
+///
+/// @brief Helper class to handle shaders for a font rendering.
+/// The class keeps a reference to a shader, and a location of uniforms with a
+/// fixed names.
+/// A caller is responsive not to call set_* APIs that specified shader doesn't
+/// support.
+class FontShader {
+public:
+  void set(fplbase::Shader *shader) {
+    assert(shader);
+    shader_ = shader;
+    pos_offset_ = shader->FindUniform("pos_offset");
+    color_ = shader->FindUniform("color");
+    clipping_ = shader->FindUniform("clipping");
+    threshold_ = shader->FindUniform("threshold");
+
+  }
+  void set_renderer(const fplbase::Renderer &renderer) {
+    shader_->Set(renderer);
+  }
+  void set_position_offset(const mathfu::vec3 &vec) {
+    assert(pos_offset_ >= 0);
+    shader_->SetUniform(pos_offset_, vec);
+  }
+  void set_color(const mathfu::vec4 &vec) {
+    assert(color_ >= 0);
+    shader_->SetUniform(color_, vec);
+  }
+  void set_clipping(const mathfu::vec4 &vec) {
+    assert(clipping_ >= 0);
+    shader_->SetUniform(clipping_, vec);
+  }
+  void set_threshold(float f) {
+    assert(threshold_ >= 0);
+    shader_->SetUniform(threshold_, &f, 1);
+  }
+private:
+  fplbase::Shader *shader_;
+  fplbase::UniformHandle pos_offset_;
+  fplbase::UniformHandle color_;
+  fplbase::UniformHandle clipping_;
+  fplbase::UniformHandle threshold_;
 };
 /// @}
 

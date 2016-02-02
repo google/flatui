@@ -103,6 +103,7 @@ set(flatui_SRCS
     include/flatui/flatui.h
     include/flatui/flatui_common.h
     include/flatui/font_manager.h
+    include/flatui/internal/distance_computer.h
     include/flatui/internal/glyph_cache.h
     include/flatui/internal/flatui_util.h
     include/flatui/internal/flatui_layout.h

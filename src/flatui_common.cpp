@@ -117,8 +117,7 @@ Event Slider(const Texture &tex_bar, const Texture &tex_knob, const vec2 &size,
   StartSlider(kDirHorizontal, size.y() * 0.5f, slider_value);
   auto event = CheckEvent();
   // Show focus area when controled by a gamepad.
-  if (!IsLastEventPointerType())
-    EventBackground(event);
+  if (!IsLastEventPointerType()) EventBackground(event);
   CustomElement(size, id, [&tex_knob, &tex_bar, bar_height, slider_value](
                               const vec2i &pos, const vec2i &size) {
     // Render the slider.
@@ -160,16 +159,14 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
 
   auto event = CheckEvent();
   // Show focus area when controled by a gamepad.
-  if (!IsLastEventPointerType())
-    EventBackground(event);
+  if (!IsLastEventPointerType()) EventBackground(event);
   CustomElement(size, id, [&tex_foreground, &tex_background, bar_size,
                            scroll_value, dimension, margin](
                               const vec2i &pos, const vec2i &render_size) {
     // Set up the bar position and size.
     auto bar_render_pos = pos;
-    bar_render_pos[dimension] +=
-        static_cast<int>(*scroll_value * (render_size[dimension] -
-                                          margin * 2.0f * GetScale()));
+    bar_render_pos[dimension] += static_cast<int>(
+        *scroll_value * (render_size[dimension] - margin * 2.0f * GetScale()));
 
     vec2i bar_render_size(render_size.x(), render_size.y());
     bar_render_size[dimension] =

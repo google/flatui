@@ -20,7 +20,7 @@
 /// @cond FLATUI_INTERNAL
 // Forward decls for FreeType & Harfbuzz
 typedef struct FT_FaceRec_ *FT_Face;
-typedef signed long  FT_Fixed;
+typedef signed long FT_Fixed;
 struct hb_font_t;
 struct hb_buffer_t;
 struct hb_glyph_extents_t;
@@ -40,7 +40,7 @@ namespace flatui {
 /// It keeps a font file data, FreeType fontface instance, and harfbuzz font
 /// information.
 class FaceData {
-public:
+ public:
   /// @brief The default constructor for FaceData.
   FaceData() : face_(nullptr), font_id_(kNullHash) {}
 

@@ -49,8 +49,6 @@ static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
 static const uint32_t kDefaultGroupHashedId = HashId(kDefaultGroupID);
 #endif
 
-
-
 // This holds transient state used while a GUI is being laid out / rendered.
 // It is intentionally hidden from the interface.
 // It is implemented as a singleton that the GUI element functions can access.
@@ -72,6 +70,9 @@ class InternalState : public LayoutManager {
         clip_position_(mathfu::kZeros2i),
         clip_size_(mathfu::kZeros2i),
         clip_inside_(false),
+        text_outer_color_size_(0.0f),
+        glyph_flags_(kGlyphFlagsNone),
+        sdf_threshold_(kSDFThresholdDefault),
         pointer_max_active_index_(kPointerIndexInvalid),
         gamepad_has_focus_element(false),
         default_focus_element_(kElementIndexInvalid),
@@ -117,12 +118,13 @@ class InternalState : public LayoutManager {
     // Load shaders ahead.
     image_shader_ = matman_.LoadShader("shaders/textured");
     assert(image_shader_);
-    font_shader_ = matman_.LoadShader("shaders/font");
-    assert(font_shader_);
-    font_clipping_shader_ = matman_.LoadShader("shaders/font_clipping");
-    assert(font_clipping_shader_);
     color_shader_ = matman_.LoadShader("shaders/color");
     assert(color_shader_);
+    font_shader_.set(matman_.LoadShader("shaders/font"));
+    font_clipping_shader_.set(matman_.LoadShader("shaders/font_clipping"));
+    font_sdf_shader_.set(matman_.LoadShader("shaders/font_sdf"));
+    font_sdf_clipping_shader_.set(
+        matman_.LoadShader("shaders/font_clipping_sdf"));
 
     text_color_ = mathfu::kOnes4f;
 
@@ -147,12 +149,12 @@ class InternalState : public LayoutManager {
   void ApplyCustomTransform(const mat4 &imvp) {
     if (layout_pass_) {
       for (int i = 0; i <= pointer_max_active_index_; i++) {
-        auto clip_pos = vec2(pointer_pos_[i]) /
-                           vec2(renderer_.window_size()) * 2 - 1;
+        auto clip_pos =
+            vec2(pointer_pos_[i]) / vec2(renderer_.window_size()) * 2 - 1;
         clip_pos.y() *= -1;  // Mouse coords are LH, clip space is RH.
         // Get two 3d positions at the pointer position to form a ray
         auto obj_pos1 = imvp * vec4(vec2(clip_pos), vec2(-0.5f, 1.0f));
-        auto obj_pos2 = imvp * vec4(vec2(clip_pos), vec2( 0.5f, 1.0f));
+        auto obj_pos2 = imvp * vec4(vec2(clip_pos), vec2(0.5f, 1.0f));
         // (inverse) perspective divide.
         obj_pos1 /= obj_pos1.w();
         obj_pos2 /= obj_pos2.w();
@@ -168,9 +170,7 @@ class InternalState : public LayoutManager {
     }
   }
 
-  void SetDepthTest(bool enable) {
-    depth_test_ = enable;
-  }
+  void SetDepthTest(bool enable) { depth_test_ = enable; }
 
   // Set up an ortho camera for all 2D elements, with (0, 0) in the top left,
   // and the bottom right the windows size in pixels.
@@ -264,8 +264,8 @@ class InternalState : public LayoutManager {
     }
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
-        static_cast<float>(size.y()), physical_label_size,
-        alignment, true);
+        static_cast<float>(size.y()), physical_label_size, alignment,
+        glyph_flags_, true);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
@@ -416,11 +416,23 @@ class InternalState : public LayoutManager {
     auto size = VirtualToPhysical(vec2(0, ysize));
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
-        static_cast<float>(size.y()), physical_label_size,
-        alignment, false);
+        static_cast<float>(size.y()), physical_label_size, alignment,
+        glyph_flags_, false);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
+  }
+
+  void DrawFontBuffer(FontShader &shader, const FontBuffer &buffer,
+                      const vec2 &pos) {
+    shader.set_position_offset(vec3(pos, 0.0f));
+    const fplbase::Attribute kFormat[] = {fplbase::kPosition3f,
+                                          fplbase::kTexCoord2f, fplbase::kEND};
+    Mesh::RenderArray(
+        Mesh::kTriangles, static_cast<int>(buffer.get_indices()->size()),
+        kFormat, sizeof(FontVertex),
+        reinterpret_cast<const char *>(buffer.get_vertices()->data()),
+        buffer.get_indices()->data());
   }
 
   vec2i Label(const FontBuffer &buffer, const FontBufferParameters &parameter,
@@ -450,30 +462,53 @@ class InternalState : public LayoutManager {
                      (buffer.get_size().y() > window.w());
         }
         if (clipping) {
+          // Font rendering with a clipping.
           pos -= window.xy();
 
           // Set a window to show a part of the label.
-          font_clipping_shader_->Set(renderer_);
-          font_clipping_shader_->SetUniform(
-              "pos_offset", vec3(static_cast<float>(pos.x()),
-                                 static_cast<float>(pos.y()), 0.0f));
           auto start = vec2(position_ - pos);
           auto end = start + vec2(window.zw());
-          font_clipping_shader_->SetUniform("clipping", vec4(start, end));
-        } else {
-          font_shader_->Set(renderer_);
-          font_shader_->SetUniform("pos_offset",
-                                   vec3(static_cast<float>(pos.x()),
-                                        static_cast<float>(pos.y()), 0.0f));
-        }
 
-        const fplbase::Attribute kFormat[] = {
-            fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
-        Mesh::RenderArray(
-            Mesh::kTriangles, static_cast<int>(buffer.get_indices()->size()),
-            kFormat, sizeof(FontVertex),
-            reinterpret_cast<const char *>(buffer.get_vertices()->data()),
-            buffer.get_indices()->data());
+          if (parameter.get_glyph_flags() &
+              (kGlyphFlagsInnerSDF | kGlyphFlagsOuterSDF)) {
+            if (text_outer_color_size_ != 0.0f) {
+              // Render shadow.
+              font_sdf_clipping_shader_.set_renderer(renderer_);
+              font_sdf_clipping_shader_.set_color(text_outer_color_);
+              font_sdf_clipping_shader_.set_threshold(text_outer_color_size_);
+              DrawFontBuffer(font_sdf_clipping_shader_, buffer,
+                             vec2(pos) + text_outer_color_offset);
+            }
+            font_sdf_clipping_shader_.set_renderer(renderer_);
+            font_sdf_clipping_shader_.set_threshold(sdf_threshold_);
+            font_sdf_clipping_shader_.set_clipping(vec4(start, end));
+            DrawFontBuffer(font_sdf_clipping_shader_, buffer, vec2(pos));
+          } else {
+            font_clipping_shader_.set_renderer(renderer_);
+            font_clipping_shader_.set_clipping(vec4(start, end));
+            DrawFontBuffer(font_clipping_shader_, buffer, vec2(pos));
+          }
+        } else {
+          // Regular font rendering.
+          if (parameter.get_glyph_flags() &
+              (kGlyphFlagsInnerSDF | kGlyphFlagsOuterSDF)) {
+            if (text_outer_color_size_ != 0.0f) {
+              // Render shadow.
+              font_sdf_shader_.set_renderer(renderer_);
+              font_sdf_shader_.set_color(text_outer_color_);
+              font_sdf_shader_.set_threshold(text_outer_color_size_);
+              DrawFontBuffer(font_sdf_shader_, buffer,
+                             vec2(pos) + text_outer_color_offset);
+            }
+
+            font_sdf_shader_.set_renderer(renderer_);
+            font_sdf_shader_.set_threshold(sdf_threshold_);
+            DrawFontBuffer(font_sdf_shader_, buffer, vec2(pos));
+          } else {
+            font_shader_.set_renderer(renderer_);
+            DrawFontBuffer(font_shader_, buffer, vec2(pos));
+          }
+        }
         Advance(element->size);
       }
     }
@@ -564,8 +599,7 @@ class InternalState : public LayoutManager {
         pointer_delta = pointer_delta_[0];
       } else {
         // Wheel scroll
-        if (mathfu::InRange2D(pointer_pos_[0], position_,
-                              position_ + psize)) {
+        if (mathfu::InRange2D(pointer_pos_[0], position_, position_ + psize)) {
           pointer_delta = input_.mousewheel_delta();
           scroll_speed = static_cast<int32_t>(-scroll_speed_wheel_);
         }
@@ -603,8 +637,7 @@ class InternalState : public LayoutManager {
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
       for (int i = 0; i <= pointer_max_active_index_; i++) {
-        if (!mathfu::InRange2D(pointer_pos_[i], position_,
-                               position_ + psize)) {
+        if (!mathfu::InRange2D(pointer_pos_[i], position_, position_ + psize)) {
           clip_mouse_inside_[i] = false;
         }
       }
@@ -852,8 +885,7 @@ class InternalState : public LayoutManager {
 
               // Check for drag events.
               if (button.went_down()) {
-                persistent_.drag_start_position_ =
-                    pointer_pos_[i];
+                persistent_.drag_start_position_ = pointer_pos_[i];
               }
               if (button.is_down() &&
                   mathfu::InRange2D(persistent_.drag_start_position_, position_,
@@ -868,8 +900,7 @@ class InternalState : public LayoutManager {
                 // event, so that parent layer can start a dragging operation
                 // regardless if it's sub-layer is checking event.
                 event |= kEventStartDrag;
-                persistent_.drag_start_position_ =
-                    pointer_pos_[i];
+                persistent_.drag_start_position_ = pointer_pos_[i];
                 persistent_.dragging_pointer_ = i;
               }
             }
@@ -910,9 +941,7 @@ class InternalState : public LayoutManager {
     default_focus_element_ = element_idx_;
   }
 
-  bool depth_test() {
-    return depth_test_;
-  }
+  bool depth_test() { return depth_test_; }
 
   void CheckGamePadFocus() {
     if (!gamepad_has_focus_element && persistent_.input_capture_ == kNullHash) {
@@ -1041,6 +1070,22 @@ class InternalState : public LayoutManager {
     RenderTextureNinePatch(tex, patch_info, position_, GroupSize());
   }
 
+  // Enable/Disable SDF generation.
+  void EnableTextSDF(bool inner_sdf, bool outer_sdf, float threshold) {
+    glyph_flags_ = (inner_sdf ? kGlyphFlagsInnerSDF : kGlyphFlagsNone) |
+                   (outer_sdf ? kGlyphFlagsOuterSDF : kGlyphFlagsNone);
+    sdf_threshold_ = threshold;
+  }
+
+  void SetTextOuterColor(const mathfu::vec4 &color, float size,
+                         const mathfu::vec2 &offset) {
+    // Outer SDF need to be enabled to use the feature.
+    assert(glyph_flags_ | kGlyphFlagsOuterSDF);
+    text_outer_color_ = color;
+    text_outer_color_size_ = size;
+    text_outer_color_offset = offset;
+  }
+
   // Set Label's text color.
   void SetTextColor(const vec4 &color) { text_color_ = color; }
 
@@ -1061,7 +1106,7 @@ class InternalState : public LayoutManager {
   }
 
   void SetGlobalListener(
-      const std::function<void (HashedId id, Event event)> &callback) {
+      const std::function<void(HashedId id, Event event)> &callback) {
     global_listener_ = callback;
   }
 
@@ -1082,9 +1127,11 @@ class InternalState : public LayoutManager {
   InputSystem &input_;
   FontManager &fontman_;
   Shader *image_shader_;
-  Shader *font_shader_;
-  Shader *font_clipping_shader_;
   Shader *color_shader_;
+  FontShader font_shader_;
+  FontShader font_clipping_shader_;
+  FontShader font_sdf_shader_;
+  FontShader font_sdf_clipping_shader_;
 
   // Expensive rendering commands can check if they're inside this rect to
   // cull themselves inside a scrolling group.
@@ -1095,6 +1142,15 @@ class InternalState : public LayoutManager {
 
   // Widget properties.
   mathfu::vec4 text_color_;
+  // Text's outer color setting
+  mathfu::vec4 text_outer_color_;
+  float text_outer_color_size_;
+  mathfu::vec2 text_outer_color_offset;
+
+  // Flags that indicates glyph generation parameters, such as SDF.
+  GlyphFlags glyph_flags_;
+  // Threshold value for SDF rendering.
+  float sdf_threshold_;
 
   int pointer_max_active_index_;
   const Button *pointer_buttons_[InputSystem::kMaxSimultanuousPointers];
@@ -1117,7 +1173,7 @@ class InternalState : public LayoutManager {
   Event latest_event_;
   size_t latest_event_element_idx_;
 
-  std::function<void (HashedId id, Event event)> global_listener_;
+  std::function<void(HashedId id, Event event)> global_listener_;
 
   // Intra-frame persistent state.
   static struct PersistentState {
@@ -1259,6 +1315,15 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
   Gui()->RenderTextureNinePatch(tex, patch_info, pos, size);
 }
 
+void EnableTextSDF(bool inner_sdf, bool outer_sdf, float threshold) {
+  Gui()->EnableTextSDF(inner_sdf, outer_sdf, threshold);
+}
+
+void SetTextOuterColor(const mathfu::vec4 &color, float size,
+                       const mathfu::vec2 &offset) {
+  Gui()->SetTextOuterColor(color, size, offset);
+}
+
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
 bool SetTextFont(const char *font_name) {
@@ -1307,9 +1372,7 @@ void UseExistingProjection(const vec2i &canvas_size) {
   Gui()->UseExistingProjection(canvas_size);
 }
 
-void SetDepthTest(bool enable) {
-  Gui()->SetDepthTest(enable);
-}
+void SetDepthTest(bool enable) { Gui()->SetDepthTest(enable); }
 
 mathfu::vec2i VirtualToPhysical(const mathfu::vec2 &v) {
   return Gui()->VirtualToPhysical(v);
@@ -1349,7 +1412,7 @@ void ApplyCustomTransform(const mat4 &imvp) {
 }
 
 void SetGlobalListener(
-    const std::function<void (HashedId id, Event event)> &callback) {
+    const std::function<void(HashedId id, Event event)> &callback) {
   Gui()->SetGlobalListener(callback);
 }
 
