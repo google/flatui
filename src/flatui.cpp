@@ -32,6 +32,7 @@ using mathfu::vec3;
 using mathfu::vec3i;
 using mathfu::vec4;
 using mathfu::vec4i;
+using mathfu::mat4;
 
 namespace flatui {
 
@@ -159,6 +160,11 @@ class InternalState : public Group {
       }
     }
 
+    for (int i = 0; i <= pointer_max_active_index_; i++) {
+      pointer_pos_[i] = input_.get_pointers()[i].mousepos;
+      pointer_delta_[i] = input_.get_pointers()[i].mousedelta;
+    }
+
     // If no pointer is active, flush the pointer capture status.
     if (flush_pointer_capture) {
       persistent_.dragging_pointer_ = kPointerIndexInvalid;
@@ -220,6 +226,30 @@ class InternalState : public Group {
   void UseExistingProjection(const vec2i &canvas_size) {
     canvas_size_ = canvas_size;
     default_projection_ = false;
+  }
+
+  void ApplyCustomTransform(const mat4 &imvp) {
+    if (layout_pass_) {
+      for (int i = 0; i <= pointer_max_active_index_; i++) {
+        auto clip_pos = vec2(pointer_pos_[i]) /
+                           vec2(renderer_.window_size()) * 2 - 1;
+        clip_pos.y() *= -1;  // Mouse coords are LH, clip space is RH.
+        // Get two 3d positions at the pointer position to form a ray
+        auto obj_pos1 = imvp * vec4(vec2(clip_pos), vec2(-0.5f, 1.0f));
+        auto obj_pos2 = imvp * vec4(vec2(clip_pos), vec2( 0.5f, 1.0f));
+        // (inverse) perspective divide.
+        obj_pos1 /= obj_pos1.w();
+        obj_pos2 /= obj_pos2.w();
+        auto ray = obj_pos2 - obj_pos1;
+        // Find where the ray intersects object-space plane Z=0.
+        auto t = (0.0f - obj_pos1.z()) / ray.z();
+        auto on_plane = t * ray.xy() + obj_pos1.xy();
+        pointer_pos_[i] = vec2i(on_plane + 0.5f);
+        // Back into LH UI pixels.
+        pointer_pos_[i].y() = canvas_size_.y() - pointer_pos_[i].y();
+        // TODO(wvo): transform delta relative to current pointer_pos_ ?
+      }
+    }
   }
 
   void SetDepthTest(bool enable) {
@@ -794,10 +824,10 @@ class InternalState : public Group {
           // Finish dragging and release the pointer.
           ReleasePointer();
         }
-        pointer_delta = input_.get_pointers()[0].mousedelta;
+        pointer_delta = pointer_delta_[0];
       } else {
         // Wheel scroll
-        if (mathfu::InRange2D(input_.get_pointers()[0].mousepos, position_,
+        if (mathfu::InRange2D(pointer_pos_[0], position_,
                               position_ + psize)) {
           pointer_delta = input_.mousewheel_delta();
           scroll_speed = static_cast<int32_t>(-scroll_speed_wheel_);
@@ -836,7 +866,7 @@ class InternalState : public Group {
       // See if the mouse is outside the clip area, so we can avoid events
       // being triggered by elements that are not visible.
       for (int i = 0; i <= pointer_max_active_index_; i++) {
-        if (!mathfu::InRange2D(input_.get_pointers()[i].mousepos, position_,
+        if (!mathfu::InRange2D(pointer_pos_[i], position_,
                                position_ + psize)) {
           clip_mouse_inside_[i] = false;
         }
@@ -1041,7 +1071,7 @@ class InternalState : public Group {
         // pointer_max_active_index_ is typically 0, so loop not expensive.
         for (int i = 0; i <= pointer_max_active_index_; i++) {
           if ((CanReceivePointerEvent(hash) && clip_mouse_inside_[i] &&
-               mathfu::InRange2D(input_.get_pointers()[i].mousepos, position_,
+               mathfu::InRange2D(pointer_pos_[i], position_,
                                  position_ + size_)) ||
               IsPointerCaptured(hash)) {
             auto &button = *pointer_buttons_[i];
@@ -1090,13 +1120,13 @@ class InternalState : public Group {
               // Check for drag events.
               if (button.went_down()) {
                 persistent_.drag_start_position_ =
-                    input_.get_pointers()[i].mousepos;
+                    pointer_pos_[i];
               }
               if (button.is_down() &&
                   mathfu::InRange2D(persistent_.drag_start_position_, position_,
                                     position_ + size_) &&
                   !mathfu::InRange2D(
-                       input_.get_pointers()[i].mousepos,
+                       pointer_pos_[i],
                        persistent_.drag_start_position_ - drag_start_threshold_,
                        persistent_.drag_start_position_ +
                            drag_start_threshold_)) {
@@ -1106,7 +1136,7 @@ class InternalState : public Group {
                 // regardless if it's sub-layer is checking event.
                 event |= kEventStartDrag;
                 persistent_.drag_start_position_ =
-                    input_.get_pointers()[i].mousepos;
+                    pointer_pos_[i];
                 persistent_.dragging_pointer_ = i;
               }
             }
@@ -1306,9 +1336,9 @@ class InternalState : public Group {
   const FlatUiVersion *GetFlatUiVersion() const { return version_; }
 
  private:
-  vec2i GetPointerDelta() { return input_.get_pointers()[0].mousedelta; }
+  vec2i GetPointerDelta() { return pointer_delta_[0]; }
 
-  vec2i GetPointerPosition() { return input_.get_pointers()[0].mousepos; }
+  vec2i GetPointerPosition() { return pointer_pos_[0]; }
 
   bool layout_pass_;
   std::vector<Element> elements_;
@@ -1341,6 +1371,8 @@ class InternalState : public Group {
 
   int pointer_max_active_index_;
   const Button *pointer_buttons_[InputSystem::kMaxSimultanuousPointers];
+  vec2i pointer_pos_[InputSystem::kMaxSimultanuousPointers];
+  vec2i pointer_delta_[InputSystem::kMaxSimultanuousPointers];
   bool gamepad_has_focus_element;
   int32_t default_focus_element_;
   Event gamepad_event;
@@ -1584,6 +1616,10 @@ vec2 GroupPosition() {
 vec2 GroupSize() { return Gui()->PhysicalToVirtual(Gui()->GroupSize()); }
 
 bool IsLastEventPointerType() { return Gui()->IsLastEventPointerType(); }
+
+void ApplyCustomTransform(const mat4 &imvp) {
+  Gui()->ApplyCustomTransform(imvp);
+}
 
 void SetGlobalListener(
     const std::function<void (HashedId id, Event event)> &callback) {

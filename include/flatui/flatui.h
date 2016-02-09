@@ -709,6 +709,20 @@ void PositionGroup(Alignment horizontal, Alignment vertical,
 /// inside of.
 void UseExistingProjection(const mathfu::vec2i &canvas_size);
 
+/// @brief If you're rendering the UI at a location that does not correspond
+/// to the display's pixels (e.g. in 3D), this call allows you to set your
+/// a custom transform that corresponds to the inverse of your model-view-
+/// projection matrix. FlatUI will then transform all incoming (screen-space)
+/// pointer events with this, such that they are mapped to coordinates that
+/// match what was passed to UseExistingProjection.
+/// Important that the UI was rendered with object space coordinates ranging
+/// from (0,0) to canvas_size as well.
+/// Call this at the start of your UI.
+/// For an example of how to use this, see flatuisample_3d.cpp
+///
+/// @param[in] imvp The inverse model-view-projection matrix.
+void ApplyCustomTransform(const mathfu::mat4 &imvp);
+
 /// @return Returns the position of the current group in virtual coordinates.
 ///
 /// This is the top/left location of the group. When used in conjunction with

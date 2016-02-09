@@ -19,26 +19,7 @@
 #include "flatui/flatui_common.h"
 #include <cassert>
 
-using flatui::Run;
-using flatui::ImageButton;
-using flatui::CheckBox;
-using flatui::TextButton;
-using flatui::SetMargin;
-using flatui::ColorBackground;
-using flatui::Edit;
-using flatui::EndGroup;
-using flatui::EndScroll;
-using flatui::Image;
-using flatui::ImageBackgroundNinePatch;
-using flatui::Label;
-using flatui::Margin;
-using flatui::ModalGroup;
-using flatui::SetVirtualResolution;
-using flatui::SetTextColor;
-using flatui::Slider;
-using flatui::StartGroup;
-using flatui::StartScroll;
-using flatui::TextAlignment;
+using namespace flatui;
 using mathfu::vec2;
 using mathfu::vec2i;
 using mathfu::vec4;
@@ -46,7 +27,7 @@ using mathfu::vec4;
 extern "C" int FPL_main(int /*argc*/, char **argv) {
   fplbase::Renderer renderer;
   fplbase::InputSystem input;
-  flatui::FontManager fontman;
+  FontManager fontman;
   fplbase::AssetManager assetman(renderer);
 
   // Set the local directory to the assets for this test.
@@ -123,37 +104,38 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
     auto click_about_example = [&](const char *id, bool about_on) {
       if (ImageButton(*tex_about, 50, Margin(10), id) ==
-          flatui::kEventWentUp) {
+          kEventWentUp) {
         fplbase::LogInfo("You clicked: %s", id);
         show_about = about_on;
       }
     };
 
     Run(assetman, fontman, input, [&]() {
-      flatui::SetGlobalListener([](flatui::HashedId id, flatui::Event event) {
+      SetGlobalListener([](HashedId id, Event event) {
         // Example global event listener for logging / debugging / analytics.
         // Don't use this for normal event handling, see examples below instead.
-        if (event & (flatui::kEventWentUp | flatui::kEventWentDown))
+        if (event & (kEventWentUp | kEventWentDown))
           fplbase::LogInfo("Event Listener: %x -> %d", id, event);
       });
       SetVirtualResolution(1000);
+      //ApplyCustomTransform(mathfu::mat4::Identity());
       if (test_rtl) {
-        flatui::SetTextLocale("ar");
+        SetTextLocale("ar");
       } else {
-        flatui::SetTextLocale("en");
+        SetTextLocale("en");
       }
-      flatui::SetTextFont(fonts, 2);
+      SetTextFont(fonts, 2);
 
-      StartGroup(flatui::kLayoutOverlay, 0);
-        StartGroup(flatui::kLayoutHorizontalTop, 10);
-          PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+      StartGroup(kLayoutOverlay, 0);
+        StartGroup(kLayoutHorizontalTop, 10);
+          PositionGroup(kAlignCenter, kAlignCenter,
                         mathfu::kZeros2f);
-          StartGroup(flatui::kLayoutVerticalLeft, 20);
+          StartGroup(kLayoutVerticalLeft, 20);
            CheckBox(*tex_check_on, *tex_check_off, "Test RTL", 30,
                Margin(6, 0), &test_rtl);
             click_about_example("my_id1", true);
             Edit(30, vec2(400, 30), "edit2", &str2);
-            StartGroup(flatui::kLayoutHorizontalTop, 0);
+            StartGroup(kLayoutHorizontalTop, 0);
               Edit(30, vec2(0, 30), "edit", &str);
               Label(">Tail", 30);
             EndGroup();
@@ -161,7 +143,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                    vec2(300, 25), 0.5f, "slider", &slider_value);
             CheckBox(*tex_check_on, *tex_check_off, "CheckBox", 30,
                           Margin(6, 0), &checkbox1_checked);
-            StartGroup(flatui::kLayoutHorizontalTop, 0);
+            StartGroup(kLayoutHorizontalTop, 0);
               Label("Property T", 30);
               SetTextColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
               Label("Test ", 30);
@@ -169,10 +151,10 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               Label("ffWAWÄテスト", 30);
             EndGroup();
             if (TextButton("text button test", 20, Margin(10)) ==
-                flatui::kEventWentUp) {
+                kEventWentUp) {
               fplbase::LogInfo("You clicked: text button");
             }
-            StartGroup(flatui::kLayoutVerticalLeft, 20, "scroll");
+            StartGroup(kLayoutVerticalLeft, 20, "scroll");
             StartScroll(vec2(300, 200), &scroll_offset);
                 ImageBackgroundNinePatch(*tex_about,
                                          vec4(0.2f, 0.2f, 0.8f, 0.8f));
@@ -182,28 +164,28 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               EndScroll();
             EndGroup();
           EndGroup();
-          StartGroup(flatui::kLayoutVerticalCenter, 40);
+          StartGroup(kLayoutVerticalCenter, 40);
             click_about_example("my_id2", true);
             Image(*tex_about, 40);
             Image(*tex_about, 30);
           EndGroup();
-          StartGroup(flatui::kLayoutVerticalRight, 0);
+          StartGroup(kLayoutVerticalRight, 0);
             if (TextButton("Change layout", 20, Margin(10)) ==
-                flatui::kEventWentUp) {
+                kEventWentUp) {
               alignment_idx = (alignment_idx + 1) % FPL_ARRAYSIZE(alignments);
             }
             Edit(24, vec2(400, 400), alignments[alignment_idx], "edit3", &str3);
             // Some arabic labels.
-            flatui::SetTextLocale("ar");
+            SetTextLocale("ar");
             Label(rtl_string, 40, vec2(400,0));
-            flatui::SetTextLocale("en");
+            SetTextLocale("en");
           EndGroup();
         EndGroup();
         if (show_about) {
-          StartGroup(flatui::kLayoutVerticalLeft, 20, "about_overlay");
+          StartGroup(kLayoutVerticalLeft, 20, "about_overlay");
             ModalGroup();
-            PositionGroup(flatui::kAlignRight,
-                          flatui::kAlignTop, vec2(-30, 30));
+            PositionGroup(kAlignRight,
+                          kAlignTop, vec2(-30, 30));
             SetMargin(Margin(10));
             ColorBackground(vec4(0.5f, 0.5f, 0.0f, 1.0f));
             click_about_example("my_id3", false);

@@ -16,6 +16,7 @@ bin/
 obj/
 docs/html/
 libs/
+gen/
 
 Makefile
 CMakeFiles/
@@ -41,6 +42,15 @@ sample/src_java/
 sample/assets/fonts/
 sample/assets/shaders/
 sample/flatuisample.dir/
+
+sample_3d/assets/
+sample_3d/gen/
+sample_3d/apks/
+sample_3d/build.xml
+sample_3d/local.properties
+sample_3d/proguard-project.txt
+sample_3d/project.properties
+sample_3d/src_java/
 
 test/CMakeFiles/
 test/apks/

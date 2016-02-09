@@ -50,9 +50,9 @@ set(dependencies_libunibreak_cmake_dir "${CMAKE_MODULE_PATH}/libunibreak"
 set(flatui_standalone_mode OFF)
 if("${CMAKE_CURRENT_LIST_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
   set(flatui_standalone_mode ON)
-  message(STATUS "FlatUI standalone: building tests and sample")
+  message(STATUS "FlatUI standalone: building tests and samples")
 else()
-  message(STATUS "FlatUI library: not building tests and sample")
+  message(STATUS "FlatUI library: not building tests and samples")
 endif()
 
 # Option to enable / disable the sample build.
@@ -204,4 +204,5 @@ endif()
 # Samples.
 if(flatui_build_samples)
   add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sample)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sample_3d)
 endif()
