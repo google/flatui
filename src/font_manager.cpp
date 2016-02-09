@@ -382,8 +382,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
         // Calculate internal/external leading value and expand a buffer if
         // necessary.
-        auto glyph_info = current_font_->GetGlyphInfo(code_point);
-        FT_GlyphSlot glyph = glyph_info->GetFtFace()->glyph;
+        auto info = current_font_->GetGlyphInfo(code_point);
+        FT_GlyphSlot glyph = info->GetFtFace()->glyph;
         FontMetrics new_metrics;
         if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
           initial_metrics = new_metrics;
@@ -593,10 +593,10 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
     auto code_point = glyph_info[i].codepoint;
     if (!code_point) continue;
 
-    auto glyph_info = current_font_->GetGlyphInfo(code_point);
-    FT_GlyphSlot glyph = glyph_info->GetFtFace()->glyph;
-    FT_Error err = FT_Load_Glyph(glyph_info->GetFtFace(),
-                                 glyph_info->GetCodepoint(), FT_LOAD_RENDER);
+    auto info = current_font_->GetGlyphInfo(code_point);
+    FT_GlyphSlot glyph = info->GetFtFace()->glyph;
+    FT_Error err = FT_Load_Glyph(info->GetFtFace(),
+                                 info->GetCodepoint(), FT_LOAD_RENDER);
 
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
