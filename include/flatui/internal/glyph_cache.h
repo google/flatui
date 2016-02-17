@@ -131,6 +131,8 @@ class GlyphCacheEntry {
   mathfu::vec4 get_uv() const { return uv_; }
   void set_uv(const mathfu::vec4& uv) { uv_ = uv; }
 
+  MATHFU_DEFINE_CLASS_SIMD_AWARE_NEW_DELETE
+
  private:
   // Friend class, GlyphCache needs an access to internal variables of the
   // class.

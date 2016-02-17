@@ -38,7 +38,7 @@ endif()
 #    wd4316: object allocated on the heap may not be aligned for required type
 #            in glyph_cache.h
 include (${fpl_root}/fplutil/buildutil/cmake_common.txt)
-set_common_build_variables("/wd4316")
+set_common_build_variables()
 
 set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
     CACHE PATH "Directory containing the harfbuzz cmake project.")
