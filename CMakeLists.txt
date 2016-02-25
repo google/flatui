@@ -105,6 +105,7 @@ set(flatui_SRCS
     include/flatui/font_manager.h
     include/flatui/internal/glyph_cache.h
     include/flatui/internal/flatui_util.h
+    include/flatui/internal/flatui_layout.h
     include/flatui/internal/hb_complex_font.h
     include/flatui/internal/micro_edit.h
     include/flatui/version.h
