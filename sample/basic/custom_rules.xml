@@ -25,5 +25,13 @@ limitations under the License.
   <!--Include common build rules from flatui.-->
   <include file="${flatui_path}/jni/custom_rules.xml" as="flatui"/>
 
-  <target name="-pre-build" depends="flatui.setup-flatui"/>
+  <target name="copy-sample-assets"
+          description="Copy sample assets into the assets directory.">
+    <copy todir="assets">
+      <fileset dir="../assets/"/>
+    </copy>
+  </target>
+
+  <target name="-pre-build" depends="flatui.setup-flatui,
+                                     copy-sample-assets"/>
 </project>

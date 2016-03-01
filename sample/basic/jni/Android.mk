@@ -11,8 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(basic)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
+LOCAL_PATH := $(call my-dir)/..
+
+FLATUI_DIR := $(LOCAL_PATH)/../..
+include $(FLATUI_DIR)/jni/android_config.mk
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := main
+LOCAL_ARM_MODE := arm
+LOCAL_STATIC_LIBRARIES := fplbase flatui
+LOCAL_SRC_FILES := flatuisample.cpp
+include $(BUILD_SHARED_LIBRARY)
+
+$(call import-add-path,$(FLATUI_DIR)/..)
+$(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
+
+$(call import-module, flatui/jni)
+$(call import-module, fplbase/jni)

@@ -205,5 +205,4 @@ endif()
 # Samples.
 if(flatui_build_samples)
   add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sample)
-  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sample_3d)
 endif()

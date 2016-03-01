@@ -14,7 +14,7 @@
 
 LOCAL_PATH := $(call my-dir)/..
 
-FLATUI_DIR := $(LOCAL_PATH)/..
+FLATUI_DIR := $(LOCAL_PATH)/../..
 include $(FLATUI_DIR)/jni/android_config.mk
 
 include $(CLEAR_VARS)
