@@ -61,13 +61,19 @@ const int32_t kFreeTypeUnit = 64;
 
 /// @var kGlyphCacheWidth
 ///
-/// @brief The Default size of the glyph cache width.
+/// @brief The default size of the glyph cache width.
 const int32_t kGlyphCacheWidth = 1024;
 
 /// @var kGlyphCacheHeight
 ///
 /// @brief The default size of the glyph cache height.
 const int32_t kGlyphCacheHeight = 1024;
+
+/// @var kGlyphCacheMaxSlices
+///
+/// @brief The default size of the max glyph cache slices. The number of cache
+/// slices grows up to the value.
+const int32_t kGlyphCacheMaxSlices = 4;
 
 /// @var kLineHeightDefault
 ///
@@ -216,14 +222,10 @@ class FontBufferParameters {
   float get_font_size() const { return font_size_; }
 
   /// @return Returns a text alignment info.
-  TextAlignment get_text_alignment() const {
-    return flags_.text_alignement;
-  }
+  TextAlignment get_text_alignment() const { return flags_.text_alignement; }
 
   /// @return Returns a glyph setting info.
-  GlyphFlags get_glyph_flags() const {
-    return flags_.glyph_flags;
-  }
+  GlyphFlags get_glyph_flags() const { return flags_.glyph_flags; }
 
   /// @return Returns a flag to indicate if the buffer has caret info.
   bool get_caret_info_flag() const { return flags_.caret_info; }
@@ -264,9 +266,9 @@ class FontBufferParameters {
   // A structure that defines bit fields to hold multiple flag values related to
   // the font buffer.
   struct FontBufferFlags {
-    bool caret_info:1;
-    GlyphFlags glyph_flags:2;
-    TextAlignment text_alignement:3;
+    bool caret_info : 1;
+    GlyphFlags glyph_flags : 2;
+    TextAlignment text_alignement : 3;
   };
   union {
     uint32_t flags_value_;
@@ -294,8 +296,12 @@ class FontManager {
   /// @note The given size is rounded up to nearest power of 2 internally to be
   /// used as an OpenGL texture sizes.
   ///
-  /// @param[in] cache_size The size of the cache, in pixels.
-  FontManager(const mathfu::vec2i &cache_size);
+  /// @param[in] cache_size The size of the cache, in pixels as x & y values,
+  /// a number of slices as a z value.
+  /// @param[in] max_slices The maximum number of cache slices. When a glyph
+  /// slice gets full with glyph entries, the cache allocates another slices for
+  /// more cache spaces up to the value.
+  FontManager(const mathfu::vec2i &cache_size, int32_t max_slices);
 
   /// @brief The destructor for FontManager.
   ~FontManager();
@@ -413,7 +419,9 @@ class FontManager {
   void StartRenderPass() { UpdatePass(false); }
 
   /// @return Returns font atlas texture.
-  fplbase::Texture *GetAtlasTexture() { return atlas_texture_.get(); }
+  fplbase::Texture *GetAtlasTexture(int32_t slice) {
+    return atlas_textures_[slice].get();
+  }
 
   /// @brief The user can supply a size selector function to adjust glyph sizes
   /// when storing a glyph cache entry. By doing that, multiple strings with
@@ -526,6 +534,11 @@ class FontManager {
   // flushed during a rendering pass.
   void UpdatePass(bool start_subpass);
 
+  // Allocate an atlas texture slice when necessary to hold all cache slices in
+  // the glyph cache. The API only allocate one additional texture as it's
+  // expected to be called for each glyph cache allocation.
+  void ExpandAtlasTexture();
+
   // Update UV value in the FontBuffer.
   // Returns nullptr if one of UV values couldn't be updated.
   FontBuffer *UpdateUV(int32_t ysize, GlyphFlags flags, FontBuffer *buffer);
@@ -590,8 +603,11 @@ class FontManager {
   // Current atlas texture's contents revision.
   uint32_t current_atlas_revision_;
 
-  // Unique pointer to a font atlas texture.
-  std::unique_ptr<fplbase::Texture> atlas_texture_;
+  // Array holding unique pointers to a font atlas textures.
+  std::vector<std::unique_ptr<fplbase::Texture>> atlas_textures_;
+
+  // Intermediate buffer used while FontBuffer construction.
+  std::vector<int32_t> atlas_indices_;
 
   // Current pass counter.
   // Current implementation only supports up to 2 passes in a rendering cycle.
@@ -825,8 +841,6 @@ class FontBuffer {
   /// caret position information in the FontBuffer.
   FontBuffer(uint32_t size, bool caret_info)
       : revision_(0), line_start_index_(0), line_start_caret_index_(0) {
-    indices_.reserve(size * kIndiciesPerCodePoint);
-    vertices_.reserve(size * kVerticesPerCodePoint);
     code_points_.reserve(size);
     if (caret_info) {
       caret_positions_.reserve(size + 1);
@@ -846,11 +860,21 @@ class FontBuffer {
   /// @param[in] metrics The FontMetrics to set for the font texture.
   void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
 
+  /// @return Returns the array of the slices that is used in the FontBuffer as
+  /// a std::vector<int32_t>. When rendering the buffer, retrieve corresponding
+  /// atlas texture from the glyph cache and bind the texture.
+  std::vector<int32_t> *get_slices() { return &slices_; }
+
+  /// @return Returns the slices array as a const std::vector<int32_t>.
+  const std::vector<int32_t> *get_slices() const { return &slices_; }
+
   /// @return Returns the indices array as a std::vector<uint16_t>.
-  std::vector<uint16_t> *get_indices() { return &indices_; }
+  std::vector<uint16_t> *get_indices(int32_t index) { return &indices_[index]; }
 
   /// @return Returns the indices array as a const std::vector<uint16_t>.
-  const std::vector<uint16_t> *get_indices() const { return &indices_; }
+  const std::vector<uint16_t> *get_indices(int32_t index) const {
+    return &indices_[index];
+  }
 
   /// @return Returns the vertices array as a std::vector<FontVertex>.
   std::vector<FontVertex> *get_vertices() { return &vertices_; }
@@ -962,7 +986,11 @@ class FontBuffer {
   /// @return Returns `true`.
   bool Verify() {
     assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
-    assert(indices_.size() == code_points_.size() * kIndiciesPerCodePoint);
+    uint32_t sum_indices = 0;
+    for (size_t i = 0; i < indices_.size(); ++i) {
+      sum_indices += indices_[i].size();
+    }
+    assert(sum_indices == code_points_.size() * kIndiciesPerCodePoint);
     return true;
   }
 
@@ -988,6 +1016,12 @@ class FontBuffer {
   /// If the caret positions array has 0 elements, it will return `false`.
   bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
 
+  /// @brief Expand internal buffers when the glyph cache grows.
+  void ExpandGlyphBuffers(int32_t new_size) { indices_.resize(new_size); }
+
+  /// @brief Return current glyph count stored in the buffer.
+  int32_t get_glyph_count() { return vertices_.size() / 4; }
+
  private:
   // Font metrics information.
   FontMetrics metrics_;
@@ -996,8 +1030,11 @@ class FontBuffer {
   // They are hold as a separate vector because OpenGL draw call needs them to
   // be a separate array.
 
+  // Slices that is used in the FontBuffer.
+  std::vector<int32_t> slices_;
+
   // Indices of the font buffer.
-  std::vector<uint16_t> indices_;
+  std::vector<std::vector<uint16_t>> indices_;
 
   // Vertices data of the font buffer.
   std::vector<FontVertex> vertices_;
@@ -1061,7 +1098,7 @@ struct ScriptInfo {
 /// A caller is responsive not to call set_* APIs that specified shader doesn't
 /// support.
 class FontShader {
-public:
+ public:
   void set(fplbase::Shader *shader) {
     assert(shader);
     shader_ = shader;
@@ -1069,7 +1106,6 @@ public:
     color_ = shader->FindUniform("color");
     clipping_ = shader->FindUniform("clipping");
     threshold_ = shader->FindUniform("threshold");
-
   }
   void set_renderer(const fplbase::Renderer &renderer) {
     shader_->Set(renderer);
@@ -1090,7 +1126,8 @@ public:
     assert(threshold_ >= 0);
     shader_->SetUniform(threshold_, &f, 1);
   }
-private:
+
+ private:
   fplbase::Shader *shader_;
   fplbase::UniformHandle pos_offset_;
   fplbase::UniformHandle color_;

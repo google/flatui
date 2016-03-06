@@ -47,6 +47,9 @@ const hb_script_t kDefaultScript = HB_SCRIPT_LATIN;
 FT_Library *FontManager::ft_;
 hb_buffer_t *FontManager::harfbuzz_buf_;
 
+// Enum that indicates invalid texture atlas index.
+const int32_t kInvalidSliceIndex = -1;
+
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
 class WordEnumerator {
@@ -135,15 +138,16 @@ FontManager::FontManager() {
 
   // Initialize glyph cache.
   glyph_cache_.reset(new GlyphCache<uint8_t>(
-      mathfu::vec2i(kGlyphCacheWidth, kGlyphCacheHeight)));
+      mathfu::vec2i(kGlyphCacheWidth, kGlyphCacheHeight),
+      kGlyphCacheMaxSlices));
 }
 
-FontManager::FontManager(const mathfu::vec2i &cache_size) {
+FontManager::FontManager(const mathfu::vec2i &cache_size, int32_t max_slices) {
   // Initialize variables and libraries.
   Initialize();
 
   // Initialize glyph cache.
-  glyph_cache_.reset(new GlyphCache<uint8_t>(cache_size));
+  glyph_cache_.reset(new GlyphCache<uint8_t>(cache_size, max_slices));
 }
 
 FontManager::~FontManager() {}
@@ -196,10 +200,7 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
   renderer_ = &renderer;
 
   // Initialize the font atlas texture.
-  atlas_texture_.reset(new Texture(nullptr, fplbase::kFormatLuminance, false));
-  atlas_texture_.get()->LoadFromMemory(glyph_cache_->get_buffer(),
-                                       glyph_cache_->get_size(), false);
-  atlas_texture_.get()->Set(0);
+  ExpandAtlasTexture();
 }
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
@@ -218,6 +219,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
                "instead.\n", text, parameter.get_size().y());
     }
   }
+
   return buffer;
 }
 
@@ -274,11 +276,14 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
   uint32_t line_width = 0;
   uint32_t max_line_width = parameters.get_line_length();
-  uint32_t total_glyph_count = 0;
   uint32_t total_height = ysize;
   bool lastline_must_break = false;
   bool first_character = true;
   auto line_height = ysize * line_height_;
+
+  // Clear temporary buffer holding texture atlas indices.
+  std::fill(atlas_indices_.begin(), atlas_indices_.end(), kInvalidSliceIndex);
+  auto slices_in_buffer = buffer->get_slices();
 
   // Find words and layout them.
   while (word_enum.Advance()) {
@@ -356,7 +361,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     for (size_t i = 0; i < glyph_count; ++i, idx += idx_advance) {
       auto code_point = glyph_info[idx].codepoint;
       if (!code_point) {
-        total_glyph_count--;
         continue;
       }
       auto cache = GetCachedEntry(code_point, converted_ysize,
@@ -391,26 +395,32 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
           initial_metrics = new_metrics;
         }
 
+        // Expand buffer if necessary.
+        auto slice = cache->get_pos().z();
+        auto slice_idx = atlas_indices_[slice];
+        if (slice_idx == kInvalidSliceIndex) {
+          // Resize buffers.
+          slice_idx = atlas_indices_[slice] = slices_in_buffer->size();
+          buffer->ExpandGlyphBuffers(slice_idx + 1);
+          slices_in_buffer->push_back(slice);
+        }
+
+        auto current_glyph_count = buffer->get_glyph_count();
         // Construct indices array.
         const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
+        auto indices = buffer->get_indices(slice_idx);
         for (size_t j = 0; j < FPL_ARRAYSIZE(kIndices); ++j) {
           auto index = kIndices[j];
-          buffer->get_indices()->push_back(
-              static_cast<unsigned short>(index + (total_glyph_count + i) * 4));
+          indices->push_back(
+              static_cast<unsigned short>(index + current_glyph_count * 4));
         }
 
         // Construct intermediate vertices array.
         // The vertices array is update in the render pass with correct
         // glyph size & glyph cache entry information.
 
-        // Update vertices.
+        // Update vertices and UVs
         buffer->AddVertices(pos, base_line, scale, *cache);
-
-        // Update UV.
-        buffer->UpdateUV(static_cast<int32_t>(total_glyph_count + i),
-                         cache->get_uv());
-      } else {
-        total_glyph_count--;
       }
 
       // Advance positions after rendering in LTR.
@@ -447,9 +457,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
     // Set buffer revision using glyph cache revision.
     buffer->set_revision(glyph_cache_->get_revision());
-
-    // Update total number of glyphs.
-    total_glyph_count += glyph_count;
 
     // Cleanup buffer contents.
     hb_buffer_clear_contents(harfbuzz_buf_);
@@ -550,10 +557,10 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
   // Note: In the API it uses HbFont's fontID (would include multiple fonts)
   // rather than a fontID for single font file. A texture can have multiple font
   // faces so that we need a fontID that represents all fonts used.
-  auto parameter = FontBufferParameters(
-      current_font_->GetFontId(), flatui::HashId(text),
-      static_cast<float>(ysize), mathfu::kZeros2i, kTextAlignmentLeft,
-      kGlyphFlagsNone, false);
+  auto parameter =
+      FontBufferParameters(current_font_->GetFontId(), flatui::HashId(text),
+                           static_cast<float>(ysize), mathfu::kZeros2i,
+                           kTextAlignmentLeft, kGlyphFlagsNone, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -599,8 +606,8 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
 
     auto info = current_font_->GetGlyphInfo(code_point);
     FT_GlyphSlot glyph = info->GetFtFace()->glyph;
-    FT_Error err = FT_Load_Glyph(info->GetFtFace(),
-                                 info->GetCodepoint(), FT_LOAD_RENDER);
+    FT_Error err =
+        FT_Load_Glyph(info->GetFtFace(), info->GetCodepoint(), FT_LOAD_RENDER);
 
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
@@ -820,13 +827,15 @@ void FontManager::UpdatePass(bool start_subpass) {
   glyph_cache_->Update();
 
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
-    auto rect = glyph_cache_->get_dirty_rect();
-    atlas_texture_.get()->Set(0);
-    Texture::UpdateTexture(fplbase::kFormatLuminance, 0, rect.y(),
-                           glyph_cache_.get()->get_size().x(),
-                           rect.w() - rect.y(),
-                           glyph_cache_.get()->get_buffer() +
-                               glyph_cache_.get()->get_size().x() * rect.y());
+    auto slices = glyph_cache_->get_num_slices();
+    for (auto i = 0; i < slices; ++i) {
+      auto rect = glyph_cache_->get_dirty_rect(i);
+      atlas_textures_[i]->Set(0);
+      Texture::UpdateTexture(fplbase::kFormatLuminance, 0, rect.y(),
+                             glyph_cache_->get_size().x(), rect.w() - rect.y(),
+                             glyph_cache_->get_buffer(i) +
+                                 glyph_cache_->get_size().x() * rect.y());
+    }
     current_atlas_revision_ = glyph_cache_->get_revision();
     glyph_cache_->set_dirty_state(false);
   }
@@ -962,8 +971,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     FT_GlyphSlot g = glyph_info->GetFtFace()->glyph;
     GlyphCacheEntry entry;
     entry.set_code_point(code_point);
-    GlyphKey new_key(glyph_info->GetFaceData()->font_id_,
-                     code_point, ysize, flags);
+    GlyphKey new_key(glyph_info->GetFaceData()->font_id_, code_point, ysize,
+                     flags);
     if (flags & (kGlyphFlagsOuterSDF | kGlyphFlagsInnerSDF) &&
         g->bitmap.width && g->bitmap.rows) {
       // Adjust a glyph size and an offset with a padding.
@@ -976,11 +985,10 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         // Generates SDF.
         auto pos = cache->get_pos();
         auto stride = glyph_cache_->get_size().x();
-        auto p = glyph_cache_->get_buffer() + pos.x() + pos.y() * stride;
+        auto p = glyph_cache_->get_buffer(pos.z()) + pos.x() + pos.y() * stride;
         Grid<uint8_t> src(g->bitmap.buffer,
                           vec2i(g->bitmap.width, g->bitmap.rows),
-                          kGlyphCachePaddingSDF,
-                          g->bitmap.width);
+                          kGlyphCachePaddingSDF, g->bitmap.width);
         Grid<uint8_t> dest(p, cache->get_size(), 0, stride);
         sdf_computer_.Compute(src, &dest, flags);
       }
@@ -997,7 +1005,24 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
       return nullptr;
     }
   }
+
+  // With the new glyph entry added, we would need to expand the buffers.
+  ExpandAtlasTexture();
   return cache;
+}
+
+void FontManager::ExpandAtlasTexture() {
+  // Expand atlas texture buffer if necessary.
+  size_t slices = glyph_cache_->get_num_slices();
+  if (slices > atlas_textures_.size()) {
+    atlas_textures_.resize(slices);
+    atlas_textures_[slices - 1]
+        .reset(new Texture(nullptr, fplbase::kFormatLuminance, false));
+    // Give a texture size but don't have to clear the texture here.
+    atlas_textures_[slices - 1]
+        ->LoadFromMemory(nullptr, glyph_cache_->get_size(), false);
+    atlas_indices_.resize(slices, kInvalidSliceIndex);
+  }
 }
 
 int32_t FontManager::ConvertSize(int32_t original_ysize) {
@@ -1017,14 +1042,15 @@ void FontBuffer::AddVertices(const vec2 &pos, int32_t base_line, float scale,
 
   auto x = rounded_pos.x() + scaled_offset.x();
   auto y = rounded_pos.y() + scaled_base_line - scaled_offset.y();
-  vertices_.push_back(FontVertex(x, y, 0.0f, 0.0f, 0.0f));
+  auto uv = entry.get_uv();
+  vertices_.push_back(FontVertex(x, y, 0.0f, uv.x(), uv.y()));
 
-  vertices_.push_back(FontVertex(x, y + scaled_size.y(), 0.0f, 0.0f, 0.0f));
+  vertices_.push_back(FontVertex(x, y + scaled_size.y(), 0.0f, uv.x(), uv.w()));
 
-  vertices_.push_back(FontVertex(x + scaled_size.x(), y, 0.0f, 0.0f, 0.0f));
+  vertices_.push_back(FontVertex(x + scaled_size.x(), y, 0.0f, uv.z(), uv.y()));
 
-  vertices_.push_back(
-      FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f, 0.0f, 0.0f));
+  vertices_.push_back(FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f,
+                                 uv.z(), uv.w()));
 }
 
 void FontBuffer::UpdateUV(int32_t index, const vec4 &uv) {

@@ -425,14 +425,19 @@ class InternalState : public LayoutManager {
 
   void DrawFontBuffer(FontShader &shader, const FontBuffer &buffer,
                       const vec2 &pos) {
-    shader.set_position_offset(vec3(pos, 0.0f));
-    const fplbase::Attribute kFormat[] = {fplbase::kPosition3f,
-                                          fplbase::kTexCoord2f, fplbase::kEND};
-    Mesh::RenderArray(
-        Mesh::kTriangles, static_cast<int>(buffer.get_indices()->size()),
-        kFormat, sizeof(FontVertex),
-        reinterpret_cast<const char *>(buffer.get_vertices()->data()),
-        buffer.get_indices()->data());
+    auto slices = buffer.get_slices();
+    for (size_t i = 0; i < slices->size(); ++i) {
+      fontman_.GetAtlasTexture(slices->at(i))->Set(0);
+      shader.set_position_offset(vec3(pos, 0.0f));
+      const fplbase::Attribute kFormat[] = {
+          fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
+      auto indices = buffer.get_indices(i);
+      Mesh::RenderArray(
+          Mesh::kTriangles, static_cast<int>(indices->size()), kFormat,
+          sizeof(FontVertex),
+          reinterpret_cast<const char *>(buffer.get_vertices()->data()),
+          indices->data());
+    }
   }
 
   vec2i Label(const FontBuffer &buffer, const FontBufferParameters &parameter,
@@ -451,8 +456,6 @@ class InternalState : public LayoutManager {
 
       auto element = NextElement(hash);
       if (element) {
-        fontman_.GetAtlasTexture()->Set(0);
-
         pos = Position(*element);
 
         bool clipping = false;
