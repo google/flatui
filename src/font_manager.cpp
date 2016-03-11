@@ -244,6 +244,11 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     // Update UV of the buffer
     auto ret = UpdateUV(converted_ysize, parameters.get_glyph_flags(),
                         it->second.get());
+
+    // Increment the reference count if the buffer is ref counting buffer.
+    if (parameters.get_ref_count_flag()) {
+      ret->set_ref_count(ret->get_ref_count() + 1);
+    }
     return ret;
   }
 
@@ -421,6 +426,13 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
         // Update vertices and UVs
         buffer->AddVertices(pos, base_line, scale, *cache);
+
+        // Update references if the buffer is ref counting buffer.
+        if (parameters.get_ref_count_flag()) {
+          auto row = cache->get_row();
+          row->AddRef(buffer.get());
+          buffer->AddCacheRowReference(&*row);
+        }
       }
 
       // Advance positions after rendering in LTR.
@@ -477,6 +489,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   // Setup font metrics.
   buffer->set_metrics(initial_metrics);
 
+  // Initialize reference counter.
+  buffer->set_ref_count(1);
+
   // Set current pass.
   if (current_pass_ != kRenderPass) {
     buffer->set_pass(current_pass_);
@@ -489,7 +504,22 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   auto insert = map_buffers_.insert(
       std::pair<FontBufferParameters, std::unique_ptr<FontBuffer>>(
           parameters, std::move(buffer)));
+
+  // Set up a back reference from the buffer to the map.
+  insert.first->second->set_iterator(insert.first);
   return insert.first->second.get();
+}
+
+void FontManager::ReleaseBuffer(FontBuffer *buffer) {
+  assert(buffer->get_ref_count() >= 1);
+  buffer->set_ref_count(buffer->get_ref_count() - 1);
+  if (!buffer->get_ref_count()) {
+    // Clear references in the buffer.
+    buffer->ReleaseCacheRowReference();
+
+    // Remove an instance of the buffer.
+    map_buffers_.erase(buffer->get_iterator());
+  }
 }
 
 int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
@@ -560,7 +590,7 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
   auto parameter =
       FontBufferParameters(current_font_->GetFontId(), flatui::HashId(text),
                            static_cast<float>(ysize), mathfu::kZeros2i,
-                           kTextAlignmentLeft, kGlyphFlagsNone, false);
+                           kTextAlignmentLeft, kGlyphFlagsNone, false, false);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -1156,6 +1186,16 @@ void FaceData::Close() {
   HbFont::Close(*this);
   FT_Done_Face(face_);
   font_data_.clear();
+}
+
+void GlyphCacheRow::InvalidateReferencingBuffers() {
+  auto begin = ref_.begin();
+  auto end = ref_.end();
+  while (begin != end) {
+    auto buffer = *begin;
+    buffer->Invalidate();
+    begin++;
+  }
 }
 
 }  // namespace flatui

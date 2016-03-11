@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 2.8.12)
 
-project(flatuitest)
-
-add_executable(flatuitest flatuitest.cpp)
-add_dependencies(flatuitest fplbase flatui)
-mathfu_configure_flags(flatuitest)
-target_link_libraries(flatuitest fplbase flatui)
-
-# FlatUI postprocess
-flatui_post_process(flatuitest "test")
-
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/unit_tests/serialization)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/unit_tests/ref_count)
+APP_PLATFORM := android-15
+APP_ABI:=armeabi armeabi-v7a-hard mips x86 x86_64
+APP_STL := gnustl_static
+APP_MODULES := ref_count_test
+NDK_TOOLCHAIN_VERSION := 4.8
+APP_CPPFLAGS += -std=c++11 -Wno-literal-suffix

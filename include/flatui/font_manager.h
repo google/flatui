@@ -168,11 +168,14 @@ class FontBufferParameters {
   /// @param[in] text_alignment A horizontal alignment of multi line
   /// buffer.
   /// @param[in] glyph_flags A flag determing SDF generation for the font.
-  /// @param[in] caret_info A bool determining if the font buffer contains caret
+  /// @param[in] caret_info A bool determining if the FontBuffer contains caret
   /// info.
+  /// @param[in] ref_count A bool determining if the FontBuffer manages
+  /// reference counts of the buffer and referencing glyph cache rows.
   FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
                        const mathfu::vec2i &size, TextAlignment text_alignment,
-                       GlyphFlags glyph_flags, bool caret_info) {
+                       GlyphFlags glyph_flags, bool caret_info,
+                       bool ref_count) {
     font_id_ = font_id;
     text_id_ = text_id;
     font_size_ = font_size;
@@ -180,6 +183,7 @@ class FontBufferParameters {
     flags_.text_alignement = text_alignment;
     flags_.glyph_flags = glyph_flags;
     flags_.caret_info = caret_info;
+    flags_.ref_count = ref_count;
   }
 
   /// @brief The equal-to operator for comparing FontBufferParameters for
@@ -230,6 +234,9 @@ class FontBufferParameters {
   /// @return Returns a flag to indicate if the buffer has caret info.
   bool get_caret_info_flag() const { return flags_.caret_info; }
 
+  /// @return Returns a flag to indicate if the buffer manages reference counts.
+  bool get_ref_count_flag() const { return flags_.ref_count; }
+
   /// Retrieve a line length of the text based on given parameters.
   /// a fixed line length (get_size.x()) will be used if the text is justified
   /// or right aligned otherwise the line length will be determined by the text
@@ -266,6 +273,7 @@ class FontBufferParameters {
   // A structure that defines bit fields to hold multiple flag values related to
   // the font buffer.
   struct FontBufferFlags {
+    bool ref_count : 1;
     bool caret_info : 1;
     GlyphFlags glyph_flags : 2;
     TextAlignment text_alignement : 3;
@@ -376,6 +384,17 @@ class FontManager {
   /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
   FontBuffer *GetBuffer(const char *text, size_t length,
                         const FontBufferParameters &parameters);
+
+  /// @brief Release the FonBuffer instance.
+  /// If the FontBuffer is a reference counting buffer, the API decrements the
+  /// reference count of the buffer and when it reaches 0, the buffer becomes
+  /// invalid.
+  /// If the buffer is non-reference counting buffer, the buffer is invalidated
+  /// immediately and all references to the FontBuffer with same parameters
+  /// become invalid. It is not a problem for those non-reference counting
+  /// buffers because they are expected to create/fetch a buffer each render
+  /// cycle.
+  void ReleaseBuffer(FontBuffer *buffer);
 
   /// @brief Set the renderer to be used to create texture instances.
   ///
@@ -823,9 +842,18 @@ class FontBuffer {
   /// @brief The number of vertices per code point.
   static const int32_t kVerticesPerCodePoint = 4;
 
+  /// @var Type defining an interator to the internal map that is tracking all
+  /// FontBuffer instances.
+  typedef std::unordered_map<FontBufferParameters, std::unique_ptr<FontBuffer>,
+                             FontBufferParameters>::iterator fontbuffer_map_it;
+
   /// @brief The default constructor for a FontBuffer.
   FontBuffer()
-      : revision_(0), line_start_index_(0), line_start_caret_index_(0) {}
+      : revision_(0),
+        line_start_index_(0),
+        line_start_caret_index_(0),
+        ref_count_(0),
+        valid_(true) {}
 
   /// @brief The constructor for FontBuffer with a given buffer size.
   ///
@@ -840,7 +868,11 @@ class FontBuffer {
   /// Since it has a strong relationship to rendering positions, we store the
   /// caret position information in the FontBuffer.
   FontBuffer(uint32_t size, bool caret_info)
-      : revision_(0), line_start_index_(0), line_start_caret_index_(0) {
+      : revision_(0),
+        line_start_index_(0),
+        line_start_caret_index_(0),
+        ref_count_(0),
+        valid_(true) {
     code_points_.reserve(size);
     if (caret_info) {
       caret_positions_.reserve(size + 1);
@@ -854,30 +886,13 @@ class FontBuffer {
   /// texture.
   const FontMetrics &metrics() const { return metrics_; }
 
-  /// @brief Sets the FontMetrics metrics parameters for the font
-  /// texture.
-  ///
-  /// @param[in] metrics The FontMetrics to set for the font texture.
-  void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
-
-  /// @return Returns the array of the slices that is used in the FontBuffer as
-  /// a std::vector<int32_t>. When rendering the buffer, retrieve corresponding
-  /// atlas texture from the glyph cache and bind the texture.
-  std::vector<int32_t> *get_slices() { return &slices_; }
-
   /// @return Returns the slices array as a const std::vector<int32_t>.
   const std::vector<int32_t> *get_slices() const { return &slices_; }
-
-  /// @return Returns the indices array as a std::vector<uint16_t>.
-  std::vector<uint16_t> *get_indices(int32_t index) { return &indices_[index]; }
 
   /// @return Returns the indices array as a const std::vector<uint16_t>.
   const std::vector<uint16_t> *get_indices(int32_t index) const {
     return &indices_[index];
   }
-
-  /// @return Returns the vertices array as a std::vector<FontVertex>.
-  std::vector<FontVertex> *get_vertices() { return &vertices_; }
 
   /// @return Returns the vertices array as a const std::vector<FontVertex>.
   const std::vector<FontVertex> *get_vertices() const { return &vertices_; }
@@ -888,11 +903,6 @@ class FontBuffer {
   /// @return Returns the size of the string as a const vec2i reference.
   const mathfu::vec2i &get_size() const { return size_; }
 
-  /// @brief Set the size of the string.
-  ///
-  /// @param[in] size A const vec2i reference to the size of the string.
-  void set_size(const mathfu::vec2i &size) { size_ = size; }
-
   /// @return Returns the glyph cache revision counter as a uint32_t.
   ///
   /// @note Each time a contents of the glyph cache is updated, the revision of
@@ -901,6 +911,81 @@ class FontBuffer {
   /// If the cache revision and the buffer revision is different, the
   /// font_manager try to re-construct the buffer.
   uint32_t get_revision() const { return revision_; }
+
+  /// @return Returns the pass counter as an int32_t.
+  ///
+  /// @note In the render pass, this value is used if the user of the class
+  /// needs to call `StartRenderPass()` to upload the atlas texture.
+  int32_t get_pass() const { return pass_; }
+
+  /// @brief Verifies that the sizes of the arrays used in the buffer are
+  /// correct.
+  ///
+  /// @warning Asserts if the array sizes are incorrect.
+  ///
+  /// @return Returns `true`.
+  bool Verify() const {
+    assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
+    uint32_t sum_indices = 0;
+    for (size_t i = 0; i < indices_.size(); ++i) {
+      sum_indices += indices_[i].size();
+    }
+    assert(sum_indices == code_points_.size() * kIndiciesPerCodePoint);
+    return valid_;
+  }
+
+  /// @brief Retrieve a caret positions with a given index.
+  ///
+  /// @param[in] index The index of the caret position.
+  ///
+  /// @return Returns a vec2i containing the caret position. Otherwise it
+  /// returns `kCaretPositionInvalid` if the buffer does not contain
+  /// caret information at the given index, or if the index is out of range.
+  mathfu::vec2i GetCaretPosition(size_t index) const {
+    if (!caret_positions_.capacity() || index > caret_positions_.size())
+      return kCaretPositionInvalid;
+    return caret_positions_[index];
+  }
+
+  /// @return Returns a const reference to the caret positions buffer.
+  const std::vector<mathfu::vec2i> &GetCaretPositions() const {
+    return caret_positions_;
+  }
+
+  /// @return Returns `true` if the FontBuffer contains any caret positions.
+  /// If the caret positions array has 0 elements, it will return `false`.
+  bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
+
+  /// @brief Return current glyph count stored in the buffer.
+  int32_t get_glyph_count() const { return vertices_.size() / 4; }
+
+  /// @brief Gets the reference count of the buffer.
+  uint32_t get_ref_count() const { return ref_count_; }
+
+ private:
+  // Make the FontManager and related classes as a friend class so that
+  // FontManager can manage FontBuffer class using it's private methods.
+  friend FontManager;
+  friend GlyphCacheRow;
+
+  /// @return Returns the array of the slices that is used in the FontBuffer as
+  /// a std::vector<int32_t>. When rendering the buffer, retrieve corresponding
+  /// atlas texture from the glyph cache and bind the texture.
+  std::vector<int32_t> *get_slices() { return &slices_; }
+
+  /// @return Returns the indices array as a std::vector<uint16_t>.
+  std::vector<uint16_t> *get_indices(int32_t index) { return &indices_[index]; }
+
+  /// @brief Sets the FontMetrics metrics parameters for the font
+  /// texture.
+  ///
+  /// @param[in] metrics The FontMetrics to set for the font texture.
+  void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
+
+  /// @brief Set the size of the string.
+  ///
+  /// @param[in] size A const vec2i reference to the size of the string.
+  void set_size(const mathfu::vec2i &size) { size_ = size; }
 
   /// @brief Sets the glyph cache revision counter.
   ///
@@ -913,17 +998,17 @@ class FontBuffer {
   /// font_manager try to re-construct the buffer.
   void set_revision(uint32_t revision) { revision_ = revision; }
 
-  /// @return Returns the pass counter as an int32_t.
-  ///
-  /// @note In the render pass, this value is used if the user of the class
-  /// needs to call `StartRenderPass()` to upload the atlas texture.
-  int32_t get_pass() const { return pass_; }
-
   /// @return Returns the psas counter as an int32_t.
   ///
   /// @note In the render pass, this value is used if the user of the class
   /// needs to call `StartRenderPass()` to upload the atlas texture.
   void set_pass(int32_t pass) { pass_ = pass; }
+
+  /// @return Sets an iterator pointing the FontManager's internal map.
+  void set_iterator(fontbuffer_map_it it) { it_map_ = it; }
+
+  /// @return Returns an iterator pointing the map in the FontManager.
+  fontbuffer_map_it get_iterator() { return it_map_; }
 
   /// @brief Adds a codepoint of a glyph to the codepoint array.
   ///
@@ -978,51 +1063,31 @@ class FontBuffer {
                   TextLayoutDirection layout_direction, int32_t line_width,
                   bool last_line);
 
-  /// @brief Verifies that the sizes of the arrays used in the buffer are
-  /// correct.
-  ///
-  /// @warning Asserts if the array sizes are incorrect.
-  ///
-  /// @return Returns `true`.
-  bool Verify() {
-    assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
-    uint32_t sum_indices = 0;
-    for (size_t i = 0; i < indices_.size(); ++i) {
-      sum_indices += indices_[i].size();
-    }
-    assert(sum_indices == code_points_.size() * kIndiciesPerCodePoint);
-    return true;
-  }
-
-  /// @brief Retrieve a caret positions with a given index.
-  ///
-  /// @param[in] index The index of the caret position.
-  ///
-  /// @return Returns a vec2i containing the caret position. Otherwise it
-  /// returns `kCaretPositionInvalid` if the buffer does not contain
-  /// caret information at the given index, or if the index is out of range.
-  mathfu::vec2i GetCaretPosition(size_t index) const {
-    if (!caret_positions_.capacity() || index > caret_positions_.size())
-      return kCaretPositionInvalid;
-    return caret_positions_[index];
-  }
-
-  /// @return Returns a const reference to the caret positions buffer.
-  const std::vector<mathfu::vec2i> &GetCaretPositions() const {
-    return caret_positions_;
-  }
-
-  /// @return Returns `true` if the FontBuffer contains any caret positions.
-  /// If the caret positions array has 0 elements, it will return `false`.
-  bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
+  /// @brief Sets the reference count of the buffer.
+  void set_ref_count(uint32_t ref_count) { ref_count_ = ref_count; }
 
   /// @brief Expand internal buffers when the glyph cache grows.
   void ExpandGlyphBuffers(int32_t new_size) { indices_.resize(new_size); }
 
-  /// @brief Return current glyph count stored in the buffer.
-  int32_t get_glyph_count() { return vertices_.size() / 4; }
+  // @brief Invalidate the FontBuffer.
+  void Invalidate() { valid_ = false; }
 
- private:
+  /// @brief Add a reference to the glyph cache row that is referenced in the
+  /// FontBuffer.
+  void AddCacheRowReference(GlyphCacheRow *p) { referencing_row_.insert(p); }
+
+  /// @brief Release references to the glyph cache row that is referenced in the
+  /// FontBuffer.
+  void ReleaseCacheRowReference() {
+    auto begin = referencing_row_.begin();
+    auto end = referencing_row_.end();
+    while (begin != end) {
+      auto row = *begin;
+      row->Release(this);
+      begin++;
+    }
+  }
+
   // Font metrics information.
   FontMetrics metrics_;
 
@@ -1067,6 +1132,24 @@ class FontBuffer {
   // Start index of current line.
   uint32_t line_start_index_;
   uint32_t line_start_caret_index_;
+
+  // Reference count related variables.
+  uint32_t ref_count_;
+
+  // A flag indicating the FontBuffer's validity. When a FontBuffer is a
+  // reference counting buffer and a glyph cache row which the buffer references
+  // are evicted, the buffer is marked as 'invalid'. In that case, the user need
+  // to
+  // re-create the buffer (and release one reference count).
+  bool valid_;
+
+  // Set holding iterators in glyph cache rows. When the buffer is released,
+  // the API releases all glyph rows in the set.
+  std::set<GlyphCacheRow *> referencing_row_;
+
+  // Back reference to the map. When releasing a buffer, the API uses the
+  // iterator to remove the entry from the map.
+  fontbuffer_map_it it_map_;
 };
 
 /// @struct ScriptInfo

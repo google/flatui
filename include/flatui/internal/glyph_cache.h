@@ -55,6 +55,7 @@ namespace flatui {
 #endif
 
 // Forward decl.
+class FontBuffer;
 template <typename T>
 class GlyphCache;
 class GlyphCacheRow;
@@ -161,6 +162,10 @@ class GlyphCacheEntry {
 
   MATHFU_DEFINE_CLASS_SIMD_AWARE_NEW_DELETE
 
+  // Setter/Getter of a glyph cache row holding the entry.
+  GlyphCacheEntry::iterator_row get_row() const { return it_row_; }
+  void set_row(GlyphCacheEntry::iterator_row row) { it_row_ = row; }
+
  private:
   // Friend class, GlyphCache needs an access to internal variables of the
   // class.
@@ -183,7 +188,7 @@ class GlyphCacheEntry {
   mathfu::vec3i pos_;
 
   // Iterator to the row entry.
-  GlyphCacheEntry::iterator_row it_row;
+  GlyphCacheEntry::iterator_row it_row_;
 
   // Iterator to the row LRU entry.
   std::list<GlyphCacheEntry::iterator_row>::iterator it_lru_row_;
@@ -281,6 +286,16 @@ class GlyphCacheRow {
     return cached_entries_;
   }
 
+  // Add a reference to the glyph cache row.
+  void AddRef(FontBuffer* p) { ref_.insert(p); }
+
+  // Release a reference from the glyph cache row.
+  void Release(FontBuffer* p) { ref_.erase(p); }
+
+  // Invalidate FontBuffers that are referencing the cache row when the row
+  // becomes invalid.
+  void InvalidateReferencingBuffers();
+
  private:
   // Last used counter value of the entry. The value is used to determine
   // if the entry can be evicted from the cache.
@@ -309,6 +324,9 @@ class GlyphCacheRow {
   // Tracking cached entries in the row.
   // When flushing the row, entries in the map is removed using the vector.
   std::vector<GlyphCacheEntry::iterator> cached_entries_;
+
+  // Set holding pointers of FontBuffer that is referencing the cache row.
+  std::set<FontBuffer*> ref_;
 };
 
 template <typename T>
@@ -319,9 +337,7 @@ class GlyphCache {
   // height: height of the glyph cache texture. Rounded up to power of 2.
   // max_slices: max number of slices in the cache.
   GlyphCache(const mathfu::vec2i& size, int32_t max_slices)
-      : counter_(0),
-        revision_(0),
-        dirty_(false) {
+      : counter_(0), revision_(0), dirty_(false) {
     // Round up cache sizes to power of 2.
     size_.x() = RoundUpToPowerOf2(size.x());
     size_.y() = RoundUpToPowerOf2(size.y());
@@ -348,7 +364,7 @@ class GlyphCache {
       // Found an entry!
 
       // Mark the row as being used in current cycle.
-      it->second->it_row->set_last_used_counter(counter_);
+      it->second->it_row_->set_last_used_counter(counter_);
 
       // Update row LRU entry. The row is now most recently used.
       lru_row_.splice(lru_row_.end(), lru_row_, it->second->it_lru_row_);
@@ -463,7 +479,7 @@ class GlyphCache {
       ret->set_pos(pos);
 
       // Establish links.
-      ret->it_row = it_row;
+      ret->set_row(it_row);
       ret->it_lru_row_ = it_row->get_it_lru_row();
 
       // Update row LRU entry.
@@ -650,6 +666,9 @@ class GlyphCache {
   }
 
   void FlushRow(const GlyphCacheEntry::iterator_row row) {
+    // Invalidate FontBuffers that are referencing the row.
+    row->InvalidateReferencingBuffers();
+
     // Erase cached glyphs from look-up map.
     auto& entries = row->get_cached_entries();
     for (auto entry = entries.begin(); entry != entries.end(); ++entry) {

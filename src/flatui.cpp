@@ -265,7 +265,7 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, true);
+        glyph_flags_, true, false);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
@@ -417,7 +417,7 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, false);
+        glyph_flags_, false, false);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
