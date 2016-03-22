@@ -52,7 +52,8 @@ class MicroEdit {
   // In FlatUI, the library will call this function in the render pass.
   // Since SDL can generates multiple input events at a time, we accepts events
   // as a vector.
-  bool HandleInputEvents(const std::vector<fplbase::TextInputEvent> *events);
+  EditStatus HandleInputEvents(
+      const std::vector<fplbase::TextInputEvent> *events);
 
   // Get a caret position in current text.
   int32_t GetCaretPosition();

@@ -714,17 +714,10 @@ static void CreateEdit(const FlatUIElement* element,
 
   auto dynamic_data = GetDynamicData(element->id()->str());
   std::string* edit_output = dynamic_data->data.string_data;
+  EditStatus status;
 
-  // TODO: Remove this once `Edit` return value is changed: b/26907562.
-  //
-  // Cast the boolean return result to an Event, such that it matches the
-  // event handler's signature.
-  //
-  // 0 (kEventNone) => false
-  // 1 (kEventWentUp) => true
-  Event e = static_cast<Event>(
-      flatui::Edit(element->ysize(), fplbase::LoadVec2(element->size_2f()),
-                   element->id()->c_str(), edit_output));
+  Event e = flatui::Edit(element->ysize(), fplbase::LoadVec2(element->size_2f()),
+                   element->id()->c_str(), &status, edit_output);
   if (event_handler != nullptr) {
     event_handler(e, element->id()->str(), dynamic_data);
   }

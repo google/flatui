@@ -979,12 +979,10 @@ TEST_F(FlatUISerializationTest, TestCreateEdit) {
 
   // Mock calls to `flatui::Edit`.
   //
-  // TODO: Update the return values and assertions once the `Edit` return
-  // value is changed: http://b/26907562.
   flatui::FlatUIMocks& flatui_mocks = flatui::FlatUIMocks::get_mocks();
-  EXPECT_CALL(flatui_mocks, Edit(_, _, _, _))
-      .WillOnce(Return(false))
-      .WillOnce(Return(true));
+  EXPECT_CALL(flatui_mocks, Edit(_, _, _, _, _))
+      .WillOnce(Return(flatui::kEventNone))
+      .WillOnce(Return(flatui::kEventNone));
 
   flatui::CreateEdit(
       flatui_pointer->elements()->Get(0),
@@ -993,7 +991,7 @@ TEST_F(FlatUISerializationTest, TestCreateEdit) {
   flatui::CreateEdit(flatui_pointer->elements()->Get(0),
                      [&](const flatui::Event& e, const std::string& id,
                          flatui::DynamicData* dynamic_data) {
-                       ASSERT_EQ(flatui::kEventWentUp, e);
+                       ASSERT_EQ(flatui::kEventNone, e);
                        ASSERT_EQ(&str, dynamic_data->data.string_data);
                        ASSERT_EQ(test_id, id);
                      });
@@ -1370,7 +1368,7 @@ TEST_F(FlatUISerializationTest, TestMapElement) {
 
   // Edit
   string_data_element->mutate_type(flatui_data::Type_Edit);
-  EXPECT_CALL(flatui_mocks, Edit(_, _, _, _)).Times(1);
+  EXPECT_CALL(flatui_mocks, Edit(_, _, _, _, _)).Times(1);
   flatui::MapElement(string_data_element, nullptr, nullptr);
 
   // Group

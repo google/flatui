@@ -29,14 +29,15 @@ void Label(const char* text, float ysize, const mathfu::vec2& label_size,
   FlatUIMocks::get_mocks().Label(text, ysize, label_size, alignment);
 }
 
-bool Edit(float ysize, const mathfu::vec2& size, const char* id,
-          std::string* string) {
-  return FlatUIMocks::get_mocks().Edit(ysize, size, id, string);
+Event Edit(float ysize, const mathfu::vec2& size, const char* id,
+           EditStatus* status, std::string* string) {
+  return FlatUIMocks::get_mocks().Edit(ysize, size, id, status, string);
 }
 
-bool Edit(float ysize, const mathfu::vec2& size, TextAlignment alignment,
-          const char* id, std::string* string) {
-  return FlatUIMocks::get_mocks().Edit(ysize, size, alignment, id, string);
+Event Edit(float ysize, const mathfu::vec2& size, TextAlignment alignment,
+           const char* id, EditStatus* status, std::string* string) {
+  return FlatUIMocks::get_mocks().Edit(ysize, size, alignment, id, status,
+                                       string);
 }
 
 void Image(const fplbase::Texture& texture, float ysize) {
