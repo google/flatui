@@ -683,7 +683,8 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
 
   // Create new texture.
   FontTexture *tex = new FontTexture();
-  tex->LoadFromMemory(image.get(), vec2i(width, height), false);
+  tex->LoadFromMemory(image.get(), vec2i(width, height),
+                      fplbase::kFormatLuminance);
 
   // Setup font metrics.
   tex->set_metrics(initial_metrics);
@@ -1050,7 +1051,8 @@ void FontManager::ExpandAtlasTexture() {
         .reset(new Texture(nullptr, fplbase::kFormatLuminance, false));
     // Give a texture size but don't have to clear the texture here.
     atlas_textures_[slices - 1]
-        ->LoadFromMemory(nullptr, glyph_cache_->get_size(), false);
+        ->LoadFromMemory(nullptr, glyph_cache_->get_size(),
+                         fplbase::kFormatLuminance);
     atlas_indices_.resize(slices, kInvalidSliceIndex);
   }
 }
