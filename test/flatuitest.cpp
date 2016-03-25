@@ -134,9 +134,9 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
            CheckBox(*tex_check_on, *tex_check_off, "Test RTL", 30,
                Margin(6, 0), &test_rtl);
             click_about_example("my_id1", true);
-            Edit(30, vec2(400, 30), "edit2", &str2);
+            Edit(30, vec2(400, 30), "edit2", nullptr, &str2);
             StartGroup(kLayoutHorizontalTop, 0);
-              Edit(30, vec2(0, 30), "edit", &str);
+              Edit(30, vec2(0, 30), "edit", nullptr, &str);
               Label(">Tail", 30);
             EndGroup();
             Slider(*tex_circle, *tex_bar,
@@ -174,7 +174,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                 kEventWentUp) {
               alignment_idx = (alignment_idx + 1) % FPL_ARRAYSIZE(alignments);
             }
-            Edit(24, vec2(400, 400), alignments[alignment_idx], "edit3", &str3);
+            Edit(24, vec2(400, 400), alignments[alignment_idx], "edit3",
+                 nullptr, &str3);
             // Some arabic labels.
             SetTextLocale("ar");
             Label(rtl_string, 40, vec2(400,0));

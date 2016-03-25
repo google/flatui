@@ -232,15 +232,16 @@ class InternalState : public LayoutManager {
     }
   }
 
-  bool Edit(float ysize, const mathfu::vec2 &edit_size, TextAlignment alignment,
-            const char *id, std::string *text) {
+  Event Edit(float ysize, const mathfu::vec2 &edit_size,
+             TextAlignment alignment, const char *id, EditStatus *status,
+             std::string *text) {
     auto hash = HashId(id);
     StartGroup(GetDirection(kLayoutHorizontalBottom),
                GetAlignment(kLayoutHorizontalBottom), 0, hash);
-    bool in_edit = false;
+    EditStatus edit_status = kEditStatusNone;
     if (EqualId(persistent_.input_focus_, hash)) {
       // The widget is in edit.
-      in_edit = true;
+      edit_status = kEditStatusInEdit;
     }
 
     // Check event, this marks this element as an interactive element.
@@ -258,7 +259,7 @@ class InternalState : public LayoutManager {
       physical_label_size.y() = size.y();
       edit_mode = kSingleLine;
     }
-    if (in_edit && persistent_.text_edit_.GetEditingText()) {
+    if (edit_status && persistent_.text_edit_.GetEditingText()) {
       // Get a text from the micro editor when it's editing.
       ui_text = persistent_.text_edit_.GetEditingText();
     }
@@ -280,12 +281,11 @@ class InternalState : public LayoutManager {
     persistent_.text_edit_.SetWindowSize(physical_label_size);
 
     auto window = vec4i(vec2i(0, 0), physical_label_size);
-    if (in_edit) {
+    if (edit_status) {
       window = persistent_.text_edit_.GetWindow();
     }
     auto pos = Label(*buffer, parameter, window);
     if (!layout_pass_) {
-      auto show_caret = false;
       bool pick_caret = (event & kEventWentDown) != 0;
       if (EqualId(persistent_.input_focus_, hash)) {
         // The edit box is in focus. Now we can start text input.
@@ -298,7 +298,9 @@ class InternalState : public LayoutManager {
           pick_caret = true;
           CaptureInput(hash, true);
         }
-        show_caret = true;
+        edit_status = kEditStatusInEdit;
+      } else {
+        edit_status = kEditStatusNone;
       }
       if (pick_caret) {
         auto caret_pos =
@@ -313,7 +315,7 @@ class InternalState : public LayoutManager {
               &focus_region_length)) {
         // IME is active in the editor.
         // Show some input region indicators.
-        if (show_caret && input_region_length) {
+        if (edit_status && input_region_length) {
           const float kInputLineWidth = 1.0f;
           const float kFocusLineWidth = 3.0f;
 
@@ -347,7 +349,7 @@ class InternalState : public LayoutManager {
         }
       }
 
-      if (show_caret) {
+      if (edit_status) {
         // Render caret.
         const float kCaretPositionSizeFactor = 0.8f;
         const float kCaretWidth = 4.0f;
@@ -368,16 +370,20 @@ class InternalState : public LayoutManager {
 
         // Handle text input events only after the rendering for the pass is
         // finished.
-        auto finished_input = persistent_.text_edit_.HandleInputEvents(
+        edit_status = persistent_.text_edit_.HandleInputEvents(
             input_.GetTextInputEvents());
         input_.ClearTextInputEvents();
-        if (finished_input) {
+        if (edit_status == kEditStatusFinished ||
+            edit_status == kEditStatusCanceled) {
           CaptureInput(kNullHash, true);
         }
       }
     }
     EndGroup();
-    return in_edit;
+    if (status) {
+      *status = edit_status;
+    }
+    return event;
   }
 
   // Helper for Edit widget to draw an underline.
@@ -963,15 +969,15 @@ class InternalState : public LayoutManager {
     // Update state.
     int dir = GetNavigationDirection();
 
-    // If "back" is pressed, clear the current focus.
-    if (BackPressed()) {
-      CaptureInput(kNullHash, true);
-    }
-
     // Gamepad/keyboard navigation only happens when the keyboard is not
     // captured.
     if (persistent_.input_capture_ != kNullHash) {
       return;
+    }
+
+    // If "back" is pressed, clear the current focus.
+    if (BackPressed()) {
+      CaptureInput(kNullHash, true);
     }
 
     // Now find the current element, and move to the next.
@@ -1267,14 +1273,14 @@ void Label(const char *text, float font_size, const vec2 &size,
   Gui()->Label(text, font_size, size, alignment);
 }
 
-bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
-          std::string *string) {
-  return Gui()->Edit(ysize, size, kTextAlignmentLeft, id, string);
+Event Edit(float ysize, const mathfu::vec2 &size, const char *id,
+           EditStatus *status, std::string *string) {
+  return Gui()->Edit(ysize, size, kTextAlignmentLeft, id, status, string);
 }
 
-bool Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
-          const char *id, std::string *string) {
-  return Gui()->Edit(ysize, size, alignment, id, string);
+Event Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
+           const char *id, EditStatus *status, std::string *string) {
+  return Gui()->Edit(ysize, size, alignment, id, status, string);
 }
 
 void StartGroup(Layout layout, float spacing, const char *id) {

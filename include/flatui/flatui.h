@@ -160,6 +160,27 @@ enum Direction {
   kDirOverlay = 12
 };
 
+/// @enum EditStatus
+///
+/// @brief Status of Edit widget.
+///
+/// **Enumerations**:
+///
+/// * `kEditStatusNone`     - The widget is not editing.
+/// * `kEditStatusInEdit`   - The widget is in edit.
+/// * `kEditStatusUpdated`  - The widget is in edit and contents has been
+///                           updated in the current update cycle.
+/// * `kEditStatusFinished` - The widget finished editing with an updated
+///                           contents.
+/// * `kEditStatusCanceled` - The edit is canceled by the user pressing esc.
+enum EditStatus {
+  kEditStatusNone = 0,
+  kEditStatusInEdit = 1,
+  kEditStatusUpdated = 2,
+  kEditStatusFinished = 3,
+  kEditStatusCanceled = 4,
+};
+
 /// @enum Layout
 ///
 /// @brief Specify how to layout a group.
@@ -313,7 +334,7 @@ void Label(const char *text, float ysize, const mathfu::vec2 &size);
 /// `size.y` indicates no height restriction. The API renders the whole text in
 /// the label in this case.
 void Label(const char *text, float ysize, const mathfu::vec2 &label_size,
-          TextAlignment alignment);
+           TextAlignment alignment);
 
 /// @brief Set the Label's text color.
 ///
@@ -337,8 +358,8 @@ void SetTextColor(const mathfu::vec4 &color);
 /// face. As the value get bigger, the shadow region gets spread out.
 /// @param[in] offset A vec2 value that controls a position of the outer color
 /// region in pixels.
-void SetTextOuterColor(const mathfu::vec4 &color,
-                       float size, const mathfu::vec2 & offset);
+void SetTextOuterColor(const mathfu::vec4 &color, float size,
+                       const mathfu::vec2 &offset);
 
 /// @brief Enable/Disable a signed distance field generation with glyphs.
 /// A SDF generation of an inner region and an outer region is done separately
@@ -400,12 +421,14 @@ void SetTextDirection(const TextLayoutDirection direction);
 /// virtual resolution. A `0` for `size.x` indicates an auto expanding text box.
 /// A `0` for `size.y` indicates a single line label.
 /// @param[in] id A C-string in UTF-8 format to uniquely idenitfy this edit box.
+/// @param[in/out] status A pointer to a EditStatus that indicates the status of
+/// Edit widget. Can be nullptr if the caller doesn't require the information.
 /// @param[in/out] string A pointer to a C-string in UTF-8 format that should
 /// be used as the Label for the edit box.
 ///
-/// @return Returns `true` if the widget is in edit.
-bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
-          std::string *string);
+/// @return Returns the Event type for the Edit widget.
+Event Edit(float ysize, const mathfu::vec2 &size, const char *id,
+           EditStatus *status, std::string *string);
 
 /// @brief Render an edit text box with a text alignment.
 ///
@@ -415,13 +438,15 @@ bool Edit(float ysize, const mathfu::vec2 &size, const char *id,
 /// A `0` for `size.y` indicates a single line label.
 /// @param[in] alignment An alignment of the text in the edit box.
 /// @param[in] id A C-string in UTF-8 format to uniquely idenitfy this edit box.
-/// @param[in] string A pointer to a C-string in UTF-8 format that should
+/// @param[in/out] status A pointer to a EditStatus that indicates the status of
+/// Edit widget. Can be nullptr if the caller doesn't require the information.
+/// @param[in/out] string A pointer to a C-string in UTF-8 format that should
 /// be used as the Label for the edit box.
 ///
-/// @return Returns `true` if the widget is in edit.
-bool Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
-          const char *id, std::string *string);
-
+/// @return Returns the Event type for the Edit widget.
+Event Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
+           const char *id, EditStatus *status,
+           std::string *string);
 
 /// @brief Create a group of elements with a given layout and intra-element
 /// spacing.
@@ -784,7 +809,7 @@ bool IsLastEventPointerType();
 /// Callback never fires outside of Run().
 /// Use HashId() to compare against ids of elements you may be interested in.
 void SetGlobalListener(
-    const std::function<void (HashedId id, Event event)> &callback);
+    const std::function<void(HashedId id, Event event)> &callback);
 
 // Returns the version of the FlatUI Library.
 const FlatUiVersion *GetFlatUiVersion();

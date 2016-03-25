@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "precompiled.h"
+#include "flatui/flatui.h"
 #include "flatui/internal/micro_edit.h"
 #include "linebreak.h"
 
@@ -373,9 +374,9 @@ int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
   return index;
 }
 
-bool MicroEdit::HandleInputEvents(
+EditStatus MicroEdit::HandleInputEvents(
     const std::vector<fplbase::TextInputEvent> *events) {
-  bool ret = false;
+  EditStatus ret = kEditStatusInEdit;
   auto event = events->begin();
   while (event != events->end()) {
     bool forward = true;
@@ -384,16 +385,25 @@ bool MicroEdit::HandleInputEvents(
     }
     switch (event->type) {
       case fplbase::kTextInputEventTypeKey:
-        // Do nothing when a key is released.
-        if (!event->key.state) break;
+        // Handle release event only for return key release.
+        // Releasing focus via return key need to be handled
+        // when releasing the key to align with other widgets's input handling.
+        if (!event->key.state) {
+          if (event->key.symbol == fplbase::FPLK_RETURN ||
+              event->key.symbol == fplbase::FPLK_RETURN2) {
+            if (single_line_ || !(event->key.modifier & FPL_KMOD_SHIFT)) {
+              // Finish the input session if IME is not active.
+              if (!in_text_input_) ret = kEditStatusFinished;
+            }
+          }
+          break;
+        }
+
         switch (event->key.symbol) {
           case fplbase::FPLK_RETURN:
           case fplbase::FPLK_RETURN2:
             if (!single_line_ && (event->key.modifier & FPL_KMOD_SHIFT)) {
               InsertText("\n");
-            } else {
-              // Finish the input session if IME is not active.
-              if (!in_text_input_) ret = true;
             }
             break;
           case fplbase::FPLK_LEFT:
@@ -441,6 +451,7 @@ bool MicroEdit::HandleInputEvents(
             if (!in_text_input_) {
               if (MoveCaret(false)) {
                 RemoveText(1);
+                ret = kEditStatusUpdated;
               }
             }
             break;
@@ -449,15 +460,22 @@ bool MicroEdit::HandleInputEvents(
             if (!in_text_input_) {
               if (num_characters_ && caret_pos_ < num_characters_) {
                 RemoveText(1);
+                ret = kEditStatusUpdated;
               }
             }
             break;
           case fplbase::FPLK_ESCAPE:
             // Reset the edit session.
             if (!in_text_input_) {
-              *text_ = initial_string_;
-              UpdateWordBreakInfo();
-              SetCaret(num_characters_);
+              if (!text_->compare(initial_string_)) {
+                // Finish the edit when escape is pressed without any text edit.
+                ret = kEditStatusCanceled;
+              } else {
+                *text_ = initial_string_;
+                UpdateWordBreakInfo();
+                SetCaret(num_characters_);
+                ret = kEditStatusUpdated;
+              }
             } else {
               ResetEditingText();
             }
@@ -477,10 +495,12 @@ bool MicroEdit::HandleInputEvents(
         UpdateEditingText(event->text);
         input_text_selection_start_ = event->edit.start;
         input_text_selection_length_ = event->edit.length;
+        ret = kEditStatusUpdated;
         break;
       case fplbase::kTextInputEventTypeText:
         InsertText(event->text);
         ResetEditingText();
+        ret = kEditStatusUpdated;
         break;
     }
     event++;
