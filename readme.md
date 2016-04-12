@@ -1,4 +1,4 @@
-FlatUI Version 0.9.0    {#flatui_readme}
+FlatUI Version 1.0.0    {#flatui_readme}
 ====================
 
 # Welcome to FlatUI!
@@ -26,6 +26,8 @@ upon so download the source using:
 ~~~{.sh}
    git clone --recursive https://github.com/google/flatui.git
 ~~~
+
+**Changes**: Please see [the release notes](./release_notes.md) for a list of changes.
 
 For applications on Google Play that integrate this tool, usage is tracked.
 This tracking is done automatically using the embedded version string
