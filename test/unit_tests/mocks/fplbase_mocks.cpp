@@ -80,7 +80,8 @@ UniformHandle Shader::FindUniform(const char*) { return 0; }
 void Texture::Delete() {}
 void Texture::Load() {}
 void Texture::Finalize() {}
-void Texture::LoadFromMemory(const uint8_t*, const mathfu::vec2i&, bool) {}
+void Texture::LoadFromMemory(const uint8_t*, const mathfu::vec2i&,
+                             TextureFormat) {}
 void Texture::Set(size_t) {}
 void Texture::Set(size_t) const {}
 void Texture::UpdateTexture(TextureFormat, int, int, int, int, const void*) {}
