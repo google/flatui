@@ -47,8 +47,16 @@ using mathfu::mat4;
 // calculated / rendered.
 class Group {
  public:
-  Group(Direction direction, Alignment align, int spacing,
-        size_t element_idx)
+  Group()
+      : direction_(kDirHorizontal),
+        align_(kAlignTop),
+        spacing_(0),
+        size_(mathfu::kZeros2i),
+        position_(mathfu::kZeros2i),
+        element_idx_(0),
+        margin_(mathfu::kZeros4i) {}
+
+  Group(Direction direction, Alignment align, int spacing, size_t element_idx)
       : direction_(direction),
         align_(align),
         spacing_(spacing),
@@ -208,10 +216,19 @@ class LayoutManager : public Group {
     } else {
       auto element = NextElement(hash);
       if (element) {
-        renderer(Position(*element), element->size);
+        const vec2i pos = Position(*element);
+        if (renderer) {
+          renderer(pos, element->size);
+        }
         Advance(element->size);
       }
     }
+  }
+
+
+  // An element that has sub-elements.
+  void StartGroup(const Group &group, HashedId hash) {
+    StartGroup(group.direction_, group.align_, group.spacing_, hash);
   }
 
   // An element that has sub-elements. Tracks its state in an instance of
