@@ -178,7 +178,7 @@ add_dependencies(flatui flatui_generated_includes)
 add_dependencies(flatui fplbase_generated_includes)
 
 # Dependencies to libraries.
-target_link_libraries(flatui libfreetype libharfbuzz libunibreak)
+target_link_libraries(flatui fplbase libfreetype libharfbuzz libunibreak)
 
 # Additional flags for the target.
 mathfu_configure_flags(flatui)
