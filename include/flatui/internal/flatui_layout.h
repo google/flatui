@@ -228,7 +228,8 @@ class LayoutManager : public Group {
 
   // An element that has sub-elements.
   void StartGroup(const Group &group, HashedId hash) {
-    StartGroup(group.direction_, group.align_, group.spacing_, hash);
+    StartGroup(group.direction_, group.align_,
+               static_cast<float>(group.spacing_), hash);
   }
 
   // An element that has sub-elements. Tracks its state in an instance of

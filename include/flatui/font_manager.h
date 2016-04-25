@@ -926,7 +926,7 @@ class FontBuffer {
   /// @return Returns `true`.
   bool Verify() const {
     assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
-    uint32_t sum_indices = 0;
+    size_t sum_indices = 0;
     for (size_t i = 0; i < indices_.size(); ++i) {
       sum_indices += indices_[i].size();
     }
@@ -957,7 +957,9 @@ class FontBuffer {
   bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
 
   /// @brief Return current glyph count stored in the buffer.
-  int32_t get_glyph_count() const { return vertices_.size() / 4; }
+  int32_t get_glyph_count() const {
+    return static_cast<int32_t>(vertices_.size()) / 4;
+  }
 
   /// @brief Gets the reference count of the buffer.
   uint32_t get_ref_count() const { return ref_count_; }
