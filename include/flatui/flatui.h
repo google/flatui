@@ -414,6 +414,19 @@ void SetTextLocale(const char *locale);
 /// @param[in] direction TextLayoutDirection specifying text layout direction.
 void SetTextDirection(const TextLayoutDirection direction);
 
+/// @brief Set a line height scale used in the text rendering.
+///
+/// @param[in] scale A line height value. The value is multiplied to the font
+/// height and determines a space between lines.
+/// The default value is kLineHeightDefault(1.2f).
+void SetTextLineHeightScale(float scale);
+
+/// @brief Set a kerning scale used in the text rendering.
+///
+/// @param[in] scale A kerning scale value applied kerning values.
+/// The default value is kKerningScale(1.0f).
+void SetTextKerningScale(float scale);
+
 /// @brief Renders an edit text box as a GUI element.
 ///
 /// @param[in] ysize A float containing the vertical size in virtual resolution.

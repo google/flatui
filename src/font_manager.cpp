@@ -161,7 +161,8 @@ void FontManager::Initialize() {
   script_ = kDefaultScript;
   language_ = kDefaultLanguage;
   layout_direction_ = kTextLayoutDirectionLTR;
-  line_height_ = kLineHeightDefault;
+  line_height_scale_ = kLineHeightDefault;
+  kerning_scale_ = kLineHeightDefault;
   current_font_ = nullptr;
 
   if (ft_ == nullptr) {
@@ -254,6 +255,10 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
   // Otherwise, create new FontBuffer.
 
+  // Update text metrices.
+  SetLineHeightScale(parameters.get_line_height_scale());
+  SetKerningScale(parameters.get_kerning_scale());
+
   // Set freetype settings.
   current_font_->SetPixelSize(converted_ysize);
 
@@ -284,7 +289,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   uint32_t total_height = ysize;
   bool lastline_must_break = false;
   bool first_character = true;
-  auto line_height = ysize * line_height_;
+  auto line_height = ysize * line_height_scale_;
 
   // Clear temporary buffer holding texture atlas indices.
   std::fill(atlas_indices_.begin(), atlas_indices_.end(), kInvalidSliceIndex);
@@ -377,8 +382,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
       }
 
       auto pos_advance =
-          mathfu::vec2(static_cast<float>(glyph_pos[idx].x_advance),
-                       static_cast<float>(-glyph_pos[idx].y_advance)) *
+          mathfu::vec2(
+              static_cast<float>(glyph_pos[idx].x_advance) * kerning_scale_,
+              static_cast<float>(-glyph_pos[idx].y_advance)) *
           scale / static_cast<float>(kFreeTypeUnit);
       // Advance positions before rendering in RTL.
       if (layout_direction_ == kTextLayoutDirectionRTL) {
@@ -904,11 +910,11 @@ uint32_t FontManager::LayoutText(const char *text, size_t length) {
       hb_buffer_get_glyph_positions(harfbuzz_buf_, &glyph_count);
 
   // Retrieve a width of the string.
-  uint32_t string_width = 0;
+  float string_width = 0.0f;
   for (uint32_t i = 0; i < glyph_count; ++i) {
-    string_width += glyph_pos[i].x_advance;
+    string_width += static_cast<float>(glyph_pos[i].x_advance) * kerning_scale_;
   }
-  return string_width;
+  return static_cast<uint32_t>(string_width);
 }
 
 bool FontManager::UpdateMetrics(const FT_GlyphSlot g,
@@ -1050,9 +1056,8 @@ void FontManager::ExpandAtlasTexture() {
     atlas_textures_[slices - 1]
         .reset(new Texture(nullptr, fplbase::kFormatLuminance, false));
     // Give a texture size but don't have to clear the texture here.
-    atlas_textures_[slices - 1]
-        ->LoadFromMemory(nullptr, glyph_cache_->get_size(),
-                         fplbase::kFormatLuminance);
+    atlas_textures_[slices - 1]->LoadFromMemory(
+        nullptr, glyph_cache_->get_size(), fplbase::kFormatLuminance);
     atlas_indices_.resize(slices, kInvalidSliceIndex);
   }
 }

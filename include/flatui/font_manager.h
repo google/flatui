@@ -80,8 +80,16 @@ const int32_t kGlyphCacheMaxSlices = 4;
 /// @brief Default value for a line height factor.
 ///
 /// The line height is derived as the factor * a font height.
-/// To change the line height, use `SetLineHeight()` API.
+/// To change the line height, use `SetLineHeightScale()` API.
 const float kLineHeightDefault = 1.2f;
+
+/// @var kKerningScaleDefault
+///
+/// @brief Default value for a kerning scale factor.
+///
+/// The kerning value is derived as the factor * kerning value retrieved from
+/// harfbuzz. To change the kerning scale, use `SetKerningScale()` API.
+const float kKerningScaleDefault = 1.0f;
 
 /// @var kCaretPositionInvalid
 ///
@@ -155,6 +163,8 @@ class FontBufferParameters {
         text_id_(kNullHash),
         font_size_(0),
         size_(mathfu::kZeros2i),
+        kerning_scale_(kKerningScaleDefault),
+        line_height_scale_(kLineHeightDefault),
         flags_value_(0) {}
 
   /// @brief Constructor for a FontBufferParameters.
@@ -167,6 +177,8 @@ class FontBufferParameters {
   /// FontBuffer size is calcuated by the layout and rendering result.
   /// @param[in] text_alignment A horizontal alignment of multi line
   /// buffer.
+  /// @param[in] kerning_scale Value indicating kerning scale.
+  /// @param[in] line_height_scale Value indicating line height scale.
   /// @param[in] glyph_flags A flag determing SDF generation for the font.
   /// @param[in] caret_info A bool determining if the FontBuffer contains caret
   /// info.
@@ -174,11 +186,14 @@ class FontBufferParameters {
   /// reference counts of the buffer and referencing glyph cache rows.
   FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
                        const mathfu::vec2i &size, TextAlignment text_alignment,
-                       GlyphFlags glyph_flags, bool caret_info,
-                       bool ref_count) {
+                       GlyphFlags glyph_flags, bool caret_info, bool ref_count,
+                       float kerning_scale = kKerningScaleDefault,
+                       float line_height_scale = kLineHeightDefault) {
     font_id_ = font_id;
     text_id_ = text_id;
     font_size_ = font_size;
+    kerning_scale_ = kerning_scale;
+    line_height_scale_ = line_height_scale;
     size_ = size;
     flags_.text_alignement = text_alignment;
     flags_.glyph_flags = glyph_flags;
@@ -197,7 +212,10 @@ class FontBufferParameters {
   bool operator==(const FontBufferParameters &other) const {
     return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
             font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
-            size_.y() == other.size_.y() && flags_value_ == other.flags_value_);
+            size_.y() == other.size_.y() &&
+            kerning_scale_ == other.kerning_scale_ &&
+            line_height_scale_ == other.line_height_scale_ &&
+            flags_value_ == other.flags_value_);
   }
 
   /// @brief The hash function for FontBufferParameters.
@@ -210,6 +228,8 @@ class FontBufferParameters {
     // Note that font_id_ and text_id_ are already hashed values.
     size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
     value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
+    value = value ^ (std::hash<float>()(key.kerning_scale_) << 1) >> 1;
+    value = value ^ (std::hash<float>()(key.line_height_scale_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
@@ -228,13 +248,19 @@ class FontBufferParameters {
   /// @return Returns a text alignment info.
   TextAlignment get_text_alignment() const { return flags_.text_alignement; }
 
+  /// @return Returns the kerning scale.
+  float get_kerning_scale() const { return kerning_scale_; }
+
+  /// @return Returns the line height scale.
+  float get_line_height_scale() const { return line_height_scale_; }
+
   /// @return Returns a glyph setting info.
   GlyphFlags get_glyph_flags() const { return flags_.glyph_flags; }
 
-  /// @return Returns a flag to indicate if the buffer has caret info.
+  /// @return Returns a flag indicating if the buffer has caret info.
   bool get_caret_info_flag() const { return flags_.caret_info; }
 
-  /// @return Returns a flag to indicate if the buffer manages reference counts.
+  /// @return Returns a flag indicating if the buffer manages reference counts.
   bool get_ref_count_flag() const { return flags_.ref_count; }
 
   /// Retrieve a line length of the text based on given parameters.
@@ -269,6 +295,8 @@ class FontBufferParameters {
   HashedId text_id_;
   float font_size_;
   mathfu::vec2i size_;
+  float kerning_scale_;
+  float line_height_scale_;
 
   // A structure that defines bit fields to hold multiple flag values related to
   // the font buffer.
@@ -495,12 +523,6 @@ class FontManager {
   /// @return Returns the current layout direciton.
   TextLayoutDirection GetLayoutDirection() { return layout_direction_; }
 
-  /// @brief Set a line height for a multi-line text.
-  ///
-  /// @param[in] line_height A float representing the line height for a
-  /// multi-line text.
-  void SetLineHeight(float line_height) { line_height_ = line_height; }
-
   /// @return Returns the current font.
   HbFont *GetCurrentFont() { return current_font_; }
 
@@ -586,6 +608,21 @@ class FontManager {
   // Check if speficied language is supported in the font manager engine.
   bool IsLanguageSupported(const char *language);
 
+  /// @brief Set a line height for a multi-line text.
+  ///
+  /// @param[in] line_height A float representing the line height for a
+  /// multi-line text.
+  void SetLineHeightScale(float line_height_scale) {
+    line_height_scale_ = line_height_scale;
+  }
+
+  /// @brief Set a kerning scale value.
+  ///
+  /// @param[in] kerning_scale A float representing the kerning scale value
+  /// applied to the kerning values retrieved from Harfbuzz used in the text
+  /// rendering.
+  void SetKerningScale(float kerning_scale) { kerning_scale_ = kerning_scale; }
+
   // Renderer instance.
   fplbase::Renderer *renderer_;
 
@@ -645,7 +682,8 @@ class FontManager {
   static const char *language_table_[];
 
   // Line height for a multi line text.
-  float line_height_;
+  float line_height_scale_;
+  float kerning_scale_;
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;

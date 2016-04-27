@@ -71,6 +71,8 @@ class InternalState : public LayoutManager {
         clip_size_(mathfu::kZeros2i),
         clip_inside_(false),
         text_outer_color_size_(0.0f),
+        text_line_height_scale_(kLineHeightDefault),
+        text_kerning_scale_(kKerningScaleDefault),
         glyph_flags_(kGlyphFlagsNone),
         sdf_threshold_(kSDFThresholdDefault),
         pointer_max_active_index_(kPointerIndexInvalid),
@@ -266,7 +268,8 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, true, false);
+        glyph_flags_, true, false, text_kerning_scale_,
+        text_line_height_scale_);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
@@ -423,7 +426,8 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, false, false);
+        glyph_flags_, false, false, text_kerning_scale_,
+        text_line_height_scale_);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
@@ -1114,6 +1118,12 @@ class InternalState : public LayoutManager {
     fontman_.SetLayoutDirection(direction);
   }
 
+  // Set a line height scaling used in the text rendering.
+  void SetTextLineHeightScale(float scale) { text_line_height_scale_ = scale; }
+
+  // Set a kerning scaling used in the text rendering.
+  void SetTextKerningScale(float scale) { text_kerning_scale_ = scale; }
+
   void SetGlobalListener(
       const std::function<void(HashedId id, Event event)> &callback) {
     global_listener_ = callback;
@@ -1155,6 +1165,10 @@ class InternalState : public LayoutManager {
   mathfu::vec4 text_outer_color_;
   float text_outer_color_size_;
   mathfu::vec2 text_outer_color_offset;
+
+  // Text metrices.
+  float text_line_height_scale_;
+  float text_kerning_scale_;
 
   // Flags that indicates glyph generation parameters, such as SDF.
   GlyphFlags glyph_flags_;
@@ -1346,6 +1360,12 @@ void SetTextLocale(const char *locale) { Gui()->SetTextLocale(locale); }
 void SetTextDirection(const TextLayoutDirection direction) {
   Gui()->SetTextDirection(direction);
 }
+
+void SetTextLineHeightScale(float scale) {
+  Gui()->SetTextLineHeightScale(scale);
+}
+
+void SetTextKerningScale(float scale) { Gui()->SetTextKerningScale(scale); }
 
 Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {

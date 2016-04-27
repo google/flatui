@@ -8,6 +8,8 @@ FlatUI release notes
 *   Signed Distance Field support in font rendering.
 *   Improved glyph cache behavior.
 *   RTL (Right To Left) text layout and locale support.
+*   Kerning scaling and line height scaling in the text rendering.\n
+    Add SetTextKerningScale() and SetTextLineHeightScale() API.
 
 #### API Modifications
 * FontManager has an extra argument to specify number of glyph cache slices.
@@ -27,6 +29,7 @@ FlatUI release notes
     * sample_3d: demonstrate 3D UI feature.
     * serialization: demonstrate serialization feature.
     * sdf: show signed distance field enabled font rendering feature.
+    * text_layout: show misc text layout features.
 
 ### 0.9.0
 #### Overview
