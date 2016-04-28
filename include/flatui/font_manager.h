@@ -34,6 +34,7 @@ typedef struct FT_LibraryRec_ *FT_Library;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
 /// @endcond
 
+/// @brief Namespace for FlatUI library.
 namespace flatui {
 
 /// @file
