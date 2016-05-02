@@ -22,6 +22,29 @@
 #include "fplbase/shader.h"
 #include "fplbase/utilities.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "stb_image.h"
+
+// STB_image to resize PNG glyph.
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+// Disable warnings in STB_image_resize.
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4100)  // Disable 'unused reference' warning.
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif /* _MSC_VER */
+#include "stb_image_resize.h"
+// Pop warning status.
+#ifdef _MSC_VER
+#pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
+#endif
+
 namespace fplbase {
 
 void LogError(const char* fmt, va_list args) {

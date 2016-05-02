@@ -17,6 +17,7 @@ uniform mediump vec4 clipping;
 uniform sampler2D texture_unit_0;
 uniform lowp vec4 color;
 uniform lowp float threshold;
+
 void main()
 {
   // Discard the fragment if it's out of a clipping rect.

@@ -33,6 +33,12 @@ typedef int32_t hb_bool_t;
 
 namespace flatui {
 
+// Fixed point precision used in harfbuzz.
+const int32_t kHbFixedPointPrecision = 10;
+
+// Fixed point precision used in Freetype.
+const int32_t kFtFixedPointPrecision = 16;
+
 /// @class FaceData
 ///
 /// @brief The font face instance data opened via the `Open()` API.
@@ -42,7 +48,10 @@ namespace flatui {
 class FaceData {
  public:
   /// @brief The default constructor for FaceData.
-  FaceData() : face_(nullptr), font_id_(kNullHash) {}
+  FaceData()
+      : face_(nullptr),
+        font_id_(kNullHash),
+        scale_(1 << kHbFixedPointPrecision) {}
 
   /// @brief The destructor for FaceData.
   ///
@@ -67,6 +76,11 @@ class FaceData {
   /// @var font_id_
   /// @brief Hashed value of the font face.
   HashedId font_id_;
+
+  /// @var scale_
+  ///
+  /// @brief Scale applied for a layout.
+  int32_t scale_;
 };
 
 /// @class GlyphInfo
@@ -167,7 +181,7 @@ class HbFont {
   ///         disctionaries.
   virtual HashedId GetFontId();
 
-  /// @brief Set the renderer to be used to create texture instances.
+  /// @brief Get a pointer to the harfbuzz font structure.
   ///
   /// @return Returns a pointer to hb_font_t structure.
   hb_font_t *GetHbFont() { return harfbuzz_font_; }
@@ -185,10 +199,8 @@ class HbFont {
   ///
   hb_codepoint_t GetGlyph(const FT_Face face, hb_codepoint_t unicode,
                           hb_codepoint_t variation_selector);
-  hb_position_t GetGlyphHorizontalAdvance(const FT_Face face,
-                                          hb_codepoint_t glyph, int32_t scale);
-  hb_position_t GetGlyphVerticalAdvance(const FT_Face face,
-                                        hb_codepoint_t glyph, int32_t scale);
+  hb_position_t GetGlyphAdvance(const FT_Face face, hb_codepoint_t glyph,
+                                int32_t scale, int32_t flags);
   bool GetGlyphVerticalOrigin(const FT_Face face, hb_codepoint_t glyph,
                               const mathfu::vec2i &scale,
                               mathfu::vec2i *origin);

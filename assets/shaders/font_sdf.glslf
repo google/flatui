@@ -16,6 +16,7 @@ varying mediump vec2 vTexCoord;
 uniform sampler2D texture_unit_0;
 uniform lowp vec4 color;
 uniform lowp float threshold;
+
 void main()
 {
   lowp float distance = texture2D(texture_unit_0, vTexCoord).r;

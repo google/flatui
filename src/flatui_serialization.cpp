@@ -716,7 +716,8 @@ static void CreateEdit(const FlatUIElement* element,
   std::string* edit_output = dynamic_data->data.string_data;
   EditStatus status;
 
-  Event e = flatui::Edit(element->ysize(), fplbase::LoadVec2(element->size_2f()),
+  Event e =
+      flatui::Edit(element->ysize(), fplbase::LoadVec2(element->size_2f()),
                    element->id()->c_str(), &status, edit_output);
   if (event_handler != nullptr) {
     event_handler(e, element->id()->str(), dynamic_data);

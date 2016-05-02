@@ -71,7 +71,9 @@ set(flatui_serialization_SRC
     ../mocks/flatui_common_mocks.cpp
     ../mocks/fplbase_mocks.cpp
     ../../../src/font_manager.cpp
+    ../../../src/glyph_cache.cpp
     ../../../src/hb_complex_font.cpp
+    ../../../src/libpng_to_stbimage/pngshim.cpp
     ../../../src/micro_edit.cpp
     ../../../src/script_table.cpp
     ../../../src/version.cpp)

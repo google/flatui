@@ -60,6 +60,15 @@
       "is_library": 1,
       "third_party": 1,
       "push": 0
+    },
+    {
+      "name": "stb",
+      "url": "https://github.com/nothings/stb.git",
+      "branch": "master",
+      "revision": "c9ead07188b342350530e92e14542222c3ad9abe",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
     }
   ]
 }

@@ -39,11 +39,14 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   renderer.SetCulling(fplbase::Renderer::kCullBack);
   input.Initialize();
 
-  // Open OpenType font.
+  // Open OpenType font including the color emoji font.
   const char* fonts[] = {
     "fonts/NotoSansCJKjp-Bold.otf",
-    "fonts/NotoNaskhArabic-Regular.ttf"
+    "fonts/NotoNaskhArabic-Regular.ttf",
+    "fonts/NotoColorEmoji.ttf"
   };
+  fontman.EnableColorGlyph();
+
   for (size_t i = 0; i < FPL_ARRAYSIZE(fonts); ++i) {
     fontman.Open(fonts[i]);
   }
@@ -124,7 +127,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       } else {
         SetTextLocale("en");
       }
-      SetTextFont(fonts, 2);
+      SetTextFont(fonts, 3);
 
       StartGroup(kLayoutOverlay, 0);
         StartGroup(kLayoutHorizontalTop, 10);

@@ -38,6 +38,7 @@ LOCAL_C_INCLUDES := \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
   $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
+  $(DEPENDENCIES_STB_DIR) \
   $(FLATUI_DIR)/external/include/harfbuzz \
   $(FLATUI_DIR)/include/ \
   $(FLATUI_DIR)/include/flatui \
@@ -50,6 +51,7 @@ LOCAL_SRC_FILES := \
   src/flatui_common.cpp \
   src/flatui_serialization.cpp \
   src/font_manager.cpp \
+  src/glyph_cache.cpp \
   src/hb_complex_font.cpp \
   src/micro_edit.cpp \
   src/script_table.cpp \

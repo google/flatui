@@ -26,6 +26,7 @@ LOCAL_SRC_FILES := \
   ../mocks/flatui_common_mocks.cpp \
   ../mocks/fplbase_mocks.cpp \
   $(FLATUI_DIR)/src/font_manager.cpp \
+  $(FLATUI_DIR)/src/glyph_cache.cpp \
   $(FLATUI_DIR)/src/hb_complex_font.cpp \
   $(FLATUI_DIR)/src/micro_edit.cpp \
   $(FLATUI_DIR)/src/script_table.cpp \
@@ -42,7 +43,8 @@ LOCAL_C_INCLUDES := \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
   $(DEPENDENCIES_FPLBASE_DIR)/include \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
-  $(DEPENDENCIES_LIBUNIBREAK_DIR)/src
+  $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
+  $(DEPENDENCIES_STB_DIR)
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
   android_native_app_glue \

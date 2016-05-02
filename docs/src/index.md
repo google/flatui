@@ -63,6 +63,7 @@ following libraries (included in the download / submodules):
      * [OpenGL][] (desktop/ES).
      * [FlatBuffers][] for serialization.
      * [WebP][] for image loading.
+     * [STB][] for image loading.
    * [FPLUtil][] (only for build).
    * [googletest][] (only for unit tests).
 
@@ -102,6 +103,7 @@ upon so download the source using:
   [FPLUtil]: https://google.github.io/fplutil/
   [FPLBase]: https://google.github.io/fplbase/
   [SDL]: https://www.libsdl.org/
+  [STB]: https://github.com/nothings/stb
   [OpenGL]: https://www.opengl.org/
   [WebP]: https://developers.google.com/speed/webp/?hl=en
   [googletest]: https://code.google.com/p/googletest/

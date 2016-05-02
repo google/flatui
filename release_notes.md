@@ -1,6 +1,15 @@
 FlatUI release notes
 ====================
 
+### 1.0.1
+#### New Features
+*   Emoji support in the text rendering.
+
+#### Other Changes
+*   Bug fixes.
+*   Added new samples.
+* text_color_emoji: demonstrate color emoji feature.
+
 ### 1.0.0
 #### New Features
 *   3D transform support.

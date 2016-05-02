@@ -31,6 +31,24 @@
 #include "linebreak.h"
 #endif
 
+// STB_image to resize PNG glyph.
+// Disable warnings in STB_image_resize.
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4100)  // Disable 'unused reference' warning.
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif /* _MSC_VER */
+#include "stb_image_resize.h"
+// Pop warning status.
+#ifdef _MSC_VER
+#pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
+#endif
+
 using fplbase::LogInfo;
 using fplbase::LogError;
 using fplbase::Texture;
@@ -137,9 +155,9 @@ FontManager::FontManager() {
   Initialize();
 
   // Initialize glyph cache.
-  glyph_cache_.reset(new GlyphCache<uint8_t>(
-      mathfu::vec2i(kGlyphCacheWidth, kGlyphCacheHeight),
-      kGlyphCacheMaxSlices));
+  glyph_cache_.reset(
+      new GlyphCache(mathfu::vec2i(kGlyphCacheWidth, kGlyphCacheHeight),
+                     kGlyphCacheMaxSlices));
 }
 
 FontManager::FontManager(const mathfu::vec2i &cache_size, int32_t max_slices) {
@@ -147,7 +165,7 @@ FontManager::FontManager(const mathfu::vec2i &cache_size, int32_t max_slices) {
   Initialize();
 
   // Initialize glyph cache.
-  glyph_cache_.reset(new GlyphCache<uint8_t>(cache_size, max_slices));
+  glyph_cache_.reset(new GlyphCache(cache_size, max_slices));
 }
 
 FontManager::~FontManager() {}
@@ -199,9 +217,6 @@ void FontManager::Terminate() {
 
 void FontManager::SetRenderer(fplbase::Renderer &renderer) {
   renderer_ = &renderer;
-
-  // Initialize the font atlas texture.
-  ExpandAtlasTexture();
 }
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
@@ -292,8 +307,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   auto line_height = ysize * line_height_scale_;
 
   // Clear temporary buffer holding texture atlas indices.
-  std::fill(atlas_indices_.begin(), atlas_indices_.end(), kInvalidSliceIndex);
-  auto slices_in_buffer = buffer->get_slices();
+  std::vector<int32_t> atlas_indices(glyph_cache_->get_num_slices(),
+                                     kInvalidSliceIndex);
 
   // Find words and layout them.
   while (word_enum.Advance()) {
@@ -399,33 +414,16 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
         // Calculate internal/external leading value and expand a buffer if
         // necessary.
-        auto info = current_font_->GetGlyphInfo(code_point);
-        FT_GlyphSlot glyph = info->GetFtFace()->glyph;
         FontMetrics new_metrics;
-        if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
+        if (UpdateMetrics(cache->get_offset().y(), cache->get_size().y(),
+                          initial_metrics, &new_metrics)) {
           initial_metrics = new_metrics;
         }
 
         // Expand buffer if necessary.
-        auto slice = cache->get_pos().z();
-        auto slice_idx = atlas_indices_[slice];
-        if (slice_idx == kInvalidSliceIndex) {
-          // Resize buffers.
-          slice_idx = atlas_indices_[slice] =
-              static_cast<int32_t>(slices_in_buffer->size());
-          buffer->ExpandGlyphBuffers(slice_idx + 1);
-          slices_in_buffer->push_back(slice);
-        }
-
-        auto current_glyph_count = buffer->get_glyph_count();
-        // Construct indices array.
-        const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
-        auto indices = buffer->get_indices(slice_idx);
-        for (size_t j = 0; j < FPL_ARRAYSIZE(kIndices); ++j) {
-          auto index = kIndices[j];
-          indices->push_back(
-              static_cast<unsigned short>(index + current_glyph_count * 4));
-        }
+        auto slice_idx = buffer->UpdateSliceIndex(cache->get_pos().z(),
+                                                  &atlas_indices);
+        buffer->AddIndices(slice_idx);
 
         // Construct intermediate vertices array.
         // The vertices array is update in the render pass with correct
@@ -568,6 +566,13 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
     // Set freetype settings.
     current_font_->SetPixelSize(ysize);
 
+    // Clear index buffer and temporary buffer.
+    buffer->ResetIndices();
+
+    // Clear temporary buffer holding texture atlas indices.
+    std::vector<int32_t> atlas_indices(glyph_cache_->get_num_slices(),
+                                       kInvalidSliceIndex);
+
     auto code_points = buffer->get_code_points();
     for (size_t i = 0; i < code_points->size(); ++i) {
       auto code_point = code_points->at(i);
@@ -575,6 +580,12 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
       if (cache == nullptr) {
         return nullptr;
       }
+
+      // Reconstruct indices.
+      // Expand buffer if necessary.
+      auto slice_idx = buffer->UpdateSliceIndex(cache->get_pos().z(),
+                                                &atlas_indices);
+      buffer->AddIndices(slice_idx);
 
       // Update UV.
       buffer->UpdateUV(static_cast<int32_t>(i), cache->get_uv());
@@ -622,8 +633,8 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
 
   // Calculate texture size. The texture may be expanded later depending on
   // glyph sizes.
-  int32_t width = RoundUpToPowerOf2(string_width);
-  int32_t height = RoundUpToPowerOf2(ysize);
+  int32_t width = mathfu::RoundUpToPowerOf2(string_width);
+  int32_t height = mathfu::RoundUpToPowerOf2(ysize);
 
   // Initialize font metrics parameters.
   int32_t base_line = current_font_->GetBaseLine(ysize);
@@ -651,18 +662,19 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
     if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
-      LogInfo("Can't load glyph %c FT_Error:%d\n", text[i], err);
+      LogInfo("Can't load glyph '%c' FT_Error:%d\n", text[i], err);
       return nullptr;
     }
 
     // Calculate internal/external leading value and expand a buffer if
     // necessary.
     FontMetrics new_metrics;
-    if (UpdateMetrics(glyph, initial_metrics, &new_metrics)) {
+    if (UpdateMetrics(glyph->bitmap_top, glyph->bitmap.rows, initial_metrics,
+                      &new_metrics)) {
       if (new_metrics.total() != initial_metrics.total()) {
         // Expand buffer and update height if necessary.
         if (ExpandBuffer(width, height, initial_metrics, new_metrics, &image)) {
-          height = RoundUpToPowerOf2(new_metrics.total());
+          height = mathfu::RoundUpToPowerOf2(new_metrics.total());
         }
       }
       initial_metrics = new_metrics;
@@ -714,7 +726,7 @@ bool FontManager::ExpandBuffer(int32_t width, int32_t height,
     return false;
   }
 
-  int32_t new_height = RoundUpToPowerOf2(new_metrics.total());
+  int32_t new_height = mathfu::RoundUpToPowerOf2(new_metrics.total());
   int32_t internal_leading_change =
       new_metrics.internal_leading() - original_metrics.internal_leading();
   // Internal leading tracks max value of it in rendering glyphs, so we can
@@ -864,18 +876,10 @@ void FontManager::UpdatePass(bool start_subpass) {
   // Increment a cycle counter in glyph cache.
   glyph_cache_->Update();
 
+  // Resolve glyph cache's dirty rects.
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
-    auto slices = glyph_cache_->get_num_slices();
-    for (auto i = 0; i < slices; ++i) {
-      auto rect = glyph_cache_->get_dirty_rect(i);
-      atlas_textures_[i]->Set(0);
-      Texture::UpdateTexture(fplbase::kFormatLuminance, 0, rect.y(),
-                             glyph_cache_->get_size().x(), rect.w() - rect.y(),
-                             glyph_cache_->get_buffer(i) +
-                                 glyph_cache_->get_size().x() * rect.y());
-    }
+    glyph_cache_->ResolveDirtyRect();
     current_atlas_revision_ = glyph_cache_->get_revision();
-    glyph_cache_->set_dirty_state(false);
   }
 
   if (start_subpass) {
@@ -883,8 +887,7 @@ void FontManager::UpdatePass(bool start_subpass) {
       LogInfo(
           "Multiple subpasses in one rendering pass is not supported. "
           "When this happens, increase the glyph cache size not to "
-          "flush the atlas texture multiple times in one rendering "
-          "pass.");
+          "flush the atlas texture multiple times in one rendering pass.");
     }
     glyph_cache_->Flush();
     current_atlas_revision_ = glyph_cache_->get_revision();
@@ -918,22 +921,19 @@ uint32_t FontManager::LayoutText(const char *text, size_t length) {
   return static_cast<uint32_t>(string_width);
 }
 
-bool FontManager::UpdateMetrics(const FT_GlyphSlot g,
+bool FontManager::UpdateMetrics(int32_t top, int32_t height,
                                 const FontMetrics &current_metrics,
                                 FontMetrics *new_metrics) {
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
-  if (g->bitmap_top > current_metrics.ascender() ||
-      static_cast<int32_t>(g->bitmap_top - g->bitmap.rows) <
-          current_metrics.descender()) {
+  if (top > current_metrics.ascender() ||
+      static_cast<int32_t>(top - height) < current_metrics.descender()) {
     *new_metrics = current_metrics;
-    new_metrics->set_internal_leading(
-        std::max(current_metrics.internal_leading(),
-                 g->bitmap_top - current_metrics.ascender()));
-    new_metrics->set_external_leading(
-        std::min(current_metrics.external_leading(),
-                 static_cast<int32_t>(g->bitmap_top - g->bitmap.rows -
-                                      current_metrics.descender())));
+    new_metrics->set_internal_leading(std::max(
+        current_metrics.internal_leading(), top - current_metrics.ascender()));
+    new_metrics->set_external_leading(std::min(
+        current_metrics.external_leading(),
+        static_cast<int32_t>(top - height - current_metrics.descender())));
     new_metrics->set_base_line(new_metrics->internal_leading() +
                                new_metrics->ascender());
 
@@ -994,10 +994,19 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
   auto cache = glyph_cache_->Find(key);
 
   if (cache == nullptr) {
+    auto face = glyph_info->GetFtFace();
+    auto ft_flags = FT_LOAD_RENDER;
+    if (FT_HAS_COLOR(face)) {
+      ft_flags |= FT_LOAD_COLOR;
+    }
+    if (!FT_IS_SCALABLE(face)) {
+      // Selecting first bitmap font for now.
+      // TODO: Select optimal font size when available.
+      FT_Select_Size(face, 0);
+    }
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
-    FT_Error err = FT_Load_Glyph(glyph_info->GetFtFace(),
-                                 glyph_info->GetCodepoint(), FT_LOAD_RENDER);
+    FT_Error err = FT_Load_Glyph(face, glyph_info->GetCodepoint(), ft_flags);
     if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
@@ -1011,8 +1020,10 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     entry.set_code_point(code_point);
     GlyphKey new_key(glyph_info->GetFaceData()->font_id_, code_point, ysize,
                      flags);
+    bool color_glyph = g->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
+    // Does not support SDF for color glyphs.
     if (flags & (kGlyphFlagsOuterSDF | kGlyphFlagsInnerSDF) &&
-        g->bitmap.width && g->bitmap.rows) {
+        g->bitmap.width && g->bitmap.rows && !color_glyph) {
       // Adjust a glyph size and an offset with a padding.
       entry.set_offset(vec2i(g->bitmap_left - kGlyphCachePaddingSDF,
                              g->bitmap_top + kGlyphCachePaddingSDF));
@@ -1021,9 +1032,10 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
       cache = glyph_cache_->Set(nullptr, new_key, entry);
       if (cache != nullptr) {
         // Generates SDF.
+        auto buffer = glyph_cache_->get_monochrome_buffer();
         auto pos = cache->get_pos();
-        auto stride = glyph_cache_->get_size().x();
-        auto p = glyph_cache_->get_buffer(pos.z()) + pos.x() + pos.y() * stride;
+        auto stride = buffer->get_size().x();
+        auto p = buffer->get(pos.z()) + pos.x() + pos.y() * stride;
         Grid<uint8_t> src(g->bitmap.buffer,
                           vec2i(g->bitmap.width, g->bitmap.rows),
                           kGlyphCachePaddingSDF, g->bitmap.width);
@@ -1031,9 +1043,32 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         sdf_computer_.Compute(src, &dest, flags);
       }
     } else {
-      entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
-      entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
-      cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
+      if (color_glyph) {
+        entry.set_color_glyph(true);
+
+        // FreeType returns fixed sized bitmap for color glyphs.
+        // Rescale bitmap here for better quality and performance.
+        auto glyph_scale = static_cast<float>(ysize) / g->bitmap.rows;
+        int32_t new_width = g->bitmap.width * glyph_scale;
+        int32_t new_height = g->bitmap.rows * glyph_scale;
+        auto out_buffer = malloc(new_width * new_height * sizeof(uint32_t));
+
+        // TODO: Evaluate generating mipmap for a dirty rect and see
+        // it would improve performance and produces acceptable quality.
+        stbir_resize_uint8(g->bitmap.buffer, g->bitmap.width, g->bitmap.rows, 0,
+                           static_cast<uint8_t *>(out_buffer), new_width,
+                           new_height, 0, sizeof(uint32_t));
+        const float kEmojiBaseLine = 0.85f;
+        entry.set_offset(
+            vec2i(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine));
+        entry.set_size(vec2i(new_width, new_height));
+        cache = glyph_cache_->Set(out_buffer, new_key, entry);
+        free(out_buffer);
+      } else {
+        entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
+        entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
+        cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
+      }
     }
 
     if (cache == nullptr) {
@@ -1044,23 +1079,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     }
   }
 
-  // With the new glyph entry added, we would need to expand the buffers.
-  ExpandAtlasTexture();
   return cache;
-}
-
-void FontManager::ExpandAtlasTexture() {
-  // Expand atlas texture buffer if necessary.
-  size_t slices = glyph_cache_->get_num_slices();
-  if (slices > atlas_textures_.size()) {
-    atlas_textures_.resize(slices);
-    atlas_textures_[slices - 1]
-        .reset(new Texture(nullptr, fplbase::kFormatLuminance, false));
-    // Give a texture size but don't have to clear the texture here.
-    atlas_textures_[slices - 1]->LoadFromMemory(
-        nullptr, glyph_cache_->get_size(), fplbase::kFormatLuminance);
-    atlas_indices_.resize(slices, kInvalidSliceIndex);
-  }
 }
 
 int32_t FontManager::ConvertSize(int32_t original_ysize) {
@@ -1068,6 +1087,41 @@ int32_t FontManager::ConvertSize(int32_t original_ysize) {
     return size_selector_(original_ysize);
   } else {
     return original_ysize;
+  }
+}
+
+void FontManager::EnableColorGlyph() {
+  // Pass the command to the glyph cache.
+  glyph_cache_->EnableColorGlyph();
+}
+
+int32_t FontBuffer::UpdateSliceIndex(int32_t slice,
+                                     std::vector<int32_t> *atlas_indices) {
+  auto original_slice_index = slice;
+  if (slice & kGlyphFormatsColor) {
+    // Offset the array indices.
+    slice &= ~kGlyphFormatsColor;
+    slice = atlas_indices->size() - 1 - slice;
+  }
+  auto slice_idx = (*atlas_indices)[slice];
+  if (slice_idx == kInvalidSliceIndex) {
+    // Resize buffers.
+    slice_idx = (*atlas_indices)[slice] = slices_.size();
+    ExpandGlyphBuffers(slice_idx + 1);
+    slices_.push_back(original_slice_index);
+  }
+  return slice_idx;
+}
+
+void FontBuffer::AddIndices(int32_t slice_idx) {
+  auto current_glyph_count = get_glyph_count();
+  // Construct indices array.
+  const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
+  auto indices = get_indices(slice_idx);
+  for (size_t j = 0; j < FPL_ARRAYSIZE(kIndices); ++j) {
+    auto index = kIndices[j];
+    indices->push_back(
+        static_cast<unsigned short>(index + current_glyph_count * 4));
   }
 }
 
@@ -1082,11 +1136,8 @@ void FontBuffer::AddVertices(const vec2 &pos, int32_t base_line, float scale,
   auto y = rounded_pos.y() + scaled_base_line - scaled_offset.y();
   auto uv = entry.get_uv();
   vertices_.push_back(FontVertex(x, y, 0.0f, uv.x(), uv.y()));
-
   vertices_.push_back(FontVertex(x, y + scaled_size.y(), 0.0f, uv.x(), uv.w()));
-
   vertices_.push_back(FontVertex(x + scaled_size.x(), y, 0.0f, uv.z(), uv.y()));
-
   vertices_.push_back(FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f,
                                  uv.z(), uv.w()));
 }

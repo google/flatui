@@ -1,4 +1,4 @@
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2016 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
 varying mediump vec2 vTexCoord;
 uniform sampler2D texture_unit_0;
 uniform lowp vec4 color;
+
 void main()
 {
-  // Font texture is a 1 channel luminance texture.
-  // Copying luminance value to alphachannel for blending.
-  gl_FragColor = vec4(color.rgb, color.a *
-    texture2D(texture_unit_0, vTexCoord).r);
+  gl_FragColor = texture2D(texture_unit_0, vTexCoord);
 }

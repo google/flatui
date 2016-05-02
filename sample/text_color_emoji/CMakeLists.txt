@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(basic)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
-add_subdirectory(text_layout)
-add_subdirectory(text_color_emoji)
+project(flatuisample_text_color_emoji)
+
+add_executable(flatuisample_text_color_emoji flatuisample_text_color_emoji.cpp)
+add_dependencies(flatuisample_text_color_emoji fplbase flatui)
+mathfu_configure_flags(flatuisample_text_color_emoji)
+target_link_libraries(flatuisample_text_color_emoji fplbase flatui)
+
+# FlatUI postprocess
+flatui_post_process(flatuisample_text_color_emoji "sample")

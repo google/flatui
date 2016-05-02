@@ -118,7 +118,15 @@ void HbComplexFont::SetPixelSize(uint32_t size) {
   auto it = faces_.begin();
   auto end = faces_.end();
   for (; it != end; ++it) {
-    FT_Set_Pixel_Sizes((*it)->face_, 0, size);
+    // Set scaling for non scalable bitmap font.
+    auto face = (*it)->face_;
+    FT_Set_Pixel_Sizes(face, 0, size);
+    if (!FT_IS_SCALABLE(face)) {
+      // TODO:Choose the closest size if multiple sizes are available.
+      auto available_size = face->available_sizes[0].height;
+      (*it)->scale_ = (static_cast<uint64_t>(size) << kHbFixedPointPrecision) /
+                      available_size;
+    }
   }
 }
 
@@ -159,12 +167,12 @@ hb_position_t HbComplexFont::HbGetHorizontalAdvance(hb_font_t *font,
                                                     void *user_data) {
   (void)font;
   (void)font_data;
+  if (!glyph) return 0;
   auto p = static_cast<HbComplexFont *>(user_data);
   auto glyph_info = p->codepoint_cache_[glyph];
-  int32_t x_scale, y_scale;
-  hb_font_get_scale(p->harfbuzz_font_, &x_scale, &y_scale);
-  return p->GetGlyphHorizontalAdvance(glyph_info.GetFtFace(),
-                                      glyph_info.GetCodepoint(), x_scale);
+  return p->GetGlyphAdvance(glyph_info.GetFtFace(), glyph_info.GetCodepoint(),
+                            glyph_info.GetFaceData()->scale_,
+                            FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
 }
 
 hb_position_t HbComplexFont::HbGetVerticalAdvance(hb_font_t *font,
@@ -175,10 +183,10 @@ hb_position_t HbComplexFont::HbGetVerticalAdvance(hb_font_t *font,
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
   auto glyph_info = p->codepoint_cache_[glyph];
-  int32_t x_scale, y_scale;
-  hb_font_get_scale(p->harfbuzz_font_, &x_scale, &y_scale);
-  return p->GetGlyphHorizontalAdvance(glyph_info.GetFtFace(),
-                                      glyph_info.GetCodepoint(), y_scale);
+  return p->GetGlyphAdvance(
+      glyph_info.GetFtFace(), glyph_info.GetCodepoint(),
+      glyph_info.GetFaceData()->scale_,
+      FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING | FT_LOAD_VERTICAL_LAYOUT);
 }
 
 hb_bool_t HbComplexFont::HbGetVerticalOrigin(hb_font_t *font, void *font_data,
@@ -187,14 +195,14 @@ hb_bool_t HbComplexFont::HbGetVerticalOrigin(hb_font_t *font, void *font_data,
                                              void *user_data) {
   (void)font;
   (void)font_data;
+  if (!glyph) return false;
   auto p = static_cast<HbComplexFont *>(user_data);
   auto glyph_info = p->codepoint_cache_[glyph];
-  int32_t x_scale, y_scale;
   mathfu::vec2i origin;
-  hb_font_get_scale(p->harfbuzz_font_, &x_scale, &y_scale);
+  auto scale = glyph_info.GetFaceData()->scale_;
   auto b = p->GetGlyphVerticalOrigin(glyph_info.GetFtFace(),
                                      glyph_info.GetCodepoint(),
-                                     mathfu::vec2i(x_scale, y_scale), &origin);
+                                     mathfu::vec2i(scale, scale), &origin);
   *x = origin.x();
   *y = origin.y();
   return b;
@@ -327,47 +335,46 @@ hb_codepoint_t HbFont::GetGlyph(FT_Face face, hb_codepoint_t unicode,
 }
 
 hb_position_t HbFont::ToHbPosition(FT_Fixed fixed) {
-  return (fixed + (1 << 9)) >> 10;
+  return (fixed + (1 << (kHbFixedPointPrecision - 1))) >>
+         kHbFixedPointPrecision;
 }
 
-hb_position_t HbFont::GetGlyphHorizontalAdvance(FT_Face face,
-                                                hb_codepoint_t glyph,
-                                                int32_t scale) {
-  int32_t flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
-  FT_Fixed v;
-  if (FT_Get_Advance(face, glyph, flags, &v)) {
-    return 0;
+hb_position_t HbFont::GetGlyphAdvance(FT_Face face, hb_codepoint_t glyph,
+                                      int32_t scale, int32_t flags) {
+  FT_Fixed v = 0;
+  if (FT_HAS_COLOR(face) && !FT_IS_SCALABLE(face)) {
+    // Calculate an advance manually for color glyphs as FreeType seems not
+    // returning correct advance.
+    auto num = face->num_fixed_sizes;
+    if (num > 0) {
+      v = face->available_sizes[0].width << kFtFixedPointPrecision;
+    }
+  } else {
+    if (FT_Get_Advance(face, glyph, flags, &v)) {
+      return 0;
+    }
   }
   // Convert from FT_Fixed to hb_position_t.
-  return ToHbPosition((scale >= 0) ? v : -v);
-}
-
-hb_position_t HbFont::GetGlyphVerticalAdvance(FT_Face face,
-                                              hb_codepoint_t glyph,
-                                              int32_t scale) {
-  int32_t flags =
-      FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING | FT_LOAD_VERTICAL_LAYOUT;
-  FT_Fixed v;
-  if (FT_Get_Advance(face, glyph, flags, &v)) {
-    return 0;
-  }
-  // Convert from FT_Fixed to hb_position_t. Also flipping value.
-  return ToHbPosition((scale >= 0) ? -v : v);
+  return ToHbPosition((scale * static_cast<int64_t>(v)) >>
+                      kHbFixedPointPrecision);
 }
 
 bool HbFont::GetGlyphVerticalOrigin(FT_Face face, hb_codepoint_t glyph,
                                     const mathfu::vec2i &scale,
                                     mathfu::vec2i *origin) {
-  int flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
-  if (!FT_Load_Glyph(face, glyph, flags)) {
-    return false;
+  int32_t x = 0;
+  int32_t y = 0;
+  if (!FT_HAS_COLOR(face) && FT_IS_SCALABLE(face)) {
+    int flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
+    if (FT_Load_Glyph(face, glyph, flags)) {
+      return false;
+    }
+    x = face->glyph->metrics.horiBearingX - face->glyph->metrics.vertBearingX;
+    y = face->glyph->metrics.horiBearingY + face->glyph->metrics.vertBearingY;
   }
-  int32_t x =
-      face->glyph->metrics.horiBearingX - face->glyph->metrics.vertBearingX;
-  int32_t y =
-      face->glyph->metrics.horiBearingY + face->glyph->metrics.vertBearingY;
-  origin->x() = (scale.x() >= 0) ? x : -x;
-  origin->y() = (scale.y() >= 0) ? y : -y;
+
+  origin->x() = (scale.x() * static_cast<int64_t>(x)) >> kHbFixedPointPrecision;
+  origin->y() = (scale.y() * static_cast<int64_t>(y)) >> kHbFixedPointPrecision;
   return true;
 }
 
@@ -386,7 +393,7 @@ hb_position_t HbFont::GetGlyphHorizontalKerning(FT_Face face,
 bool HbFont::GetGlyphExtents(FT_Face face, hb_codepoint_t glyph,
                              hb_glyph_extents_t *extents) {
   int flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
-  if (!FT_Load_Glyph(face, glyph, flags)) {
+  if (FT_Load_Glyph(face, glyph, flags)) {
     return false;
   }
   extents->x_bearing = face->glyph->metrics.horiBearingX;
@@ -399,7 +406,7 @@ bool HbFont::GetGlyphExtents(FT_Face face, hb_codepoint_t glyph,
 bool HbFont::GetGlyphContourPoint(FT_Face face, hb_codepoint_t glyph,
                                   uint32_t point_index, hb_position_t *x,
                                   hb_position_t *y) {
-  if (!FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT)) {
+  if (FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT)) {
     return false;
   }
   if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE ||

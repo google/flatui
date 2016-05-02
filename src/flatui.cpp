@@ -30,6 +30,14 @@ using fplbase::Texture;
 
 namespace flatui {
 
+// Enum indicating a type of shaders used during font rendering.
+enum FontShaderType {
+  kFontShaderTypeDefault = 0,
+  kFontShaderTypeSdf,
+  kFontShaderTypeColor,
+  kFontShaderTypeCount,
+};
+
 Direction GetDirection(Layout layout) {
   return static_cast<Direction>(layout & ~(kDirHorizontal - 1));
 }
@@ -122,11 +130,19 @@ class InternalState : public LayoutManager {
     assert(image_shader_);
     color_shader_ = matman_.LoadShader("shaders/color");
     assert(color_shader_);
-    font_shader_.set(matman_.LoadShader("shaders/font"));
-    font_clipping_shader_.set(matman_.LoadShader("shaders/font_clipping"));
-    font_sdf_shader_.set(matman_.LoadShader("shaders/font_sdf"));
-    font_sdf_clipping_shader_.set(
-        matman_.LoadShader("shaders/font_clipping_sdf"));
+
+    font_shaders_[kFontShaderTypeDefault][0]
+        .set(matman_.LoadShader("shaders/font"));
+    font_shaders_[kFontShaderTypeDefault][1]
+        .set(matman_.LoadShader("shaders/font_clipping"));
+    font_shaders_[kFontShaderTypeSdf][0]
+        .set(matman_.LoadShader("shaders/font_sdf"));
+    font_shaders_[kFontShaderTypeSdf][1]
+        .set(matman_.LoadShader("shaders/font_clipping_sdf"));
+    font_shaders_[kFontShaderTypeColor][0]
+        .set(matman_.LoadShader("shaders/font_color"));
+    font_shaders_[kFontShaderTypeColor][1]
+        .set(matman_.LoadShader("shaders/font_clipping_color"));
 
     text_color_ = mathfu::kOnes4f;
 
@@ -433,12 +449,51 @@ class InternalState : public LayoutManager {
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
   }
 
-  void DrawFontBuffer(FontShader &shader, const FontBuffer &buffer,
-                      const vec2 &pos) {
+  void DrawFontBuffer(const FontBuffer &buffer, const vec2 &pos,
+                      const mathfu::vec4 &clip_rect, bool use_sdf,
+                      bool render_outer_color) {
     auto slices = buffer.get_slices();
+    auto current_format = fplbase::kFormatAuto;
+    bool clipping = clip_rect.z() != 0.0f && clip_rect.w() != 0.0f;
+
     for (size_t i = 0; i < slices->size(); ++i) {
-      fontman_.GetAtlasTexture(slices->at(i))->Set(0);
-      shader.set_position_offset(vec3(pos, 0.0f));
+      auto texture = fontman_.GetAtlasTexture(slices->at(i));
+      texture->Set(0);
+
+      if (current_format != texture->format()) {
+        current_format = texture->format();
+
+        // Switch shaders based on drawing conditions.
+        FontShaderType shader_type =
+            current_format == fplbase::kFormat8888
+                ? kFontShaderTypeColor
+                : use_sdf ? kFontShaderTypeSdf : kFontShaderTypeDefault;
+
+        // Color glyph doesn't support outer_color.
+        if (shader_type == kFontShaderTypeColor && render_outer_color) continue;
+
+        auto current_shader = &font_shaders_[shader_type][clipping ? 1 : 0];
+        current_shader->set_renderer(renderer_);
+
+        // Set shader specific parameters.
+        auto *color = &text_color_;
+        current_shader->set_position_offset(vec3(pos, 0.0f));
+        if (use_sdf) {
+          if (render_outer_color) {
+            color = &text_outer_color_;
+            current_shader->set_threshold(text_outer_color_size_);
+          } else {
+            current_shader->set_threshold(sdf_threshold_);
+          }
+        }
+        if (clipping) {
+          current_shader->set_clipping(clip_rect);
+        }
+        if (current_shader->color_handle() >= 0) {
+          current_shader->set_color(*color);
+        }
+      }
+
       const fplbase::Attribute kFormat[] = {
           fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
       auto indices = buffer.get_indices(static_cast<int32_t>(i));
@@ -474,6 +529,7 @@ class InternalState : public LayoutManager {
                      (buffer.get_size().x() > window.z()) ||
                      (buffer.get_size().y() > window.w());
         }
+
         if (clipping) {
           // Font rendering with a clipping.
           pos -= window.xy();
@@ -481,25 +537,19 @@ class InternalState : public LayoutManager {
           // Set a window to show a part of the label.
           auto start = vec2(position_ - pos);
           auto end = start + vec2(window.zw());
+          start.y() -= buffer.metrics().internal_leading();
+          end.y() -= buffer.metrics().external_leading();
 
           if (parameter.get_glyph_flags() &
               (kGlyphFlagsInnerSDF | kGlyphFlagsOuterSDF)) {
             if (text_outer_color_size_ != 0.0f) {
               // Render shadow.
-              font_sdf_clipping_shader_.set_renderer(renderer_);
-              font_sdf_clipping_shader_.set_color(text_outer_color_);
-              font_sdf_clipping_shader_.set_threshold(text_outer_color_size_);
-              DrawFontBuffer(font_sdf_clipping_shader_, buffer,
-                             vec2(pos) + text_outer_color_offset);
+              DrawFontBuffer(buffer, vec2(pos) + text_outer_color_offset,
+                             vec4(start, end), true, true);
             }
-            font_sdf_clipping_shader_.set_renderer(renderer_);
-            font_sdf_clipping_shader_.set_threshold(sdf_threshold_);
-            font_sdf_clipping_shader_.set_clipping(vec4(start, end));
-            DrawFontBuffer(font_sdf_clipping_shader_, buffer, vec2(pos));
+            DrawFontBuffer(buffer, vec2(pos), vec4(start, end), true, false);
           } else {
-            font_clipping_shader_.set_renderer(renderer_);
-            font_clipping_shader_.set_clipping(vec4(start, end));
-            DrawFontBuffer(font_clipping_shader_, buffer, vec2(pos));
+            DrawFontBuffer(buffer, vec2(pos), vec4(start, end), false, false);
           }
         } else {
           // Regular font rendering.
@@ -507,19 +557,12 @@ class InternalState : public LayoutManager {
               (kGlyphFlagsInnerSDF | kGlyphFlagsOuterSDF)) {
             if (text_outer_color_size_ != 0.0f) {
               // Render shadow.
-              font_sdf_shader_.set_renderer(renderer_);
-              font_sdf_shader_.set_color(text_outer_color_);
-              font_sdf_shader_.set_threshold(text_outer_color_size_);
-              DrawFontBuffer(font_sdf_shader_, buffer,
-                             vec2(pos) + text_outer_color_offset);
+              DrawFontBuffer(buffer, vec2(pos) + text_outer_color_offset,
+                             mathfu::kZeros4f, true, true);
             }
-
-            font_sdf_shader_.set_renderer(renderer_);
-            font_sdf_shader_.set_threshold(sdf_threshold_);
-            DrawFontBuffer(font_sdf_shader_, buffer, vec2(pos));
+            DrawFontBuffer(buffer, vec2(pos), mathfu::kZeros4f, true, false);
           } else {
-            font_shader_.set_renderer(renderer_);
-            DrawFontBuffer(font_shader_, buffer, vec2(pos));
+            DrawFontBuffer(buffer, vec2(pos), mathfu::kZeros4f, false, false);
           }
         }
         Advance(element->size);
@@ -1147,10 +1190,7 @@ class InternalState : public LayoutManager {
   FontManager &fontman_;
   Shader *image_shader_;
   Shader *color_shader_;
-  FontShader font_shader_;
-  FontShader font_clipping_shader_;
-  FontShader font_sdf_shader_;
-  FontShader font_sdf_clipping_shader_;
+  FontShader font_shaders_[kFontShaderTypeCount][2];
 
   // Expensive rendering commands can check if they're inside this rect to
   // cull themselves inside a scrolling group.

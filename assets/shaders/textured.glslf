@@ -15,6 +15,7 @@
 varying mediump vec2 vTexCoord;
 uniform sampler2D texture_unit_0;
 uniform lowp vec4 color;
+
 void main()
 {
   lowp vec4 texture_color = texture2D(texture_unit_0, vTexCoord);

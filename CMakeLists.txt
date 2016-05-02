@@ -114,8 +114,10 @@ set(flatui_SRCS
     src/micro_edit.cpp
     src/flatui.cpp
     src/flatui_common.cpp
+    src/glyph_cache.cpp
     src/hb_complex_font.cpp
     src/flatui_serialization.cpp
+    src/libpng_to_stbimage/pngshim.cpp
     src/script_table.cpp
     src/version.cpp)
 
@@ -151,6 +153,9 @@ endif()
 
 # SDL includes.
 include_directories(${dependencies_sdl_dir}/include)
+
+# STB includes.
+include_directories(${dependencies_stb_dir})
 
 # harfbuzz includes.
 include_directories(${dependencies_harfbuzz_distr_dir}/src)

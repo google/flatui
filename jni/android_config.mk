@@ -56,6 +56,8 @@ DEPENDENCIES_FPLBASE_DIR?=$(FPL_ROOT)/fplbase
 DEPENDENCIES_CARDBOARD_DIR?=$(PREBUILTS_ROOT)/cardboard-java/CardboardSample
 # Location of the flatui library (for samples and tests).
 DEPENDENCIES_FLATUI_DIR?=$(FLATUI_DIR)
+# Location of the STB library.
+DEPENDENCIES_STB_DIR?=$(THIRD_PARTY_ROOT)/stb
 
 ifeq (,$(DETERMINED_DEPENDENCY_DIRS))
 DETERMINED_DEPENDENCY_DIRS:=1
