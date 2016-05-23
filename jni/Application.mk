@@ -19,5 +19,5 @@ APP_PLATFORM:=android-10
 APP_ABI:=armeabi armeabi-v7a-hard mips x86 x86_64
 APP_STL:=gnustl_static
 APP_MODULES:=libflatui
-# Required for FlatBuffers
-NDK_TOOLCHAIN_VERSION:=4.8
+
+

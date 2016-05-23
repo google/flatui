@@ -16,5 +16,5 @@ APP_PLATFORM := android-15
 APP_ABI:=armeabi armeabi-v7a-hard mips x86 x86_64
 APP_STL := gnustl_static
 APP_MODULES := ref_count_test
-NDK_TOOLCHAIN_VERSION := 4.8
+
 APP_CPPFLAGS += -std=c++11 -Wno-literal-suffix
