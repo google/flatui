@@ -16,7 +16,7 @@ LOCAL_PATH:=$(call my-dir)
 
 APP_PLATFORM:=android-10
 # TODO: webp doesn't build for mips64 at the moment.
-APP_ABI:=armeabi armeabi-v7a-hard mips x86 x86_64
+APP_ABI:=armeabi armeabi-v7a mips x86 x86_64
 APP_STL:=gnustl_static
 APP_MODULES:=libflatui
 
