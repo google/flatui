@@ -284,8 +284,8 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, true, false, text_kerning_scale_,
-        text_line_height_scale_);
+        glyph_flags_, edit_status == kEditStatusInEdit, false,
+        text_kerning_scale_, text_line_height_scale_);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
     assert(buffer);
@@ -1167,6 +1167,11 @@ class InternalState : public LayoutManager {
   // Set a kerning scaling used in the text rendering.
   void SetTextKerningScale(float scale) { text_kerning_scale_ = scale; }
 
+  // Set ellipsis characters used in the text rendering.
+  void SetTextEllipsis(const char* ellipsis) {
+    fontman_.SetTextEllipsis(ellipsis);
+  }
+
   void SetGlobalListener(
       const std::function<void(HashedId id, Event event)> &callback) {
     global_listener_ = callback;
@@ -1406,6 +1411,10 @@ void SetTextLineHeightScale(float scale) {
 }
 
 void SetTextKerningScale(float scale) { Gui()->SetTextKerningScale(scale); }
+
+void SetTextEllipsis(const char* ellipsis) {
+  Gui()->SetTextEllipsis(ellipsis);
+}
 
 Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {

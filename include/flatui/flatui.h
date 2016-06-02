@@ -427,6 +427,14 @@ void SetTextLineHeightScale(float scale);
 /// The default value is kKerningScale(1.0f).
 void SetTextKerningScale(float scale);
 
+/// @brief Set an ellipsis string used in label/edit widgets.
+///
+/// @param[in] ellipsis A C-string specifying characters used as an ellipsis.
+/// Can be multiple characters, typically '...'. When a string in a widget
+/// doesn't fit to the given size, the string is truncated to fit the ellipsis
+/// string appended at the end.
+void SetTextEllipsis(const char *ellipsis);
+
 /// @brief Renders an edit text box as a GUI element.
 ///
 /// @param[in] ysize A float containing the vertical size in virtual resolution.
@@ -458,8 +466,7 @@ Event Edit(float ysize, const mathfu::vec2 &size, const char *id,
 ///
 /// @return Returns the Event type for the Edit widget.
 Event Edit(float ysize, const mathfu::vec2 &size, TextAlignment alignment,
-           const char *id, EditStatus *status,
-           std::string *string);
+           const char *id, EditStatus *status, std::string *string);
 
 /// @brief Create a group of elements with a given layout and intra-element
 /// spacing.

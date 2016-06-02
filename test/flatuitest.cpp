@@ -129,6 +129,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       }
       SetTextFont(fonts, 3);
 
+      SetTextEllipsis("...");
+
       StartGroup(kLayoutOverlay, 0);
         StartGroup(kLayoutHorizontalTop, 10);
           PositionGroup(kAlignCenter, kAlignCenter,

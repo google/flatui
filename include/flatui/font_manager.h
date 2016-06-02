@@ -32,6 +32,9 @@
 // Forward decls for FreeType.
 typedef struct FT_LibraryRec_ *FT_Library;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
+
+// Forward decls for Harfbuzz.
+typedef const struct hb_language_impl_t *hb_language_t;
 /// @endcond
 
 /// @brief Namespace for FlatUI library.
@@ -196,6 +199,7 @@ class FontBufferParameters {
     kerning_scale_ = kerning_scale;
     line_height_scale_ = line_height_scale;
     size_ = size;
+    flags_value_ = 0;
     flags_.text_alignement = text_alignment;
     flags_.glyph_flags = glyph_flags;
     flags_.caret_info = caret_info;
@@ -540,6 +544,17 @@ class FontManager {
   /// The API will initialize internal glyph cache for color glyphs.
   void EnableColorGlyph();
 
+  /// @brief Set an ellipsis string used in label/edit widgets.
+  ///
+  /// @param[in] ellipsis A C-string specifying characters used as an ellipsis.
+  /// Can be multiple characters, typically '...'. When a string in a widget
+  /// doesn't fit to the given size, the string is truncated to fit the ellipsis
+  /// string appended at the end.
+  /// Note: FontManager doesn't support dynamic change of the ellipsis string
+  /// in current version. FontBuffer contents that has been created are not
+  /// updated when the ellipsis string is changed.
+  void SetTextEllipsis(const char *ellipsis) { ellipsis_ = ellipsis; }
+
  private:
   // Pass indicating rendering pass.
   static const int32_t kRenderPass = -1;
@@ -561,7 +576,28 @@ class FontManager {
 
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
-  uint32_t LayoutText(const char *text, size_t length);
+  uint32_t LayoutText(const char *text, size_t length, uint32_t max_width = 0,
+                      uint32_t current_width = 0, int32_t *rewind = nullptr);
+
+  // Helper function to add string information to the buffer.
+  bool UpdateBuffer(const WordEnumerator &word_enum,
+                    const FontBufferParameters &parameters,
+                    bool lastline_must_break, FontBuffer *buffer,
+                    std::vector<int32_t> *atlas_indices,
+                    mathfu::vec2 *pos, FontMetrics *metrics);
+
+  // Helper function to remove entries from the buffer for specified width.
+  void RemoveEntries(const FontBufferParameters &parameters,
+                     uint32_t required_width, FontBuffer *buffer,
+                     std::vector<int32_t> *atlas_indices,
+                     mathfu::vec2 *pos);
+
+  // Helper function to append ellipsis to the buffer.
+  bool AppendEllipsis(const WordEnumerator &word_enum,
+                      const FontBufferParameters &parameters,
+                      FontBuffer *buffer, mathfu::vec2 *pos,
+                      std::vector<int32_t> *atlas_indices,
+                      FontMetrics *metrics);
 
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
@@ -683,10 +719,14 @@ class FontManager {
   TextLayoutDirection layout_direction_;
   static const ScriptInfo script_table_[];
   static const char *language_table_[];
+  hb_language_t hb_language_;
 
   // Line height for a multi line text.
   float line_height_scale_;
   float kerning_scale_;
+
+  // Ellipsis settings.
+  std::string ellipsis_;
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;
