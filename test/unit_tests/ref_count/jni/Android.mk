@@ -45,6 +45,7 @@ LOCAL_STATIC_LIBRARIES := \
   flatbuffers \
   libmathfu \
   libgtest \
+  libgmock \
   libflatui
 
 include $(BUILD_SHARED_LIBRARY)
