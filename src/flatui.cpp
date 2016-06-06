@@ -441,7 +441,7 @@ class InternalState : public LayoutManager {
       shader.set_position_offset(vec3(pos, 0.0f));
       const fplbase::Attribute kFormat[] = {
           fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
-      auto indices = buffer.get_indices(i);
+      auto indices = buffer.get_indices(static_cast<int32_t>(i));
       Mesh::RenderArray(
           Mesh::kTriangles, static_cast<int>(indices->size()), kFormat,
           sizeof(FontVertex),
@@ -951,7 +951,7 @@ class InternalState : public LayoutManager {
   void SetDefaultFocus() {
     // Need to keep an index rather than the hash to check if the element is
     // an interactive element later.
-    default_focus_element_ = element_idx_;
+    default_focus_element_ = static_cast<int32_t>(element_idx_);
   }
 
   bool depth_test() { return depth_test_; }

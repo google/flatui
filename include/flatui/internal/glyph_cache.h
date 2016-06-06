@@ -583,7 +583,9 @@ class GlyphCache {
   // Getter/Setter of the max slice number.
   int32_t get_max_slice() const { return max_slice_; }
   void set_max_slice(int32_t max_slice) { max_slice_ = max_slice; }
-  int32_t get_num_slices() const { return buffers_.size(); }
+  int32_t get_num_slices() const {
+    return static_cast<int32_t>(buffers_.size());
+  }
 
   // Getter/Setter of the counter.
   uint32_t get_revision() const { return revision_; }
@@ -610,7 +612,7 @@ class GlyphCache {
   // Insert new buffer to the buffer list.
   void InsertNewBuffer() {
     // Increase the buffer size.
-    auto new_index = buffers_.size();
+    int32_t new_index = static_cast<int32_t>(buffers_.size());
     buffers_.resize(new_index + 1);
     dirty_rects_.resize(new_index + 1, mathfu::vec4i(0, 0, 0, 0));
 

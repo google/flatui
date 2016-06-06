@@ -206,13 +206,13 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
                                    const FontBufferParameters &parameter) {
-  auto buffer = CreateBuffer(text, length, parameter);
+  auto buffer = CreateBuffer(text, static_cast<uint32_t>(length), parameter);
   if (buffer == nullptr) {
     // Flush glyph cache & Upload a texture
     FlushAndUpdate();
 
     // Try to create buffer again.
-    buffer = CreateBuffer(text, length, parameter);
+    buffer = CreateBuffer(text, static_cast<uint32_t>(length), parameter);
     if (buffer == nullptr) {
       LogError("The given text '%s' with ",
                "size:%d does not fit a glyph cache. Try to "
@@ -411,7 +411,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
         auto slice_idx = atlas_indices_[slice];
         if (slice_idx == kInvalidSliceIndex) {
           // Resize buffers.
-          slice_idx = atlas_indices_[slice] = slices_in_buffer->size();
+          slice_idx = atlas_indices_[slice] =
+              static_cast<int32_t>(slices_in_buffer->size());
           buffer->ExpandGlyphBuffers(slice_idx + 1);
           slices_in_buffer->push_back(slice);
         }
@@ -1110,8 +1111,9 @@ void FontBuffer::AddCaretPosition(int32_t x, int32_t y) {
 void FontBuffer::AddWordBoundary(const FontBufferParameters &parameters) {
   if (parameters.get_text_alignment() & kTextAlignmentJustify) {
     // Keep the word boundary info for a later use for a justificaiton.
-    word_boundary_.push_back(code_points_.size());
-    word_boundary_caret_.push_back(caret_positions_.size());
+    word_boundary_.push_back(static_cast<uint32_t>(code_points_.size()));
+    word_boundary_caret_.push_back(
+        static_cast<uint32_t>(caret_positions_.size()));
   }
 }
 
@@ -1135,8 +1137,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       // With a justification, we add an offset for each word boundary.
       // For each word boundary (e.g. spaces), we stretch them slightly to align
       // both the left and right ends of each line of text.
-      boundary_offset_change = (parameters.get_size().x() - line_width) /
-                               (word_boundary_.size() - 1);
+      boundary_offset_change = static_cast<int>(
+          (parameters.get_size().x() - line_width) /
+          (word_boundary_.size() - 1));
     } else {
       justify = false;
       offset = parameters.get_size().x() - line_width;
@@ -1182,8 +1185,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   }
 
   // Update current line information.
-  line_start_index_ = code_points_.size();
-  line_start_caret_index_ = caret_positions_.size();
+  line_start_index_ = static_cast<uint32_t>(code_points_.size());
+  line_start_caret_index_ = static_cast<uint32_t>(caret_positions_.size());
   word_boundary_.clear();
   word_boundary_caret_.clear();
 }

@@ -32,7 +32,7 @@ class Grid {
            inverted_(false), p_(nullptr) {}
   Grid(T* data, const vec2i& size, int32_t padding, size_t stride)
       : data_(data), size_(size), padding_(padding),
-        stride_(stride), inverted_(false), p_(nullptr) {}
+        stride_(static_cast<int32_t>(stride)), inverted_(false), p_(nullptr) {}
 
   // Set up the grid with a buffer allocation.
   void SetSize(const vec2i& size, T initial_value) {
@@ -355,7 +355,7 @@ class DistanceComputer {
     const vec2i edge_pixel = test_pixel - xy_dist;
     const vec2i new_xy_dist = xy_dist - offset;
     const auto new_dist = ComputeDistanceToEdge(edge_pixel, vec2(new_xy_dist));
-    static const float kEpsilon = 1e-3;
+    static const float kEpsilon = 1e-3f;
     if (new_dist < *dist - kEpsilon) {
       distances_->Set(pos, new_dist);
       distances_to_edges_.Set(pos, new_xy_dist);
