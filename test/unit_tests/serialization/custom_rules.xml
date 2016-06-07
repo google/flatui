@@ -21,6 +21,7 @@ limitations under the License.
   <exec executable="${ndkbuild_exe}" outputproperty="flatui_path">
     <arg value="print_dependency"/>
     <arg value="DEP_DIR=FLATUI"/>
+    <arg value="NDK_NO_INFO=1"/>
   </exec>
   <!--Include common build rules from flatui.-->
   <include file="${flatui_path}/jni/custom_rules.xml" as="flatui"/>
