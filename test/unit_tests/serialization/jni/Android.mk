@@ -54,6 +54,7 @@ LOCAL_STATIC_LIBRARIES := \
   libmathfu \
   libfreetype \
   libgtest \
+  libgmock \
   libharfbuzz \
   libunibreak
 
