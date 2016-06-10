@@ -13,10 +13,12 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(animation)
-add_subdirectory(basic)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
-add_subdirectory(text_layout)
-add_subdirectory(text_color_emoji)
+project(flatuianim)
+
+add_executable(flatuianim flatuianim.cpp)
+add_dependencies(flatuianim fplbase flatui)
+mathfu_configure_flags(flatuianim)
+target_link_libraries(flatuianim fplbase flatui)
+
+# FlatUI postprocess
+flatui_post_process(flatuianim "anim_sample")
