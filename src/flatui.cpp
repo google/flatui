@@ -20,6 +20,8 @@
 #include "flatui/internal/micro_edit.h"
 #include "fplbase/utilities.h"
 
+#include "motive/init.h"
+
 using fplbase::Button;
 using fplbase::InputSystem;
 using fplbase::LogError;
@@ -36,6 +38,11 @@ enum FontShaderType {
   kFontShaderTypeSdf,
   kFontShaderTypeColor,
   kFontShaderTypeCount,
+};
+
+struct Anim {
+  bool called_last_frame;
+  motive::Motivator motivator;
 };
 
 Direction GetDirection(Layout layout) {
@@ -67,7 +74,8 @@ InternalState *state = nullptr;
 class InternalState : public LayoutManager {
  public:
   InternalState(fplbase::AssetManager &assetman, FontManager &fontman,
-                fplbase::InputSystem &input)
+                fplbase::InputSystem &input,
+                motive::MotiveEngine *motive_engine)
       : LayoutManager(assetman.renderer().window_size()),
         default_projection_(true),
         depth_test_(false),
@@ -75,6 +83,7 @@ class InternalState : public LayoutManager {
         renderer_(assetman.renderer()),
         input_(input),
         fontman_(fontman),
+        motive_engine_(motive_engine),
         clip_position_(mathfu::kZeros2i),
         clip_size_(mathfu::kZeros2i),
         clip_inside_(false),
@@ -154,6 +163,11 @@ class InternalState : public LayoutManager {
     current_pointer_ = kPointerIndexInvalid;
 
     fontman_.StartLayoutPass();
+
+    if (!persistent_.initialized) {
+      motive::SplineInit::Register();
+      persistent_.initialized = true;
+    }
   }
 
   ~InternalState() { state = nullptr; }
@@ -781,6 +795,75 @@ class InternalState : public LayoutManager {
 
   void EndSlider() {}
 
+  // The hashmap stores the internal animation state for the API
+  // call to `Animatable(id)`. To conserve memory space, the
+  // internal state for `id` will be removed if `Animatable(id)`
+  // was not called in the previous frame.
+  void Clean() {
+    for (auto it = persistent_.animations.begin();
+         it != persistent_.animations.end();) {
+      if (it->second.called_last_frame) {
+        it->second.called_last_frame = false;
+        ++it;
+      } else {
+        it = persistent_.animations.erase(it);
+      }
+    }
+  }
+
+  // Return the internal animation state for the API call to
+  // `Animatable(id)`. This state persists from frame to
+  // frame as long as `Animatable(id)` is called every frame.
+  // If no state currently exists for `id` because
+  // `Animatable(id)` was not called the previous frame,
+  // return nullptr.
+  static Anim *FindAnim(const std::string &id) {
+    auto it = persistent_.animations.find(id);
+    return it != persistent_.animations.end() ? &(it->second) : nullptr;
+  }
+
+  // Initialize an array of Motive Targets with the values of targets.
+  static void CreateMotiveTargets(const float *values, int dimensions,
+                                  motive::MotiveTime target_time,
+                                  motive::MotiveTarget1f *targets) {
+    for (int i = 0; i < dimensions; ++i) {
+      targets[i] = motive::MotiveTarget1f(
+          motive::MotiveNode1f(values[i], 0, target_time));
+    }
+  }
+
+  // Create a new Motivator if it isn't found in our hashmap and initialize it
+  // with starting values. Return the current value of the motivator.
+  const float *Animatable(const std::string id, const float *starting_values,
+                          int dimensions) {
+    assert(motive_engine_);
+    Anim *current = FindAnim(id);
+    if (!current) {
+      motive::MotiveTarget1f targets[kMaxDimensions];
+      CreateMotiveTargets(starting_values, dimensions, 0, targets);
+      motive::MotivatorNf motivator(motive::SplineInit(), motive_engine_,
+                                    dimensions, targets);
+      Anim animation;
+      animation.motivator = motivator;
+      current = &(persistent_.animations[id] = animation);
+    }
+    current->called_last_frame = true;
+    return reinterpret_cast<motive::MotivatorNf *>(&current->motivator)
+        ->Values();
+  }
+
+  // Set the target value to which the motivator animates.
+  void StartAnimation(const std::string id, motive::MotiveTime target_time,
+                      const float *target_values, int dimensions) {
+    Anim *current = FindAnim(id);
+    if (current) {
+      motive::MotiveTarget1f targets[kMaxDimensions];
+      CreateMotiveTargets(target_values, dimensions, target_time, targets);
+      reinterpret_cast<motive::MotivatorNf *>(&current->motivator)
+          ->SetTargets(targets);
+    }
+  }
+
   // Set scroll speed of the scroll group.
   // scroll_speed_drag: Scroll speed with a pointer drag operation.
   // scroll_speed_wheel: Scroll speed with a mouse wheel operation.
@@ -1196,6 +1279,7 @@ class InternalState : public LayoutManager {
   Shader *image_shader_;
   Shader *color_shader_;
   FontShader font_shaders_[kFontShaderTypeCount][2];
+  motive::MotiveEngine *motive_engine_;
 
   // Expensive rendering commands can check if they're inside this rect to
   // cull themselves inside a scrolling group.
@@ -1245,7 +1329,7 @@ class InternalState : public LayoutManager {
 
   // Intra-frame persistent state.
   static struct PersistentState {
-    PersistentState() : is_last_event_pointer_type(true) {
+    PersistentState() : is_last_event_pointer_type(true), initialized(false) {
       // This is effectively a global, so no memory allocation or other
       // complex initialization here.
       for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
@@ -1276,8 +1360,14 @@ class InternalState : public LayoutManager {
     vec2i drag_start_position_;
     int32_t dragging_pointer_;
 
-    // If yes, then touch/mouse, else gamepad/keyboard.
+    // If true, then touch/mouse, else gamepad/keyboard.
     bool is_last_event_pointer_type;
+
+    // If true, then InternalState has been initialized.
+    bool initialized;
+
+    // HashMap for storing animations.
+    std::unordered_map<std::string, Anim> animations;
   } persistent_;
 
   const FlatUiVersion *version_;
@@ -1290,10 +1380,14 @@ class InternalState : public LayoutManager {
 InternalState::PersistentState InternalState::persistent_;
 
 void Run(fplbase::AssetManager &assetman, FontManager &fontman,
-         fplbase::InputSystem &input,
+         fplbase::InputSystem &input, motive::MotiveEngine *motive_engine,
          const std::function<void()> &gui_definition) {
   // Create our new temporary state.
-  InternalState internal_state(assetman, fontman, input);
+  InternalState internal_state(assetman, fontman, input, motive_engine);
+
+  // run through persistent_.animations, removing animation that has
+  // called_last_frame as false and set all "called_last_frame" to be false
+  state->Clean();
 
   // Run two passes, one for layout, one for rendering.
   // First pass:
@@ -1309,6 +1403,12 @@ void Run(fplbase::AssetManager &assetman, FontManager &fontman,
   gui_definition();
 
   internal_state.CheckGamePadFocus();
+}
+
+void Run(fplbase::AssetManager &assetman, FontManager &fontman,
+         fplbase::InputSystem &input,
+         const std::function<void()> &gui_definition) {
+  Run(assetman, fontman, input, NULL, gui_definition);
 }
 
 InternalState *Gui() {
@@ -1495,5 +1595,19 @@ void SetGlobalListener(
 }
 
 const FlatUiVersion *GetFlatUiVersion() { return Gui()->GetFlatUiVersion(); }
+
+namespace details {
+
+const float *Animatable(const std::string &id, const float *starting_values,
+                        int dimensions) {
+  return Gui()->Animatable(id, starting_values, dimensions);
+}
+
+void StartAnimation(const std::string &id, motive::MotiveTime target_time,
+                    const float *target_values, int dimensions) {
+  Gui()->StartAnimation(id, target_time, target_values, dimensions);
+}
+
+}  // namespace details
 
 }  // namespace flatui

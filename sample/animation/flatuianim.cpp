@@ -22,22 +22,16 @@
 #include "motive/engine.h"
 #include "motive/init.h"
 
-using flatui::Run;
 using flatui::EndGroup;
-using flatui::Label;
 using flatui::Margin;
+using flatui::Run;
 using flatui::SetVirtualResolution;
-using flatui::Slider;
 using flatui::StartGroup;
-using mathfu::vec2;
 using mathfu::vec2i;
+using mathfu::vec3;
 using mathfu::vec4;
-using mathfu::kZeros4f;
-using motive::Motivator4f;
 using motive::MotiveEngine;
 using motive::MotiveTime;
-using motive::SplineInit;
-using motive::Tar4f;
 
 static const MotiveTime kTimeToFade = 1000;
 
@@ -48,13 +42,8 @@ static const vec4 kBackgroundColors[] = {
 
 extern "C" int FPL_main(int /*argc*/, char** argv) {
   MotiveEngine motive_engine;
-  SplineInit::Register();
 
   size_t color_idx = 0;
-  Motivator4f background_color;
-  background_color.InitializeWithTarget(
-      SplineInit(), &motive_engine,
-      Tar4f::Current(kBackgroundColors[color_idx]));
 
   fplbase::Renderer renderer;
   renderer.Initialize(vec2i(800, 600), "FlatUI sample");
@@ -73,19 +62,21 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
   // Open OpenType font.
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
 
+  vec4 bg = mathfu::kZeros4f;
+
   while (!(input.exit_requested() ||
            input.GetButton(fplbase::FPLK_AC_BACK).went_down())) {
     input.AdvanceFrame(&renderer.window_size());
     renderer.AdvanceFrame(input.minimized(), input.Time());
-    renderer.ClearFrameBuffer(background_color.Value());
-    motive_engine.AdvanceFrame(
-        static_cast<MotiveTime>(input.DeltaTime() * 1000.0f));
+    motive_engine.AdvanceFrame(static_cast<MotiveTime>(
+        input.DeltaTime() * flatui::kSecondsToMotiveTime));
+    renderer.ClearFrameBuffer(bg);
 
     // Show test GUI using flatui API.
     // In this sample, it shows basic UI elements of a label and an image.
     // Define flatui block. Note that the block is executed multiple times,
     // One for a layout pass and another for a rendering pass.
-    Run(assetman, fontman, input, [&]() {
+    Run(assetman, fontman, input, &motive_engine, [&]() {
       // Set a virtual resolution all coordinates will use. 1000 is now the
       // size of the smallest dimension (Y in landscape mode).
       SetVirtualResolution(1000);
@@ -103,10 +94,13 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
                                  vec4(255.0f, 228.0f, 196.0f, 0.5f));
 
       // Create the button and check for input event.
-      if (TextButton("Animate", 50, Margin(10)) & flatui::kEventWentUp) {
+      bg = flatui::Animatable<vec4>("color_fading",
+                                    kBackgroundColors[color_idx]);
+
+      if (TextButton("background", 50, Margin(10)) & flatui::kEventWentUp) {
         color_idx = (color_idx + 1) % FPL_ARRAYSIZE(kBackgroundColors);
-        background_color.SetTarget(
-            Tar4f::Target(kBackgroundColors[color_idx], kZeros4f, kTimeToFade));
+        flatui::StartAnimation<vec4>("color_fading",
+                                     kBackgroundColors[color_idx], 1.0);
       }
 
       EndGroup();

@@ -29,7 +29,14 @@ typedef SSIZE_T ssize_t;
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
 
+#include "motive/engine.h"
+
 namespace flatui {
+
+// Maximum dimension of mathfu::Vector.
+static const int kMaxDimensions = 4;
+// Multiplier to convert a second to MotiveTime.
+static const int kSecondsToMotiveTime = 10000;
 
 /// @file
 /// @addtogroup flatui_core
@@ -46,9 +53,20 @@ namespace flatui {
 /// @param[in,out] assetman The AssetManager you want to use textures from.
 /// @param[in] fontman The FontManager to be used by the GUI.
 /// @param[in] input The InputSystem to be used by the GUI.
+/// @param[in] motive_engine A pointer to the MotiveEngine to be used by the GUI
+/// for animation purpose.
 /// @param[in] gui_definition A function that defines all GUI elements using the
 /// GUI element construction functions. (It will be run twice, once for the
 /// layout, and once for rendering & events.)
+void Run(fplbase::AssetManager &assetman, FontManager &fontman,
+         fplbase::InputSystem &input, motive::MotiveEngine *motive_engine,
+         const std::function<void()> &gui_definition);
+
+/// @brief A version of the function above that doesn't use a MotiveEngine.
+/// With this version of Run(), user will not be able to use the animation
+/// features of FlatUI.
+/// If a user tries to use FlatUI's animation features with this version of
+/// Run(), the program will terminate with an error.
 void Run(fplbase::AssetManager &assetman, FontManager &fontman,
          fplbase::InputSystem &input,
          const std::function<void()> &gui_definition);
@@ -844,6 +862,99 @@ const FlatUiVersion *GetFlatUiVersion();
 /// elements will be susceptible to z-fighting. That is, when the rectangles
 /// around UI elements overlap, flickering will occur.
 void SetDepthTest(bool enable);
+
+namespace details {
+
+/// @class FloatConverter
+///
+/// @brief converts from a mathfu::vector to a const float pointer and vice
+/// versa.
+template <typename T>
+class FloatConverter {
+ public:
+  static const float *ToFloatArray(const T &data);
+  static T FromFloatArray(const float *floats);
+  static int Dimension();
+};
+
+template <>
+class FloatConverter<float> {
+ public:
+  static const float *ToFloatArray(const float &data) { return &data; }
+  static float FromFloatArray(const float *floats) { return *floats; }
+  static int Dimension() { return 1; }
+};
+
+template <int d>
+class FloatConverter<mathfu::Vector<float, d>> {
+ public:
+  typedef mathfu::Vector<float, d> Vec;
+  static const float *ToFloatArray(const Vec &data) { return &data[0]; }
+  static Vec FromFloatArray(const float *floats) { return Vec(floats); }
+  static int Dimension() { return d; }
+};
+
+/// @brief This function is called by T Animatable() with its templated
+/// variables represented by float pointers instead. The User will call
+/// the templated version of Animatable().
+///
+/// @param[in] id A string that uniquely identifies a motivator
+/// @param[in] starting_value A float pointer to a mathfu::vector
+/// @param[in] dimensions An int representing the number of dimensions of the
+/// mathfu::vector
+///
+/// @return Returns a float pointer to the value of the motivator.
+const float *Animatable(const std::string &id, const float *starting_values,
+                        int dimensions);
+
+/// @brief This function is called by Animation() with its templated variable
+/// represented by a float pointer instead. The user will call the templated
+/// version of StartAnimation().
+///
+/// @param[in] id A string that uniquely identifies a motivator
+/// @param[in] target_time A MotiveTime representing the duration of the
+/// animation
+/// @param[in] target_value A float pointer to a mathfu::vector
+/// @param[in] dimensions An int representing the number of dimensions of the
+/// mathfu::vector
+void StartAnimation(const std::string &id, motive::MotiveTime target_time,
+                    const float *target_values, int dimensions);
+
+}  // namespace details
+
+/// @return Returns a value of type T.
+///
+/// @brief This function creates a new Motivator if it doesn't already exist
+/// and returns the current value of it.
+///
+/// @warning This function only works if you have passed in a MotiveEngine
+/// to Run().
+///
+/// @param[in] id A string that uniquely identifies a motivator
+/// @param[in] starting_value A variable of type T that is used to initialze
+/// a motivator
+template <typename T>
+T Animatable(std::string id, T starting_value) {
+  const float *motion = details::Animatable(
+      id, details::FloatConverter<T>::ToFloatArray(starting_value),
+      details::FloatConverter<T>::Dimension());
+  return details::FloatConverter<T>::FromFloatArray(motion);
+}
+
+/// @brief This function sets the target value to which a Motivator, that
+/// is identified by id, animates.
+///
+/// @param[in] id A string that uniquely identifies a motivator
+/// @param[in] target_value A variable of type T that represents the final
+/// value of the motivator
+/// @param[in] target_time A double representing the duration of the animation
+template <typename T>
+void StartAnimation(std::string id, T target_value, double target_time) {
+  details::StartAnimation(
+      id, static_cast<motive::MotiveTime>(target_time * kSecondsToMotiveTime),
+      details::FloatConverter<T>::ToFloatArray(target_value),
+      details::FloatConverter<T>::Dimension());
+}
 
 }  // namespace flatui
 
