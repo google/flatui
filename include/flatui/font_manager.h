@@ -582,6 +582,7 @@ class FontManager {
   // Helper function to add string information to the buffer.
   bool UpdateBuffer(const WordEnumerator &word_enum,
                     const FontBufferParameters &parameters,
+                    int32_t base_line,
                     bool lastline_must_break, FontBuffer *buffer,
                     std::vector<int32_t> *atlas_indices,
                     mathfu::vec2 *pos, FontMetrics *metrics);
@@ -595,7 +596,7 @@ class FontManager {
   // Helper function to append ellipsis to the buffer.
   bool AppendEllipsis(const WordEnumerator &word_enum,
                       const FontBufferParameters &parameters,
-                      FontBuffer *buffer, mathfu::vec2 *pos,
+                      int32_t base_line, FontBuffer *buffer, mathfu::vec2 *pos,
                       std::vector<int32_t> *atlas_indices,
                       FontMetrics *metrics);
 

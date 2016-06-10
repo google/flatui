@@ -321,8 +321,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
       if (size.x() && max_line_width > max_width && !caret_info) {
         // The text size exceeds given size.
         // Rewind the buffers and add an ellipsis if it's speficied.
-        if (!AppendEllipsis(word_enum, parameters, buffer.get(), &pos,
-                            &atlas_indices, &initial_metrics)) {
+        if (!AppendEllipsis(word_enum, parameters, base_line, buffer.get(),
+                            &pos, &atlas_indices, &initial_metrics)) {
           return nullptr;
         }
       }
@@ -359,8 +359,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
             !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
-          if (!AppendEllipsis(word_enum, parameters, buffer.get(), &pos,
-                              &atlas_indices, &initial_metrics)) {
+          if (!AppendEllipsis(word_enum, parameters, base_line, buffer.get(),
+                              &pos, &atlas_indices, &initial_metrics)) {
             return nullptr;
           }
 
@@ -394,8 +394,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     }
 
     // Add string information to the buffer.
-    if (!UpdateBuffer(word_enum, parameters, lastline_must_break, buffer.get(),
-                      &atlas_indices, &pos, &initial_metrics)) {
+    if (!UpdateBuffer(word_enum, parameters, base_line, lastline_must_break,
+                      buffer.get(), &atlas_indices, &pos, &initial_metrics)) {
       return nullptr;
     }
 
@@ -459,6 +459,7 @@ void FontManager::ReleaseBuffer(FontBuffer *buffer) {
 
 bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                const FontBufferParameters &parameters,
+                               int32_t base_line,
                                bool lastline_must_break, FontBuffer *buffer,
                                std::vector<int32_t> *atlas_indices,
                                mathfu::vec2 *pos, FontMetrics *metrics) {
@@ -525,7 +526,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       // glyph size & glyph cache entry information.
 
       // Update vertices and UVs
-      buffer->AddVertices(*pos, metrics->base_line(), scale, *cache);
+      buffer->AddVertices(*pos, base_line, scale, *cache);
 
       // Update references if the buffer is ref counting buffer.
       if (parameters.get_ref_count_flag()) {
@@ -553,7 +554,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                      static_cast<int32_t>(idx));
 
       auto scaled_offset = cache->get_offset().x() * scale;
-      float scaled_base_line = metrics->base_line() * scale;
+      float scaled_base_line = base_line * scale;
       // Add caret points
       for (auto caret = 1; caret <= carets; ++caret) {
         buffer->AddCaretPosition(
@@ -568,7 +569,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
 
 bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
                                  const FontBufferParameters &parameters,
-                                 FontBuffer *buffer, mathfu::vec2 *pos,
+                                 int32_t base_line, FontBuffer *buffer,
+                                 mathfu::vec2 *pos,
                                  std::vector<int32_t> *atlas_indices,
                                  FontMetrics *metrics) {
   if (!ellipsis_.length()) {
@@ -579,8 +581,8 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
       static_cast<uint32_t>(parameters.get_size().x()) * kFreeTypeUnit;
 
   // Dump current string to the buffer.
-  if (!UpdateBuffer(word_enum, parameters, false, buffer, atlas_indices, pos,
-                    metrics)) {
+  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
+                    atlas_indices, pos, metrics)) {
     return false;
   }
 
@@ -597,8 +599,8 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   RemoveEntries(parameters, ellipsis_width, buffer, atlas_indices, pos);
 
   // Add ellipsis string to the buffer.
-  if (!UpdateBuffer(word_enum, parameters, false, buffer, atlas_indices, pos,
-                    metrics)) {
+  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
+                    atlas_indices, pos, metrics)) {
     return false;
   }
 
