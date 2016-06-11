@@ -24,6 +24,7 @@ include_directories(${dependencies_freetype_cmake_dir})
 # Include harfbuzz header files used by FT_CONFIG_OPTION_USE_HARFBUZZ.
 include_directories(${dependencies_harfbuzz_distr_dir}/src)
 include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
+include_directories(${dependencies_stb_dir})
 
 # Include libpng to stbimage header file used by FT_CONFIG_OPTION_USE_PNG.
 include_directories(${dependencies_flatui_dir}/src/libpng_to_stbimage)
@@ -63,7 +64,8 @@ set(libfreetype_SRCS
     ${freetype_dir}/src/truetype/truetype.c
     ${freetype_dir}/src/cff/cff.c
     ${freetype_dir}/src/psnames/psnames.c
-    ${freetype_dir}/src/pshinter/pshinter.c)
+    ${freetype_dir}/src/pshinter/pshinter.c
+    ${dependencies_flatui_dir}/src/libpng_to_stbimage/pngshim.cpp)
 
 add_library(libfreetype ${libfreetype_SRCS})
 

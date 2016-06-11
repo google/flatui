@@ -117,7 +117,6 @@ set(flatui_SRCS
     src/glyph_cache.cpp
     src/hb_complex_font.cpp
     src/flatui_serialization.cpp
-    src/libpng_to_stbimage/pngshim.cpp
     src/script_table.cpp
     src/version.cpp)
 
