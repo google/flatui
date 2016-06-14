@@ -24,15 +24,24 @@ using mathfu::vec2i;
 
 /// @cond FLATUI_INTERNAL
 // A helper template class to access buffer data with padding.
-template <typename T>
+template <typename T, typename FundamentalType = T>
 class Grid {
  public:
   // Constructors.
-  Grid() : data_(nullptr), size_(mathfu::kZeros2i), padding_(0), stride_(0),
-           inverted_(false), p_(nullptr) {}
+  Grid()
+      : data_(nullptr),
+        size_(mathfu::kZeros2i),
+        padding_(0),
+        stride_(0),
+        inverted_(false),
+        p_(nullptr) {}
   Grid(T* data, const vec2i& size, int32_t padding, size_t stride)
-      : data_(data), size_(size), padding_(padding),
-        stride_(static_cast<int32_t>(stride)), inverted_(false), p_(nullptr) {}
+      : data_(data),
+        size_(size),
+        padding_(padding),
+        stride_(static_cast<int32_t>(stride)),
+        inverted_(false),
+        p_(nullptr) {}
 
   // Set up the grid with a buffer allocation.
   void SetSize(const vec2i& size, T initial_value) {
@@ -70,12 +79,13 @@ class Grid {
     auto p = pos - vec2i(padding_, padding_);
     if (inverted_) {
       if (!mathfu::InRange2D(p, mathfu::kZeros2i, size_)) {
-        return std::numeric_limits<T>::max();
+        return T(std::numeric_limits<FundamentalType>::max());
       }
-      return std::numeric_limits<T>::max() - data_[p.x() + p.y() * stride_];
+      return T(std::numeric_limits<FundamentalType>::max()) -
+             data_[p.x() + p.y() * stride_];
     } else {
       if (!mathfu::InRange2D(p, mathfu::kZeros2i, size_)) {
-        return std::numeric_limits<T>::min();
+        return T(std::numeric_limits<FundamentalType>::min());
       }
       return data_[p.x() + p.y() * stride_];
     }
@@ -88,9 +98,7 @@ class Grid {
   }
   bool get_invert() const { return inverted_; }
 
-  std::unique_ptr<std::vector<T>> get_buffer() {
-    return p_;
-  };
+  std::unique_ptr<std::vector<T>> get_buffer() { return p_; };
 
  protected:
   T* data_;
@@ -113,7 +121,7 @@ class Grid {
 // a bitmapped font. A bitmapped font would have to be rendered at much higher
 // resolution to achieve the same quality as provided here.
 //
-template <typename T>
+template <typename T, typename FundamentalType = T>
 class DistanceComputer {
  public:
   DistanceComputer() : any_distance_changed_(false) {}
@@ -124,7 +132,8 @@ class DistanceComputer {
   // the distance from the center of that pixel to the nearest boundary/edge,
   // signed so that pixels inside the boundary are negative and those outside
   // the boundary are positive.
-  void Compute(const Grid<T>& image, Grid<T>* dest, GlyphFlags flag) {
+  void Compute(const Grid<T, FundamentalType>& image,
+               Grid<T, FundamentalType>* dest, GlyphFlags flag) {
     auto original_size = image.GetOriginalSize();
     if (original_size.x() == 0 || original_size.y() == 0) {
       return;
@@ -148,7 +157,8 @@ class DistanceComputer {
 
     if (genearate_inner_distance) {
       // Flip the image & gradient, and recalculate a distance field.
-      Grid<T>& inverted_image = const_cast<Grid<T>&>(image);
+      Grid<T, FundamentalType>& inverted_image =
+          const_cast<Grid<T, FundamentalType>&>(image);
       auto invert = inverted_image.get_invert();
       inverted_image.invert(true, 0xff);
       gradients_.invert(true, mathfu::kZeros2f);
@@ -166,19 +176,20 @@ class DistanceComputer {
       for (auto x = 0; x < width; ++x) {
         auto pos = vec2i(x, y);
         // Don't return negative distances.
-        auto mid = static_cast<float>(
-            (std::numeric_limits<T>::max() + std::numeric_limits<T>::min()) /
-            2);
+        auto mid =
+            static_cast<float>((std::numeric_limits<FundamentalType>::max() +
+                                std::numeric_limits<FundamentalType>::min()) /
+                               2);
         auto value = distances_->Get(pos);
         if (genearate_inner_distance) {
           value = outer_distances_.Get(pos) - value;
         }
         const float kSDFMultiplier = -16.0f;
-        value =
-            mathfu::Clamp(value * kSDFMultiplier + mid,
-                          static_cast<float>(std::numeric_limits<T>::min()),
-                          static_cast<float>(std::numeric_limits<T>::max()));
-        destination_->Set(pos, static_cast<T>(value));
+        value = mathfu::Clamp(
+            value * kSDFMultiplier + mid,
+            static_cast<float>(std::numeric_limits<FundamentalType>::min()),
+            static_cast<float>(std::numeric_limits<FundamentalType>::max()));
+        destination_->Set(pos, T(static_cast<FundamentalType>(value)));
       }
     }
     return;
@@ -288,7 +299,6 @@ class DistanceComputer {
 
       // Propagate from top down, starting with the second row.
       for (auto y = 1; y < height; ++y) {
-
         // Propagate distances to the right.
         for (auto x = 0; x < width; ++x) {
           auto pos = vec2i(x, y);
@@ -380,11 +390,12 @@ class DistanceComputer {
     // distance to the edge.
     const auto length = vec_to_edge_pixel.Length();
     const auto dist =
-        length > 0.0f ?
+        length > 0.0f
+            ?
             // Estimate based on direction to edge (accurate for large vectors).
             ApproximateDistanceToEdge(value, vec_to_edge_pixel)
-                      :
-                      // Estimate based on local gradient only.
+            :
+            // Estimate based on local gradient only.
             ApproximateDistanceToEdge(value, gradients_.Get(pixel));
     return length + dist;
   }
@@ -397,9 +408,9 @@ class DistanceComputer {
   // Destination buffer.
   Grid<T>* destination_;
   // Local gradients in X and Y.
-  Grid<vec2> gradients_;
+  Grid<vec2, float> gradients_;
   // Current pixel distances in X and Y to edges.
-  Grid<vec2i> distances_to_edges_;
+  Grid<vec2i, int> distances_to_edges_;
   // Final distance values.
   Grid<float>* distances_;
   Grid<float> inner_distances_;
