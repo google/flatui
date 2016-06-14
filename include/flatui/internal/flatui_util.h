@@ -67,7 +67,7 @@ inline HashedId HashPointer(const void *ptr) {
   // case with pointers due to memory allocator implementations causing
   // higher and lower bits to be similar).
   // Knuth: "The Art of Computer Programming", section 6.4
-  auto hash = static_cast<HashedId>(reinterpret_cast<size_t>(ptr)) * 2654435761;
+  auto hash = static_cast<HashedId>(reinterpret_cast<size_t>(ptr) * 2654435761);
   assert(hash != kNullHash);
   return hash;
 }
