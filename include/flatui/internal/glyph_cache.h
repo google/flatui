@@ -103,7 +103,7 @@ struct GlyphCacheStats {
   int32_t row_flush_;  // Number of cache row flush happened.
   int32_t set_fail_;   // Occurance of cache look up failure.
                        // This would involve full cache flush.
-#endif // GLYPH_CACHE_STATS
+#endif                 // GLYPH_CACHE_STATS
 };
 
 // Class that includes glyph parameters.
@@ -303,8 +303,9 @@ class GlyphCacheRow {
   get_it_row_height_map() const {
     return it_row_height_map_;
   }
-  void set_it_row_height_map(const std::multimap<
-      int32_t, GlyphCacheEntry::iterator_row>::iterator it_row_height_map) {
+  void set_it_row_height_map(
+      const std::multimap<int32_t, GlyphCacheEntry::iterator_row>::iterator
+          it_row_height_map) {
     it_row_height_map_ = it_row_height_map;
   }
 
@@ -388,9 +389,7 @@ class GlyphCacheBufferBase {
   }
 
   // Getter/Setter of dirty state.
-  bool get_dirty_state() const {
-    return dirty_;
-  };
+  bool get_dirty_state() const { return dirty_; };
   void set_dirty_state(bool dirty) { dirty_ = dirty; }
 
   // Virtual functions to retrieve buffer parameters.
@@ -476,7 +475,7 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
 #ifdef GLYPH_CACHE_STATS
     LogInfo("Cached glyphs: new buffer is allocated.\nCurrent buffer size:%d",
             new_index + 1);
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
   }
 
   // Resolve the dirty state of the cache. If the cache has any dirty rect,
@@ -515,14 +514,14 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     InsertNewRow(index, 0, size_, list_row_.end());
   }
 
-  int32_t get_num_slices() const { return buffers_.size(); }
+  int32_t get_num_slices() const {
+    return static_cast<int32_t>(buffers_.size());
+  }
   uint8_t* get(int32_t slice) const {
     return reinterpret_cast<uint8_t*>(buffers_[slice].get());
   }
   int32_t get_element_size() const { return sizeof(T); }
-  fplbase::Texture* get_texture(int32_t slice) {
-    return &textures_[slice];
-  }
+  fplbase::Texture* get_texture(int32_t slice) { return &textures_[slice]; }
 
   fplbase::TextureFormat get_texture_format() {
     if (sizeof(T) == 4) {
@@ -556,7 +555,7 @@ class GlyphCache {
   // height: height of the glyph cache texture. Rounded up to power of 2.
   // max_slices: max number of slices in the cache.
   GlyphCache(const mathfu::vec2i& size, int32_t max_slices);
-  ~GlyphCache() {};
+  ~GlyphCache(){};
 
   // Look up a cached entries.
   // Return value: A pointer to a cached glyph entry.
@@ -600,7 +599,7 @@ class GlyphCache {
   uint32_t get_counter() const { return counter_; }
 
   // Debug API to show cache statistics.
-  const GlyphCacheStats &Status();
+  const GlyphCacheStats& Status();
 
   // Enable color glyph cache in the cache.
   void EnableColorGlyph();
@@ -627,7 +626,7 @@ class GlyphCache {
 
 #ifdef GLYPH_CACHE_STATS
   void ResetStats();
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
 
   // A time counter of the cache.
   // In each rendering cycle, the counter is incremented.
