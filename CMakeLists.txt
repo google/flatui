@@ -98,6 +98,13 @@ if(flatui_build_tests OR flatui_build_samples)
 add_subdirectory("${fpl_root}/fplbase" ${tmp_dir}/fplbase)
 endif()
 
+# Include motive.
+if(NOT TARGET motive)
+ set(motive_build_samples OFF CACHE BOOL "")
+ set(motive_build_tests OFF CACHE BOOL "")
+ add_subdirectory("${dependencies_motive_dir}" ${tmp_dir}/motive)
+endif()
+
 # flatui source files.
 set(flatui_SRCS
     include/flatui/flatui.h
@@ -128,7 +135,8 @@ if(use_pregenerated_headers)
 endif()
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
-
+include_directories(${dependencies_motive_dir}/include)
+include_directories(${dependencies_fplutil_dir}/libfplutil/include)
 include_directories(${dependencies_flatbuffers_dir}/include)
 
 # Generate source files for all FlatBuffers schema files under the schemas
@@ -182,7 +190,7 @@ add_dependencies(flatui flatui_generated_includes)
 add_dependencies(flatui fplbase_generated_includes)
 
 # Dependencies to libraries.
-target_link_libraries(flatui fplbase libfreetype libharfbuzz libunibreak)
+target_link_libraries(flatui fplbase libfreetype libharfbuzz libunibreak motive)
 
 # Additional flags for the target.
 mathfu_configure_flags(flatui)
