@@ -65,6 +65,7 @@ Shader* AssetManager::LoadShader(const char*) { return nullptr; }
 // async_loader.h
 AsyncLoader::AsyncLoader() {}
 AsyncLoader::~AsyncLoader() {}
+void AsyncLoader::Stop() {}
 
 // input.h
 Button fake_button_to_return;
