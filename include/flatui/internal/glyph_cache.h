@@ -471,7 +471,8 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     InsertNewRow(index, 0, size_, list_row_.end());
 
     // Allocate new texture.
-    textures_.emplace_back(nullptr, get_texture_format(), false);
+    textures_.emplace_back(nullptr, get_texture_format(),
+                           fplbase::kTextureFlagsNone);
 #ifdef GLYPH_CACHE_STATS
     LogInfo("Cached glyphs: new buffer is allocated.\nCurrent buffer size:%d",
             new_index + 1);

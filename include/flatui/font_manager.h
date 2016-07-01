@@ -867,7 +867,9 @@ class FontMetrics {
 class FontTexture : public fplbase::Texture {
  public:
   /// @brief The default constructor for a FontTexture.
-  FontTexture() : fplbase::Texture(nullptr, fplbase::kFormatLuminance, false) {}
+  FontTexture()
+      : fplbase::Texture(nullptr, fplbase::kFormatLuminance,
+                         fplbase::kTextureFlagsNone) {}
 
   /// @brief The destructor for FontTexture.
   ~FontTexture() {}
