@@ -29,7 +29,10 @@ typedef SSIZE_T ssize_t;
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
 
-#include "motive/engine.h"
+// Predeclarations.
+namespace motive {
+class MotiveEngine;
+}
 
 namespace flatui {
 
@@ -912,12 +915,11 @@ const float *Animatable(const std::string &id, const float *starting_values,
 /// version of StartAnimation().
 ///
 /// @param[in] id A string that uniquely identifies a motivator
-/// @param[in] target_time A MotiveTime representing the duration of the
-/// animation
+/// @param[in] target_time The duration of the animation, in seconds
 /// @param[in] target_value A float pointer to a mathfu::vector
 /// @param[in] dimensions An int representing the number of dimensions of the
 /// mathfu::vector
-void StartAnimation(const std::string &id, motive::MotiveTime target_time,
+void StartAnimation(const std::string &id, double target_time,
                     const float *target_values, int dimensions);
 
 }  // namespace details
@@ -951,8 +953,7 @@ T Animatable(std::string id, T starting_value) {
 template <typename T>
 void StartAnimation(std::string id, T target_value, double target_time) {
   details::StartAnimation(
-      id, static_cast<motive::MotiveTime>(target_time * kSecondsToMotiveTime),
-      details::FloatConverter<T>::ToFloatArray(target_value),
+      id, target_time, details::FloatConverter<T>::ToFloatArray(target_value),
       details::FloatConverter<T>::Dimension());
 }
 

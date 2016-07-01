@@ -19,7 +19,7 @@
 #include "flatui/internal/hb_complex_font.h"
 #include "flatui/internal/micro_edit.h"
 #include "fplbase/utilities.h"
-
+#include "motive/engine.h"
 #include "motive/init.h"
 
 using fplbase::Button;
@@ -853,12 +853,15 @@ class InternalState : public LayoutManager {
   }
 
   // Set the target value to which the motivator animates.
-  void StartAnimation(const std::string id, motive::MotiveTime target_time,
+  void StartAnimation(const std::string id, double target_time,
                       const float *target_values, int dimensions) {
     Anim *current = FindAnim(id);
     if (current) {
+      const motive::MotiveTime motive_target_time =
+          static_cast<motive::MotiveTime>(target_time * kSecondsToMotiveTime);
       motive::MotiveTarget1f targets[kMaxDimensions];
-      CreateMotiveTargets(target_values, dimensions, target_time, targets);
+      CreateMotiveTargets(target_values, dimensions, motive_target_time,
+                          targets);
       reinterpret_cast<motive::MotivatorNf *>(&current->motivator)
           ->SetTargets(targets);
     }
@@ -1603,7 +1606,7 @@ const float *Animatable(const std::string &id, const float *starting_values,
   return Gui()->Animatable(id, starting_values, dimensions);
 }
 
-void StartAnimation(const std::string &id, motive::MotiveTime target_time,
+void StartAnimation(const std::string &id, double target_time,
                     const float *target_values, int dimensions) {
   Gui()->StartAnimation(id, target_time, target_values, dimensions);
 }
