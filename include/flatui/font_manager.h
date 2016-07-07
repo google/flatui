@@ -17,6 +17,7 @@
 
 #include <set>
 #include "fplbase/renderer.h"
+#include "fplutil/mutex.h"
 #include "flatui/internal/distance_computer.h"
 #include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/flatui_util.h"
@@ -476,6 +477,7 @@ class FontManager {
   /// An index with kGlyphFormatsColor indicates that the slice is a multi
   /// channel buffer for color glyphs.
   fplbase::Texture *GetAtlasTexture(int32_t slice) {
+    fplutil::MutexLock lock(*cache_mutex_);
     if (!(slice & kGlyphFormatsColor)) {
       return glyph_cache_->get_monochrome_buffer()->get_texture(slice);
     } else {
@@ -736,6 +738,9 @@ class FontManager {
   // To avoid redundant initializations, the FontManager holds an instnce of the
   // class.
   DistanceComputer<uint8_t> sdf_computer_;
+
+  // Mutex guarding glyph cache's buffer access.
+  fplutil::Mutex *cache_mutex_;
 };
 
 /// @class FontMetrics
@@ -1090,7 +1095,7 @@ class FontBuffer {
   /// font_manager try to re-construct the buffer.
   void set_revision(uint32_t revision) { revision_ = revision; }
 
-  /// @return Returns the psas counter as an int32_t.
+  /// @return Returns the pass counter as an int32_t.
   ///
   /// @note In the render pass, this value is used if the user of the class
   /// needs to call `StartRenderPass()` to upload the atlas texture.

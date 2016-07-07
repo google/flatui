@@ -508,6 +508,7 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     list_row_.clear();
     map_row_.clear();
     dirty_ = false;
+    textures_.clear();
 
     // Create first (empty) row entry.
     InsertNewBuffer();

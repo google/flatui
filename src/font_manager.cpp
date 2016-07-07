@@ -170,7 +170,7 @@ FontManager::FontManager(const mathfu::vec2i &cache_size, int32_t max_slices) {
   glyph_cache_.reset(new GlyphCache(cache_size, max_slices));
 }
 
-FontManager::~FontManager() {}
+FontManager::~FontManager() { delete cache_mutex_; }
 
 void FontManager::Initialize() {
   // Initialize variables.
@@ -182,6 +182,7 @@ void FontManager::Initialize() {
   kerning_scale_ = kLineHeightDefault;
   current_font_ = nullptr;
   SetLocale(kDefaultLanguage);
+  cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
@@ -1002,6 +1003,9 @@ void FontManager::StartLayoutPass() {
 }
 
 void FontManager::UpdatePass(bool start_subpass) {
+  // Guard glyph cache buffer access.
+  fplutil::MutexLock lock(*cache_mutex_);
+
   // Increment a cycle counter in glyph cache.
   glyph_cache_->Update();
 
@@ -1178,6 +1182,10 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     GlyphKey new_key(glyph_info->GetFaceData()->font_id_, code_point, ysize,
                      flags);
     bool color_glyph = g->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
+
+    // Guard glyph cache buffer access.
+    cache_mutex_->Acquire();
+
     // Does not support SDF for color glyphs.
     if (flags & (kGlyphFlagsOuterSDF | kGlyphFlagsInnerSDF) &&
         g->bitmap.width && g->bitmap.rows && !color_glyph) {
@@ -1227,6 +1235,9 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
       }
     }
+
+    // Release the mutex.
+    cache_mutex_->Release();
 
     if (cache == nullptr) {
       // Glyph cache need to be flushed.

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <stdio.h>
+#include <thread>
 #include "src/flatui_serialization.cpp"
 #include "flatui/flatui_generated.h"
 #include "fplutil/main.h"
@@ -123,6 +124,44 @@ TEST_F(FlatUIRefCountTest, TestCacheEviction) {
     }
   }
   LogInfo("%d/%d buffers are invalid", invalid, num);
+}
+
+TEST_F(FlatUIRefCountTest, TestMultiThreadBufferCreation) {
+  auto buffergen_test = [this] {
+    char string2[] = "!";
+    char c = '!';
+    const int32_t num = 96;
+    flatui::FontBuffer *buffers[num];
+    for (int32_t i = 0; i < num; ++i) {
+      auto parameter = flatui::FontBufferParameters(
+          font_manager_->GetCurrentFont()->GetFontId(), flatui::HashId(string2),
+          static_cast<float>(48), mathfu::vec2i(0, 0),
+          flatui::kTextAlignmentLeft, flatui::kGlyphFlagsNone, true, true);
+      buffers[i] = font_manager_->GetBuffer(string2, 2, parameter);
+      snprintf(string2, 2, "%c", c);
+      c++;
+    }
+
+    // Verify the generated buffers.
+    for (int32_t i = 0; i < num; ++i) {
+      ASSERT_EQ(true, buffers[i]->Verify());
+    }
+  };
+
+  // Invoke StartRenderPass() API while generating FontBuffers.
+  for (auto i = 0; i < 10; i++) {
+    // Flush fontmanager.
+    font_manager_->FlushAndUpdate();
+
+    std::thread fontmanager_thread(buffergen_test);
+    for (auto j = 0; j < 10; j++) {
+      font_manager_->StartLayoutPass();
+      font_manager_->StartRenderPass();
+    }
+    fontmanager_thread.join();
+  }
+
+  // TODO: Add a verification of generated cache bitmap.
 }
 
 int main(int argc, char **argv) {
