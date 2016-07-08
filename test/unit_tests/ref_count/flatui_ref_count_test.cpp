@@ -40,7 +40,7 @@ class FlatUIRefCountTest : public ::testing::Test {
   virtual void SetUp() {
     // Initialize stuff.
     renderer_.Initialize(mathfu::vec2i(800, 600), "FlatUI test");
-    renderer_.SetCulling(fplbase::Renderer::kCullBack);
+    renderer_.SetCulling(fplbase::kCullingModeBack);
 
     // Instantiate a FontManager.
     int32_t width = 256;

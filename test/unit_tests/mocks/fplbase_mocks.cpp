@@ -90,10 +90,6 @@ void Mesh::RenderAAQuadAlongXNinePatch(const mathfu::vec3&, const mathfu::vec3&,
 // renderer.h
 Renderer::Renderer() {}
 Renderer::~Renderer() {}
-void Renderer::SetBlendMode(BlendMode) {}
-void Renderer::DepthTest(bool) {}
-void Renderer::ScissorOn(const mathfu::vec2i&, const mathfu::vec2i&) {}
-void Renderer::ScissorOff() {}
 
 // shader.h
 void Shader::Set(const Renderer&) const {}
