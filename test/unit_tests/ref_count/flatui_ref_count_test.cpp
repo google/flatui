@@ -126,6 +126,51 @@ TEST_F(FlatUIRefCountTest, TestCacheEviction) {
   LogInfo("%d/%d buffers are invalid", invalid, num);
 }
 
+// Create unique instances using FontBufferParameters::cache_id.
+// By setting the ID, FontManager is expected to create unique FontBuffer
+// instances.
+TEST_F(FlatUIRefCountTest, TestUniqueInstance) {
+  // Flush fontmanager.
+  font_manager_->FlushAndUpdate();
+
+  // Test no cached behavior.
+  const char string2[] = "!";
+  const int32_t num = 8;
+  flatui::FontBuffer *buffers[num];
+  std::set<flatui::FontBuffer *> buffer_set;
+  flatui::HashedId id = flatui::kNullHash;
+  for (int32_t i = 0; i < num; ++i) {
+    auto parameter = flatui::FontBufferParameters(
+        font_manager_->GetCurrentFont()->GetFontId(), flatui::HashId(string2),
+        static_cast<float>(48), mathfu::vec2i(0, 0), flatui::kTextAlignmentLeft,
+        flatui::kGlyphFlagsNone, true, true, flatui::kKerningScaleDefault,
+        flatui::kLineHeightDefault, id);
+    buffers[i] = font_manager_->GetBuffer(string2, 2, parameter);
+    // Update counters.
+    font_manager_->StartLayoutPass();
+    font_manager_->StartRenderPass();
+
+    // Verify all intances are unique.
+    ASSERT_EQ(buffer_set.end(), buffer_set.find(buffers[i]));
+    buffer_set.insert(buffers[i]);
+
+    // Update the ID.
+    id++;
+  }
+
+  int32_t invalid = 0;
+  for (int32_t i = 0; i < num; ++i) {
+    if (!buffers[i]->Verify()) {
+      invalid++;
+    }
+  }
+  LogInfo("%d/%d buffers are invalid", invalid, num);
+
+  for (int32_t i = 0; i < num; ++i) {
+    font_manager_->ReleaseBuffer(buffers[i]);
+  }
+}
+
 TEST_F(FlatUIRefCountTest, TestMultiThreadBufferCreation) {
   auto buffergen_test = [this] {
     char string2[] = "!";

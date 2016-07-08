@@ -166,6 +166,7 @@ class FontBufferParameters {
   FontBufferParameters()
       : font_id_(kNullHash),
         text_id_(kNullHash),
+        cache_id_(kNullHash),
         font_size_(0),
         size_(mathfu::kZeros2i),
         kerning_scale_(kKerningScaleDefault),
@@ -189,13 +190,23 @@ class FontBufferParameters {
   /// info.
   /// @param[in] ref_count A bool determining if the FontBuffer manages
   /// reference counts of the buffer and referencing glyph cache rows.
+  /// @param[in] kerning_scale A float value specifying a scale applied to the
+  /// kerning value between glyphs. Default value is kKerningScaleDefault(1.0).
+  /// @param[in] line_height_scale A float value specifying a scale applied to
+  /// the line height for each line break. Default value is
+  /// kLineHeightDefault(1.0).
+  /// @param[in] cache_id An extra ID to distinguish cache entry. For instance,
+  /// tweak the ID to have multiple FontBuffer instances with the same set of
+  /// parameters.
   FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
                        const mathfu::vec2i &size, TextAlignment text_alignment,
                        GlyphFlags glyph_flags, bool caret_info, bool ref_count,
                        float kerning_scale = kKerningScaleDefault,
-                       float line_height_scale = kLineHeightDefault) {
+                       float line_height_scale = kLineHeightDefault,
+                       HashedId cache_id = kNullHash) {
     font_id_ = font_id;
     text_id_ = text_id;
+    cache_id_ = cache_id;
     font_size_ = font_size;
     kerning_scale_ = kerning_scale;
     line_height_scale_ = line_height_scale;
@@ -221,7 +232,8 @@ class FontBufferParameters {
             size_.y() == other.size_.y() &&
             kerning_scale_ == other.kerning_scale_ &&
             line_height_scale_ == other.line_height_scale_ &&
-            flags_value_ == other.flags_value_);
+            flags_value_ == other.flags_value_ &&
+            cache_id_ == other.cache_id_);
   }
 
   /// @brief The hash function for FontBufferParameters.
@@ -239,11 +251,15 @@ class FontBufferParameters {
     value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
+    value = value ^ (std::hash<int32_t>()(cache_id_) << 1) >> 1;
     return value;
   }
 
   /// @return Returns a hash value of the text.
   HashedId get_text_id() const { return text_id_; }
+
+  /// @return Returns a cache id value.
+  HashedId get_cache_id() const { return cache_id_; }
 
   /// @return Returns the size value.
   const mathfu::vec2i &get_size() const { return size_; }
@@ -300,6 +316,8 @@ class FontBufferParameters {
  private:
   HashedId font_id_;
   HashedId text_id_;
+  // An extra ID to allow multiple FontBuffer entries in the cache.
+  HashedId cache_id_;
   float font_size_;
   mathfu::vec2i size_;
   float kerning_scale_;
@@ -583,22 +601,20 @@ class FontManager {
 
   // Helper function to add string information to the buffer.
   bool UpdateBuffer(const WordEnumerator &word_enum,
-                    const FontBufferParameters &parameters,
-                    int32_t base_line,
+                    const FontBufferParameters &parameters, int32_t base_line,
                     bool lastline_must_break, FontBuffer *buffer,
-                    std::vector<int32_t> *atlas_indices,
-                    mathfu::vec2 *pos, FontMetrics *metrics);
+                    std::vector<int32_t> *atlas_indices, mathfu::vec2 *pos,
+                    FontMetrics *metrics);
 
   // Helper function to remove entries from the buffer for specified width.
   void RemoveEntries(const FontBufferParameters &parameters,
                      uint32_t required_width, FontBuffer *buffer,
-                     std::vector<int32_t> *atlas_indices,
-                     mathfu::vec2 *pos);
+                     std::vector<int32_t> *atlas_indices, mathfu::vec2 *pos);
 
   // Helper function to append ellipsis to the buffer.
   bool AppendEllipsis(const WordEnumerator &word_enum,
-                      const FontBufferParameters &parameters,
-                      int32_t base_line, FontBuffer *buffer, mathfu::vec2 *pos,
+                      const FontBufferParameters &parameters, int32_t base_line,
+                      FontBuffer *buffer, mathfu::vec2 *pos,
                       std::vector<int32_t> *atlas_indices,
                       FontMetrics *metrics);
 

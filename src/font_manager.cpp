@@ -222,7 +222,8 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
                                    const FontBufferParameters &parameter) {
-  auto buffer = CreateBuffer(text, static_cast<uint32_t>(length), parameter);
+  auto buffer =
+      CreateBuffer(text, static_cast<uint32_t>(length), parameter);
   if (buffer == nullptr) {
     // Flush glyph cache & Upload a texture
     FlushAndUpdate();
@@ -460,8 +461,8 @@ void FontManager::ReleaseBuffer(FontBuffer *buffer) {
 
 bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                const FontBufferParameters &parameters,
-                               int32_t base_line,
-                               bool lastline_must_break, FontBuffer *buffer,
+                               int32_t base_line, bool lastline_must_break,
+                               FontBuffer *buffer,
                                std::vector<int32_t> *atlas_indices,
                                mathfu::vec2 *pos, FontMetrics *metrics) {
   auto ysize = static_cast<int32_t>(parameters.get_font_size());
@@ -518,8 +519,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       }
 
       // Expand buffer if necessary.
-      auto slice_idx = buffer->UpdateSliceIndex(cache->get_pos().z(),
-                                                atlas_indices);
+      auto slice_idx =
+          buffer->UpdateSliceIndex(cache->get_pos().z(), atlas_indices);
       buffer->AddIndices(slice_idx);
 
       // Construct intermediate vertices array.
@@ -639,8 +640,8 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     buffer->code_points_.pop_back();
 
     // Remove indices.
-    auto slice_idx = buffer->UpdateSliceIndex(cache->get_pos().z(),
-                                              atlas_indices);
+    auto slice_idx =
+        buffer->UpdateSliceIndex(cache->get_pos().z(), atlas_indices);
     auto indices = buffer->get_indices(slice_idx);
     for (size_t j = 0; j < kIndicesPerGlyph; ++j) {
       indices->pop_back();
@@ -713,8 +714,8 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
 
       // Reconstruct indices.
       // Expand buffer if necessary.
-      auto slice_idx = buffer->UpdateSliceIndex(cache->get_pos().z(),
-                                                &atlas_indices);
+      auto slice_idx =
+          buffer->UpdateSliceIndex(cache->get_pos().z(), &atlas_indices);
       buffer->AddIndices(slice_idx);
 
       // Update UV.
