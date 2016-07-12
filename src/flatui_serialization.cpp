@@ -228,12 +228,12 @@ void RegisterVoidData(const std::string& id, void* data) {
 // certain type.
 static bool HasDynamicData(const std::string& id,
                            flatui::DynamicData::DynamicDataType type) {
-  auto dynamic_data = GetDynamicData(id);
-  if (dynamic_data == nullptr) {
+  auto dynamic = GetDynamicData(id);
+  if (dynamic == nullptr) {
     return false;
   }
 
-  if (dynamic_data->type != type) {
+  if (dynamic->type != type) {
     return false;
   }
 
@@ -712,15 +712,15 @@ static void CreateEdit(const FlatUIElement* element,
     return;
   }
 
-  auto dynamic_data = GetDynamicData(element->id()->str());
-  std::string* edit_output = dynamic_data->data.string_data;
+  auto dynamic = GetDynamicData(element->id()->str());
+  std::string* edit_output = dynamic->data.string_data;
   EditStatus status;
 
   Event e =
       flatui::Edit(element->ysize(), fplbase::LoadVec2(element->size_2f()),
                    element->id()->c_str(), &status, edit_output);
   if (event_handler != nullptr) {
-    event_handler(e, element->id()->str(), dynamic_data);
+    event_handler(e, element->id()->str(), dynamic);
   }
 }
 
@@ -744,15 +744,15 @@ static void CreateCheckBox(const FlatUIElement* element, AssetManager* assetman,
     return;
   }
 
-  auto dynamic_data = GetDynamicData(element->id()->str());
-  bool* check_box_output = dynamic_data->data.bool_data;
+  auto dynamic = GetDynamicData(element->id()->str());
+  bool* check_box_output = dynamic->data.bool_data;
 
   Event e = flatui::CheckBox(texture_checked, texture_unchecked,
                              element->text()->c_str(), element->size(),
                              CreateMargin(element->margin()), check_box_output);
 
   if (event_handler != nullptr) {
-    event_handler(e, element->id()->str(), dynamic_data);
+    event_handler(e, element->id()->str(), dynamic);
   }
 }
 
@@ -777,15 +777,15 @@ static void CreateScrollBar(const FlatUIElement* element,
     return;
   }
 
-  auto dynamic_data = GetDynamicData(element->id()->str());
-  float* scroll_bar_output = dynamic_data->data.float_data;
+  auto dynamic = GetDynamicData(element->id()->str());
+  float* scroll_bar_output = dynamic->data.float_data;
 
   Event e = flatui::ScrollBar(
       texture_bg, texture_fg, fplbase::LoadVec2(element->size_2f()),
       element->bar_size(), element->id()->c_str(), scroll_bar_output);
 
   if (event_handler != nullptr) {
-    event_handler(e, element->id()->str(), dynamic_data);
+    event_handler(e, element->id()->str(), dynamic);
   }
 }
 
@@ -809,15 +809,15 @@ static void CreateSlider(const FlatUIElement* element, AssetManager* assetman,
     return;
   }
 
-  auto dynamic_data = GetDynamicData(element->id()->str());
-  float* slider_output = dynamic_data->data.float_data;
+  auto dynamic = GetDynamicData(element->id()->str());
+  float* slider_output = dynamic->data.float_data;
 
   Event e = flatui::Slider(
       texture_bar, texture_knob, fplbase::LoadVec2(element->size_2f()),
       element->bar_size(), element->id()->c_str(), slider_output);
 
   if (event_handler != nullptr) {
-    event_handler(e, element->id()->str(), dynamic_data);
+    event_handler(e, element->id()->str(), dynamic);
   }
 }
 

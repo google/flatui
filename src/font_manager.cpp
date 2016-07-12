@@ -1071,7 +1071,7 @@ uint32_t FontManager::LayoutText(const char *text, size_t length,
       assert(i > 0);
 
       // Calculate # of characters to rewind.
-      *rewind = length - glyph_info[i].cluster;
+      *rewind = static_cast<int32_t>(length - glyph_info[i].cluster);
       hb_buffer_set_length(harfbuzz_buf_, i);
       break;
     }
@@ -1128,7 +1128,8 @@ void FontManager::SetLocale(const char *locale) {
   locale_ = locale;
 
   // Retrieve harfbuzz's language info.
-  hb_language_ = hb_language_from_string(locale, strlen(locale));
+  hb_language_ =
+      hb_language_from_string(locale, static_cast<int>(strlen(locale)));
 }
 
 void FontManager::SetScript(const char *script) {
@@ -1215,8 +1216,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         // FreeType returns fixed sized bitmap for color glyphs.
         // Rescale bitmap here for better quality and performance.
         auto glyph_scale = static_cast<float>(ysize) / g->bitmap.rows;
-        int32_t new_width = g->bitmap.width * glyph_scale;
-        int32_t new_height = g->bitmap.rows * glyph_scale;
+        int32_t new_width = static_cast<int32_t>(g->bitmap.width * glyph_scale);
+        int32_t new_height = static_cast<int32_t>(g->bitmap.rows * glyph_scale);
         auto out_buffer = malloc(new_width * new_height * sizeof(uint32_t));
 
         // TODO: Evaluate generating mipmap for a dirty rect and see
@@ -1225,8 +1226,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
                            static_cast<uint8_t *>(out_buffer), new_width,
                            new_height, 0, sizeof(uint32_t));
         const float kEmojiBaseLine = 0.85f;
-        entry.set_offset(
-            vec2i(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine));
+        entry.set_offset(vec2i(
+            vec2(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine)));
         entry.set_size(vec2i(new_width, new_height));
         cache = glyph_cache_->Set(out_buffer, new_key, entry);
         free(out_buffer);
@@ -1270,12 +1271,12 @@ int32_t FontBuffer::UpdateSliceIndex(int32_t slice,
   if (slice & kGlyphFormatsColor) {
     // Offset the array indices.
     slice &= ~kGlyphFormatsColor;
-    slice = atlas_indices->size() - 1 - slice;
+    slice = static_cast<int32_t>(atlas_indices->size() - 1 - slice);
   }
   auto slice_idx = (*atlas_indices)[slice];
   if (slice_idx == kInvalidSliceIndex) {
     // Resize buffers.
-    slice_idx = (*atlas_indices)[slice] = slices_.size();
+    slice_idx = (*atlas_indices)[slice] = static_cast<int32_t>(slices_.size());
     ExpandGlyphBuffers(slice_idx + 1);
     slices_.push_back(original_slice_index);
   }
