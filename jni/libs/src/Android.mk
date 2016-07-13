@@ -30,6 +30,8 @@ LOCAL_ARM_MODE := arm
 
 LOCAL_EXPORT_C_INCLUDES := \
   $(DEPENDENCIES_FLATBUFFERS_DIR)/include \
+  $(DEPENDENCIES_FPLUTIL_DIR)/libfplutil/include \
+  $(DEPENDENCIES_MOTIVE_DIR)/include \
   $(FLATUI_DIR)/include \
   $(FLATUI_GENERATED_OUTPUT_DIR)
 
@@ -61,6 +63,7 @@ LOCAL_STATIC_LIBRARIES := \
   fplbase \
   flatbuffers \
   libmathfu \
+  libmotive \
   libfreetype \
   libharfbuzz \
   libunibreak
@@ -87,9 +90,11 @@ include $(BUILD_STATIC_LIBRARY)
 
 $(call import-add-path,$(DEPENDENCIES_FLATBUFFERS_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_MATHFU_DIR)/..)
+$(call import-add-path,$(DEPENDENCIES_MOTIVE_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
 
 $(call import-module,flatbuffers/android/jni)
 $(call import-module,mathfu/jni)
+$(call import-module,motive/jni)
 $(call import-module,fplbase/jni)
 

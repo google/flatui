@@ -50,6 +50,8 @@ DEPENDENCIES_HARFBUZZ_DIR?=$(THIRD_PARTY_ROOT)/harfbuzz
 DEPENDENCIES_LIBUNIBREAK_DIR?=$(THIRD_PARTY_ROOT)/libunibreak
 # Location of the MathFu library.
 DEPENDENCIES_MATHFU_DIR?=$(FPL_ROOT)/mathfu
+# Location of the motive library.
+DEPENDENCIES_MOTIVE_DIR?=$(FPL_ROOT)/motive
 # Location of the fplbase library.
 DEPENDENCIES_FPLBASE_DIR?=$(FPL_ROOT)/fplbase
 # Location of the Cardboard java library (required for fplbase)

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 APP_PLATFORM := android-15
-APP_ABI:=armeabi armeabi-v7a-hard mips x86 x86_64
+APP_ABI:=armeabi armeabi-v7a mips x86 x86_64
 APP_STL := c++_static
 APP_MODULES := main
 
