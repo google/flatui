@@ -222,8 +222,7 @@ void FontManager::SetRenderer(fplbase::Renderer &renderer) {
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
                                    const FontBufferParameters &parameter) {
-  auto buffer =
-      CreateBuffer(text, static_cast<uint32_t>(length), parameter);
+  auto buffer = CreateBuffer(text, static_cast<uint32_t>(length), parameter);
   if (buffer == nullptr) {
     // Flush glyph cache & Upload a texture
     FlushAndUpdate();
@@ -363,13 +362,12 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
             return nullptr;
           }
           // Update alignement after an ellipsis is appended.
-          buffer->UpdateLine(parameters, layout_direction_, pos.x(),
+          buffer->UpdateLine(parameters, layout_direction_,
                              lastline_must_break);
           break;
         }
         // Line break.
-        buffer->UpdateLine(parameters, layout_direction_,
-                           line_width / kFreeTypeUnit, lastline_must_break);
+        buffer->UpdateLine(parameters, layout_direction_, lastline_must_break);
         pos = new_pos;
 
         if (word_width > max_width) {
@@ -419,8 +417,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   }
 
   // Update the last line.
-  buffer->UpdateLine(parameters, layout_direction_, line_width / kFreeTypeUnit,
-                     true);
+  buffer->UpdateLine(parameters, layout_direction_, true);
 
   // Setup size.
   buffer->set_size(vec2i(max_line_width / kFreeTypeUnit, total_height));
@@ -1342,7 +1339,7 @@ void FontBuffer::AddWordBoundary(const FontBufferParameters &parameters) {
 
 void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
                             TextLayoutDirection layout_direction,
-                            int32_t line_width, bool last_line) {
+                            bool last_line) {
   // Update previous line layout if necessary.
   auto align = parameters.get_text_alignment() & ~kTextAlignmentJustify;
   auto justify = parameters.get_text_alignment() & kTextAlignmentJustify;
@@ -1356,6 +1353,17 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
                       // When we justify a text, the offset is increased for
                       // each word boundary by boundary_offset_change.
     auto boundary_offset_change = 0;
+
+    // Retrieve the line width from glyph's vertices.
+    const int32_t kEndPosOffset = 2;
+    auto it_start =
+        vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
+    auto it_end =
+        vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
+    auto start_pos = it_start->position_.data[0];
+    auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
+    auto line_width = end_pos - start_pos;
+
     if (justify && word_boundary_.size() > 1) {
       // With a justification, we add an offset for each word boundary.
       // For each word boundary (e.g. spaces), we stretch them slightly to align

@@ -36,7 +36,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
   // Initialize stuff.
   renderer.Initialize(vec2i(800, 600), "FlatUI test");
-  renderer.SetCulling(fplbase::kCullingModeBack);
+  renderer.SetCulling(fplbase::Renderer::kCullBack);
   input.Initialize();
 
   // Open OpenType font including the color emoji font.
@@ -198,6 +198,17 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             Label("This is the about window! すし!", 32);
             Label("You should only be able to click on the", 24);
             Label("about button above, not anywhere else", 20);
+
+            // Layout test with ellipsis.
+            flatui::SetTextEllipsis("...");
+            Label("The quick brown fox jumps over the lazy dog", 40,
+                  vec2(400, 100), flatui::kTextAlignmentCenter);
+            Label("US NATIONAL PARKS AND HISTORY", 40, vec2(400, 100),
+                  flatui::kTextAlignmentCenter);
+            Label("PARKS CANADA, PARCS CANADA", 40, vec2(400, 100),
+                  flatui::kTextAlignmentCenter);
+            Label("ONE", 40, vec2(400, 100),
+                  flatui::kTextAlignmentCenter);
           EndGroup();
         }
       EndGroup();

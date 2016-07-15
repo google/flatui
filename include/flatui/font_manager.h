@@ -1175,12 +1175,10 @@ class FontBuffer {
   /// buffer contents based on typography layout settings.
   ///
   /// @param[in] parameters Text layout parameters used to update the layout.
-  /// @param[in] line_width Current line width.
   /// @param[in] last_line Indicate if the line is the last line in the
   /// paragraph.
   void UpdateLine(const FontBufferParameters &parameters,
-                  TextLayoutDirection layout_direction, int32_t line_width,
-                  bool last_line);
+                  TextLayoutDirection layout_direction, bool last_line);
 
   /// @brief Sets the reference count of the buffer.
   void set_ref_count(uint32_t ref_count) { ref_count_ = ref_count; }
