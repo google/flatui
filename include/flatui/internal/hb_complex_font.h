@@ -51,6 +51,7 @@ class FaceData {
   FaceData()
       : face_(nullptr),
         font_id_(kNullHash),
+        system_font_(false),
         scale_(1 << kHbFixedPointPrecision) {}
 
   /// @brief The destructor for FaceData.
@@ -76,6 +77,10 @@ class FaceData {
   /// @var font_id_
   /// @brief Hashed value of the font face.
   HashedId font_id_;
+
+  /// @var system_font_
+  /// @brief A flag indicating the font is a system font.
+  bool system_font_;
 
   /// @var scale_
   ///

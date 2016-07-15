@@ -106,6 +106,15 @@ const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 /// @brief The default language used for a line break.
 const char *const kDefaultLanguage = "en";
 
+#ifdef __APPLE__
+/// @var kSystemFont
+///
+/// @brief A constant to spefify loading a system font. Used with OpenFont() and
+/// SelectFont() API
+/// Currently the system font is supported on iOS and macOS only.
+const char *const kSystemFont = ".SystemFont";
+#endif
+
 /// @enum TextLayoutDirection
 ///
 /// @brief Specify how to layout texts.
@@ -372,11 +381,12 @@ class FontManager {
   ///
   /// @param[in] font_name A C-string in UTF-8 format representing
   /// the name of the font.
-  ///
+  /// @param[in] by_name A flag indicates the font_name is a font name
+  /// (e.g. 'Helvetica') and the API will try to load the font by name.
   /// @return Returns `false` when failing to open font, such as
   /// a file open error, an invalid file format etc. Returns `true`
   /// if the font is opened successfully.
-  bool Open(const char *font_name);
+  bool Open(const char *font_name, bool by_name = false);
 
   /// @brief Discard a font face that has been opened via `Open()`.
   ///
@@ -687,6 +697,22 @@ class FontManager {
   /// rendering.
   void SetKerningScale(float kerning_scale) { kerning_scale_ = kerning_scale; }
 
+  /// @brief Open specified font by name and return a raw data.
+  /// Current implementation works on macOS/iOS.
+  /// @return Returns true if the font is opened successfully.
+  ///
+  /// @param[in] font_name A font name to load.
+  /// @param[out] dest A string that font data will be loaded into.
+  bool OpenFontByName(const char *font_name, std::string *dest);
+
+  /// @brief  Retrieve the system's font fallback list and all fonts in the list.
+  /// The implementation is platform specific.
+  bool OpenSystemFont();
+
+  /// @brief  Close all fonts in the system's font fallback list opened by
+  /// OpenSystemFont().
+  bool CloseSystemFont();
+
   // Renderer instance.
   fplbase::Renderer *renderer_;
 
@@ -757,6 +783,9 @@ class FontManager {
 
   // Mutex guarding glyph cache's buffer access.
   fplutil::Mutex *cache_mutex_;
+
+  // A font fallback list retrieved from the current system.
+  std::vector<std::string> system_fallback_list_;
 };
 
 /// @class FontMetrics

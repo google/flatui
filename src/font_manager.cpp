@@ -399,7 +399,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     // Add string information to the buffer.
     if (!UpdateBuffer(word_enum, parameters, base_line, lastline_must_break,
                       buffer.get(), &atlas_indices, &pos, &initial_metrics)) {
-      hb_buffer_clear_contents(harfbuzz_buf_);
       return nullptr;
     }
 
@@ -586,7 +585,6 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   // Dump current string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
                     atlas_indices, pos, metrics)) {
-    hb_buffer_clear_contents(harfbuzz_buf_);
     return false;
   }
 
@@ -605,7 +603,6 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   // Add ellipsis string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
                     atlas_indices, pos, metrics)) {
-    hb_buffer_clear_contents(harfbuzz_buf_);
     return false;
   }
 
@@ -900,7 +897,7 @@ bool FontManager::ExpandBuffer(int32_t width, int32_t height,
   return false;
 }
 
-bool FontManager::Open(const char *font_name) {
+bool FontManager::Open(const char *font_name, bool by_name) {
   auto it = map_faces_.find(font_name);
   if (it != map_faces_.end()) {
     // The font has been already opened.
@@ -913,11 +910,22 @@ bool FontManager::Open(const char *font_name) {
       map_faces_.insert(std::pair<std::string, std::unique_ptr<FaceData>>(
           font_name, std::unique_ptr<FaceData>(new FaceData)));
   auto face = insert.first->second.get();
+  face->font_id_ = HashId(font_name);
+
+  if (!strcmp(font_name, kSystemFont)) {
+    // Load system font.
+    face->system_font_ = true;
+    return OpenSystemFont();
+  }
 
   // Load the font file of assets.
-  if (!fplbase::LoadFile(font_name, &face->font_data_)) {
-    LogError("Can't load font resource: %s\n", font_name);
-    return false;
+  if (by_name || !fplbase::LoadFile(font_name, &face->font_data_)) {
+    // Fallback to open the specified font as a font name.
+    if (!OpenFontByName(font_name, &face->font_data_)) {
+      LogError("Can't load font resource: %s\n", font_name);
+      map_faces_.erase(insert.first);
+      return false;
+    }
   }
 
   // Open the font.
@@ -926,22 +934,16 @@ bool FontManager::Open(const char *font_name) {
       static_cast<FT_Long>(face->font_data_.size()), 0, &face->face_);
   if (err) {
     // Failed to open font.
-    LogError("Failed to initialize font:%s FT_Error:%d\n",
-             font_name, err);
+    LogError("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
+    map_faces_.erase(insert.first);
     return false;
   }
 
-  face->font_id_ = HashId(font_name);
-
   // Set first opened font as a default font.
   if (!face_initialized_) {
-    current_font_ = HbFont::Open(*face);
-    if (current_font_ == nullptr) {
-      // Failed to open font.
-      LogError("Failed to initialize harfbuzz layout information:%s\n",
-               font_name);
-      face->font_data_.clear();
-      FT_Done_Face(face->face_);
+    if (!SelectFont(font_name)) {
+      Close(font_name);
+      map_faces_.erase(insert.first);
       return false;
     }
   }
@@ -954,6 +956,11 @@ bool FontManager::Close(const char *font_name) {
   auto it = map_faces_.find(font_name);
   if (it == map_faces_.end()) {
     return false;
+  }
+
+  if (it->second->system_font_) {
+    // Close the system font.
+    CloseSystemFont();
   }
 
   // Clean up face instance data.
@@ -977,12 +984,18 @@ bool FontManager::SelectFont(const char *font_name) {
     LogError("SelectFont error: '%s'", font_name);
     return false;
   }
+
+  if (it->second->system_font_) {
+    // Select the system font.
+    return SelectFont(&font_name, 1);
+  }
+
   current_font_ = HbFont::Open(*it->second.get());
   return current_font_ != nullptr;
 }
 
 bool FontManager::SelectFont(const char *font_names[], int32_t count) {
-  if (count == 1) {
+  if (count == 1 && strcmp(font_names[0], kSystemFont)) {
     return SelectFont(font_names[0]);
   }
 
@@ -993,12 +1006,33 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
   if (current_font_ == nullptr) {
     std::vector<FaceData *> v;
     for (auto i = 0; i < count; ++i) {
-      auto it = map_faces_.find(font_names[i]);
-      if (it == map_faces_.end()) {
-        LogError("SelectFont error: '%s'", font_names[i]);
-        return false;
+      if (!strcmp(font_names[i], kSystemFont)) {
+        // Select the system font.
+        if (i != count - 1) {
+          LogInfo(
+              "SelectFont::kSystemFont would be in the last element of the "
+              "font list.");
+        }
+        // Add the system fonts to the list.
+        auto it = system_fallback_list_.begin();
+        auto end = system_fallback_list_.end();
+        while (it != end) {
+          auto font = map_faces_.find(it->c_str());
+          if (font == map_faces_.end()) {
+            LogError("SelectFont error: '%s'", it->c_str());
+            return false;
+          }
+          v.push_back(font->second.get());
+          it++;
+        }
+      } else {
+        auto it = map_faces_.find(font_names[i]);
+        if (it == map_faces_.end()) {
+          LogError("SelectFont error: '%s'", font_names[i]);
+          return false;
+        }
+        v.push_back(it->second.get());
       }
-      v.push_back(it->second.get());
     }
     current_font_ = HbComplexFont::Open(id, &v);
   }
@@ -1434,7 +1468,10 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 void FaceData::Close() {
   // Remove the font data associated to this face data.
   HbFont::Close(*this);
-  FT_Done_Face(face_);
+  if (face_) {
+    FT_Done_Face(face_);
+    face_ = nullptr;
+  }
   font_data_.clear();
 }
 

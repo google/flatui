@@ -118,6 +118,7 @@ set(flatui_SRCS
     include/flatui/internal/micro_edit.h
     include/flatui/version.h
     src/font_manager.cpp
+    src/font_systemfont.cpp
     src/micro_edit.cpp
     src/flatui.cpp
     src/flatui_common.cpp
