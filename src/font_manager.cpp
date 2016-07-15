@@ -351,9 +351,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
       if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
                                      static_cast<uint32_t>(size.x())) {
-        // Line break.
-        buffer->UpdateLine(parameters, layout_direction_,
-                           line_width / kFreeTypeUnit, lastline_must_break);
         auto new_pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = lastline_must_break;
@@ -365,9 +362,14 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
                               &pos, &atlas_indices, &initial_metrics)) {
             return nullptr;
           }
-
+          // Update alignement after an ellipsis is appended.
+          buffer->UpdateLine(parameters, layout_direction_, pos.x(),
+                             lastline_must_break);
           break;
         }
+        // Line break.
+        buffer->UpdateLine(parameters, layout_direction_,
+                           line_width / kFreeTypeUnit, lastline_must_break);
         pos = new_pos;
 
         if (word_width > max_width) {
