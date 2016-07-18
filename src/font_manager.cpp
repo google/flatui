@@ -900,6 +900,7 @@ bool FontManager::Open(const char *font_name) {
   auto it = map_faces_.find(font_name);
   if (it != map_faces_.end()) {
     // The font has been already opened.
+    LogInfo("Specified font '%s' is already opened.", font_name);
     return false;
   }
 
@@ -911,7 +912,7 @@ bool FontManager::Open(const char *font_name) {
 
   // Load the font file of assets.
   if (!fplbase::LoadFile(font_name, &face->font_data_)) {
-    LogInfo("Can't load font reource: %s\n", font_name);
+    LogError("Can't load font resource: %s\n", font_name);
     return false;
   }
 
@@ -921,7 +922,8 @@ bool FontManager::Open(const char *font_name) {
       static_cast<FT_Long>(face->font_data_.size()), 0, &face->face_);
   if (err) {
     // Failed to open font.
-    LogInfo("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
+    LogError("Failed to initialize font:%s FT_Error:%d\n",
+             font_name, err);
     return false;
   }
 
@@ -932,8 +934,8 @@ bool FontManager::Open(const char *font_name) {
     current_font_ = HbFont::Open(*face);
     if (current_font_ == nullptr) {
       // Failed to open font.
-      LogInfo("Failed to initialize harfbuzz layout information:%s\n",
-              font_name);
+      LogError("Failed to initialize harfbuzz layout information:%s\n",
+               font_name);
       face->font_data_.clear();
       FT_Done_Face(face->face_);
       return false;
@@ -968,6 +970,7 @@ bool FontManager::Close(const char *font_name) {
 bool FontManager::SelectFont(const char *font_name) {
   auto it = map_faces_.find(font_name);
   if (it == map_faces_.end()) {
+    LogError("SelectFont error: '%s'", font_name);
     return false;
   }
   current_font_ = HbFont::Open(*it->second.get());
@@ -988,6 +991,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
     for (auto i = 0; i < count; ++i) {
       auto it = map_faces_.find(font_names[i]);
       if (it == map_faces_.end()) {
+        LogError("SelectFont error: '%s'", font_names[i]);
         return false;
       }
       v.push_back(it->second.get());
@@ -1347,7 +1351,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     justify = false;
   }
 
-  if (justify || align != kTextAlignmentLeft) {
+  // Do nothing when the width of the text rect is not specified.
+  if ((justify || align != kTextAlignmentLeft) && parameters.get_size().x()) {
     // Adjust glyph positions.
     auto offset = 0;  // Offset to add for each glyph position.
                       // When we justify a text, the offset is increased for
