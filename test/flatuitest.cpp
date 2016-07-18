@@ -36,7 +36,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
   // Initialize stuff.
   renderer.Initialize(vec2i(800, 600), "FlatUI test");
-  renderer.SetCulling(fplbase::Renderer::kCullBack);
+  renderer.SetCulling(fplbase::kCullingModeBack);
   input.Initialize();
 
   // Open OpenType font including the color emoji font.
