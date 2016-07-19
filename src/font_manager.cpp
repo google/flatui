@@ -364,6 +364,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
           // Update alignement after an ellipsis is appended.
           buffer->UpdateLine(parameters, layout_direction_,
                              lastline_must_break);
+          hb_buffer_clear_contents(harfbuzz_buf_);
           break;
         }
         // Line break.
@@ -398,6 +399,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     // Add string information to the buffer.
     if (!UpdateBuffer(word_enum, parameters, base_line, lastline_must_break,
                       buffer.get(), &atlas_indices, &pos, &initial_metrics)) {
+      hb_buffer_clear_contents(harfbuzz_buf_);
       return nullptr;
     }
 
@@ -584,6 +586,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   // Dump current string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
                     atlas_indices, pos, metrics)) {
+    hb_buffer_clear_contents(harfbuzz_buf_);
     return false;
   }
 
@@ -602,6 +605,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   // Add ellipsis string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
                     atlas_indices, pos, metrics)) {
+    hb_buffer_clear_contents(harfbuzz_buf_);
     return false;
   }
 
