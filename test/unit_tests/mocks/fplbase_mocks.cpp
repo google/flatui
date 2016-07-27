@@ -97,6 +97,7 @@ void Shader::SetUniform(UniformHandle, const float*, size_t) {}
 UniformHandle Shader::FindUniform(const char*) { return 0; }
 
 // texture.h
+Texture::Texture(const char *, TextureFormat, TextureFlags) {};
 void Texture::Delete() {}
 void Texture::Load() {}
 void Texture::Finalize() {}

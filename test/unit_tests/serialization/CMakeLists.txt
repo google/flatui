@@ -62,6 +62,12 @@ if(NOT MSVC)
   find_package(Threads)
 endif()
 
+# Add required frameworks on OSX.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(CMAKE_EXE_LINKER_FLAGS
+    "-framework CoreFoundation -framework CoreGraphics -framework CoreText")
+endif()
+
 set(COMMON_LIBS "gtest;gmock;${CMAKE_THREAD_LIBS_INIT}")
 
 # Build test executable with mocks.
