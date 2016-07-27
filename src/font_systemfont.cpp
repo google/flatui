@@ -148,8 +148,8 @@ static bool CGFontToSFNT(CGFontRef font, std::string *data) {
 
 // Open specified font by name and return a raw data.
 // Current implementation works on macOS/iOS.
-static bool OpenFontByName(CFStringRef name, std::string *dest) {
 #ifdef __APPLE__
+static bool OpenFontByName(CFStringRef name, std::string *dest) {
   auto cgfont = CGFontCreateWithFontName(name);
   if (cgfont == nullptr) {
     CFRelease(name);
@@ -164,11 +164,8 @@ static bool OpenFontByName(CFStringRef name, std::string *dest) {
 
   CFRelease(cgfont);
   return true;
-#else   // __APPLE__
-  fplbase::LogInfo("OpenFontByName() not implemented on the platform.");
-  return false;
-#endif  // __APPLE__
 }
+#endif  // __APPLE__
 
 bool FontManager::OpenFontByName(const char *font_name, std::string *dest) {
 #ifdef __APPLE__
@@ -180,6 +177,8 @@ bool FontManager::OpenFontByName(const char *font_name, std::string *dest) {
 
   return ret;
 #else   // __APPLE__
+  (void)font_name;
+  (void)dest;
   fplbase::LogInfo("OpenFontByName() not implemented on the platform.");
   return false;
 #endif  // __APPLE__

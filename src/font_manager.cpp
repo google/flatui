@@ -912,11 +912,13 @@ bool FontManager::Open(const char *font_name, bool by_name) {
   auto face = insert.first->second.get();
   face->font_id_ = HashId(font_name);
 
-  if (!strcmp(font_name, kSystemFont)) {
+#ifdef __APPLE__
+  if (!strcmp(font_name, flatui::kSystemFont)) {
     // Load system font.
     face->system_font_ = true;
     return OpenSystemFont();
   }
+#endif
 
   // Load the font file of assets.
   if (by_name || !fplbase::LoadFile(font_name, &face->font_data_)) {
@@ -995,9 +997,11 @@ bool FontManager::SelectFont(const char *font_name) {
 }
 
 bool FontManager::SelectFont(const char *font_names[], int32_t count) {
+#ifdef __APPLE__
   if (count == 1 && strcmp(font_names[0], kSystemFont)) {
     return SelectFont(font_names[0]);
   }
+#endif
 
   // Check if the font is already created.
   auto id = HashId(font_names, count);
@@ -1006,6 +1010,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
   if (current_font_ == nullptr) {
     std::vector<FaceData *> v;
     for (auto i = 0; i < count; ++i) {
+#ifdef __APPLE__
       if (!strcmp(font_names[i], kSystemFont)) {
         // Select the system font.
         if (i != count - 1) {
@@ -1026,13 +1031,16 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
           it++;
         }
       } else {
+#endif
         auto it = map_faces_.find(font_names[i]);
         if (it == map_faces_.end()) {
           LogError("SelectFont error: '%s'", font_names[i]);
           return false;
         }
         v.push_back(it->second.get());
+#ifdef __APPLE__
       }
+#endif
     }
     current_font_ = HbComplexFont::Open(id, &v);
   }
