@@ -38,6 +38,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
   android_native_app_glue \
+  libfplutil \
   libfplutil_main \
   libfplutil_print
 
@@ -54,12 +55,10 @@ $(call import-add-path,$(FLATUI_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_MATHFU_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FLATBUFFERS_DIR)/..)
-$(call import-add-path,$(DEPENDENCIES_FPLUTIL_DIR))
 
 $(call import-module, android/native_app_glue)
 $(call import-module, flatbuffers/android/jni)
 $(call import-module, flatui/jni)
 $(call import-module, fplbase/jni)
-$(call import-module, libfplutil/jni)
 $(call import-module, libfplutil/jni/libs/googletest)
 $(call import-module, mathfu/jni)

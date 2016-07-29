@@ -119,5 +119,8 @@ bool LoadFile(const char*, std::string*) { return false; }
 bool LoeadWithIncludes(const char*, std::string*, std::string*) {
   return false;
 }
+#ifdef __ANDROID__
+JNIEnv *AndroidGetJNIEnv() { return nullptr; }
+#endif // __ANDROID__
 
 }  // fplbase

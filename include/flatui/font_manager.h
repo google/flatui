@@ -30,6 +30,10 @@
 #define FLATUI_USE_LIBUNIBREAK 1
 #endif  // !defined(FLATUI_USE_LIBUNIBREAK)
 
+#if defined(__APPLE__) || defined(__ANDROID__)
+#define FLATUI_SYSTEM_FONT (1)
+#endif  // defined(__APPLE__) || defined(__ANDROID__)
+
 // Forward decls for FreeType.
 typedef struct FT_LibraryRec_ *FT_Library;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
@@ -106,14 +110,14 @@ const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 /// @brief The default language used for a line break.
 const char *const kDefaultLanguage = "en";
 
-#ifdef __APPLE__
+#ifdef FLATUI_SYSTEM_FONT
 /// @var kSystemFont
 ///
 /// @brief A constant to spefify loading a system font. Used with OpenFont() and
 /// SelectFont() API
-/// Currently the system font is supported on iOS and macOS only.
+/// Currently the system font is supported on iOS/macOS and Android only.
 const char *const kSystemFont = ".SystemFont";
-#endif
+#endif  // FLATUI_SYSTEM_FONT
 
 /// @enum TextLayoutDirection
 ///
@@ -163,6 +167,20 @@ enum TextAlignment {
   kTextAlignmentLeftJustify = kTextAlignmentJustify,
   kTextAlignmentRightJustify = kTextAlignmentJustify | kTextAlignmentRight,
   kTextAlignmentCenterJustify = kTextAlignmentJustify | kTextAlignmentCenter,
+};
+
+/// @struct FontBufferParameters
+///
+/// @brief A struct holding font family information.
+const int32_t kFontIndexInvalid = -1;
+struct FontFamily {
+  FontFamily() : index_(kFontIndexInvalid) {};
+  std::string family_name_;  // Family name.
+  std::string file_name_;    // Font file name.
+  std::string lang_;         // Language.
+  int32_t index_;            // Index in a font collection.
+                             // kFontIndexInvalid indicates the font is not a
+                             // font collection.
 };
 
 /// @class FontBufferParameters
@@ -241,8 +259,7 @@ class FontBufferParameters {
             size_.y() == other.size_.y() &&
             kerning_scale_ == other.kerning_scale_ &&
             line_height_scale_ == other.line_height_scale_ &&
-            flags_value_ == other.flags_value_ &&
-            cache_id_ == other.cache_id_);
+            flags_value_ == other.flags_value_ && cache_id_ == other.cache_id_);
   }
 
   /// @brief The hash function for FontBufferParameters.
@@ -698,16 +715,27 @@ class FontManager {
   void SetKerningScale(float kerning_scale) { kerning_scale_ = kerning_scale; }
 
   /// @brief Open specified font by name and return a raw data.
-  /// Current implementation works on macOS/iOS.
+  /// Current implementation works on macOS/iOS and Android.
   /// @return Returns true if the font is opened successfully.
   ///
   /// @param[in] font_name A font name to load.
   /// @param[out] dest A string that font data will be loaded into.
   bool OpenFontByName(const char *font_name, std::string *dest);
 
-  /// @brief  Retrieve the system's font fallback list and all fonts in the list.
+  /// @brief  Retrieve the system's font fallback list and all fonts in the
+  /// list.
   /// The implementation is platform specific.
   bool OpenSystemFont();
+
+/// @brief Platform specific implementation of a system font access.
+#ifdef __APPLE__
+  bool OpenSystemFontApple();
+  bool CloseSystemFontApple();
+#endif  // __APPLE__
+#ifdef __ANDROID__
+  bool OpenSystemFontAndroid();
+  bool CloseSystemFontAndroid();
+#endif  // __ANDROID__
 
   /// @brief  Close all fonts in the system's font fallback list opened by
   /// OpenSystemFont().
@@ -785,7 +813,7 @@ class FontManager {
   fplutil::Mutex *cache_mutex_;
 
   // A font fallback list retrieved from the current system.
-  std::vector<std::string> system_fallback_list_;
+  std::vector<FontFamily> system_fallback_list_;
 };
 
 /// @class FontMetrics

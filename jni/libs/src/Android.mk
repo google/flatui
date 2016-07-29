@@ -62,6 +62,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_STATIC_LIBRARIES := \
   fplbase \
+  fplutil \
   flatbuffers \
   libmathfu \
   libmotive \
@@ -93,9 +94,11 @@ $(call import-add-path,$(DEPENDENCIES_FLATBUFFERS_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_MATHFU_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_MOTIVE_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
+$(call import-add-path,$(DEPENDENCIES_FPLUTIL_DIR)/libfplutil/..)
 
 $(call import-module,flatbuffers/android/jni)
 $(call import-module,mathfu/jni)
 $(call import-module,motive/jni)
 $(call import-module,fplbase/jni)
+$(call import-module,fplutil/libfplutil/jni)
 

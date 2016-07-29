@@ -912,7 +912,7 @@ bool FontManager::Open(const char *font_name, bool by_name) {
   auto face = insert.first->second.get();
   face->font_id_ = HashId(font_name);
 
-#ifdef __APPLE__
+#if defined(FLATUI_SYSTEM_FONT)
   if (!strcmp(font_name, flatui::kSystemFont)) {
     // Load system font.
     face->system_font_ = true;
@@ -997,7 +997,7 @@ bool FontManager::SelectFont(const char *font_name) {
 }
 
 bool FontManager::SelectFont(const char *font_names[], int32_t count) {
-#ifdef __APPLE__
+#if defined(FLATUI_SYSTEM_FONT)
   if (count == 1 && strcmp(font_names[0], kSystemFont)) {
     return SelectFont(font_names[0]);
   }
@@ -1010,7 +1010,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
   if (current_font_ == nullptr) {
     std::vector<FaceData *> v;
     for (auto i = 0; i < count; ++i) {
-#ifdef __APPLE__
+#if defined(FLATUI_SYSTEM_FONT)
       if (!strcmp(font_names[i], kSystemFont)) {
         // Select the system font.
         if (i != count - 1) {
@@ -1022,11 +1022,19 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
         auto it = system_fallback_list_.begin();
         auto end = system_fallback_list_.end();
         while (it != end) {
-          auto font = map_faces_.find(it->c_str());
+#ifdef __APPLE__
+          auto font = map_faces_.find(it->family_name_.c_str());
           if (font == map_faces_.end()) {
-            LogError("SelectFont error: '%s'", it->c_str());
+            LogError("SelectFont error: '%s'", it->family_name_.c_str());
             return false;
           }
+#else  // __APPLE__
+          auto font = map_faces_.find(it->file_name_.c_str());
+          if (font == map_faces_.end()) {
+            LogError("SelectFont error: '%s'", it->file_name_.c_str());
+            return false;
+          }
+#endif // __APPLE__
           v.push_back(font->second.get());
           it++;
         }
@@ -1038,7 +1046,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
           return false;
         }
         v.push_back(it->second.get());
-#ifdef __APPLE__
+#if defined(FLATUI_SYSTEM_FONT)
       }
 #endif
     }
