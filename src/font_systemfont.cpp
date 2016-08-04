@@ -15,6 +15,11 @@
 #include "precompiled.h"
 #include <chrono>
 #include <flatbuffers/flatbuffers.h>
+// FreeType headers.
+#include <ft2build.h>
+#include <freetype.h>
+
+// Platform specific headers.
 #ifdef __ANDROID__
 #include <fplutil/android_utils.h>
 #endif  // __ANDROID__
@@ -130,7 +135,7 @@ class XMLParser {
     // Add the node to the vector and the stack.
     sibling_node_ = kInvalidNode;
     node_stack_.push_back(nodes_.size());
-    nodes_.emplace_back(node);
+    nodes_.push_back(node);
   }
 
   void PopNode() {
@@ -275,7 +280,7 @@ static bool CGFontToSFNT(CGFontRef font, std::string* data) {
 }
 #endif  // __APPLE__
 
-// Open specified font by name and return a raw data.
+// Open specified font by name and return the raw data.
 // Current implementation works on macOS/iOS.
 #ifdef __APPLE__
 static bool OpenFontByName(CFStringRef name, std::string* dest) {
@@ -357,6 +362,8 @@ bool FontManager::OpenSystemFontApple() {
 
   // Iterate through the list and load each font.
   bool ret = false;
+  // A set used to check a font coverage while loading system fonts.
+  std::set<FT_ULong> font_coverage;
   const int32_t kStringLength = 128;
   char str[kStringLength];
 
@@ -377,12 +384,17 @@ bool FontManager::OpenSystemFontApple() {
       if (Open(str, true)) {
         // Retrieve the font size for an information.
         auto it = map_faces_.find(str);
-        total_size += it->second->font_data_.size();
+        if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
+          total_size += it->second->font_data_.size();
 
-        FontFamily family;
-        family.family_name_ = str;
-        system_fallback_list_.emplace_back(family);
-        ret = true;
+          FontFamily family;
+          family.family_name_ = str;
+          system_fallback_list_.push_back(family);
+          ret = true;
+        } else {
+          fplbase::LogInfo("Skipped loading font:%s", str);
+          Close(str);
+        }
       }
       CFRelease(font_name);
     }
@@ -458,6 +470,8 @@ bool FontManager::OpenSystemFontAndroid() {
 
   // Generates a font name list.
   auto ret = false;
+  // A set used to check a font coverage while loading system fonts.
+  std::set<FT_ULong> font_coverage;
 #ifdef FLATUI_PROFILE_SYSTEM_FONT_SEARCH
   auto start = std::chrono::system_clock::now();
 #endif  // FLATUI_PROFILE_SYSTEM_FONT_SEARCH
@@ -473,17 +487,22 @@ bool FontManager::OpenSystemFontAndroid() {
       if (Open(str.c_str())) {
         // Retrieve the font size for an information.
         auto it = map_faces_.find(str);
-        total_size += it->second->font_data_.size();
+        if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
+          total_size += it->second->font_data_.size();
 
-        FontFamily fnt;
-        fnt.file_name_ = str;
-        fnt.lang_ = family.attributes_["lang"];
-        auto idx = font.attributes_["index"];
-        if (idx.length()) {
-          fnt.index_ = atoi(idx.c_str());
+          FontFamily fnt;
+          fnt.file_name_ = str;
+          fnt.lang_ = family.attributes_["lang"];
+          auto idx = font.attributes_["index"];
+          if (idx.length()) {
+            fnt.index_ = atoi(idx.c_str());
+          }
+          system_fallback_list_.push_back(fnt);
+          ret = true;
+        } else {
+          fplbase::LogInfo("Skipped loading font:%s", str.c_str());
+          Close(str.c_str());
         }
-        system_fallback_list_.emplace_back(fnt);
-        ret = true;
       }
     }
     index = family.sibling_index_;
@@ -512,5 +531,20 @@ bool FontManager::CloseSystemFontAndroid() {
   return true;
 }
 #endif  // __ANDROID__
+
+bool FontManager::UpdateFontCoverage(FT_Face face,
+                                     std::set<FT_ULong>* font_coverage) {
+  auto has_new_coverage = false;
+  FT_UInt index = 0;
+  FT_ULong code = FT_Get_First_Char(face, &index);
+  while (index != 0) {
+    if (font_coverage->find(code) == font_coverage->end()) {
+      has_new_coverage = true;
+      font_coverage->insert(code);
+    }
+    code = FT_Get_Next_Char(face, code, &index);
+  }
+  return has_new_coverage;
+}
 
 }  // namespace flatui

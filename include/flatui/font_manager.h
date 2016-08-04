@@ -37,6 +37,7 @@
 // Forward decls for FreeType.
 typedef struct FT_LibraryRec_ *FT_Library;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
+typedef unsigned long  FT_ULong;
 
 // Forward decls for Harfbuzz.
 typedef const struct hb_language_impl_t *hb_language_t;
@@ -714,18 +715,26 @@ class FontManager {
   /// rendering.
   void SetKerningScale(float kerning_scale) { kerning_scale_ = kerning_scale; }
 
-  /// @brief Open specified font by name and return a raw data.
+  /// @brief Open specified font by name and return the raw data.
   /// Current implementation works on macOS/iOS and Android.
   /// @return Returns true if the font is opened successfully.
   ///
   /// @param[in] font_name A font name to load.
   /// @param[out] dest A string that font data will be loaded into.
+  /// @return true if the specified font is successfully opened.
   bool OpenFontByName(const char *font_name, std::string *dest);
 
   /// @brief  Retrieve the system's font fallback list and all fonts in the
   /// list.
   /// The implementation is platform specific.
+  /// @return true if the system font is successfully opened.
   bool OpenSystemFont();
+
+  /// @brief  Helper function to check font coverage.
+  /// @param[in] face FreeType face to check font coverage.
+  /// @param[out] font_coverage A set updated for the coverage map of the face.
+  /// @return true if the specified font has a new glyph entry.
+  bool UpdateFontCoverage(FT_Face face, std::set<FT_ULong> *font_coverage);
 
 /// @brief Platform specific implementation of a system font access.
 #ifdef __APPLE__
