@@ -897,7 +897,10 @@ bool FontManager::ExpandBuffer(int32_t width, int32_t height,
   return false;
 }
 
-bool FontManager::Open(const char *font_name, bool by_name) {
+bool FontManager::Open(const FontFamily &family) {
+  const char *font_name = family.get_name().c_str();
+  auto by_name = family.is_family_name();
+
   auto it = map_faces_.find(font_name);
   if (it != map_faces_.end()) {
     // The font has been already opened.
@@ -921,6 +924,12 @@ bool FontManager::Open(const char *font_name, bool by_name) {
 #endif
 
   // Load the font file of assets.
+  FT_Error err;
+  auto index = 0;
+  if (family.is_font_collection()) {
+    font_name = family.get_original_name().c_str();
+    index = family.get_index();
+  }
   if (by_name || !fplbase::LoadFile(font_name, &face->font_data_)) {
     // Fallback to open the specified font as a font name.
     if (!OpenFontByName(font_name, &face->font_data_)) {
@@ -929,11 +938,10 @@ bool FontManager::Open(const char *font_name, bool by_name) {
       return false;
     }
   }
-
   // Open the font.
-  FT_Error err = FT_New_Memory_Face(
+  err = FT_New_Memory_Face(
       *ft_, reinterpret_cast<const unsigned char *>(&face->font_data_[0]),
-      static_cast<FT_Long>(face->font_data_.size()), 0, &face->face_);
+      static_cast<FT_Long>(face->font_data_.size()), index, &face->face_);
   if (err) {
     // Failed to open font.
     LogError("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
@@ -954,8 +962,8 @@ bool FontManager::Open(const char *font_name, bool by_name) {
   return true;
 }
 
-bool FontManager::Close(const char *font_name) {
-  auto it = map_faces_.find(font_name);
+bool FontManager::Close(const FontFamily &family) {
+  auto it = map_faces_.find(family.get_name());
   if (it == map_faces_.end()) {
     return false;
   }
@@ -980,6 +988,16 @@ bool FontManager::Close(const char *font_name) {
   return true;
 }
 
+bool FontManager::Open(const char *font_name) {
+  FontFamily family(font_name);
+  return Open(family);
+}
+
+bool FontManager::Close(const char *font_name) {
+  FontFamily family(font_name);
+  return Close(family);
+}
+
 bool FontManager::SelectFont(const char *font_name) {
   auto it = map_faces_.find(font_name);
   if (it == map_faces_.end()) {
@@ -994,6 +1012,16 @@ bool FontManager::SelectFont(const char *font_name) {
 
   current_font_ = HbFont::Open(*it->second.get());
   return current_font_ != nullptr;
+}
+
+bool FontManager::SelectFont(const FontFamily *font_families, int32_t count) {
+  std::vector<std::string> vec;
+  std::vector<const char *> vec_name;
+  for (auto i = 0; i < count; ++i) {
+    vec.push_back(font_families[i].get_name());
+    vec_name.push_back(vec[i].c_str());
+  }
+  return SelectFont(&vec_name[0], count);
 }
 
 bool FontManager::SelectFont(const char *font_names[], int32_t count) {
@@ -1022,19 +1050,11 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
         auto it = system_fallback_list_.begin();
         auto end = system_fallback_list_.end();
         while (it != end) {
-#ifdef __APPLE__
-          auto font = map_faces_.find(it->family_name_.c_str());
+          auto font = map_faces_.find(it->get_name().c_str());
           if (font == map_faces_.end()) {
-            LogError("SelectFont error: '%s'", it->family_name_.c_str());
+            LogError("SelectFont error: '%s'", it->get_name().c_str());
             return false;
           }
-#else  // __APPLE__
-          auto font = map_faces_.find(it->file_name_.c_str());
-          if (font == map_faces_.end()) {
-            LogError("SelectFont error: '%s'", it->file_name_.c_str());
-            return false;
-          }
-#endif // __APPLE__
           v.push_back(font->second.get());
           it++;
         }

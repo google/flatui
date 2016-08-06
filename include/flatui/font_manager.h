@@ -16,6 +16,7 @@
 #define FONT_MANAGER_H
 
 #include <set>
+#include <sstream>
 #include "fplbase/renderer.h"
 #include "fplutil/mutex.h"
 #include "flatui/internal/distance_computer.h"
@@ -37,7 +38,7 @@
 // Forward decls for FreeType.
 typedef struct FT_LibraryRec_ *FT_Library;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
-typedef unsigned long  FT_ULong;
+typedef unsigned long FT_ULong;
 
 // Forward decls for Harfbuzz.
 typedef const struct hb_language_impl_t *hb_language_t;
@@ -172,16 +173,64 @@ enum TextAlignment {
 
 /// @struct FontBufferParameters
 ///
-/// @brief A struct holding font family information.
+/// @brief A class holding font family information. The class provides various
+/// ways to support fonts such as a font collection (multiple fonts in a file),
+/// referencing a font by a famly name etc.
 const int32_t kFontIndexInvalid = -1;
-struct FontFamily {
-  FontFamily() : index_(kFontIndexInvalid) {};
-  std::string family_name_;  // Family name.
-  std::string file_name_;    // Font file name.
-  std::string lang_;         // Language.
-  int32_t index_;            // Index in a font collection.
-                             // kFontIndexInvalid indicates the font is not a
-                             // font collection.
+class FontFamily {
+ public:
+  // Constructors
+  FontFamily(const std::string &name, int32_t index, const std::string &lang,
+             bool family_name)
+      : index_(index), family_name_(family_name) {
+    font_name_ = name;
+    lang_ = lang;
+    if (is_font_collection()) {
+      original_name_ = name;
+      font_name_ = CreateFontCollectionName(name);
+    }
+  };
+  FontFamily(const char *name, bool family_name)
+      : index_(kFontIndexInvalid), family_name_(family_name) {
+    font_name_ = name;
+  }
+  FontFamily(const char *name)
+      : index_(kFontIndexInvalid), family_name_(false) {
+    font_name_ = name;
+  };
+
+  // Accessors to members.
+  /// Font name. When the font is in a font collection file, the name is mangled
+  /// with a font collection index.
+  const std::string &get_name() const { return font_name_; }
+  /// Original font name. When family_name_ is set, it's treated as a family
+  /// name.
+  const std::string &get_original_name() const {
+    return original_name_.length() ? original_name_ : font_name_;
+  }
+  /// Language. The entry is ignored when opening a font.
+  const std::string &get_language() const { return lang_; }
+  /// Index in a font collection. kFontIndexInvalid indicates the font is not a
+  /// font collection.
+  int32_t get_index() const { return index_; }
+  /// Check if the font name is a family name.
+  bool is_family_name() const { return family_name_; }
+  /// Check if the font is in a font collection that holds multiple fonts in a
+  /// single file.
+  bool is_font_collection() const { return index_ != kFontIndexInvalid; }
+
+ protected:
+  std::string CreateFontCollectionName(const std::string &name) {
+    // Tweak the file name with a font collection index and return it.
+    std::stringstream ss;
+    ss << "#" << index_;
+    return name + ss.str();
+  }
+  std::string original_name_;
+  std::string font_name_;
+  std::string lang_;
+  int32_t index_;
+  bool family_name_;
 };
 
 /// @class FontBufferParameters
@@ -399,12 +448,20 @@ class FontManager {
   ///
   /// @param[in] font_name A C-string in UTF-8 format representing
   /// the name of the font.
-  /// @param[in] by_name A flag indicates the font_name is a font name
-  /// (e.g. 'Helvetica') and the API will try to load the font by name.
   /// @return Returns `false` when failing to open font, such as
   /// a file open error, an invalid file format etc. Returns `true`
   /// if the font is opened successfully.
-  bool Open(const char *font_name, bool by_name = false);
+  bool Open(const char *font_name);
+
+  /// @brief Open a font face, TTF, OT font by FontFamily structure.
+  /// Use this version of API when opening a font with a family name, with a
+  /// font collection index etc.
+  ///
+  /// @param[in] family A FontFamily structure indicating font parameters.
+  /// @return Returns `false` when failing to open font, such as
+  /// a file open error, an invalid file format etc. Returns `true`
+  /// if the font is opened successfully.
+  bool Open(const FontFamily &family);
 
   /// @brief Discard a font face that has been opened via `Open()`.
   ///
@@ -414,6 +471,15 @@ class FontManager {
   /// @return Returns `true` if the font was closed successfully. Otherwise
   /// it returns `false`.
   bool Close(const char *font_name);
+
+  /// @brief Discard a font face that has been opened via `Open()`.
+  /// Use this version of API when closeing a font opened with FontFamily.
+  ///
+  /// @param[in] family A FontFamily structure indicating font parameters.
+  ///
+  /// @return Returns `true` if the font was closed successfully. Otherwise
+  /// it returns `false`.
+  bool Close(const FontFamily &family);
 
   /// @brief Select the current font face. The font face will be used by a glyph
   /// rendering.
@@ -436,6 +502,16 @@ class FontManager {
   /// @return Returns `true` if the fonts were selected successfully. Otherwise
   /// it returns false.
   bool SelectFont(const char *font_names[], int32_t count);
+
+  /// @brief Select the current font faces with a fallback priority.
+  ///
+  /// @param[in] family_names An array of FontFamily structure that holds font
+  /// family information.
+  /// @param[in] count A count of font family in the array.
+  ///
+  /// @return Returns `true` if the fonts were selected successfully. Otherwise
+  /// it returns false.
+  bool SelectFont(const FontFamily family_names[], int32_t count);
 
   /// @brief Retrieve a texture with the given text.
   ///
@@ -744,6 +820,7 @@ class FontManager {
 #ifdef __ANDROID__
   bool OpenSystemFontAndroid();
   bool CloseSystemFontAndroid();
+  void ReorderSystemFonts(std::vector<FontFamily> *font_list) const;
 #endif  // __ANDROID__
 
   /// @brief  Close all fonts in the system's font fallback list opened by

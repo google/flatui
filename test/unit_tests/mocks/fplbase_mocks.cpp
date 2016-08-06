@@ -121,6 +121,7 @@ bool LoeadWithIncludes(const char*, std::string*, std::string*) {
 }
 #ifdef __ANDROID__
 JNIEnv *AndroidGetJNIEnv() { return nullptr; }
+int32_t AndroidGetApiLevel() { return 0; }
 #endif // __ANDROID__
 
 }  // fplbase

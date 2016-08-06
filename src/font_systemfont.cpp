@@ -381,14 +381,13 @@ bool FontManager::OpenSystemFontApple() {
     if (font_name != nullptr) {
       CFStringGetCString(font_name, str, kStringLength, kCFStringEncodingUTF8);
       fplbase::LogInfo("Font name: %s", str);
-      if (Open(str, true)) {
+      FontFamily family(str, true);
+      if (Open(family)) {
         // Retrieve the font size for an information.
         auto it = map_faces_.find(str);
         if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
           total_size += it->second->font_data_.size();
 
-          FontFamily family;
-          family.family_name_ = str;
           system_fallback_list_.push_back(family);
           ret = true;
         } else {
@@ -426,7 +425,7 @@ bool FontManager::CloseSystemFontApple() {
   auto it = system_fallback_list_.begin();
   auto end = system_fallback_list_.end();
   while (it != end) {
-    Close(it->family_name_.c_str());
+    Close(it->get_name().c_str());
     it++;
   }
   system_fallback_list_.clear();
@@ -440,6 +439,45 @@ bool FontManager::CloseSystemFontApple() {
 
 // A system font access implementation for Android.
 #ifdef __ANDROID__
+
+// Helper function to retrieve the system locale on Android.
+// We don't just use a locale set to flatui because it would have multiple
+// system locale with a priority in API 24~.
+static std::vector<std::string> GetSystemLocale() {
+  auto api_level = fplbase::AndroidGetApiLevel();
+  std::vector<std::string> vec;
+  if (api_level >= 24) {
+    JniObject locale_list = JniObject::CallStaticObjectMethod(
+        "android/os/LocaleList", "getDefault", "()Landroid/os/LocaleList;");
+    auto size = locale_list.CallIntMethod("size", "()I");
+    for (auto i = 0; i < size; ++i) {
+      JniObject locale =
+          locale_list.CallObjectMethod("get", "(I)Ljava/util/Locale;", i);
+      auto lang =
+          locale.CallStringMethod("getLanguage", "()Ljava/lang/String;");
+      auto script =
+          locale.CallStringMethod("getScript", "()Ljava/lang/String;");
+      if (script.length()) {
+        lang += "-" + script;
+      }
+
+      vec.push_back(lang);
+      fplbase::LogInfo("System locale:%s", lang.c_str());
+    }
+  } else {
+    JniObject locale = JniObject::CallStaticObjectMethod(
+        "java/util/Locale", "getDefault", "()Ljava/util/Locale;");
+    auto lang = locale.CallStringMethod("getLanguage", "()Ljava/lang/String;");
+    auto script = locale.CallStringMethod("getScript", "()Ljava/lang/String;");
+    if (script.length()) {
+      lang += "-" + script;
+    }
+    vec.push_back(lang);
+    fplbase::LogInfo("System locale:%s", lang.c_str());
+  }
+  return vec;
+}
+
 bool FontManager::OpenSystemFontAndroid() {
   const char* filename = "/system/etc/fonts.xml";
   std::string file;
@@ -477,35 +515,48 @@ bool FontManager::OpenSystemFontAndroid() {
 #endif  // FLATUI_PROFILE_SYSTEM_FONT_SEARCH
   auto total_size = 0;
   const char* kSystemFontFolder = "/system/fonts/";
+  std::vector<FontFamily> font_list;
+
+  // Generate font fallback list.
   while (index != kInvalidNode) {
     XMLNode family = nodes[index];
     if (family.child_index_ != kInvalidNode) {
       XMLNode font = nodes[family.child_index_];
 
       std::string str = kSystemFontFolder + font.text_;
-      fplbase::LogInfo("Font name: %s", str.c_str());
-      if (Open(str.c_str())) {
-        // Retrieve the font size for an information.
-        auto it = map_faces_.find(str);
-        if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
-          total_size += it->second->font_data_.size();
-
-          FontFamily fnt;
-          fnt.file_name_ = str;
-          fnt.lang_ = family.attributes_["lang"];
-          auto idx = font.attributes_["index"];
-          if (idx.length()) {
-            fnt.index_ = atoi(idx.c_str());
-          }
-          system_fallback_list_.push_back(fnt);
-          ret = true;
-        } else {
-          fplbase::LogInfo("Skipped loading font:%s", str.c_str());
-          Close(str.c_str());
-        }
+      auto idx = font.attributes_["index"];
+      auto font_index = kFontIndexInvalid;
+      if (idx.length()) {
+        font_index = atoi(idx.c_str());
       }
+      FontFamily fnt(str, font_index, family.attributes_["lang"], false);
+      font_list.push_back(fnt);
     }
     index = family.sibling_index_;
+  }
+
+  // Reorder system fonts based on the system locale setting.
+  ReorderSystemFonts(&font_list);
+
+  // Load fonts.
+  auto font_it = font_list.begin();
+  auto font_end = font_list.end();
+  while (font_it != font_end) {
+    fplbase::LogInfo("Loading font name: %s", font_it->get_name().c_str());
+    if (Open(*font_it)) {
+      // Retrieve the font size for an information.
+      auto face = map_faces_.find(font_it->get_name());
+      if (UpdateFontCoverage(face->second->face_, &font_coverage)) {
+        total_size += face->second->font_data_.size();
+        system_fallback_list_.push_back(std::move(*font_it));
+        ret = true;
+      } else {
+        fplbase::LogInfo("Skipped loading font: %s",
+                         font_it->get_name().c_str());
+        Close(*font_it);
+      }
+    }
+    font_it++;
   }
 #ifdef FLATUI_PROFILE_SYSTEM_FONT_SEARCH
   auto end = std::chrono::system_clock::now();
@@ -520,11 +571,36 @@ bool FontManager::OpenSystemFontAndroid() {
   return ret;
 }
 
+void FontManager::ReorderSystemFonts(std::vector<FontFamily> *font_list) const {
+  // Re-order the list based on the system locale setting.
+  auto locale = GetSystemLocale();
+  auto it = locale.rbegin();
+  auto end = locale.rend();
+  while (it != end) {
+    auto font_it = font_list->begin();
+    auto font_end = font_list->end();
+    while (font_it != font_end) {
+      if (font_it->get_language().compare(0, it->length(), *it) == 0) {
+        // Found a font with a priority locale in the fallback list. Bring the
+        // font to the top of the list.
+        auto font = std::move(*font_it);
+        fplbase::LogInfo("Found a priority font: %s",
+                         font.get_language().c_str());
+        font_list->erase(font_it);
+        font_list->insert(font_list->begin(), std::move(font));
+        break;
+      }
+      font_it++;
+    }
+    it++;
+  }
+}
+
 bool FontManager::CloseSystemFontAndroid() {
   auto it = system_fallback_list_.begin();
   auto end = system_fallback_list_.end();
   while (it != end) {
-    Close(it->file_name_.c_str());
+    Close(it->get_name().c_str());
     it++;
   }
   system_fallback_list_.clear();
