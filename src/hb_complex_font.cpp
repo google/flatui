@@ -107,7 +107,8 @@ const GlyphInfo *HbComplexFont::GetGlyphInfo(uint32_t code_point) {
 int32_t HbComplexFont::GetBaseLine(int32_t size) {
   // Return a baseline in the first prioritized font.
   auto face = faces_[0];
-  int32_t base_line = size * face->face_->ascender / face->face_->units_per_EM;
+  int32_t unit_per_em = face->face_->ascender - face->face_->descender;
+  int32_t base_line = size * face->face_->ascender / unit_per_em;
   if (base_line > size) {
     base_line = size;
   }
@@ -306,8 +307,9 @@ void HbFont::Close(const FaceData &face) {
 }
 
 int32_t HbFont::GetBaseLine(int32_t size) {
-  int32_t base_line = size * glyph_info_.GetFtFace()->ascender /
-                      glyph_info_.GetFtFace()->units_per_EM;
+  int32_t unit_per_em =
+      glyph_info_.GetFtFace()->ascender - glyph_info_.GetFtFace()->descender;
+  int32_t base_line = size * glyph_info_.GetFtFace()->ascender / unit_per_em;
   if (base_line > size) {
     base_line = size;
   }
