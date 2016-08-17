@@ -1434,14 +1434,17 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     auto boundary_offset_change = 0;
 
     // Retrieve the line width from glyph's vertices.
-    const int32_t kEndPosOffset = 2;
-    auto it_start =
-        vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
-    auto it_end =
-        vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
-    auto start_pos = it_start->position_.data[0];
-    auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
-    auto line_width = end_pos - start_pos;
+    auto line_width = 0;
+    if (vertices_.size()) {
+      const int32_t kEndPosOffset = 2;
+      auto it_start =
+      vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
+      auto it_end =
+      vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
+      auto start_pos = it_start->position_.data[0];
+      auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
+      line_width = end_pos - start_pos;
+    }
 
     if (justify && word_boundary_.size() > 1) {
       // With a justification, we add an offset for each word boundary.
