@@ -209,6 +209,29 @@ TEST_F(FlatUIRefCountTest, TestMultiThreadBufferCreation) {
   // TODO: Add a verification of generated cache bitmap.
 }
 
+TEST_F(FlatUIRefCountTest, TestEmptyString) {
+  // Create a FontBuffer.
+  auto string = "Test string";
+  auto empty_string = "";
+  auto parameter = flatui::FontBufferParameters(
+      font_manager_->GetCurrentFont()->GetFontId(), flatui::HashId(string),
+      static_cast<float>(48), mathfu::vec2i(300, 100),
+      flatui::kTextAlignmentCenter, flatui::kGlyphFlagsNone, true, false);
+  auto buffer = font_manager_->GetBuffer(string, strlen(string), parameter);
+  (void)buffer;
+
+  // Create another FontBuffer with an empty string and check if it's an empty
+  // buffer.
+  auto parameter_empty = flatui::FontBufferParameters(
+      font_manager_->GetCurrentFont()->GetFontId(),
+      flatui::HashId(empty_string), static_cast<float>(48),
+      mathfu::vec2i(300, 100), flatui::kTextAlignmentCenter,
+      flatui::kGlyphFlagsNone, true, false);
+  auto buffer_empty = font_manager_->GetBuffer(
+      empty_string, strlen(empty_string), parameter_empty);
+  ASSERT_EQ(0, static_cast<int32_t>(buffer_empty->get_vertices()->size()));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

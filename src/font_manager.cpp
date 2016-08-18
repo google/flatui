@@ -282,8 +282,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   std::unique_ptr<FontBuffer> buffer(new FontBuffer(length, caret_info));
 
   // Retrieve word breaking information using libunibreak.
+  wordbreak_info_.resize(length);
   if (length) {
-    wordbreak_info_.resize(length);
     set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text), length,
                         language_.c_str(), &wordbreak_info_[0]);
   }
