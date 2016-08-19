@@ -286,18 +286,13 @@ static bool CGFontToSFNT(CGFontRef font, std::string* data) {
 static bool OpenFontByName(CFStringRef name, std::string* dest) {
   auto cgfont = CGFontCreateWithFontName(name);
   if (cgfont == nullptr) {
-    CFRelease(name);
     return false;
   }
 
   // Load the font file of assets.
-  if (!CGFontToSFNT(cgfont, dest)) {
-    LogInfo("Can't load font reource: %s\n", name);
-    return false;
-  }
-
+  auto ret = CGFontToSFNT(cgfont, dest);
   CFRelease(cgfont);
-  return true;
+  return ret;
 }
 #endif  // __APPLE__
 
@@ -307,8 +302,10 @@ bool FontManager::OpenFontByName(const char* font_name, std::string* dest) {
   auto name = CFStringCreateWithCString(kCFAllocatorDefault, font_name,
                                         kCFStringEncodingUTF8);
   bool ret = flatui::OpenFontByName(name, dest);
+  if (!ret) {
+    LogInfo("Can't load font resource: %s\n", font_name);
+  }
   CFRelease(name);
-
   return ret;
 #else   // __APPLE__
   (void)font_name;
