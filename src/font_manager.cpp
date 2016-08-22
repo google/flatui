@@ -905,7 +905,7 @@ bool FontManager::Open(const FontFamily &family) {
   if (it != map_faces_.end()) {
     // The font has been already opened.
     LogInfo("Specified font '%s' is already opened.", font_name);
-    return false;
+    return true;
   }
 
   // Insert the created entry to the hash map.
