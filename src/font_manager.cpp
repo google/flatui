@@ -181,6 +181,7 @@ void FontManager::Initialize() {
   line_height_scale_ = kLineHeightDefault;
   kerning_scale_ = kLineHeightDefault;
   current_font_ = nullptr;
+  version_ = &FontVersion();
   SetLocale(kDefaultLanguage);
   cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
 

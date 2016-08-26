@@ -19,6 +19,7 @@
 #include <sstream>
 #include "fplbase/renderer.h"
 #include "fplutil/mutex.h"
+#include "flatui/version.h"
 #include "flatui/internal/distance_computer.h"
 #include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/flatui_util.h"
@@ -900,6 +901,8 @@ class FontManager {
 
   // A font fallback list retrieved from the current system.
   std::vector<FontFamily> system_fallback_list_;
+
+  const FlatUIVersion *version_;
 };
 
 /// @class FontMetrics

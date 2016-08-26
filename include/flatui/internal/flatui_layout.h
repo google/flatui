@@ -31,6 +31,7 @@
 #define FPL_FLATUI_LAYOUT_H
 
 #include "flatui/flatui.h"
+#include "flatui/version.h"
 #include "flatui/internal/flatui_util.h"
 
 namespace flatui {
@@ -117,7 +118,8 @@ class LayoutManager : public Group {
       : Group(kDirVertical, kAlignLeft, 0, 0),
         layout_pass_(true),
         canvas_size_(canvas_size),
-        virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION) {
+        virtual_resolution_(FLATUI_DEFAULT_VIRTUAL_RESOLUTION),
+        version_(&MainVersion()) {
     SetScale();
   }
 
@@ -388,6 +390,7 @@ class LayoutManager : public Group {
   vec2i canvas_size_;
   float virtual_resolution_;
   float pixel_scale_;
+  const FlatUIVersion *version_;
 };
 
 }  // namespace flatui

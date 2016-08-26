@@ -97,8 +97,7 @@ class InternalState : public LayoutManager {
         default_focus_element_(kElementIndexInvalid),
         gamepad_event(kEventHover),
         latest_event_(kEventNone),
-        latest_event_element_idx_(0),
-        version_(&Version()) {
+        latest_event_element_idx_(0) {
     bool flush_pointer_capture = true;
     // Cache the state of multiple pointers, so we have to do less work per
     // interactive element.
@@ -1264,7 +1263,7 @@ class InternalState : public LayoutManager {
   }
 
   // Return the version of the FlatUI Library
-  const FlatUiVersion *GetFlatUiVersion() const { return version_; }
+  const FlatUIVersion *GetFlatUIVersion() const { return version_; }
 
  private:
   vec2i GetPointerDelta() { return pointer_delta_[0]; }
@@ -1372,8 +1371,6 @@ class InternalState : public LayoutManager {
     // HashMap for storing animations.
     std::unordered_map<std::string, Anim> animations;
   } persistent_;
-
-  const FlatUiVersion *version_;
 
   // Disable copy constructor.
   InternalState(const InternalState &);
@@ -1597,7 +1594,7 @@ void SetGlobalListener(
   Gui()->SetGlobalListener(callback);
 }
 
-const FlatUiVersion *GetFlatUiVersion() { return Gui()->GetFlatUiVersion(); }
+const FlatUIVersion *GetFlatUIVersion() { return Gui()->GetFlatUIVersion(); }
 
 namespace details {
 

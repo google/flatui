@@ -821,7 +821,7 @@ static void CreateSlider(const FlatUIElement* element, AssetManager* assetman,
   }
 }
 
-// Helper function to map from FlatUiElement's enum to a FlatUi function.
+// Helper function to map from FlatUIElement's enum to a FlatUI function.
 static void MapElement(const FlatUIElement* element, AssetManager* assetman,
                        FlatUIHandler event_handler) {
   if (!CheckElements(element, RequiredFields(element))) {
