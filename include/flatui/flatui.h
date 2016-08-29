@@ -853,7 +853,7 @@ void SetGlobalListener(
     const std::function<void(HashedId id, Event event)> &callback);
 
 // Returns the version of the FlatUI Library.
-const FlatUiVersion *GetFlatUiVersion();
+const FlatUIVersion *GetFlatUIVersion();
 
 /// @brief Enables depth testing, when needed for rendering a UI in 3D.
 ///

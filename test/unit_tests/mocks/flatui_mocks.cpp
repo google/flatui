@@ -140,8 +140,8 @@ bool IsLastEventPointerType() { return false; }
 
 void SetGlobalListener(const std::function<void(HashedId, Event)>&) {}
 
-FlatUiVersion fake_version;
-const FlatUiVersion* GetFlatUiVersion() { return &fake_version; }
+FlatUIVersion fake_version;
+const FlatUIVersion* GetFlatUIVersion() { return &fake_version; }
 
 void SetDepthTest(bool) {}
 
