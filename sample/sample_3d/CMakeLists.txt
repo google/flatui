@@ -21,4 +21,4 @@ mathfu_configure_flags(flatuisample_3d)
 target_link_libraries(flatuisample_3d fplbase flatui)
 
 # FlatUI postprocess
-flatui_post_process(flatuisample_3d "sample_3d")
+flatui_post_process(flatuisample_3d "sample")
