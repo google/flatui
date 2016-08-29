@@ -21,4 +21,4 @@ mathfu_configure_flags(flatuianim)
 target_link_libraries(flatuianim fplbase flatui)
 
 # FlatUI postprocess
-flatui_post_process(flatuianim "anim_sample")
+flatui_post_process(flatuianim "sample")
