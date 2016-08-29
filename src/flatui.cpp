@@ -462,6 +462,28 @@ class InternalState : public LayoutManager {
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
   }
 
+  void AttributedLabel(
+      const char *text, float ysize, const mathfu::vec2 &label_size,
+      const char *id, TextAlignment alignment, const char *tag,
+      std::function<size_t(const char *text,
+                           flatui::FontBufferParameters *params,
+                           mathfu::vec2 *pos)> attribute_callback) {
+    // Set text color.
+    renderer_.set_color(text_color_);
+
+    auto physical_label_size = VirtualToPhysical(label_size);
+    auto size = VirtualToPhysical(vec2(0, ysize));
+    auto parameter = FontBufferParameters(
+        fontman_.GetCurrentFont()->GetFontId(), HashId(text),
+        static_cast<float>(size.y()), physical_label_size, alignment,
+        glyph_flags_, false, false, text_kerning_scale_,
+        text_line_height_scale_, HashId(id));
+    auto buffer = fontman_.GetAttributedBuffer(text, strlen(text), parameter,
+                                               tag, attribute_callback);
+    assert(buffer);
+    Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
+  }
+
   void DrawFontBuffer(const FontBuffer &buffer, const vec2 &pos,
                       const mathfu::vec4 &clip_rect, bool use_sdf,
                       bool render_outer_color) {
@@ -510,11 +532,13 @@ class InternalState : public LayoutManager {
       const fplbase::Attribute kFormat[] = {
           fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
       auto indices = buffer.get_indices(static_cast<int32_t>(i));
-      Mesh::RenderArray(
-          Mesh::kTriangles, static_cast<int>(indices->size()), kFormat,
-          sizeof(FontVertex),
-          reinterpret_cast<const char *>(buffer.get_vertices()->data()),
-          indices->data());
+      if (indices->size()) {
+        Mesh::RenderArray(
+            Mesh::kTriangles, static_cast<int>(indices->size()), kFormat,
+            sizeof(FontVertex),
+            reinterpret_cast<const char *>(buffer.get_vertices()->data()),
+            indices->data());
+      }
     }
   }
 
@@ -1253,7 +1277,7 @@ class InternalState : public LayoutManager {
   void SetTextKerningScale(float scale) { text_kerning_scale_ = scale; }
 
   // Set ellipsis characters used in the text rendering.
-  void SetTextEllipsis(const char* ellipsis) {
+  void SetTextEllipsis(const char *ellipsis) {
     fontman_.SetTextEllipsis(ellipsis);
   }
 
@@ -1432,6 +1456,15 @@ void Label(const char *text, float font_size, const vec2 &size,
   Gui()->Label(text, font_size, size, alignment);
 }
 
+void AttributedLabel(
+    const char *text, float ysize, const mathfu::vec2 &label_size,
+    const char *id, TextAlignment alignment, const char *tag,
+    std::function<size_t(const char *text, flatui::FontBufferParameters *params,
+                         mathfu::vec2 *pos)> attribute_callback) {
+  Gui()->AttributedLabel(text, ysize, label_size, id, alignment, tag,
+                         attribute_callback);
+}
+
 Event Edit(float ysize, const mathfu::vec2 &size, const char *id,
            EditStatus *status, std::string *string) {
   return Gui()->Edit(ysize, size, kTextAlignmentLeft, id, status, string);
@@ -1512,9 +1545,7 @@ void SetTextLineHeightScale(float scale) {
 
 void SetTextKerningScale(float scale) { Gui()->SetTextKerningScale(scale); }
 
-void SetTextEllipsis(const char* ellipsis) {
-  Gui()->SetTextEllipsis(ellipsis);
-}
+void SetTextEllipsis(const char *ellipsis) { Gui()->SetTextEllipsis(ellipsis); }
 
 Event CheckEvent() { return Gui()->CheckEvent(false); }
 Event CheckEvent(bool check_dragevent_only) {

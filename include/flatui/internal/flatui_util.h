@@ -36,6 +36,28 @@ static HashedId kNullHash = 0;
 /// @brief An initial value of hash calculation.
 static HashedId kInitialHashValue = 0x84222325;
 
+/// @brief Hash a UTF8 string with a length into a `HashId`.
+///
+/// @warning This function asserts if the `id` collides with `kNullHash`.
+/// If you hit this assert, you will need to change your `id`.
+///
+/// @param[in] id A UTF8 string representing the ID to hash.
+/// @param[in] length a length of the string.
+///
+/// @return Returns the HashId corresponding to the `id`.
+inline HashedId HashId(const char *id, int32_t length,
+                       HashedId hash = kInitialHashValue) {
+  // A quick good hash, from:
+  // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+  for (auto i = 0; i < length; ++i) {
+    hash = (hash ^ static_cast<uint8_t>(*id++)) * 0x000001b3;
+  }
+  // We use kNullHash for special checks, so make sure it doesn't collide.
+  // If you hit this assert, sorry, please change your id :)
+  assert(hash != kNullHash);
+  return hash;
+}
+
 /// @brief Hash a C-string into a `HashId`.
 ///
 /// @warning This function asserts if the `id` collides with `kNullHash`.
@@ -45,13 +67,8 @@ static HashedId kInitialHashValue = 0x84222325;
 ///
 /// @return Returns the HashId corresponding to the `id`.
 inline HashedId HashId(const char *id, HashedId hash = kInitialHashValue) {
-  // A quick good hash, from:
-  // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-  while (*id) hash = (hash ^ static_cast<uint8_t>(*id++)) * 0x000001b3;
-  // We use kNullHash for special checks, so make sure it doesn't collide.
-  // If you hit this assert, sorry, please change your id :)
-  assert(hash != kNullHash);
-  return hash;
+  auto length = strlen(id);
+  return HashId(id, length, hash);
 }
 
 /// @brief Hash a pointer to an object, of which there is guaranteed to be only

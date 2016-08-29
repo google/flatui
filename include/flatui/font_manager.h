@@ -305,6 +305,9 @@ class FontBufferParameters {
   /// @return Returns `true` if the two FontBufferParameters are equal.
   /// Otherwise it returns `false`.
   bool operator==(const FontBufferParameters &other) const {
+    if (cache_id_ != kNullHash) {
+      return cache_id_ == other.cache_id_;
+    }
     return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
             font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
             size_.y() == other.size_.y() &&
@@ -320,15 +323,17 @@ class FontBufferParameters {
   ///
   /// @return Returns a `size_t` of the hash of the FontBufferParameters.
   size_t operator()(const FontBufferParameters &key) const {
-    // Note that font_id_ and text_id_ are already hashed values.
-    size_t value = (key.font_id_ ^ (key.text_id_ << 1)) >> 1;
-    value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
-    value = value ^ (std::hash<float>()(key.kerning_scale_) << 1) >> 1;
-    value = value ^ (std::hash<float>()(key.line_height_scale_) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.cache_id_) << 1) >> 1;
+    // Note that font_id_, text_id_ and cache_id_ are already hashed values.
+    size_t value = (key.cache_id_ << 1) >> 1;
+    if (key.cache_id_ == kNullHash) {
+      value = value ^ (key.font_id_ ^ (key.text_id_ << 1)) >> 1;
+      value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
+      value = value ^ (std::hash<float>()(key.kerning_scale_) << 1) >> 1;
+      value = value ^ (std::hash<float>()(key.line_height_scale_) << 1) >> 1;
+      value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
+      value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
+      value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
+    }
     return value;
   }
 
@@ -344,6 +349,9 @@ class FontBufferParameters {
                     rhs.flags_value_, rhs.size_.x(), rhs.size_.y(),
                     rhs.cache_id_);
   }
+
+  /// @return Returns a font hash id.
+  HashedId get_font_id() const { return font_id_; }
 
   /// @return Returns a hash value of the text.
   HashedId get_text_id() const { return text_id_; }
@@ -402,6 +410,12 @@ class FontBufferParameters {
       return size_.y() == 0 || size_.y() > font_size_;
     }
   }
+
+  /// @Brief Set font size.
+  void set_font_size(float size) { font_size_ = size; }
+
+  /// @Brief Set the size value.
+  void set_size(mathfu::vec2i &size) { size_ = size; }
 
  private:
   HashedId font_id_;
@@ -554,6 +568,12 @@ class FontManager {
   /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
   FontBuffer *GetBuffer(const char *text, size_t length,
                         const FontBufferParameters &parameters);
+
+  FontBuffer *GetAttributedBuffer(
+      const char *text, size_t length, const FontBufferParameters &parameters,
+      const char *tag_word,
+      std::function<size_t(const char *text, FontBufferParameters *params,
+                           mathfu::vec2 *pos)> attribute_callback);
 
   /// @brief Release the FonBuffer instance.
   /// If the FontBuffer is a reference counting buffer, the API decrements the
@@ -782,7 +802,21 @@ class FontManager {
   // Create FontBuffer with requested parameters.
   // The function may return nullptr if the glyph cache is full.
   FontBuffer *CreateBuffer(const char *text, uint32_t length,
-                           const FontBufferParameters &parameters);
+                           const FontBufferParameters &parameters,
+                           mathfu::vec2 *text_pos = nullptr);
+
+  // Check if the requested buffer already exist in the cache.
+  FontBuffer *FindBuffer(const FontBufferParameters &parameters);
+
+  // Fill in the FontBuffer with the given text.
+  FontBuffer *FillBuffer(const char *text, uint32_t length,
+                         const FontBufferParameters &parameters,
+                         FontBuffer *buffer, mathfu::vec2 *text_pos = nullptr);
+
+  // Append texts to existing buffer.
+  FontBuffer *AppendBuffer(const char *text, uint32_t length,
+                           const FontBufferParameters &parameters,
+                           FontBuffer *buffer, mathfu::vec2 *text_pos);
 
   // Update language related settings.
   void SetLanguageSettings();
@@ -900,6 +934,9 @@ class FontManager {
   static const ScriptInfo script_table_[];
   static const char *language_table_[];
   hb_language_t hb_language_;
+
+  // flag indicating it's appending a font buffer.
+  bool appending_buffer_;
 
   // Line height for a multi line text.
   float line_height_scale_;
@@ -1120,10 +1157,10 @@ class FontBuffer {
 
   /// @brief The default constructor for a FontBuffer.
   FontBuffer()
-      : revision_(0),
-        line_start_index_(0),
-        line_start_caret_index_(0),
+      : size_(mathfu::kZeros2i),
+        revision_(0),
         ref_count_(0),
+        has_ellipsis_(false),
         valid_(true) {}
 
   /// @brief The constructor for FontBuffer with a given buffer size.
@@ -1139,10 +1176,10 @@ class FontBuffer {
   /// Since it has a strong relationship to rendering positions, we store the
   /// caret position information in the FontBuffer.
   FontBuffer(uint32_t size, bool caret_info)
-      : revision_(0),
-        line_start_index_(0),
-        line_start_caret_index_(0),
+      : size_(mathfu::kZeros2i),
+        revision_(0),
         ref_count_(0),
+        has_ellipsis_(false),
         valid_(true) {
     code_points_.reserve(size);
     if (caret_info) {
@@ -1232,6 +1269,9 @@ class FontBuffer {
   /// @return Returns `true` if the FontBuffer contains any caret positions.
   /// If the caret positions array has 0 elements, it will return `false`.
   bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
+
+  /// @return Returns `true` if the FontBuffer has an ellipsis appended.
+  bool HasEllipsis() const { return has_ellipsis_; }
 
   /// @brief Return current glyph count stored in the buffer.
   int32_t get_glyph_count() const {
@@ -1380,6 +1420,13 @@ class FontBuffer {
     slices_.clear();
   }
 
+  void ClearTemporaryBuffer() {
+    word_boundary_.clear();
+    word_boundary_caret_.clear();
+    line_start_index_ = 0;
+    line_start_caret_index_ = 0;
+  }
+
   // Font metrics information.
   FontMetrics metrics_;
 
@@ -1405,10 +1452,15 @@ class FontBuffer {
   // can include multiple caret positions.
   std::vector<mathfu::vec2i> caret_positions_;
 
+  // Temporary buffers used while generating FontBuffer.
   // Word boundary information. This information is used only with a typography
   // layout with a justification.
-  std::vector<uint32_t> word_boundary_;
-  std::vector<uint32_t> word_boundary_caret_;
+  static std::vector<uint32_t> word_boundary_;
+  static std::vector<uint32_t> word_boundary_caret_;
+
+  // Start index of current line.
+  static uint32_t line_start_index_;
+  static uint32_t line_start_caret_index_;
 
   // Size of the string in pixels.
   mathfu::vec2i size_;
@@ -1421,12 +1473,11 @@ class FontBuffer {
   // Pass id. Each pass should have it's own texture atlas contents.
   int32_t pass_;
 
-  // Start index of current line.
-  uint32_t line_start_index_;
-  uint32_t line_start_caret_index_;
-
   // Reference count related variables.
   uint32_t ref_count_;
+
+  // A flag indicating if the font buffer has an ellipsis appended.
+  bool has_ellipsis_;
 
   // A flag indicating the FontBuffer's validity. When a FontBuffer is a
   // reference counting buffer and a glyph cache row which the buffer references

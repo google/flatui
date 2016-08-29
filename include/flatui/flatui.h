@@ -357,6 +357,29 @@ void Label(const char *text, float ysize, const mathfu::vec2 &size);
 void Label(const char *text, float ysize, const mathfu::vec2 &label_size,
            TextAlignment alignment);
 
+/// @brief Render an attributed label.
+///
+/// @param[in] text A C-string in UTF-8 format to be displayed as the label.
+/// @param[in] ysize A float containing the vertical size in virtual resolution.
+/// @param[in] id An id of the label.
+/// @param[in] alignment A text alignment in the label.
+/// @param[in] size The max size of the label in virtual resolution. A `0` for
+/// `size.y` indicates no height restriction. The API renders the whole text in
+/// the label in this case.
+/// @param[in] tag A tag string that triggers the lambda invocation when the
+/// tag matches while processing the text.
+/// @param[in] attribute_callback A lambda function that is invoked for each tag
+/// string in the given text.
+void AttributedLabel(const char *text, float ysize,
+                     const mathfu::vec2 &label_size,
+                     const char *id,
+                     TextAlignment alignment,
+                     const char * tag,
+                     std::function<size_t(const char *text,
+                                          FontBufferParameters *parameter,
+                                          mathfu::vec2 *pos)>
+                     attribute_callback);
+
 /// @brief Set the Label's text color.
 ///
 /// @param[in] color A vec4 representing the RGBA values that the text color
