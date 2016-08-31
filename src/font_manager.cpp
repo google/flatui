@@ -1081,9 +1081,12 @@ void FontManager::StartLayoutPass() {
   current_pass_ = 0;
 }
 
-void FontManager::UpdatePass(bool start_subpass) {
-  // Guard glyph cache buffer access.
-  fplutil::MutexLock lock(*cache_mutex_);
+bool FontManager::UpdatePass(bool start_subpass) {
+  // Guard glyph cache buffer access. Do nothing when the lock failed.
+  fplutil::MutexTryLock lock;
+  if (!lock.Try(*cache_mutex_)) {
+    return false;
+  }
 
   // Increment a cycle counter in glyph cache.
   glyph_cache_->Update();
@@ -1108,6 +1111,7 @@ void FontManager::UpdatePass(bool start_subpass) {
     // Reset pass.
     current_pass_ = kRenderPass;
   }
+  return true;
 }
 
 uint32_t FontManager::LayoutText(const char *text, size_t length,

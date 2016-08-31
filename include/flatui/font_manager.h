@@ -600,7 +600,8 @@ class FontManager {
   /// An index with kGlyphFormatsColor indicates that the slice is a multi
   /// channel buffer for color glyphs.
   fplbase::Texture *GetAtlasTexture(int32_t slice) {
-    fplutil::MutexLock lock(*cache_mutex_);
+    // Note: We don't need to lock cache_mutex_ because we're just returning
+    //       a GL texture in an array. No need to lock the GL thread.
     if (!(slice & kGlyphFormatsColor)) {
       return glyph_cache_->get_monochrome_buffer()->get_texture(slice);
     } else {
@@ -747,7 +748,10 @@ class FontManager {
   // the API uploads the current atlas texture, flushes cache and starts
   // a sub layout pass. Use the feature when the cache is full and needs to
   // flushed during a rendering pass.
-  void UpdatePass(bool start_subpass);
+  // Returns false if the API failed to acquire a mutex when it's running in
+  // multithreaded mode. In that case, make sure the caller invokes the API
+  // repeatedly.
+  bool UpdatePass(bool start_subpass);
 
   // Update UV value in the FontBuffer.
   // Returns nullptr if one of UV values couldn't be updated.
