@@ -38,12 +38,10 @@ namespace flatui {
 // In the codepoint cache,
 static const int32_t kCodepointCacheFlushThreshold = 64 * 1024;
 
-// Static member that keeps the HbFont instances.
-std::unordered_map<HashedId, std::unique_ptr<HbFont>> HbFont::map_fonts_;
-
-HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec) {
-  auto it = map_fonts_.find(id);
-  if (it != map_fonts_.end()) {
+HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec,
+                            HbFontCache *cache) {
+  auto it = cache->find(id);
+  if (it != cache->end()) {
     auto p = reinterpret_cast<HbComplexFont *>(it->second.get());
     if (p->codepoint_cache_.size() > kCodepointCacheFlushThreshold) {
       p->codepoint_cache_.clear();
@@ -54,7 +52,7 @@ HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec) {
   }
 
   // Insert the created entry to the hash map.
-  auto insert = map_fonts_.insert(std::pair<HashedId, std::unique_ptr<HbFont>>(
+  auto insert = cache->insert(std::pair<HashedId, std::unique_ptr<HbFont>>(
       id, std::unique_ptr<HbFont>(new HbComplexFont)));
   auto font = static_cast<HbComplexFont *>(insert.first->second.get());
   font->faces_ = *vec;
@@ -64,7 +62,7 @@ HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec) {
   auto face = (*vec)[0]->face_;
   font->harfbuzz_font_ = hb_ft_font_create(face, NULL);
   if (!font->harfbuzz_font_) {
-    map_fonts_.erase(insert.first);
+    cache->erase(insert.first);
     return nullptr;
   }
   // Override callbacks.
@@ -90,12 +88,12 @@ HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec) {
   return font;
 }
 
-void HbComplexFont::Close(HashedId id) {
-  auto it = map_fonts_.find(id);
-  if (it == map_fonts_.end()) {
+void HbComplexFont::Close(HashedId id, HbFontCache *cache) {
+  auto it = cache->find(id);
+  if (it == cache->end()) {
     return;
   }
-  map_fonts_.erase(it);
+  cache->erase(it);
 }
 
 const GlyphInfo *HbComplexFont::GetGlyphInfo(uint32_t code_point) {
@@ -267,15 +265,15 @@ hb_bool_t HbComplexFont::HbGetName(hb_font_t *font, void *font_data,
 
 HbFont::~HbFont() { hb_font_destroy(harfbuzz_font_); }
 
-HbFont *HbFont::Open(const FaceData &face) {
-  auto it = map_fonts_.find(face.font_id_);
-  if (it != map_fonts_.end()) {
+HbFont *HbFont::Open(const FaceData &face, HbFontCache *cache) {
+  auto it = cache->find(face.font_id_);
+  if (it != cache->end()) {
     // The font has been already opened.
     return it->second.get();
   }
 
   // Insert the created entry to the hash map.
-  auto insert = map_fonts_.insert(std::pair<HashedId, std::unique_ptr<HbFont>>(
+  auto insert = cache->insert(std::pair<HashedId, std::unique_ptr<HbFont>>(
       face.font_id_, std::unique_ptr<HbFont>(new HbFont)));
   auto font = insert.first->second.get();
   font->glyph_info_ = GlyphInfo(&face, 0);
@@ -283,27 +281,27 @@ HbFont *HbFont::Open(const FaceData &face) {
   // Create harfbuzz font information from freetype face.
   font->harfbuzz_font_ = hb_ft_font_create(face.face_, NULL);
   if (!font->harfbuzz_font_) {
-    map_fonts_.erase(insert.first);
+    cache->erase(insert.first);
     return nullptr;
   }
   return font;
 }
 
-HbFont *HbFont::Open(HashedId id) {
-  auto it = map_fonts_.find(id);
-  if (it != map_fonts_.end()) {
+HbFont *HbFont::Open(HashedId id, HbFontCache *cache) {
+  auto it = cache->find(id);
+  if (it != cache->end()) {
     // The font has been already opened.
     return it->second.get();
   }
   return nullptr;
 }
 
-void HbFont::Close(const FaceData &face) {
-  auto it = map_fonts_.find(face.font_id_);
-  if (it == map_fonts_.end()) {
+void HbFont::Close(const FaceData &face, HbFontCache *cache) {
+  auto it = cache->find(face.font_id_);
+  if (it == cache->end()) {
     return;
   }
-  map_fonts_.erase(it);
+  cache->erase(it);
 }
 
 int32_t HbFont::GetBaseLine(int32_t size) {

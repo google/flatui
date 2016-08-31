@@ -837,6 +837,9 @@ class FontManager {
   // Map that keeps opened face data instances.
   std::unordered_map<std::string, std::unique_ptr<FaceData>> map_faces_;
 
+  // Used to cache font instances. Refers to memory owned by map_faces_.
+  HbFontCache font_cache_;
+
   // Pointer to active font face instance.
   HbFont *current_font_;
 

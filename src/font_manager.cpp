@@ -975,6 +975,7 @@ bool FontManager::Close(const FontFamily &family) {
   }
 
   // Clean up face instance data.
+  HbFont::Close(*it->second, &font_cache_);
   it->second->Close();
 
   map_textures_.clear();
@@ -1011,7 +1012,7 @@ bool FontManager::SelectFont(const char *font_name) {
     return SelectFont(&font_name, 1);
   }
 
-  current_font_ = HbFont::Open(*it->second.get());
+  current_font_ = HbFont::Open(*it->second.get(), &font_cache_);
   return current_font_ != nullptr;
 }
 
@@ -1034,7 +1035,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
 
   // Check if the font is already created.
   auto id = HashId(font_names, count);
-  current_font_ = HbFont::Open(id);
+  current_font_ = HbFont::Open(id, &font_cache_);
 
   if (current_font_ == nullptr) {
     std::vector<FaceData *> v;
@@ -1071,7 +1072,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
       }
 #endif
     }
-    current_font_ = HbComplexFont::Open(id, &v);
+    current_font_ = HbComplexFont::Open(id, &v, &font_cache_);
   }
   return current_font_ != nullptr;
 }
@@ -1439,9 +1440,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     if (vertices_.size()) {
       const int32_t kEndPosOffset = 2;
       auto it_start =
-      vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
+          vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
       auto it_end =
-      vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
+          vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
       auto start_pos = it_start->position_.data[0];
       auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
       line_width = end_pos - start_pos;
@@ -1507,7 +1508,6 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
 void FaceData::Close() {
   // Remove the font data associated to this face data.
-  HbFont::Close(*this);
   if (face_) {
     FT_Done_Face(face_);
     face_ = nullptr;
