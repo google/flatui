@@ -121,6 +121,9 @@ class GlyphInfo {
   hb_codepoint_t code_point_;
 };
 
+class HbFont;
+typedef std::unordered_map<HashedId, std::unique_ptr<HbFont>> HbFontCache;
+
 /// @class HbFont
 ///
 /// @brief The class provides an interface to manage single FreeType font.
@@ -131,32 +134,35 @@ class HbFont {
   HbFont() : glyph_info_(nullptr, 0), harfbuzz_font_(nullptr) {}
   virtual ~HbFont();
 
-  /// @brief Create an instance of HbFont. If a HbFont with same FaceData has
-  ///        already been initialized, the API returns a pointer of the
-  ///        instance tracked in a cache.
+  /// @brief Create an instance of HbFont.
   ///
   /// @param[in] face A reference to FaceData. FreeType face referenced in the
   ///            structure needs to have been initialized.
+  /// @param cache If a HbFont with same FaceData has already been initialized,
+  ///        the API returns a pointer of the instance tracked in a cache.
   ///
   /// @return A pointer to HbFont associated with the FaceData data.
   ///         Return nullptr if a font class initialization failed.
-  static HbFont *Open(const FaceData &face);
+  static HbFont *Open(const FaceData &face, HbFontCache *cache);
 
   /// @brief Look up a font via hash ID.
   ///
   /// @param[in] id A hashed ID for a font.
+  /// @param cache If a HbFont with same FaceData has already been initialized,
+  ///        the API returns a pointer of the instance tracked in a cache.
   ///
   /// @return A pointer to HbFont associated with the FaceData data.
   ///         Return nullptr if a font instance has not been created.
-  static HbFont *Open(HashedId id);
+  static HbFont *Open(HashedId id, HbFontCache *HbFontCache);
 
   /// @brief Close the HbFont instance associated to FaceData instance.
   ///
   /// @param[in] face A reference to FaceData.
+  /// @param cache The cache of reusable fonts, from which it will be removed.
   ///
   /// @note The API closes all HbFont instances that refers the specified
   ///       FaceData.
-  static void Close(const FaceData &face);
+  static void Close(const FaceData &face, HbFontCache *cache);
 
   /// @brief Set pixel size to the font.
   ///
@@ -222,12 +228,6 @@ class HbFont {
                     uint32_t size);
   hb_position_t ToHbPosition(FT_Fixed fixed);
 
-  /// @var map_fonts_
-  ///
-  /// @brief A map that keeps font data opened via Open() API.
-  /// The map keeps HashedId of fonts as a key and store HbFont values.
-  static std::unordered_map<HashedId, std::unique_ptr<HbFont>> map_fonts_;
-
   /// @var harfbuzz_font_
   ///
   /// @brief harfbuzz's font information instance.
@@ -251,12 +251,16 @@ class HbComplexFont : public HbFont {
   ///
   /// @param[in] id A hashed ID for a font.
   /// @param[in] vec A vector that contains FaceData pointers.
-  static HbFont *Open(HashedId id, std::vector<FaceData *> *vec);
+  /// @param cache If a HbFont with same FaceData has already been initialized,
+  ///        the API returns a pointer of the instance tracked in a cache.
+  static HbFont *Open(HashedId id, std::vector<FaceData *> *vec,
+                      HbFontCache *cache);
 
   /// @brief Close the HbFont instance with specified ID.
   ///
   /// @param[in] id A hashed ID for a font.
-  static void Close(HashedId id);
+  /// @param cache The cache of reusable fonts, from which it will be removed.
+  static void Close(HashedId id, HbFontCache *cache);
 
   /// @brief Overriding virtual methods.
   void SetPixelSize(uint32_t size);
