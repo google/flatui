@@ -178,7 +178,7 @@ enum TextAlignment {
   kTextAlignmentCenterJustify = kTextAlignmentJustify | kTextAlignmentCenter,
 };
 
-/// @struct FontBufferParameters
+/// @struct FontFamily
 ///
 /// @brief A class holding font family information. The class provides various
 /// ways to support fonts such as a font collection (multiple fonts in a file),
@@ -455,6 +455,26 @@ class FontBufferParameters {
   };
 };
 
+/// @struct LinkInfo
+/// @brief HTML link href, and the location of the link text in FontBuffer.
+struct LinkInfo {
+  LinkInfo() : start_glyph_index(0), end_glyph_index(0) {}
+  LinkInfo(const std::string &link, int32_t start_glyph_index,
+           int32_t end_glyph_index)
+      : link(link),
+        start_glyph_index(start_glyph_index),
+        end_glyph_index(end_glyph_index) {}
+
+  /// Link address. If from HTML, this is the `href` text.
+  std::string link;
+
+  /// First glyph for the link text in the FontBuffer holding the rendered html.
+  int32_t start_glyph_index;
+
+  /// First glyph not in the link text in the FontBuffer.
+  int32_t end_glyph_index;
+};
+
 /// @class FontManager
 ///
 /// @brief FontManager manages font rendering with OpenGL utilizing freetype
@@ -583,12 +603,22 @@ class FontManager {
   FontBuffer *GetBuffer(const char *text, size_t length,
                         const FontBufferParameters &parameters);
 
-  FontBuffer *GetAttributedBuffer(
-      const char *text, size_t length, const FontBufferParameters &parameters,
-      const char *tag_word,
-      std::function<size_t(const char *text, FontBuffer *buffer,
-                           FontBufferParameters *params, mathfu::vec2 *pos)>
-          attribute_callback);
+  /// @brief Retrieve a vertex buffer for basic HTML rendering.
+  ///
+  /// @param[in] html A C-string in UTF-8 format with the HTML to be rendered.
+  /// Note that we support only a limited subset of HTML at the moment,
+  /// including anchors, paragraphs, and breaks.
+  /// @param[in] parameters The FontBufferParameters specifying the parameters
+  /// for the FontBuffer.
+  /// @param[out] links Receives information on where the anchor links are
+  /// located in the rendered FontBuffer, and the linked-to addresses.
+  ///
+  /// @return Returns `nullptr` if the HTML does not fit in the glyph cache.
+  ///  When this happens, caller may flush the glyph cache with
+  /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
+  FontBuffer *GetHtmlBuffer(const char *html,
+                            const FontBufferParameters &parameters,
+                            std::vector<LinkInfo> *links);
 
   /// @brief Release the FonBuffer instance.
   /// If the FontBuffer is a reference counting buffer, the API decrements the

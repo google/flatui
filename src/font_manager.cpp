@@ -24,6 +24,7 @@
 #include <hb-ot.h>
 
 #include "font_manager.h"
+#include "font_util.h"
 #include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 
@@ -74,6 +75,8 @@ uint32_t FontBuffer::line_start_caret_index_;
 // Constants.
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
+static const FontBufferAttributes kHtmlLinkAttributes(true, 0x0000FFFF);
+static const FontBufferAttributes kHtmlNormalAttributes(false, 0xFFFFFFFF);
 
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
@@ -254,13 +257,9 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
   return buffer;
 }
 
-FontBuffer *FontManager::GetAttributedBuffer(
-    const char *text, size_t length, const FontBufferParameters &parameters,
-    const char *tag_word,
-    std::function<size_t(const char *text, FontBuffer *buffer,
-                         FontBufferParameters *params, mathfu::vec2 *pos)>
-        attribute_callback) {
-
+FontBuffer *FontManager::GetHtmlBuffer(const char *html,
+                                       const FontBufferParameters &parameters,
+                                       std::vector<LinkInfo> *links) {
   {
     // Acquire cache mutex.
     fplutil::MutexLock lock(*cache_mutex_);
@@ -274,61 +273,54 @@ FontBuffer *FontManager::GetAttributedBuffer(
 
   if (parameters.get_cache_id() == kNullHash) {
     LogInfo(
-        "Note that an attirbuted FontBuffer needs to have unique cache ID"
+        "Note that an attributed FontBuffer needs to have unique cache ID"
         "to have correct linked list set up.");
   }
 
-  // Otherwise create new buffer.
-  FontBufferParameters params = parameters;
-  FontBuffer *buffer = nullptr;
-  auto str = std::string(text);
-  auto tag_length = strlen(tag_word);
-  size_t current_pos = 0;
-  size_t current_length = length;
-  mathfu::vec2 pos = mathfu::kZeros2f;
+  // Convert HTML into subsections that have the same formatting.
+  std::vector<HtmlSection> html_sections = ParseHtml(html);
 
   // Indicate that it is going to append multiple FontBuffer.
   appending_buffer_ = true;
 
-  do {
-    auto tag_pos = str.find(tag_word, current_pos);
-    if (tag_pos != current_pos) {
-      if (tag_pos == std::string::npos) {
-        // We don't have a tag any more. All remaining string is the length.
-        tag_pos = length;
-      }
-      auto s = str.c_str() + current_pos;
-      current_length = tag_pos - current_pos;
-      if (buffer == nullptr) {
-        buffer = CreateBuffer(s, current_length, params, &pos);
-      } else {
-        // Acquire cache mutex.
-        fplutil::MutexLock lock(*cache_mutex_);
-        buffer = AppendBuffer(s, current_length, params, buffer, &pos);
-      }
-      if (buffer == nullptr) {
-        fplbase::LogError("Failed to create buffer.");
-        return buffer;
-      }
+  // Otherwise create new buffer.
+  FontBufferParameters params = parameters;
+  mathfu::vec2 pos = mathfu::kZeros2f;
+  FontBuffer *buffer = CreateBuffer("", 0, params, &pos);
+  if (buffer == nullptr) {
+    fplbase::LogError("Failed to create buffer.");
+    return nullptr;
+  }
 
-      // If the buffer has an ellipsis, won't add text any more.
-      if (buffer->HasEllipsis()) {
-        break;
-      }
-    } else {
-      // Edge case that the string start with the tag.
-      current_length = 0;
+  int32_t start_glyph_index = 0;
+  for (size_t i = 0; i < html_sections.size(); ++i) {
+    auto &s = html_sections[i];
+
+    // Set the attributes for either link (underlined & blue),
+    // or normal (non-underlined & black).
+    const bool has_link = !s.link.empty();
+    buffer->SetAttribute(has_link ? kHtmlLinkAttributes
+                                  : kHtmlNormalAttributes);
+
+    // Append text as per usual.
+    {
+      fplutil::MutexLock lock(*cache_mutex_);
+      buffer =
+          AppendBuffer(s.text.c_str(), s.text.length(), params, buffer, &pos);
     }
 
-    // Foward the current position.
-    size_t forward = 0;
-    // Double check if we need to call the callback.
-    if (tag_pos + tag_length < length) {
-      forward = attribute_callback(text + current_pos + current_length, buffer,
-                                   &params, &pos);
+    // Record link info.
+    if (has_link) {
+      links->push_back(
+          LinkInfo(s.link, start_glyph_index, buffer->get_glyph_count()));
+      start_glyph_index = buffer->get_glyph_count();
     }
-    current_pos += current_length + tag_length + forward;
-  } while (current_pos < length);
+
+    // If the buffer has an ellipsis, won't add text any more.
+    if (buffer->HasEllipsis()) {
+      break;
+    }
+  }
 
   appending_buffer_ = false;
   buffer->UpdateLine(parameters, layout_direction_, true);
@@ -791,8 +783,10 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
   }
 
   auto entries_to_remove =
-      (vertices.size() - 1 - vert_index) / kVerticesPerGlyph;
-  auto removing_index = vertices.size() + kLastElementIndex;
+      static_cast<int32_t>(vertices.size() - 1 - vert_index) /
+      kVerticesPerGlyph;
+  auto removing_index =
+      static_cast<int32_t>(vertices.size()) + kLastElementIndex;
   auto latest_attribute = buffer->attribute_history_.back();
 
   assert(entries_to_remove >= 0 && removing_index >= 0);
@@ -813,7 +807,6 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
       entries_to_remove++;
       continue;
     }
-    assert(indices.size() >= 0);
 
     // Remove codepoint.
     buffer->code_points_.pop_back();
@@ -826,7 +819,6 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     for (size_t j = 0; j < kVerticesPerGlyph; ++j) {
       buffer->vertices_.pop_back();
     }
-    assert(buffer->vertices_.size() >= 0);
   }
 }
 

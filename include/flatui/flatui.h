@@ -23,8 +23,9 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-#include "font_manager.h"
+#include "flatui/font_util.h"
 #include "flatui/version.h"
+#include "font_manager.h"
 #include "fplbase/asset_manager.h"
 #include "fplbase/input.h"
 #include "mathfu/constants.h"
@@ -357,29 +358,19 @@ void Label(const char *text, float ysize, const mathfu::vec2 &size);
 void Label(const char *text, float ysize, const mathfu::vec2 &label_size,
            TextAlignment alignment);
 
-/// @brief Render an attributed label.
+/// @brief Render simple HTML text.
 ///
-/// @param[in] text A C-string in UTF-8 format to be displayed as the label.
+/// @param[in] html A C-string in UTF-8 format to be parsed as HTML and then
+/// displayed. Note that we support only a simple subset of HTML at the moment,
+/// including anchor tags, paragraphs, headers, and breaks.
 /// @param[in] ysize A float containing the vertical size in virtual resolution.
-/// @param[in] id An id of the label.
+/// @param[in] label_size The max size of the label in virtual resolution.
+/// A `0` for `size.y` indicates no height restriction. The API renders the
+/// whole text in the label in this case.
 /// @param[in] alignment A text alignment in the label.
-/// @param[in] size The max size of the label in virtual resolution. A `0` for
-/// `size.y` indicates no height restriction. The API renders the whole text in
-/// the label in this case.
-/// @param[in] tag A tag string that triggers the lambda invocation when the
-/// tag matches while processing the text.
-/// @param[in] attribute_callback A lambda function that is invoked for each tag
-/// string in the given text.
-void AttributedLabel(const char *text, float ysize,
-                     const mathfu::vec2 &label_size,
-                     const char *id,
-                     TextAlignment alignment,
-                     const char * tag,
-                     std::function<size_t(const char *text,
-                                          FontBuffer *buffer,
-                                          FontBufferParameters *parameter,
-                                          mathfu::vec2 *pos)>
-                     attribute_callback);
+/// @param[in] id An id of the label.
+void HtmlLabel(const char *html, float ysize, const mathfu::vec2 &label_size,
+               TextAlignment alignment, const char *id);
 
 /// @brief Set the Label's text color.
 ///

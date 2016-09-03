@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <cstring>
 #include "flatui/flatui.h"
-#include "flatui/internal/flatui_util.h"
+#include <cstring>
+#include "flatui/font_util.h"
 #include "flatui/internal/flatui_layout.h"
+#include "flatui/internal/flatui_util.h"
 #include "flatui/internal/hb_complex_font.h"
 #include "flatui/internal/micro_edit.h"
 #include "fplbase/utilities.h"
@@ -446,43 +447,41 @@ class InternalState : public LayoutManager {
     }
   }
 
-  void Label(const char *text, float ysize, const vec2 &label_size,
-             TextAlignment alignment) {
-    // Set text color.
-    renderer_.set_color(text_color_);
-
+  FontBufferParameters CalculateLabelFontBufferParameters(
+      const char *text, float ysize, const vec2 &label_size,
+      TextAlignment alignment, uint32_t hash_id) const {
     auto physical_label_size = VirtualToPhysical(label_size);
     auto size = VirtualToPhysical(vec2(0, ysize));
-    auto parameter = FontBufferParameters(
+    return FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y()), physical_label_size, alignment,
         glyph_flags_, false, false,
         fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
-        text_kerning_scale_, text_line_height_scale_);
+        text_kerning_scale_, text_line_height_scale_, hash_id);
+  }
+
+  void Label(const char *text, float ysize, const vec2 &label_size,
+             TextAlignment alignment) {
+    auto parameter = CalculateLabelFontBufferParameters(text, ysize, label_size,
+                                                        alignment, kNullHash);
+
+    // Set text color.
+    renderer_.set_color(text_color_);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
   }
 
-  void AttributedLabel(
-      const char *text, float ysize, const mathfu::vec2 &label_size,
-      const char *id, TextAlignment alignment, const char *tag,
-      std::function<size_t(const char *text, flatui::FontBuffer *buffer,
-                           flatui::FontBufferParameters *params,
-                           mathfu::vec2 *pos)> attribute_callback) {
+  void HtmlLabel(const char *html, float ysize, const mathfu::vec2 &label_size,
+                 TextAlignment alignment, const char *id) {
+    auto parameter = CalculateLabelFontBufferParameters(html, ysize, label_size,
+                                                        alignment, HashId(id));
+
     // Set text color.
     renderer_.set_color(text_color_);
 
-    auto physical_label_size = VirtualToPhysical(label_size);
-    auto size = VirtualToPhysical(vec2(0, ysize));
-    auto parameter = FontBufferParameters(
-        fontman_.GetCurrentFont()->GetFontId(), HashId(text),
-        static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, false, false,
-        fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
-        text_kerning_scale_, text_line_height_scale_, HashId(id));
-    auto buffer = fontman_.GetAttributedBuffer(text, strlen(text), parameter,
-                                               tag, attribute_callback);
+    std::vector<LinkInfo> links;
+    auto buffer = fontman_.GetHtmlBuffer(html, parameter, &links);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
   }
@@ -1496,14 +1495,9 @@ void Label(const char *text, float font_size, const vec2 &size,
   Gui()->Label(text, font_size, size, alignment);
 }
 
-void AttributedLabel(
-    const char *text, float ysize, const mathfu::vec2 &label_size,
-    const char *id, TextAlignment alignment, const char *tag,
-    std::function<size_t(const char *text, flatui::FontBuffer *buffer,
-                         flatui::FontBufferParameters *params,
-                         mathfu::vec2 *pos)> attribute_callback) {
-  Gui()->AttributedLabel(text, ysize, label_size, id, alignment, tag,
-                         attribute_callback);
+void HtmlLabel(const char *html, float ysize, const mathfu::vec2 &label_size,
+               TextAlignment alignment, const char *id) {
+  Gui()->HtmlLabel(html, ysize, label_size, alignment, id);
 }
 
 Event Edit(float ysize, const mathfu::vec2 &size, const char *id,

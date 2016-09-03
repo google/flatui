@@ -54,6 +54,7 @@ LOCAL_SRC_FILES := \
   src/flatui_serialization.cpp \
   src/font_manager.cpp \
   src/font_systemfont.cpp \
+  src/font_util.cpp \
   src/glyph_cache.cpp \
   src/hb_complex_font.cpp \
   src/micro_edit.cpp \

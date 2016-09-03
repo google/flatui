@@ -71,14 +71,13 @@ endif()
 set(COMMON_LIBS "gtest;gmock;${CMAKE_THREAD_LIBS_INIT}")
 
 # Build test executable with mocks.
-set(flatui_serialization_SRC
-    flatui_serialization_test.cpp
+set(flatui_html_SRC
+    flatui_html_test.cpp
     ../mocks/flatui_mocks.cpp
     ../mocks/flatui_common_mocks.cpp
     ../mocks/fplbase_mocks.cpp
     ../../../src/font_manager.cpp
     ../../../src/font_systemfont.cpp
-    ../../../src/font_util.cpp
     ../../../src/glyph_cache.cpp
     ../../../src/hb_complex_font.cpp
     ../../../src/libpng_to_stbimage/pngshim.cpp
@@ -86,8 +85,8 @@ set(flatui_serialization_SRC
     ../../../src/script_table.cpp
     ../../../src/version.cpp)
 
-add_executable(flatui_serialization_test ${flatui_serialization_SRC})
-add_dependencies(flatui_serialization_test flatui_generated_includes)
-target_link_libraries(flatui_serialization_test ${COMMON_LIBS} gumbo libfreetype
+add_executable(flatui_html_test ${flatui_html_SRC})
+add_dependencies(flatui_html_test flatui_generated_includes)
+target_link_libraries(flatui_html_test ${COMMON_LIBS} gumbo libfreetype
   libharfbuzz libunibreak)
-mathfu_configure_flags(flatui_serialization_test)
+mathfu_configure_flags(flatui_html_test)

@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. All rights reserved.
+// Copyright 2016 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "fplbase/renderer.h"
-#include "fplbase/input.h"
-#include "fplbase/utilities.h"
-#include "flatui/flatui.h"
 #include <cassert>
+#include "flatui/flatui.h"
+#include "fplbase/input.h"
+#include "fplbase/renderer.h"
+#include "fplbase/utilities.h"
 
 using flatui::Run;
 using flatui::EndGroup;
@@ -38,6 +38,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   // Set the local directory to the assets folder for this sample.
   bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample/assets");
   assert(result);
+  (void)result;
 
   fplbase::AssetManager assetman(renderer);
 
@@ -47,7 +48,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
 
   // Load textures.
-  auto tex_about = assetman.LoadTexture("textures/text_about.webp");
   assetman.StartLoadingTextures();
 
   // While an initialization of flatui, it implicitly loads shaders used in the
@@ -65,8 +65,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     input.AdvanceFrame(&renderer.window_size());
     renderer.AdvanceFrame(input.minimized(), input.Time());
     const float kColorGray = 0.5f;
-    renderer.ClearFrameBuffer(
-        vec4(kColorGray, kColorGray, kColorGray, 1.0f));
+    renderer.ClearFrameBuffer(vec4(kColorGray, kColorGray, kColorGray, 1.0f));
 
     // Show test GUI using flatui API.
     // In this sample, it shows basic UI elements of a label and an image.
@@ -84,47 +83,20 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
                     mathfu::kZeros2f);
 
-      auto callback = [](const char *text, flatui::FontBuffer *buffer,
-                         flatui::FontBufferParameters *params,
-                         mathfu::vec2 *pos)->size_t {
-        (void)buffer;
-        (void)pos;
-        // Easy parse of the tag string.
-        int32_t size = 0;
-        int32_t skip = 1;
-        char s = *(text + skip);
-        while (s >= '0' && s <= '9') {
-          size = size * 10 + s - '0';
-          skip++;
-          s = *(text + skip);
-        }
-        params->set_font_size(size);
-
-        return skip;  // Return how many characters were in the tag.
-      };
       // Show a label with a font size of 40px in a virtual resotuion.
-      AttributedLabel("The quick <20>brown fox jump<25>s ove<20>r the laz<30>y dog.", 40,
-                      mathfu::vec2(0, 40), "id1", flatui::kTextAlignmentLeft,
-                      "<", callback);
-
-      flatui::SetTextEllipsis("...");
-      // Show a label with a font size of 40px in a virtual resotuion.
-      AttributedLabel("The quick <20>brown fox jump<25>s over <20>the lazy dog.", 40,
-                      mathfu::vec2(200, 40), "id2", flatui::kTextAlignmentLeft,
-                      "<", callback);
-
-      // Show a label with a font size of 40px in a virtual resotuion.
-      AttributedLabel("The quick <20>brown fox jump<25>s over the laz<30>y dog.", 40,
-                      mathfu::vec2(250, 160), "id3", flatui::kTextAlignmentCenter,
-                      "<", callback);
-
-      AttributedLabel("The quick <20>brown fox jump<25>s over the lazy dog.", 40,
-                      mathfu::vec2(300, 40), "id4", flatui::kTextAlignmentLeft,
-                      "<", callback);
-
-      // Show an image with a virtical size of 60px in a virtual resotuion.
-      // A width is automatically derived from the image size.
-      Image(*tex_about, 60);
+      HtmlLabel(
+          "<!DOCTYPE html>\n"
+          "<html>\n"
+          "<body>\n"
+          "\n"
+          "<h1>My First Heading</h1>\n"
+          "<p>My first paragraph.</p>\n"
+          "<a href=\"http://address\">Link text</a>\n"
+          "plenty\n of \n\nnewlines\n  \nand\nmore  newlines\n"
+          "\n"
+          "</body>\n"
+          "</html>\n",
+          40, mathfu::vec2(400, 0), flatui::kTextAlignmentLeft, "id5");
 
       EndGroup();
     });

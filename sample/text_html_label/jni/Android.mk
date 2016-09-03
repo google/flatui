@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-APP_PLATFORM := android-15
-APP_ABI:=armeabi armeabi-v7a mips x86 x86_64
-APP_STL:=c++_static
-APP_MODULES := main
+LOCAL_PATH := $(call my-dir)/..
 
-APP_CPPFLAGS += -std=c++11 -Wno-literal-suffix
+FLATUI_DIR := $(LOCAL_PATH)/../..
+include $(FLATUI_DIR)/jni/android_config.mk
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := main
+LOCAL_ARM_MODE := arm
+LOCAL_STATIC_LIBRARIES := fplbase flatui
+LOCAL_SRC_FILES := flatui_attributed_label.cpp
+include $(BUILD_SHARED_LIBRARY)
 
+$(call import-add-path,$(FLATUI_DIR)/..)
+$(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
+
+$(call import-module, flatui/jni)
+$(call import-module, fplbase/jni)

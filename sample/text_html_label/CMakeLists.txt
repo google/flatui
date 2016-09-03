@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,16 +13,12 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-project(flatuitest)
+project(flatuisample_html_label)
 
-add_executable(flatuitest flatuitest.cpp)
-add_dependencies(flatuitest fplbase flatui)
-mathfu_configure_flags(flatuitest)
-target_link_libraries(flatuitest fplbase flatui)
+add_executable(flatuisample_html_label flatui_html_label.cpp)
+add_dependencies(flatuisample_html_label fplbase flatui)
+mathfu_configure_flags(flatuisample_html_label)
+target_link_libraries(flatuisample_html_label fplbase flatui)
 
 # FlatUI postprocess
-flatui_post_process(flatuitest "test")
-
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/unit_tests/html)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/unit_tests/ref_count)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/unit_tests/serialization)
+flatui_post_process(flatuisample_html_label "sample")
