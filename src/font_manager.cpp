@@ -157,6 +157,7 @@ FontManager::FontManager() {
   Initialize();
 
   // Initialize glyph cache.
+  fplutil::MutexLock lock(*cache_mutex_);
   glyph_cache_.reset(
       new GlyphCache(mathfu::vec2i(kGlyphCacheWidth, kGlyphCacheHeight),
                      kGlyphCacheMaxSlices));
@@ -167,6 +168,7 @@ FontManager::FontManager(const mathfu::vec2i &cache_size, int32_t max_slices) {
   Initialize();
 
   // Initialize glyph cache.
+  fplutil::MutexLock lock(*cache_mutex_);
   glyph_cache_.reset(new GlyphCache(cache_size, max_slices));
 }
 
@@ -250,6 +252,9 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   auto ysize = static_cast<int32_t>(parameters.get_font_size());
   auto converted_ysize = ConvertSize(ysize);
   float scale = ysize / static_cast<float>(converted_ysize);
+
+  // Acquire cache mutex.
+  fplutil::MutexLock lock(*cache_mutex_);
 
   // Check cache if we already have a FontBuffer generated.
   auto it = map_buffers_.find(parameters);
@@ -452,6 +457,9 @@ void FontManager::ReleaseBuffer(FontBuffer *buffer) {
   assert(buffer->get_ref_count() >= 1);
   buffer->set_ref_count(buffer->get_ref_count() - 1);
   if (!buffer->get_ref_count()) {
+    // Acquire cache mutex.
+    fplutil::MutexLock lock(*cache_mutex_);
+
     // Clear references in the buffer.
     buffer->ReleaseCacheRowReference();
 
@@ -974,6 +982,9 @@ bool FontManager::Close(const FontFamily &family) {
     CloseSystemFont();
   }
 
+  // Acquire cache mutex.
+  fplutil::MutexLock lock(*cache_mutex_);
+
   // Clean up face instance data.
   HbFont::Close(*it->second, &font_cache_);
   it->second->Close();
@@ -1268,9 +1279,6 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
                      flags);
     bool color_glyph = g->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
 
-    // Guard glyph cache buffer access.
-    cache_mutex_->Acquire();
-
     // Does not support SDF for color glyphs.
     if (flags & (kGlyphFlagsOuterSDF | kGlyphFlagsInnerSDF) &&
         g->bitmap.width && g->bitmap.rows && !color_glyph) {
@@ -1321,9 +1329,6 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
       }
     }
 
-    // Release the mutex.
-    cache_mutex_->Release();
-
     if (cache == nullptr) {
       // Glyph cache need to be flushed.
       // Returning nullptr here for a retry.
@@ -1345,6 +1350,7 @@ int32_t FontManager::ConvertSize(int32_t original_ysize) {
 
 void FontManager::EnableColorGlyph() {
   // Pass the command to the glyph cache.
+  fplutil::MutexLock lock(*cache_mutex_);
   glyph_cache_->EnableColorGlyph();
 }
 
