@@ -365,7 +365,7 @@ class GlyphCacheBufferBase {
     size_ = mathfu::kZeros2i;
   }
 
-  void Initialize(GlyphCache* cache, const mathfu::vec2i& size,
+  virtual void Initialize(GlyphCache* cache, const mathfu::vec2i& size,
                   int32_t max_slices);
   const mathfu::vec2i& get_size() { return size_; }
 
@@ -435,6 +435,12 @@ class GlyphCacheBufferBase {
 template <typename T>
 class GlyphCacheBuffer : public GlyphCacheBufferBase {
  public:
+  virtual void Initialize(GlyphCache* cache, const mathfu::vec2i& size,
+                          int32_t max_slices) {
+    GlyphCacheBufferBase::Initialize(cache, size, max_slices);
+    AllocateTextureInfo();
+  }
+
   // Copy glyph image into the buffer.
   void CopyImage(const mathfu::vec3i& pos, const uint8_t* const src,
                  const GlyphCacheEntry* entry) {
@@ -470,13 +476,18 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     auto index = new_index | buffer_format();
     InsertNewRow(index, 0, size_, list_row_.end());
 
-    // Allocate new texture.
-    textures_.emplace_back(nullptr, get_texture_format(),
-                           fplbase::kTextureFlagsNone);
 #ifdef GLYPH_CACHE_STATS
     LogInfo("Cached glyphs: new buffer is allocated.\nCurrent buffer size:%d",
             new_index + 1);
 #endif  // GLYPH_CACHE_STATS
+  }
+
+  // Pre allocate texture structure.
+  void AllocateTextureInfo() {
+    for (auto i = 0; i < max_slices_; ++i) {
+      textures_.emplace_back(nullptr, get_texture_format(),
+                             fplbase::kTextureFlagsNone);
+    }
   }
 
   // Resolve the dirty state of the cache. If the cache has any dirty rect,
@@ -514,6 +525,7 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     InsertNewBuffer();
     auto index = buffer_format();
     InsertNewRow(index, 0, size_, list_row_.end());
+    AllocateTextureInfo();
   }
 
   int32_t get_num_slices() const {
