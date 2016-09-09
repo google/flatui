@@ -102,7 +102,8 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
 
   if (!buffer->FindRow(req_width, req_height, &it_row)) {
     // Couldn't find sufficient row entry nor free space to create new row.
-    if (buffers_.PurgeCache(req_height)) {
+    if (entry.color_glyph_ ? color_buffers_.PurgeCache(req_height)
+                           : buffers_.PurgeCache(req_height)) {
       // Call the function recursively.
       return Set(image, key, entry);
     }
