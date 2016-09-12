@@ -454,11 +454,12 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 }
 
 void FontManager::ReleaseBuffer(FontBuffer *buffer) {
+  // Acquire cache mutex.
+  fplutil::MutexLock lock(*cache_mutex_);
+
   assert(buffer->get_ref_count() >= 1);
   buffer->set_ref_count(buffer->get_ref_count() - 1);
   if (!buffer->get_ref_count()) {
-    // Acquire cache mutex.
-    fplutil::MutexLock lock(*cache_mutex_);
 
     // Clear references in the buffer.
     buffer->ReleaseCacheRowReference();
