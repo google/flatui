@@ -170,7 +170,9 @@ bool GlyphCache::Flush() {
 
   // Clear buffers.
   buffers_.Reset();
-  color_buffers_.Reset();
+  if (color_buffers_.get_num_slices()) {
+    color_buffers_.Reset();
+  }
 
   // Update cache revision.
   revision_ = counter_;

@@ -102,15 +102,28 @@ const GlyphInfo *HbComplexFont::GetGlyphInfo(uint32_t code_point) {
   return &it->second;
 }
 
-int32_t HbComplexFont::GetBaseLine(int32_t size) {
+int32_t HbComplexFont::GetBaseLine(int32_t size) const {
   // Return a baseline in the first prioritized font.
   auto face = faces_[0];
-  int32_t unit_per_em = face->face_->ascender - face->face_->descender;
-  int32_t base_line = size * face->face_->ascender / unit_per_em;
+  float unit_per_em = face->face_->ascender - face->face_->descender;
+  float base_line = size * face->face_->ascender / unit_per_em;
   if (base_line > size) {
     base_line = size;
   }
-  return base_line;
+  return base_line + 0.5f;
+}
+
+mathfu::vec2i HbComplexFont::GetUnderline(int32_t size) const {
+  // Return a underline info in the first prioritized font.
+  auto face = faces_[0];
+  float unit_per_em = face->face_->ascender - face->face_->descender;
+  float underline = size *
+                    (face->face_->ascender - face->face_->underline_position) /
+                    unit_per_em;
+  float underline_thickness =
+      size * face->face_->underline_thickness / unit_per_em;
+  return mathfu::vec2i(underline - underline_thickness + 0.5f,
+                       underline_thickness + 0.5f);
 }
 
 void HbComplexFont::SetPixelSize(uint32_t size) {
@@ -304,14 +317,26 @@ void HbFont::Close(const FaceData &face, HbFontCache *cache) {
   cache->erase(it);
 }
 
-int32_t HbFont::GetBaseLine(int32_t size) {
-  int32_t unit_per_em =
+int32_t HbFont::GetBaseLine(int32_t size) const {
+  float unit_per_em =
       glyph_info_.GetFtFace()->ascender - glyph_info_.GetFtFace()->descender;
-  int32_t base_line = size * glyph_info_.GetFtFace()->ascender / unit_per_em;
+  float base_line = size * glyph_info_.GetFtFace()->ascender / unit_per_em;
   if (base_line > size) {
     base_line = size;
   }
-  return base_line;
+  return base_line + 0.5f;
+}
+
+mathfu::vec2i HbFont::GetUnderline(int32_t size) const {
+  float unit_per_em =
+      glyph_info_.GetFtFace()->ascender - glyph_info_.GetFtFace()->descender;
+  float underline = size * (glyph_info_.GetFtFace()->ascender -
+                            glyph_info_.GetFtFace()->underline_position) /
+                    unit_per_em;
+  float underline_thickness =
+      size * glyph_info_.GetFtFace()->underline_thickness / unit_per_em + 0.5f;
+  return mathfu::vec2i(underline - underline_thickness + 0.5f,
+                       underline_thickness + 0.5f);
 }
 
 void HbFont::SetPixelSize(uint32_t size) {

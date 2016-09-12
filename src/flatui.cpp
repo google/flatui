@@ -298,6 +298,7 @@ class InternalState : public LayoutManager {
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
         static_cast<float>(size.y()), physical_label_size, alignment,
         glyph_flags_, edit_status == kEditStatusInEdit, false,
+        fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
         text_kerning_scale_, text_line_height_scale_);
     auto buffer =
         fontman_.GetBuffer(ui_text->c_str(), ui_text->length(), parameter);
@@ -455,8 +456,9 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, false, false, text_kerning_scale_,
-        text_line_height_scale_);
+        glyph_flags_, false, false,
+        fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
+        text_kerning_scale_, text_line_height_scale_);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
@@ -465,7 +467,7 @@ class InternalState : public LayoutManager {
   void AttributedLabel(
       const char *text, float ysize, const mathfu::vec2 &label_size,
       const char *id, TextAlignment alignment, const char *tag,
-      std::function<size_t(const char *text,
+      std::function<size_t(const char *text, flatui::FontBuffer *buffer,
                            flatui::FontBufferParameters *params,
                            mathfu::vec2 *pos)> attribute_callback) {
     // Set text color.
@@ -476,8 +478,9 @@ class InternalState : public LayoutManager {
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y()), physical_label_size, alignment,
-        glyph_flags_, false, false, text_kerning_scale_,
-        text_line_height_scale_, HashId(id));
+        glyph_flags_, false, false,
+        fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
+        text_kerning_scale_, text_line_height_scale_, HashId(id));
     auto buffer = fontman_.GetAttributedBuffer(text, strlen(text), parameter,
                                                tag, attribute_callback);
     assert(buffer);
@@ -487,12 +490,14 @@ class InternalState : public LayoutManager {
   void DrawFontBuffer(const FontBuffer &buffer, const vec2 &pos,
                       const mathfu::vec4 &clip_rect, bool use_sdf,
                       bool render_outer_color) {
-    auto slices = buffer.get_slices();
+    auto &slices = buffer.get_slices();
     auto current_format = fplbase::kFormatAuto;
     bool clipping = clip_rect.z() != 0.0f && clip_rect.w() != 0.0f;
+    FontShader *current_shader = nullptr;
+    vec4 color = mathfu::kZeros4f;
 
-    for (size_t i = 0; i < slices->size(); ++i) {
-      auto texture = fontman_.GetAtlasTexture(slices->at(i));
+    for (size_t i = 0; i < slices.size(); ++i) {
+      auto texture = fontman_.GetAtlasTexture(slices.at(i).get_slice_index());
       texture->Set(0);
 
       if (current_format != texture->format()) {
@@ -507,15 +512,15 @@ class InternalState : public LayoutManager {
         // Color glyph doesn't support outer_color.
         if (shader_type == kFontShaderTypeColor && render_outer_color) continue;
 
-        auto current_shader = &font_shaders_[shader_type][clipping ? 1 : 0];
+        current_shader = &font_shaders_[shader_type][clipping ? 1 : 0];
         current_shader->set_renderer(renderer_);
 
         // Set shader specific parameters.
-        auto *color = &text_color_;
+        color = text_color_;
         current_shader->set_position_offset(vec3(pos, 0.0f));
         if (use_sdf) {
           if (render_outer_color) {
-            color = &text_outer_color_;
+            color = text_outer_color_;
             current_shader->set_threshold(text_outer_color_size_);
           } else {
             current_shader->set_threshold(sdf_threshold_);
@@ -524,20 +529,55 @@ class InternalState : public LayoutManager {
         if (clipping) {
           current_shader->set_clipping(clip_rect);
         }
-        if (current_shader->color_handle() >= 0) {
-          current_shader->set_color(*color);
+      }
+
+      if (current_shader->color_handle() >= 0) {
+        if (slices.at(i).get_color() != kDefaultColor) {
+          // Use attributed color.
+          auto c = slices.at(i).get_color();
+          color = vec4(((c & 0xff000000) >> 24) * 1.0f / 255.0f,
+                       ((c & 0xff0000) >> 16) * 1.0f / 255.0f,
+                       ((c & 0xff00) >> 8) * 1.0f / 255.0f,
+                       (c & 0xff) * 1.0f / 255.0f);
+          current_shader->set_color(color);
+        } else {
+          // Use system set color.
+          current_shader->set_color(color);
         }
       }
 
       const fplbase::Attribute kFormat[] = {
           fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
-      auto indices = buffer.get_indices(static_cast<int32_t>(i));
-      if (!indices->empty()) {
+      auto &indices = buffer.get_indices(static_cast<int32_t>(i));
+      if (!indices.empty()) {
         Mesh::RenderArray(
-            Mesh::kTriangles, static_cast<int>(indices->size()), kFormat,
+            Mesh::kTriangles, static_cast<int>(indices.size()), kFormat,
             sizeof(FontVertex),
-            reinterpret_cast<const char *>(buffer.get_vertices()->data()),
-            indices->data());
+            reinterpret_cast<const char *>(buffer.get_vertices().data()),
+            indices.data());
+      }
+
+      if (slices.at(i).get_underline()) {
+        // Draw underlines.
+        const int32_t kVerticesPerGlyph = 4;
+        auto regions = slices.at(i).get_underline_info();
+        for (size_t i = 0; i < regions.size(); ++i) {
+          auto info = regions[i];
+          auto start_pos = buffer.get_vertices()
+                               .at(info.start_vertex_index_ * kVerticesPerGlyph)
+                               .position_;
+          auto end_pos = buffer.get_vertices()
+                             .at(info.end_vertex_index_ * kVerticesPerGlyph +
+                                 kVerticesPerGlyph - 1)
+                             .position_;
+          auto p =
+              vec2i(start_pos.data[0] + pos.x(), info.y_pos_.x() + pos.y());
+          // NOTE: Use abs value for a size to account with RTL.
+          auto size = vec2i(std::abs(end_pos.data[0] - start_pos.data[0]),
+                            info.y_pos_.y());
+          RenderQuad(color_shader_, color, p, size);
+        }
+        current_format = fplbase::kFormatAuto;
       }
     }
   }
@@ -1459,7 +1499,8 @@ void Label(const char *text, float font_size, const vec2 &size,
 void AttributedLabel(
     const char *text, float ysize, const mathfu::vec2 &label_size,
     const char *id, TextAlignment alignment, const char *tag,
-    std::function<size_t(const char *text, flatui::FontBufferParameters *params,
+    std::function<size_t(const char *text, flatui::FontBuffer *buffer,
+                         flatui::FontBufferParameters *params,
                          mathfu::vec2 *pos)> attribute_callback) {
   Gui()->AttributedLabel(text, ysize, label_size, id, alignment, tag,
                          attribute_callback);

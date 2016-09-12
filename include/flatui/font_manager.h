@@ -113,6 +113,12 @@ const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 /// @brief The default language used for a line break.
 const char *const kDefaultLanguage = "en";
 
+// Constant that indicates invalid texture atlas index.
+const int32_t kInvalidSliceIndex = -1;
+
+// Constant that indicates default color of the attributed buffer.
+const uint32_t kDefaultColor = 0xffffffff;
+
 #ifdef FLATUI_SYSTEM_FONT
 /// @var kSystemFont
 ///
@@ -268,6 +274,8 @@ class FontBufferParameters {
   /// info.
   /// @param[in] ref_count A bool determining if the FontBuffer manages
   /// reference counts of the buffer and referencing glyph cache rows.
+  /// @param[in] rtl_layout A bool determining if the FontBuffer is for RTL
+  /// (right to left) layout.
   /// @param[in] kerning_scale A float value specifying a scale applied to the
   /// kerning value between glyphs. Default value is kKerningScaleDefault(1.0).
   /// @param[in] line_height_scale A float value specifying a scale applied to
@@ -279,6 +287,7 @@ class FontBufferParameters {
   FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
                        const mathfu::vec2i &size, TextAlignment text_alignment,
                        GlyphFlags glyph_flags, bool caret_info, bool ref_count,
+                       bool rtl_layout = false,
                        float kerning_scale = kKerningScaleDefault,
                        float line_height_scale = kLineHeightDefault,
                        HashedId cache_id = kNullHash) {
@@ -294,6 +303,7 @@ class FontBufferParameters {
     flags_.glyph_flags = glyph_flags;
     flags_.caret_info = caret_info;
     flags_.ref_count = ref_count;
+    flags_.rtl_layout = rtl_layout;
   }
 
   /// @brief The equal-to operator for comparing FontBufferParameters for
@@ -383,6 +393,9 @@ class FontBufferParameters {
   /// @return Returns a flag indicating if the buffer manages reference counts.
   bool get_ref_count_flag() const { return flags_.ref_count; }
 
+  /// @return Returns a flag indicating if the buffer is for RTL layout.
+  bool get_rtl_layout_flag() const { return flags_.rtl_layout; }
+
   /// Retrieve a line length of the text based on given parameters.
   /// a fixed line length (get_size.x()) will be used if the text is justified
   /// or right aligned otherwise the line length will be determined by the text
@@ -432,6 +445,7 @@ class FontBufferParameters {
   struct FontBufferFlags {
     bool ref_count : 1;
     bool caret_info : 1;
+    bool rtl_layout : 1;
     GlyphFlags glyph_flags : 2;
     TextAlignment text_alignement : 3;
   };
@@ -572,8 +586,9 @@ class FontManager {
   FontBuffer *GetAttributedBuffer(
       const char *text, size_t length, const FontBufferParameters &parameters,
       const char *tag_word,
-      std::function<size_t(const char *text, FontBufferParameters *params,
-                           mathfu::vec2 *pos)> attribute_callback);
+      std::function<size_t(const char *text, FontBuffer *buffer,
+                           FontBufferParameters *params, mathfu::vec2 *pos)>
+          attribute_callback);
 
   /// @brief Release the FonBuffer instance.
   /// If the FontBuffer is a reference counting buffer, the API decrements the
@@ -620,7 +635,14 @@ class FontManager {
   /// @brief Flush the existing FontBuffer in the cache.
   ///
   /// Call this API when FontBuffers are not used anymore.
-  void FlushLayout() { map_buffers_.clear(); }
+  void FlushLayout() {
+    for (auto it = map_buffers_.begin(); it != map_buffers_.end(); it++) {
+      // Erase only non-ref-counted buffers.
+      if (!it->first.get_ref_count_flag()) {
+        map_buffers_.erase(it);
+      }
+    }
+  }
 
   /// @brief Indicates a start of new render pass.
   ///
@@ -686,10 +708,6 @@ class FontManager {
       return;
     }
 
-    // Flush layout cache if we switch a direction.
-    if (direction != layout_direction_) {
-      FlushLayout();
-    }
     layout_direction_ = direction;
   }
 
@@ -742,19 +760,17 @@ class FontManager {
   bool UpdateBuffer(const WordEnumerator &word_enum,
                     const FontBufferParameters &parameters, int32_t base_line,
                     bool lastline_must_break, FontBuffer *buffer,
-                    std::vector<int32_t> *atlas_indices, mathfu::vec2 *pos,
-                    FontMetrics *metrics);
+                    mathfu::vec2 *pos, FontMetrics *metrics);
 
   // Helper function to remove entries from the buffer for specified width.
   void RemoveEntries(const FontBufferParameters &parameters,
                      uint32_t required_width, FontBuffer *buffer,
-                     std::vector<int32_t> *atlas_indices, mathfu::vec2 *pos);
+                     mathfu::vec2 *pos);
 
   // Helper function to append ellipsis to the buffer.
   bool AppendEllipsis(const WordEnumerator &word_enum,
                       const FontBufferParameters &parameters, int32_t base_line,
                       FontBuffer *buffer, mathfu::vec2 *pos,
-                      std::vector<int32_t> *atlas_indices,
                       FontMetrics *metrics);
 
   // Calculate internal/external leading value and expand a buffer if
@@ -1135,6 +1151,114 @@ struct FontVertex {
   /// @endcond
 };
 
+/// @class FontBufferAttributes
+///
+/// @brief A structure holding attribute information of texts in a FontBuffer.
+class FontBufferAttributes {
+ public:
+  FontBufferAttributes()
+      : slice_index_(kInvalidSliceIndex),
+        underline_(false),
+        color_(kDefaultColor) {}
+
+  /// @brief The constructor to set default values.
+  /// @param[in] underline A flag indicating if the attribute has underline.
+  /// @param[in] color A color value of the attribute in RGBA8888.
+  FontBufferAttributes(bool underline, uint32_t color)
+      : slice_index_(kInvalidSliceIndex),
+        underline_(underline),
+        color_(color) {}
+
+  /// @brief The equal-to operator for comparing FontBufferAttributes for
+  /// equality.
+  ///
+  /// @param[in] other The other FontBufferAttributes to check against for
+  /// equality.
+  ///
+  /// @return Returns `true` if the two FontBufferAttributes are equal.
+  /// Otherwise it returns `false`.
+  bool operator==(const FontBufferAttributes &other) const {
+    return (slice_index_ == other.slice_index_ &&
+            underline_ == other.underline_ && color_ == other.color_);
+  }
+
+  /// @brief The hash function for FontBufferAttributes.
+  ///
+  /// @param[in] key A FontBufferAttributes to use as the key for
+  /// hashing.
+  ///
+  /// @return Returns a `size_t` of the hash of the FontBufferAttributes.
+  size_t operator()(const FontBufferAttributes &key) const {
+    // Note that font_id_, text_id_ and cache_id_ are already hashed values.
+    size_t value = (std::hash<int32_t>()(key.slice_index_) << 1) >> 1;
+    value = value ^ (std::hash<bool>()(key.underline_) << 1) >> 1;
+    value = value ^ (std::hash<uint32_t>()(key.color_) << 1) >> 1;
+    return value;
+  }
+
+  /// @brief The compare operator for FontBufferAttributes.
+  bool operator()(const FontBufferAttributes &lhs,
+                  const FontBufferAttributes &rhs) const {
+    return std::tie(lhs.slice_index_, lhs.underline_, lhs.color_) <
+           std::tie(rhs.slice_index_, rhs.underline_, rhs.color_);
+  }
+
+  // Struct for the underline information.
+  struct UnderlineInfo {
+    UnderlineInfo(int32_t index, const vec2i &y_pos)
+        : start_vertex_index_(index), end_vertex_index_(index), y_pos_(y_pos) {}
+    int32_t start_vertex_index_;
+    int32_t end_vertex_index_;
+    vec2i y_pos_;
+  };
+
+  // Getter of the color attribute. Color values are in RGBA8888.
+  uint32_t get_color() const { return color_; }
+
+  // Getter of the underline attribute.
+  bool get_underline() const { return underline_; }
+
+  // Getter of the underline information.
+  const std::vector<UnderlineInfo> &get_underline_info() const {
+    return underline_info_;
+  }
+
+  // Getter/Setter of the slice index.
+  int32_t get_slice_index() const { return slice_index_; }
+  void set_slice_index(int32_t slice_index) { slice_index_ = slice_index; }
+
+ private:
+  // Friend classes.
+  friend FontManager;
+  friend FontBuffer;
+
+  /// Update underline information.
+  void UpdateUnderline(int32_t vertex_index, const mathfu::vec2i &y_pos);
+  void WrapUnderline(int32_t vertex_index);
+
+  /// @var texture_index_
+  ///
+  /// @brief A index value indicating a texture slice in the texture cache used
+  /// to render the indices.
+  int32_t slice_index_;
+
+  /// @var underline_
+  ///
+  /// @brief A flag indicating if the buffer is underline buffer. An underline
+  /// buffer need to be rendered with a shader that fills all the regions.
+  bool underline_;
+
+  /// @var underline_info
+  ///
+  /// @brief A vector holding underline information.
+  std::vector<UnderlineInfo> underline_info_;
+
+  /// @var color_
+  ///
+  /// @brief A value holds a text color specified for the glyghs.
+  uint32_t color_;
+};
+
 /// @class FontBuffer
 ///
 /// @brief this is used with the texture atlas rendering.
@@ -1154,6 +1278,11 @@ class FontBuffer {
   /// FontBuffer instances.
   typedef std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
                    FontBufferParameters>::iterator fontbuffer_map_it;
+
+  /// @var Type defining an interator to the attribute map that is tracking
+  /// FontBufferAttribute.
+  typedef std::map<FontBufferAttributes, int32_t,
+                   FontBufferAttributes>::iterator attribute_map_it;
 
   /// @brief The default constructor for a FontBuffer.
   FontBuffer()
@@ -1195,27 +1324,29 @@ class FontBuffer {
   const FontMetrics &metrics() const { return metrics_; }
 
   /// @return Returns the slices array as a const std::vector<int32_t>.
-  const std::vector<int32_t> *get_slices() const { return &slices_; }
+  const std::vector<FontBufferAttributes> &get_slices() const {
+    return slices_;
+  }
 
   /// @return Returns the indices array as a const std::vector<uint16_t>.
-  const std::vector<uint16_t> *get_indices(int32_t index) const {
-    return &indices_[index];
+  const std::vector<uint16_t> &get_indices(int32_t index) const {
+    return indices_[index];
   }
 
   /// @return Returns the vertices array as a const std::vector<FontVertex>.
-  const std::vector<FontVertex> *get_vertices() const { return &vertices_; }
+  const std::vector<FontVertex> &get_vertices() const { return vertices_; }
 
   /// @return Returns the non const version of vertices array as a
   /// std::vector<FontVertex>.
   /// Note that the updating the number of elements in the buffer would result
   /// undefined behavior.
-  std::vector<FontVertex> *get_vertices() { return &vertices_; }
+  std::vector<FontVertex> &get_vertices() { return vertices_; }
 
   /// @return Returns the array of code points as a const std::vector<uint32_t>.
-  const std::vector<uint32_t> *get_code_points() const { return &code_points_; }
+  const std::vector<uint32_t> &get_code_points() const { return code_points_; }
 
   /// @return Returns the size of the string as a const vec2i reference.
-  const mathfu::vec2i &get_size() const { return size_; }
+  const mathfu::vec2i get_size() const { return size_; }
 
   /// @return Returns the glyph cache revision counter as a uint32_t.
   ///
@@ -1281,6 +1412,9 @@ class FontBuffer {
   /// @brief Gets the reference count of the buffer.
   uint32_t get_ref_count() const { return ref_count_; }
 
+  /// @brief Helper to retrieve AABB info with given index range of glyphs.
+  mathfu::vec4 get_aabb(int32_t start_index, int32_t end_index) const;
+
  private:
   // Make the FontManager and related classes as a friend class so that
   // FontManager can manage FontBuffer class using it's private methods.
@@ -1288,12 +1422,13 @@ class FontBuffer {
   friend GlyphCacheRow;
 
   /// @return Returns the array of the slices that is used in the FontBuffer as
-  /// a std::vector<int32_t>. When rendering the buffer, retrieve corresponding
+  /// a std::vector<FontBufferAttributes>. When rendering the buffer, retrieve
+  /// corresponding
   /// atlas texture from the glyph cache and bind the texture.
-  std::vector<int32_t> *get_slices() { return &slices_; }
+  std::vector<FontBufferAttributes> &get_slices() { return slices_; }
 
   /// @return Returns the indices array as a std::vector<uint16_t>.
-  std::vector<uint16_t> *get_indices(int32_t index) { return &indices_[index]; }
+  std::vector<uint16_t> &get_indices(int32_t index) { return indices_[index]; }
 
   /// @brief Sets the FontMetrics metrics parameters for the font
   /// texture.
@@ -1350,8 +1485,14 @@ class FontBuffer {
   /// @brief Adds 4 indices to be used for a glyph rendering to the
   /// index array.
   ///
-  /// @param[in] slice_idx An index of the index array to add the indices.
-  void AddIndices(int32_t slice_idx);
+  /// @param[in] buffer_idx An index of the index array to add the indices.
+  void AddIndices(int32_t buffer_idx, int32_t count);
+
+  /// @brief Update underline information of attributed FontBuffer.
+  ///
+  /// @param[in] buffer_idx An index of the attribute to add the underline.
+  void UpdateUnderline(int32_t buffer_idx, int32_t vertex_index,
+                       const mathfu::vec2i &y_pos);
 
   /// @brief Add the given caret position to the buffer.
   ///
@@ -1389,11 +1530,9 @@ class FontBuffer {
   /// @brief Sets the reference count of the buffer.
   void set_ref_count(uint32_t ref_count) { ref_count_ = ref_count; }
 
-  /// @brief Expand internal buffers when the glyph cache grows.
-  void ExpandGlyphBuffers(int32_t new_size) { indices_.resize(new_size); }
-
-  /// @brief Retrieve an internal index of an atlas slice in the FontBuffer.
-  int32_t UpdateSliceIndex(int32_t slice, std::vector<int32_t> *atlas_indices);
+  /// @brief Retrieve an internal buffer index of accounting atlas slice in the
+  /// FontBuffer.
+  int32_t GetBufferIndex(int32_t slice);
 
   // @brief Invalidate the FontBuffer.
   void Invalidate() { valid_ = false; }
@@ -1414,18 +1553,22 @@ class FontBuffer {
     }
   }
 
-  /// @brief Reset FontBuffer's index array.
-  void ResetIndices() {
-    indices_.clear();
-    slices_.clear();
-  }
-
   void ClearTemporaryBuffer() {
     word_boundary_.clear();
     word_boundary_caret_.clear();
     line_start_index_ = 0;
     line_start_caret_index_ = 0;
+    attribute_map_.clear();
+    attribute_history_.clear();
   }
+
+  /// @brief Set attribute to the FontBuffer. The attribute is used while
+  /// constructing a FontBuffer.
+  void SetAttribute(const FontBufferAttributes &attribute);
+
+  /// @brief Look up an attribute from the attribute map while constructing
+  /// attributed FontBuffer.
+  attribute_map_it LookUpAttribute(const FontBufferAttributes &attribute);
 
   // Font metrics information.
   FontMetrics metrics_;
@@ -1435,7 +1578,7 @@ class FontBuffer {
   // be a separate array.
 
   // Slices that is used in the FontBuffer.
-  std::vector<int32_t> slices_;
+  std::vector<FontBufferAttributes> slices_;
 
   // Indices of the font buffer.
   std::vector<std::vector<uint16_t>> indices_;
@@ -1457,6 +1600,9 @@ class FontBuffer {
   // layout with a justification.
   static std::vector<uint32_t> word_boundary_;
   static std::vector<uint32_t> word_boundary_caret_;
+  static std::map<FontBufferAttributes, int32_t, FontBufferAttributes>
+      attribute_map_;
+  static std::vector<attribute_map_it> attribute_history_;
 
   // Start index of current line.
   static uint32_t line_start_index_;

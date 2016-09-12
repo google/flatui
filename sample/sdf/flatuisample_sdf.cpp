@@ -55,7 +55,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   const int32_t kMinGlyphSize = 36;
   const int32_t kMaxGlyphSize = 70;
   fontman.SetSizeSelector([](const int32_t){ return kMinGlyphSize; });
-
   auto tex_circle = assetman.LoadTexture("textures/white_circle.webp");
   auto tex_bar = assetman.LoadTexture("textures/gray_bar.webp");
   assetman.StartLoadingTextures();
@@ -69,8 +68,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     renderer.AdvanceFrame(input.minimized(), input.Time());
   }
 
-  const float threshould_min = 6.0f/255.0f;
-  const float threshould_max = 20.0f/255.0f;
   const float scale_min = 0.5;
   const float scale_max = 2.0;
   static float threshold = 0.5;
@@ -93,8 +90,11 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       SetVirtualResolution(1000);
 
       // Enable SDF generation. For this sample it doesn't need inner SDF.
-      EnableTextSDF(false, true, threshold * (threshould_max - threshould_min) +
-                    threshould_min);
+      const float threshold_min = 6.0f/255.0f;
+      const float threshold_max = 20.0f/255.0f;
+      EnableTextSDF(false, true, threshold * (threshold_max - threshold_min) +
+                    threshold_min);
+
       // Set outer color (e.g. drop shadow).
       flatui::SetTextOuterColor(vec4(0.0f, 0.0f, 0.0f, 0.2f),
                                 64.0f / 255.0f, vec2(2,2));

@@ -176,7 +176,15 @@ class HbFont {
   ///
   /// @param[in] size A font size in pixel.
   ///
-  virtual int32_t GetBaseLine(int32_t size);
+  virtual int32_t GetBaseLine(int32_t size) const;
+
+  /// @brief Get the underline information for the font.
+  ///
+  /// @param[in] size The font size in pixels.
+  ///
+  /// @return Returns a 2 components vector that represents x for the vertical
+  /// offset of the underline and y for the thickness of the underline.
+  virtual mathfu::vec2i GetUnderline(int32_t size) const;
 
   /// @brief Get the GlyphInfo for requested code point.
   ///
@@ -264,7 +272,9 @@ class HbComplexFont : public HbFont {
 
   /// @brief Overriding virtual methods.
   void SetPixelSize(uint32_t size);
-  int32_t GetBaseLine(int32_t size);
+  int32_t GetBaseLine(int32_t size) const;
+  mathfu::vec2i GetUnderline(int32_t size) const;
+
   const GlyphInfo *GetGlyphInfo(uint32_t code_point);
   HashedId GetFontId() { return complex_font_id_; }
 

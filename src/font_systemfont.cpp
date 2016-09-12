@@ -382,14 +382,13 @@ bool FontManager::OpenSystemFontApple() {
       // parameter. Perhaps the compiler is choosing the overload that takes
       // a va_list?
       fplbase::LogInfo("Font name: %s %d", str, i);
-      if (Open(str, true)) {
+      FontFamily family(str, true);
+      if (Open(family)) {
         // Retrieve the font size for an information.
         auto it = map_faces_.find(str);
         if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
           total_size += it->second->font_data_.size();
 
-          FontFamily family;
-          family.family_name_ = str;
           system_fallback_list_.push_back(family);
           ret = true;
         } else {

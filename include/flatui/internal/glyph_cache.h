@@ -528,13 +528,10 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     list_row_.clear();
     map_row_.clear();
     dirty_ = false;
-    textures_.clear();
+    dirty_rects_.clear();
 
     // Create first (empty) row entry.
     InsertNewBuffer();
-    auto index = buffer_format();
-    InsertNewRow(index, 0, size_, list_row_.end());
-    AllocateTextureInfo();
   }
 
   int32_t get_num_slices() const {

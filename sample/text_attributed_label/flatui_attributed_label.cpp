@@ -84,7 +84,10 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
                     mathfu::kZeros2f);
 
-      auto callback = [](const char *text, flatui::FontBufferParameters * params, mathfu::vec2 *pos)->size_t {
+      auto callback = [](const char *text, flatui::FontBuffer *buffer,
+                         flatui::FontBufferParameters *params,
+                         mathfu::vec2 *pos)->size_t {
+        (void)buffer;
         (void)pos;
         // Easy parse of the tag string.
         int32_t size = 0;
@@ -96,12 +99,10 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
           s = *(text + skip);
         }
         params->set_font_size(size);
+
         return skip;  // Return how many characters were in the tag.
       };
       // Show a label with a font size of 40px in a virtual resotuion.
-//            AttributedLabel("The quick <20>brown fox jump<25>s ove<20>r the lazy dog.", 40,
-//                            mathfu::vec2(0, 40), "id1", flatui::kTextAlignmentLeft,
-//                            "<", callback);
       AttributedLabel("The quick <20>brown fox jump<25>s ove<20>r the laz<30>y dog.", 40,
                       mathfu::vec2(0, 40), "id1", flatui::kTextAlignmentLeft,
                       "<", callback);

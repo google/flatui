@@ -45,7 +45,7 @@ class FlatUIRefCountTest : public ::testing::Test {
     // Instantiate a FontManager.
     int32_t width = 256;
     int32_t height = 256;
-    int32_t slices = 1;
+    int32_t slices = 2;
     font_manager_ =
         new flatui::FontManager(mathfu::vec2i(width, height), slices);
 
@@ -190,6 +190,7 @@ TEST_F(FlatUIRefCountTest, TestMultiThreadBufferCreation) {
     // Verify the generated buffers.
     for (int32_t i = 0; i < num; ++i) {
       ASSERT_EQ(true, buffers[i]->Verify());
+      font_manager_->ReleaseBuffer(buffers[i]);
     }
   };
 
@@ -229,7 +230,7 @@ TEST_F(FlatUIRefCountTest, TestEmptyString) {
       flatui::kGlyphFlagsNone, true, false);
   auto buffer_empty = font_manager_->GetBuffer(
       empty_string, strlen(empty_string), parameter_empty);
-  ASSERT_EQ(0, static_cast<int32_t>(buffer_empty->get_vertices()->size()));
+  ASSERT_EQ(0, static_cast<int32_t>(buffer_empty->get_vertices().size()));
 }
 
 int main(int argc, char **argv) {

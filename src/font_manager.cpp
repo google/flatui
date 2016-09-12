@@ -65,11 +65,15 @@ hb_buffer_t *FontManager::harfbuzz_buf_;
 // Static members in FontBuffer.
 std::vector<uint32_t> FontBuffer::word_boundary_;
 std::vector<uint32_t> FontBuffer::word_boundary_caret_;
+std::map<FontBufferAttributes, int32_t, FontBufferAttributes>
+    FontBuffer::attribute_map_;
+std::vector<FontBuffer::attribute_map_it> FontBuffer::attribute_history_;
 uint32_t FontBuffer::line_start_index_;
 uint32_t FontBuffer::line_start_caret_index_;
 
-// Enum that indicates invalid texture atlas index.
-const int32_t kInvalidSliceIndex = -1;
+// Constants.
+const int32_t kVerticesPerGlyph = 4;
+const int32_t kIndicesPerGlyph = 6;
 
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
@@ -253,8 +257,9 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
 FontBuffer *FontManager::GetAttributedBuffer(
     const char *text, size_t length, const FontBufferParameters &parameters,
     const char *tag_word,
-    std::function<size_t(const char *text, FontBufferParameters *params,
-                         mathfu::vec2 *pos)> attribute_callback) {
+    std::function<size_t(const char *text, FontBuffer *buffer,
+                         FontBufferParameters *params, mathfu::vec2 *pos)>
+        attribute_callback) {
 
   {
     // Acquire cache mutex.
@@ -319,8 +324,8 @@ FontBuffer *FontManager::GetAttributedBuffer(
     size_t forward = 0;
     // Double check if we need to call the callback.
     if (tag_pos + tag_length < length) {
-      forward = attribute_callback(text + current_pos + current_length, &params,
-                                   &pos);
+      forward = attribute_callback(text + current_pos + current_length, buffer,
+                                   &params, &pos);
     }
     current_pos += current_length + tag_length + forward;
   } while (current_pos < length);
@@ -382,6 +387,11 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   // Create FontBuffer with derived string length.
   std::unique_ptr<FontBuffer> buffer(
       new FontBuffer(length, parameters.get_caret_info_flag()));
+
+  // Set initial attribute.
+  buffer->ClearTemporaryBuffer();
+  buffer->SetAttribute(FontBufferAttributes());
+
   if (!FillBuffer(text, length, parameters, buffer.get(), text_pos)) {
     return nullptr;
   }
@@ -437,6 +447,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   int32_t base_line = current_font_->GetBaseLine(ysize);
   FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
 
+  // Set up positions.
   float pos_start = 0;
   if (layout_direction_ == kTextLayoutDirectionRTL) {
     // In RTL layout, the glyph position start from right.
@@ -453,20 +464,14 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   bool lastline_must_break = false;
   bool first_character = true;
   auto line_height = ysize * line_height_scale_;
-  std::vector<int32_t> atlas_indices;
 
   if (buffer->get_size().y()) {
     // Seems like the buffer is already initialized and we are appending to the
     // buffer. Retrieve information from the buffer.
-    atlas_indices = *buffer->get_slices();
     max_line_width = buffer->get_size().x() * kFreeTypeUnit;
     total_height = buffer->get_size().y();
     initial_metrics = buffer->metrics();
     base_line = initial_metrics.base_line();
-  } else {
-    // Otherwise, initialize the values.
-    atlas_indices = std::vector<int32_t>(glyph_cache_->get_num_max_slices(),
-                                         kInvalidSliceIndex);
   }
 
   // Find words and layout them.
@@ -482,7 +487,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         // The text size exceeds given size.
         // Rewind the buffers and add an ellipsis if it's speficied.
         if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
-                            &atlas_indices, &initial_metrics)) {
+                            &initial_metrics)) {
           return nullptr;
         }
       }
@@ -517,7 +522,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
           if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
-                              &atlas_indices, &initial_metrics)) {
+                              &initial_metrics)) {
             return nullptr;
           }
           // Update alignment after an ellipsis is appended.
@@ -557,7 +562,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
 
     // Add string information to the buffer.
     if (!UpdateBuffer(word_enum, parameters, base_line, lastline_must_break,
-                      buffer, &atlas_indices, &pos, &initial_metrics)) {
+                      buffer, &pos, &initial_metrics)) {
       return nullptr;
     }
 
@@ -615,9 +620,8 @@ void FontManager::ReleaseBuffer(FontBuffer *buffer) {
 bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                const FontBufferParameters &parameters,
                                int32_t base_line, bool lastline_must_break,
-                               FontBuffer *buffer,
-                               std::vector<int32_t> *atlas_indices,
-                               mathfu::vec2 *pos, FontMetrics *metrics) {
+                               FontBuffer *buffer, mathfu::vec2 *pos,
+                               FontMetrics *metrics) {
   auto ysize = static_cast<int32_t>(parameters.get_font_size());
   auto converted_ysize = ConvertSize(ysize);
   float scale = ysize / static_cast<float>(converted_ysize);
@@ -672,9 +676,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       }
 
       // Expand buffer if necessary.
-      auto slice_idx =
-          buffer->UpdateSliceIndex(cache->get_pos().z(), atlas_indices);
-      buffer->AddIndices(slice_idx);
+      auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z());
+      buffer->AddIndices(buffer_idx, buffer->get_glyph_count());
 
       // Construct intermediate vertices array.
       // The vertices array is update in the render pass with correct
@@ -682,6 +685,13 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
 
       // Update vertices and UVs
       buffer->AddVertices(*pos, base_line, scale, *cache);
+
+      // Update underline information if necessary.
+      if (buffer->get_slices().at(buffer_idx).get_underline()) {
+        buffer->UpdateUnderline(
+            buffer_idx, (buffer->get_vertices().size() - 1) / kVerticesPerGlyph,
+            current_font_->GetUnderline(converted_ysize) + vec2i(pos->y(), 0));
+      }
 
       // Update references if the buffer is ref counting buffer.
       if (parameters.get_ref_count_flag()) {
@@ -725,9 +735,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
 bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
                                  const FontBufferParameters &parameters,
                                  int32_t base_line, FontBuffer *buffer,
-                                 mathfu::vec2 *pos,
-                                 std::vector<int32_t> *atlas_indices,
-                                 FontMetrics *metrics) {
+                                 mathfu::vec2 *pos, FontMetrics *metrics) {
   buffer->has_ellipsis_ = true;
 
   if (!ellipsis_.length()) {
@@ -738,8 +746,8 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
       static_cast<uint32_t>(parameters.get_size().x()) * kFreeTypeUnit;
 
   // Dump current string to the buffer.
-  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
-                    atlas_indices, pos, metrics)) {
+  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer, pos,
+                    metrics)) {
     return false;
   }
 
@@ -753,11 +761,11 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 
   // Remove some glyph entries from the buffer to have a room for the
   // ellipsis string.
-  RemoveEntries(parameters, ellipsis_width, buffer, atlas_indices, pos);
+  RemoveEntries(parameters, ellipsis_width, buffer, pos);
 
   // Add ellipsis string to the buffer.
-  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer,
-                    atlas_indices, pos, metrics)) {
+  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer, pos,
+                    metrics)) {
     return false;
   }
 
@@ -769,39 +777,46 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 
 void FontManager::RemoveEntries(const FontBufferParameters &parameters,
                                 uint32_t required_width, FontBuffer *buffer,
-                                std::vector<int32_t> *atlas_indices,
                                 mathfu::vec2 *pos) {
   auto max_width = parameters.get_size().x();
-  auto ysize = static_cast<int32_t>(parameters.get_font_size());
-  auto converted_ysize = ConvertSize(ysize);
 
   // Determine how many letters to remove.
-  const int32_t kVerticesPerGlyph = 4;
-  const int32_t kIndicesPerGlyph = 6;
-  auto vertices = buffer->get_vertices();
-  auto vert_index = vertices->size() - 1;
-  while (max_width - vertices->at(vert_index).position_.data[0] <
+  const int32_t kLastElementIndex = -2;
+  auto &vertices = buffer->get_vertices();
+  auto vert_index = vertices.size() - 1;
+  while (max_width - vertices.at(vert_index).position_.data[0] <
              required_width / kFreeTypeUnit &&
          vert_index >= kVerticesPerGlyph) {
     vert_index -= kVerticesPerGlyph;
   }
 
   auto entries_to_remove =
-      (buffer->get_vertices()->size() - 1 - vert_index) / kVerticesPerGlyph;
+      (vertices.size() - 1 - vert_index) / kVerticesPerGlyph;
+  auto removing_index = vertices.size() + kLastElementIndex;
+  auto latest_attribute = buffer->attribute_history_.back();
+
+  assert(entries_to_remove >= 0 && removing_index >= 0);
   while (entries_to_remove--) {
-    auto code_point = buffer->code_points_.back();
-    auto cache = GetCachedEntry(code_point, converted_ysize,
-                                parameters.get_glyph_flags());
+    // Remove indices.
+    auto buffer_idx = latest_attribute->second;
+    auto &indices = buffer->get_indices(buffer_idx);
+    if (indices.back() == removing_index) {
+      for (size_t j = 0; j < kIndicesPerGlyph; ++j) {
+        indices.pop_back();
+      }
+      removing_index -= kVerticesPerGlyph;
+    } else {
+      // There is no indices to remove in the index buffer.
+      // Switch to prior buffer.
+      buffer->attribute_history_.pop_back();
+      latest_attribute = buffer->attribute_history_.back();
+      entries_to_remove++;
+      continue;
+    }
+    assert(indices.size() >= 0);
+
     // Remove codepoint.
     buffer->code_points_.pop_back();
-
-    // Remove indices.
-    auto slice_idx =
-        buffer->UpdateSliceIndex(cache->get_pos().z(), atlas_indices);
-    auto indices = buffer->get_indices(slice_idx);
-    for (size_t j = 0; j < kIndicesPerGlyph; ++j) {
-      indices->pop_back();
-    }
 
     // Keep the x position of removed glyph and use it for a start of the
     // ellipsis string.
@@ -811,6 +826,7 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     for (size_t j = 0; j < kVerticesPerGlyph; ++j) {
       buffer->vertices_.pop_back();
     }
+    assert(buffer->vertices_.size() >= 0);
   }
 }
 
@@ -852,34 +868,41 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
 
     // Set freetype settings.
     current_font_->SetPixelSize(ysize);
+    buffer->ClearTemporaryBuffer();
 
-    // Clear index buffer and temporary buffer.
-    buffer->ResetIndices();
+    // Keep original buffer.
+    std::vector<std::vector<uint16_t>> original_indices =
+        std::move(buffer->indices_);
+    std::vector<FontBufferAttributes> original_slices =
+        std::move(buffer->slices_);
 
-    // Clear temporary buffer holding texture atlas indices.
-    std::vector<int32_t> atlas_indices(glyph_cache_->get_num_max_slices(),
-                                       kInvalidSliceIndex);
+    auto &code_points = buffer->get_code_points();
+    for (size_t j = 0; j < original_indices.size(); ++j) {
+      auto indices = original_indices[j];
+      for (size_t i = 0; i < indices.size(); i += kIndicesPerGlyph) {
+        auto index = indices[i] / kVerticesPerGlyph;
+        auto code_point = code_points.at(index);
+        auto cache = GetCachedEntry(code_point, ysize, flags);
+        if (cache == nullptr) {
+          return nullptr;
+        }
 
-    auto code_points = buffer->get_code_points();
-    for (size_t i = 0; i < code_points->size(); ++i) {
-      auto code_point = code_points->at(i);
-      auto cache = GetCachedEntry(code_point, ysize, flags);
-      if (cache == nullptr) {
-        return nullptr;
+        // Reconstruct indices.
+        auto attr = original_slices[j];
+        attr.slice_index_ = kInvalidSliceIndex;
+        buffer->SetAttribute(attr);
+
+        // Expand buffer if necessary.
+        auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z());
+        buffer->AddIndices(buffer_idx, index);
+
+        // Update UV.
+        buffer->UpdateUV(static_cast<int32_t>(index), cache->get_uv());
       }
-
-      // Reconstruct indices.
-      // Expand buffer if necessary.
-      auto slice_idx =
-          buffer->UpdateSliceIndex(cache->get_pos().z(), &atlas_indices);
-      buffer->AddIndices(slice_idx);
-
-      // Update UV.
-      buffer->UpdateUV(static_cast<int32_t>(i), cache->get_uv());
-
-      // Update revision.
-      buffer->set_revision(glyph_cache_->get_revision());
     }
+    // Update revision.
+    buffer->set_revision(glyph_cache_->get_revision());
+    buffer->ClearTemporaryBuffer();
   }
   return buffer;
 }
@@ -895,7 +918,8 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
   auto parameter =
       FontBufferParameters(current_font_->GetFontId(), flatui::HashId(text),
                            static_cast<float>(ysize), mathfu::kZeros2i,
-                           kTextAlignmentLeft, kGlyphFlagsNone, false, false);
+                           kTextAlignmentLeft, kGlyphFlagsNone, false, false,
+                           layout_direction_ == kTextLayoutDirectionRTL);
 
   // Check cache if we already have a texture.
   auto it = map_textures_.find(parameter);
@@ -1501,38 +1525,77 @@ void FontManager::EnableColorGlyph() {
   glyph_cache_->EnableColorGlyph();
 }
 
-int32_t FontBuffer::UpdateSliceIndex(int32_t slice,
-                                     std::vector<int32_t> *atlas_indices) {
-  auto original_slice_index = slice;
-  if (slice & kGlyphFormatsColor) {
-    // Offset the array indices.
-    slice &= ~kGlyphFormatsColor;
-    slice = static_cast<int32_t>(atlas_indices->size() - 1 - slice);
+void FontBuffer::SetAttribute(const FontBufferAttributes &attribute) {
+  auto it = LookUpAttribute(attribute);
+
+  if (attribute_history_.size() == 0 || it != attribute_history_.back()) {
+    attribute_history_.push_back(it);
   }
-  auto slice_idx = (*atlas_indices)[slice];
-  if (slice_idx == kInvalidSliceIndex) {
-    // Resize buffers.
-    slice_idx = (*atlas_indices)[slice] = static_cast<int32_t>(slices_.size());
-    ExpandGlyphBuffers(slice_idx + 1);
-    slices_.push_back(original_slice_index);
-  }
-  return slice_idx;
 }
 
-void FontBuffer::AddIndices(int32_t slice_idx) {
-  auto current_glyph_count = get_glyph_count();
+FontBuffer::attribute_map_it FontBuffer::LookUpAttribute(
+    const FontBufferAttributes &attribute) {
+  if (attribute_map_.size()) {
+    // Check if we already has an entry in the map.
+    auto it = attribute_map_.find(attribute);
+    if (it != attribute_map_.end()) {
+      return it;
+    }
+  }
+  auto ret =
+      attribute_map_.insert(std::make_pair(attribute, kInvalidSliceIndex));
+  return ret.first;
+}
+
+int32_t FontBuffer::GetBufferIndex(int32_t slice) {
+  // Check if we can use the latest attribute in the attribute stack.
+  if (attribute_history_.back()->first.get_slice_index() == slice) {
+    return attribute_history_.back()->second;
+  }
+  auto new_attr = attribute_history_.back()->first;
+  // Remove temporary attribute.
+  if (new_attr.get_slice_index() == kInvalidSliceIndex) {
+    attribute_history_.pop_back();
+  }
+  new_attr.set_slice_index(slice);
+  auto it = LookUpAttribute(new_attr);
+  if (it->second == kInvalidSliceIndex) {
+    // Resize index buffers.
+    it->second = static_cast<int32_t>(slices_.size());
+    slices_.push_back(it->first);
+    indices_.resize(it->second + 1);
+  }
+  // Update the attribute stack.
+  if (it != attribute_history_.back()) {
+    attribute_history_.push_back(it);
+  }
+  assert(it->second < static_cast<int32_t>(indices_.size()));
+  return it->second;
+}
+
+void FontBuffer::AddIndices(int32_t buffer_idx, int32_t count) {
   // Construct indices array.
+  assert(buffer_idx < static_cast<int32_t>(indices_.size()));
   const uint16_t kIndices[] = {0, 1, 2, 1, 3, 2};
-  auto indices = get_indices(slice_idx);
+  auto &indices = get_indices(buffer_idx);
   for (size_t j = 0; j < FPL_ARRAYSIZE(kIndices); ++j) {
     auto index = kIndices[j];
-    indices->push_back(
-        static_cast<unsigned short>(index + current_glyph_count * 4));
+    indices.push_back(static_cast<unsigned short>(index + count * 4));
   }
 }
 
-void FontBuffer::AddVertices(const vec2 &pos, int32_t base_line, float scale,
-                             const GlyphCacheEntry &entry) {
+void FontBuffer::UpdateUnderline(int32_t buffer_idx, int32_t vertex_index,
+                                 const mathfu::vec2i &y_pos) {
+  // Update underline information if necessary.
+  auto &attr = slices_[buffer_idx];
+  if (!attr.get_underline()) {
+    return;
+  }
+  attr.UpdateUnderline(vertex_index, y_pos);
+}
+
+void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
+                             float scale, const GlyphCacheEntry &entry) {
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
   auto scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
   auto scaled_size = mathfu::vec2(entry.get_size()) * scale;
@@ -1548,14 +1611,14 @@ void FontBuffer::AddVertices(const vec2 &pos, int32_t base_line, float scale,
                                  uv.z(), uv.w()));
 }
 
-void FontBuffer::UpdateUV(int32_t index, const vec4 &uv) {
+void FontBuffer::UpdateUV(int32_t index, const mathfu::vec4 &uv) {
   vertices_[index * 4].uv_ = uv.xy();
   vertices_[index * 4 + 1].uv_ = mathfu::vec2(uv.x(), uv.w());
   vertices_[index * 4 + 2].uv_ = mathfu::vec2(uv.z(), uv.y());
   vertices_[index * 4 + 3].uv_ = uv.zw();
 }
 
-void FontBuffer::AddCaretPosition(const vec2 &pos) {
+void FontBuffer::AddCaretPosition(const mathfu::vec2 &pos) {
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
   AddCaretPosition(rounded_pos.x(), rounded_pos.y());
 }
@@ -1654,6 +1717,13 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
         caret_positions_[idx].x() += offset_caret;
       }
     }
+
+    // Update underline information if necessary.
+    if (attribute_history_.back()->first.get_underline()) {
+      auto index = attribute_history_.back()->second;
+      slices_[index]
+          .WrapUnderline((get_vertices().size() - 1) / kVerticesPerGlyph);
+    }
   }
 
   // Update current line information.
@@ -1661,6 +1731,63 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   line_start_caret_index_ = static_cast<uint32_t>(caret_positions_.size());
   word_boundary_.clear();
   word_boundary_caret_.clear();
+}
+
+mathfu::vec4 FontBuffer::get_aabb(int32_t start_index,
+                                  int32_t end_index) const {
+  auto start = std::max(0, start_index);
+  auto end =
+      std::min(static_cast<int32_t>(vertices_.size() / kVerticesPerCodePoint),
+               end_index);
+
+  mathfu::vec2 min = mathfu::kZeros2f;
+  mathfu::vec2 max = mathfu::kZeros2f;
+  if (vertices_.size()) {
+    auto &vert = vertices_[start * kVerticesPerCodePoint].position_;
+    min = max = mathfu::vec2(vert.data[0], vert.data[1]);
+
+    mathfu::vec4(vert.data[0], vert.data[1], vert.data[0], vert.data[1]);
+    // Basically vertices in FontVertex is a rect, but we are calculating AABB
+    // per vertex basis for a future proof.
+    for (auto i = start * kVerticesPerCodePoint + 1;
+         i < end * kVerticesPerCodePoint; ++i) {
+      auto &vert = vertices_[i].position_;
+      auto v = mathfu::vec2(vert.data[0], vert.data[1]);
+      min = vec2::Min(min, v);
+      max = vec2::Max(max, v);
+    }
+  }
+  return vec4(min, max);
+}
+
+void FontBufferAttributes::UpdateUnderline(int32_t vertex_index,
+                                           const mathfu::vec2i &y_pos) {
+  // TODO: Underline information need to be consolidated into one attribute,
+  // rather than distributed to multiple slices. Otherwise, we wouldn't get
+  // continuous underline.
+  if (!underline_) {
+    return;
+  }
+
+  if (!underline_info_.size()) {
+    UnderlineInfo info(vertex_index, y_pos);
+    underline_info_.push_back(info);
+  } else {
+    // Update existing line.
+    underline_info_.back().y_pos_ = y_pos;
+    underline_info_.back().end_vertex_index_ = vertex_index;
+  }
+}
+
+void FontBufferAttributes::WrapUnderline(int32_t vertex_index) {
+  if (!underline_) {
+    return;
+  }
+
+  // Add new line.
+  underline_info_.back().end_vertex_index_ = vertex_index;
+  UnderlineInfo info(vertex_index + 1, underline_info_.back().y_pos_);
+  underline_info_.push_back(info);
 }
 
 void FaceData::Close() {

@@ -376,6 +376,7 @@ void AttributedLabel(const char *text, float ysize,
                      TextAlignment alignment,
                      const char * tag,
                      std::function<size_t(const char *text,
+                                          FontBuffer *buffer,
                                           FontBufferParameters *parameter,
                                           mathfu::vec2 *pos)>
                      attribute_callback);
