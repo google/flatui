@@ -33,8 +33,6 @@ using mathfu::vec4;
 using motive::MotiveEngine;
 using motive::MotiveTime;
 
-static const MotiveTime kTimeToFade = 1000;
-
 static const vec4 kBackgroundColors[] = {
     vec4(0.5f, 0.5f, 0.5f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f),
     vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
