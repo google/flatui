@@ -314,7 +314,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   auto line_height = ysize * line_height_scale_;
 
   // Clear temporary buffer holding texture atlas indices.
-  std::vector<int32_t> atlas_indices(glyph_cache_->get_num_slices(),
+  std::vector<int32_t> atlas_indices(glyph_cache_->get_num_max_slices(),
                                      kInvalidSliceIndex);
 
   // Find words and layout them.
@@ -711,7 +711,7 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
     buffer->ResetIndices();
 
     // Clear temporary buffer holding texture atlas indices.
-    std::vector<int32_t> atlas_indices(glyph_cache_->get_num_slices(),
+    std::vector<int32_t> atlas_indices(glyph_cache_->get_num_max_slices(),
                                        kInvalidSliceIndex);
 
     auto code_points = buffer->get_code_points();
