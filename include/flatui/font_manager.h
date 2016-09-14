@@ -321,15 +321,28 @@ class FontBufferParameters {
   /// @return Returns a `size_t` of the hash of the FontBufferParameters.
   size_t operator()(const FontBufferParameters &key) const {
     // Note that font_id_ and text_id_ are already hashed values.
-    size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
+    size_t value = (key.font_id_ ^ (key.text_id_ << 1)) >> 1;
     value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
     value = value ^ (std::hash<float>()(key.kerning_scale_) << 1) >> 1;
     value = value ^ (std::hash<float>()(key.line_height_scale_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(cache_id_) << 1) >> 1;
+    value = value ^ (std::hash<int32_t>()(key.cache_id_) << 1) >> 1;
     return value;
+  }
+
+  /// @brief The compare operator for FontBufferParameters.
+  bool operator()(const FontBufferParameters &lhs,
+                  const FontBufferParameters &rhs) const {
+    return std::tie(lhs.font_id_, lhs.text_id_, lhs.font_size_,
+                    lhs.kerning_scale_, lhs.line_height_scale_,
+                    lhs.flags_value_, lhs.size_.x(), lhs.size_.y(),
+                    lhs.cache_id_) <
+           std::tie(rhs.font_id_, rhs.text_id_, rhs.font_size_,
+                    rhs.kerning_scale_, rhs.line_height_scale_,
+                    rhs.flags_value_, rhs.size_.x(), rhs.size_.y(),
+                    rhs.cache_id_);
   }
 
   /// @return Returns a hash value of the text.
@@ -856,8 +869,8 @@ class FontManager {
   // Cache for a texture atlas + vertex array rendering.
   // Using the FontBufferParameters as keys.
   // The map is used for GetBuffer() API.
-  std::unordered_map<FontBufferParameters, std::unique_ptr<FontBuffer>,
-                     FontBufferParameters> map_buffers_;
+  std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
+           FontBufferParameters> map_buffers_;
 
   // Singleton instance of Freetype library.
   static FT_Library *ft_;
@@ -1102,8 +1115,8 @@ class FontBuffer {
 
   /// @var Type defining an interator to the internal map that is tracking all
   /// FontBuffer instances.
-  typedef std::unordered_map<FontBufferParameters, std::unique_ptr<FontBuffer>,
-                             FontBufferParameters>::iterator fontbuffer_map_it;
+  typedef std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
+                   FontBufferParameters>::iterator fontbuffer_map_it;
 
   /// @brief The default constructor for a FontBuffer.
   FontBuffer()

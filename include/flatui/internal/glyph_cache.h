@@ -123,18 +123,25 @@ class GlyphKey {
     flags_ = flags;
   }
 
-  // Compare operator.
+  // Compare operators.
   bool operator==(const GlyphKey& other) const {
     return (code_point_ == other.code_point_ && font_id_ == other.font_id_ &&
             glyph_size_ == other.glyph_size_ && flags_ == other.flags_);
+  }
+
+  /// @brief The compare operator for FontBufferParameters.
+  bool operator()(const GlyphKey& lhs, const GlyphKey& rhs) const {
+    return std::tie(lhs.font_id_, lhs.code_point_, lhs.glyph_size_,
+                    lhs.flags_) <
+           std::tie(rhs.font_id_, rhs.code_point_, rhs.glyph_size_, rhs.flags_);
   }
 
   // Hash function.
   size_t operator()(const GlyphKey& key) const {
     // Note that font_id_ is an already hashed value.
     auto value =
-        ((std::hash<uint32_t>()(key.code_point_) ^ (key.font_id_ << 1)) >> 1) ^
-        (std::hash<uint32_t>()(key.glyph_size_) << 1);
+        key.font_id_ ^ (std::hash<uint32_t>()(key.code_point_) << 1) >> 1;
+    value = value ^ (std::hash<uint32_t>()(key.glyph_size_) << 1) >> 1;
     value = value ^ (std::hash<int32_t>()(key.flags_) << 1) >> 1;
     return value;
   }
@@ -150,8 +157,8 @@ class GlyphKey {
 class GlyphCacheEntry {
  public:
   // Typedef for cache entry map's iterator.
-  typedef std::unordered_map<GlyphKey, std::unique_ptr<GlyphCacheEntry>,
-                             GlyphKey>::iterator iterator;
+  typedef std::map<GlyphKey, std::unique_ptr<GlyphCacheEntry>,
+                   GlyphKey>::iterator iterator;
   typedef std::list<GlyphCacheRow>::iterator iterator_row;
 
   GlyphCacheEntry()
@@ -303,9 +310,8 @@ class GlyphCacheRow {
   get_it_row_height_map() const {
     return it_row_height_map_;
   }
-  void set_it_row_height_map(
-      const std::multimap<int32_t, GlyphCacheEntry::iterator_row>::iterator
-          it_row_height_map) {
+  void set_it_row_height_map(const std::multimap<
+      int32_t, GlyphCacheEntry::iterator_row>::iterator it_row_height_map) {
     it_row_height_map_ = it_row_height_map;
   }
 
@@ -366,7 +372,7 @@ class GlyphCacheBufferBase {
   }
 
   virtual void Initialize(GlyphCache* cache, const mathfu::vec2i& size,
-                  int32_t max_slices);
+                          int32_t max_slices);
   const mathfu::vec2i& get_size() { return size_; }
 
   bool FindRow(int32_t req_width, int32_t req_height,
@@ -389,7 +395,9 @@ class GlyphCacheBufferBase {
   }
 
   // Getter/Setter of dirty state.
-  bool get_dirty_state() const { return dirty_; };
+  bool get_dirty_state() const {
+    return dirty_;
+  };
   void set_dirty_state(bool dirty) { dirty_ = dirty; }
 
   // Virtual functions to retrieve buffer parameters.
@@ -500,7 +508,7 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
         // Give a texture size but don't have to clear the texture here.
         textures_[i].LoadFromMemory(nullptr, get_size(), get_texture_format());
       }
-      if (rect.z() - rect.x() && rect.w() - rect.y()) {
+      if (rect.z() - rect.x() > 0 && rect.w() - rect.y() > 0) {
         textures_[i].Set(0);
         fplbase::Texture::UpdateTexture(
             get_texture_format(), 0, rect.y(), get_size().x(),
@@ -569,7 +577,7 @@ class GlyphCache {
   // height: height of the glyph cache texture. Rounded up to power of 2.
   // max_slices: max number of slices in the cache.
   GlyphCache(const mathfu::vec2i& size, int32_t max_slices);
-  ~GlyphCache(){};
+  ~GlyphCache() {};
 
   // Look up a cached entries.
   // Return value: A pointer to a cached glyph entry.
@@ -662,14 +670,13 @@ class GlyphCache {
   // to increase number of cache buffers up to the number;
   int32_t max_slices_;
 
-  // Hash map to the cache entries
+  // Map to the cache entries
   // This map is the primary place to look up the cache entries.
   // Key: a structure that contains glyph parameters such as a code point, font
   // id, glyph size etc.
   // Note that the code point is an index in the font file and not a Unicode
   // value.
-  std::unordered_map<GlyphKey, std::unique_ptr<GlyphCacheEntry>, GlyphKey>
-      map_entries_;
+  std::map<GlyphKey, std::unique_ptr<GlyphCacheEntry>, GlyphKey> map_entries_;
 
   // Revision of the buffer.
   // Each time one or more cache entry is evicted, a revision of the cache is
