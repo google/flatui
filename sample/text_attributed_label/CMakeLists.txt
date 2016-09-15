@@ -13,11 +13,12 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(animation)
-add_subdirectory(basic)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
-add_subdirectory(text_attributed_label)
-add_subdirectory(text_layout)
-add_subdirectory(text_color_emoji)
+project(flatuisample_attributed_label)
+
+add_executable(flatuisample_attributed_label flatui_attributed_label.cpp)
+add_dependencies(flatuisample_attributed_label fplbase flatui)
+mathfu_configure_flags(flatuisample_attributed_label)
+target_link_libraries(flatuisample_attributed_label fplbase flatui)
+
+# FlatUI postprocess
+flatui_post_process(flatuisample_attributed_label "sample")

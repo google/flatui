@@ -62,6 +62,12 @@ namespace flatui {
 FT_Library *FontManager::ft_;
 hb_buffer_t *FontManager::harfbuzz_buf_;
 
+// Static members in FontBuffer.
+std::vector<uint32_t> FontBuffer::word_boundary_;
+std::vector<uint32_t> FontBuffer::word_boundary_caret_;
+uint32_t FontBuffer::line_start_index_;
+uint32_t FontBuffer::line_start_caret_index_;
+
 // Enum that indicates invalid texture atlas index.
 const int32_t kInvalidSliceIndex = -1;
 
@@ -186,6 +192,7 @@ void FontManager::Initialize() {
   version_ = &FontVersion();
   SetLocale(kDefaultLanguage);
   cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
+  appending_buffer_ = false;
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
@@ -233,30 +240,109 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
     // Try to create buffer again.
     buffer = CreateBuffer(text, static_cast<uint32_t>(length), parameter);
     if (buffer == nullptr) {
-      LogError("The given text '%s' with ",
-               "size:%d does not fit a glyph cache. Try to "
-               "increase a cache size or use GetTexture() API ",
-               "instead.\n", text, parameter.get_size().y());
+      LogError(
+          "The given text '%s' with size:%d does not fit a glyph cache. "
+          "Try to increase a cache size or use GetTexture() API ",
+          "instead.\n", text, parameter.get_size().y());
     }
   }
 
   return buffer;
 }
 
-FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
-                                      const FontBufferParameters &parameters) {
-  // Adjust y size if the size selector is set.
-  auto size = parameters.get_size();
-  auto caret_info = parameters.get_caret_info_flag();
-  bool multi_line = parameters.get_multi_line_setting();
-  auto ysize = static_cast<int32_t>(parameters.get_font_size());
-  auto converted_ysize = ConvertSize(ysize);
-  float scale = ysize / static_cast<float>(converted_ysize);
+FontBuffer *FontManager::GetAttributedBuffer(
+    const char *text, size_t length, const FontBufferParameters &parameters,
+    const char *tag_word,
+    std::function<size_t(const char *text, FontBufferParameters *params,
+                         mathfu::vec2 *pos)> attribute_callback) {
 
-  // Acquire cache mutex.
-  fplutil::MutexLock lock(*cache_mutex_);
+  {
+    // Acquire cache mutex.
+    fplutil::MutexLock lock(*cache_mutex_);
 
-  // Check cache if we already have a FontBuffer generated.
+    // Check cache if we already have a FontBuffer generated.
+    auto buffer = FindBuffer(parameters);
+    if (buffer != nullptr) {
+      return buffer;
+    }
+  }
+
+  if (parameters.get_cache_id() == kNullHash) {
+    LogInfo(
+        "Note that an attirbuted FontBuffer needs to have unique cache ID"
+        "to have correct linked list set up.");
+  }
+
+  // Otherwise create new buffer.
+  FontBufferParameters params = parameters;
+  FontBuffer *buffer = nullptr;
+  auto str = std::string(text);
+  auto tag_length = strlen(tag_word);
+  size_t current_pos = 0;
+  size_t current_length = length;
+  mathfu::vec2 pos = mathfu::kZeros2f;
+
+  // Indicate that it is going to append multiple FontBuffer.
+  appending_buffer_ = true;
+
+  do {
+    auto tag_pos = str.find(tag_word, current_pos);
+    if (tag_pos != current_pos) {
+      if (tag_pos == std::string::npos) {
+        // We don't have a tag any more. All remaining string is the length.
+        tag_pos = length;
+      }
+      auto s = str.c_str() + current_pos;
+      current_length = tag_pos - current_pos;
+      if (buffer == nullptr) {
+        buffer = CreateBuffer(s, current_length, params, &pos);
+      } else {
+        // Acquire cache mutex.
+        fplutil::MutexLock lock(*cache_mutex_);
+        buffer = AppendBuffer(s, current_length, params, buffer, &pos);
+      }
+      if (buffer == nullptr) {
+        fplbase::LogError("Failed to create buffer.");
+        return buffer;
+      }
+
+      // If the buffer has an ellipsis, won't add text any more.
+      if (buffer->HasEllipsis()) {
+        break;
+      }
+    } else {
+      // Edge case that the string start with the tag.
+      current_length = 0;
+    }
+
+    // Foward the current position.
+    size_t forward = 0;
+    // Double check if we need to call the callback.
+    if (tag_pos + tag_length < length) {
+      forward = attribute_callback(text + current_pos + current_length, &params,
+                                   &pos);
+    }
+    current_pos += current_length + tag_length + forward;
+  } while (current_pos < length);
+
+  appending_buffer_ = false;
+  buffer->UpdateLine(parameters, layout_direction_, true);
+  buffer->ClearTemporaryBuffer();
+
+  return buffer;
+}
+
+FontBuffer *FontManager::AppendBuffer(const char *text, uint32_t length,
+                                      const FontBufferParameters &parameters,
+                                      FontBuffer *buffer,
+                                      mathfu::vec2 *text_pos) {
+  if (!FillBuffer(text, length, parameters, buffer, text_pos)) {
+    return nullptr;
+  }
+  return buffer;
+}
+
+FontBuffer *FontManager::FindBuffer(const FontBufferParameters &parameters) {
   auto it = map_buffers_.find(parameters);
   if (it != map_buffers_.end()) {
     // Update current pass.
@@ -265,6 +351,8 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     }
 
     // Update UV of the buffer
+    auto ysize = static_cast<int32_t>(parameters.get_font_size());
+    auto converted_ysize = ConvertSize(ysize);
     auto ret = UpdateUV(converted_ysize, parameters.get_glyph_flags(),
                         it->second.get());
 
@@ -274,8 +362,61 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     }
     return ret;
   }
+  return nullptr;
+}
+
+FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
+                                      const FontBufferParameters &parameters,
+                                      mathfu::vec2 *text_pos) {
+  // Acquire cache mutex.
+  fplutil::MutexLock lock(*cache_mutex_);
+
+  // Check cache if we already have a FontBuffer generated.
+  auto ret = FindBuffer(parameters);
+  if (ret != nullptr) {
+    return ret;
+  }
 
   // Otherwise, create new FontBuffer.
+
+  // Create FontBuffer with derived string length.
+  std::unique_ptr<FontBuffer> buffer(
+      new FontBuffer(length, parameters.get_caret_info_flag()));
+  if (!FillBuffer(text, length, parameters, buffer.get(), text_pos)) {
+    return nullptr;
+  }
+
+  // Initialize reference counter.
+  buffer->set_ref_count(1);
+
+  // Set current pass.
+  if (current_pass_ != kRenderPass) {
+    buffer->set_pass(current_pass_);
+  }
+
+  // Verify the buffer.
+  assert(buffer->Verify());
+
+  // Insert the created entry to the hash map.
+  auto insert = map_buffers_.insert(
+      std::pair<FontBufferParameters, std::unique_ptr<FontBuffer>>(
+          parameters, std::move(buffer)));
+
+  // Set up a back reference from the buffer to the map.
+  insert.first->second->set_iterator(insert.first);
+  return insert.first->second.get();
+}
+
+FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
+                                    const FontBufferParameters &parameters,
+                                    FontBuffer *buffer,
+                                    mathfu::vec2 *pos_offset) {
+  auto size = parameters.get_size();
+  auto multi_line = parameters.get_multi_line_setting();
+  auto caret_info = parameters.get_caret_info_flag();
+  auto ysize = static_cast<int32_t>(parameters.get_font_size());
+  auto converted_ysize = ConvertSize(ysize);
+  float scale = ysize / static_cast<float>(converted_ysize);
 
   // Update text metrices.
   SetLineHeightScale(parameters.get_line_height_scale());
@@ -283,9 +424,6 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
   // Set freetype settings.
   current_font_->SetPixelSize(converted_ysize);
-
-  // Create FontBuffer with derived string length.
-  std::unique_ptr<FontBuffer> buffer(new FontBuffer(length, caret_info));
 
   // Retrieve word breaking information using libunibreak.
   wordbreak_info_.resize(length);
@@ -304,7 +442,10 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     // In RTL layout, the glyph position start from right.
     pos_start = static_cast<float>(size.x());
   }
-  mathfu::vec2 pos(pos_start, 0);
+  mathfu::vec2 pos = vec2(pos_start, 0);
+  if (pos_offset != nullptr) {
+    pos += *pos_offset;
+  }
 
   uint32_t line_width = 0;
   uint32_t max_line_width = parameters.get_line_length();
@@ -312,10 +453,21 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   bool lastline_must_break = false;
   bool first_character = true;
   auto line_height = ysize * line_height_scale_;
+  std::vector<int32_t> atlas_indices;
 
-  // Clear temporary buffer holding texture atlas indices.
-  std::vector<int32_t> atlas_indices(glyph_cache_->get_num_max_slices(),
-                                     kInvalidSliceIndex);
+  if (buffer->get_size().y()) {
+    // Seems like the buffer is already initialized and we are appending to the
+    // buffer. Retrieve information from the buffer.
+    atlas_indices = *buffer->get_slices();
+    max_line_width = buffer->get_size().x() * kFreeTypeUnit;
+    total_height = buffer->get_size().y();
+    initial_metrics = buffer->metrics();
+    base_line = initial_metrics.base_line();
+  } else {
+    // Otherwise, initialize the values.
+    atlas_indices = std::vector<int32_t>(glyph_cache_->get_num_max_slices(),
+                                         kInvalidSliceIndex);
+  }
 
   // Find words and layout them.
   while (word_enum.Advance()) {
@@ -323,13 +475,14 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
     if (!multi_line) {
       // Single line text.
       // In this mode, it layouts all string into single line.
-      max_line_width = static_cast<uint32_t>(LayoutText(text, length) * scale);
+      max_line_width = static_cast<uint32_t>(LayoutText(text, length) * scale) +
+                       buffer->get_size().x() * kFreeTypeUnit;
 
       if (size.x() && max_line_width > max_width && !caret_info) {
         // The text size exceeds given size.
         // Rewind the buffers and add an ellipsis if it's speficied.
-        if (!AppendEllipsis(word_enum, parameters, base_line, buffer.get(),
-                            &pos, &atlas_indices, &initial_metrics)) {
+        if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
+                            &atlas_indices, &initial_metrics)) {
           return nullptr;
         }
       }
@@ -363,11 +516,11 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
             !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
-          if (!AppendEllipsis(word_enum, parameters, base_line, buffer.get(),
-                              &pos, &atlas_indices, &initial_metrics)) {
+          if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
+                              &atlas_indices, &initial_metrics)) {
             return nullptr;
           }
-          // Update alignement after an ellipsis is appended.
+          // Update alignment after an ellipsis is appended.
           buffer->UpdateLine(parameters, layout_direction_,
                              lastline_must_break);
           hb_buffer_clear_contents(harfbuzz_buf_);
@@ -404,7 +557,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 
     // Add string information to the buffer.
     if (!UpdateBuffer(word_enum, parameters, base_line, lastline_must_break,
-                      buffer.get(), &atlas_indices, &pos, &initial_metrics)) {
+                      buffer, &atlas_indices, &pos, &initial_metrics)) {
       return nullptr;
     }
 
@@ -424,7 +577,10 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   }
 
   // Update the last line.
-  buffer->UpdateLine(parameters, layout_direction_, true);
+  if (appending_buffer_ == false) {
+    buffer->UpdateLine(parameters, layout_direction_, true);
+    buffer->ClearTemporaryBuffer();
+  }
 
   // Setup size.
   buffer->set_size(vec2i(max_line_width / kFreeTypeUnit, total_height));
@@ -432,25 +588,12 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   // Setup font metrics.
   buffer->set_metrics(initial_metrics);
 
-  // Initialize reference counter.
-  buffer->set_ref_count(1);
-
-  // Set current pass.
-  if (current_pass_ != kRenderPass) {
-    buffer->set_pass(current_pass_);
+  // Return the position.
+  if (pos_offset != nullptr) {
+    *pos_offset = pos;
   }
 
-  // Verify the buffer.
-  assert(buffer->Verify());
-
-  // Insert the created entry to the hash map.
-  auto insert = map_buffers_.insert(
-      std::pair<FontBufferParameters, std::unique_ptr<FontBuffer>>(
-          parameters, std::move(buffer)));
-
-  // Set up a back reference from the buffer to the map.
-  insert.first->second->set_iterator(insert.first);
-  return insert.first->second.get();
+  return buffer;
 }
 
 void FontManager::ReleaseBuffer(FontBuffer *buffer) {
@@ -585,6 +728,8 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
                                  mathfu::vec2 *pos,
                                  std::vector<int32_t> *atlas_indices,
                                  FontMetrics *metrics) {
+  buffer->has_ellipsis_ = true;
+
   if (!ellipsis_.length()) {
     return true;
   }
@@ -618,6 +763,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 
   // Cleanup buffer contents.
   hb_buffer_clear_contents(harfbuzz_buf_);
+
   return true;
 }
 
