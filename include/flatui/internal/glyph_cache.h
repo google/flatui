@@ -370,6 +370,7 @@ class GlyphCacheBufferBase {
   GlyphCacheBufferBase() : max_slices_(0), dirty_(false) {
     size_ = mathfu::kZeros2i;
   }
+  virtual ~GlyphCacheBufferBase() {}
 
   virtual void Initialize(GlyphCache* cache, const mathfu::vec2i& size,
                           int32_t max_slices);
