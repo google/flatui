@@ -375,20 +375,25 @@ bool FontManager::OpenSystemFontApple() {
         CTFontDescriptorCopyAttribute(descriptor, kCTFontNameAttribute));
 
     // Open the font.
-    if (font_name != nullptr) {
-      CFStringGetCString(font_name, str, kStringLength, kCFStringEncodingUTF8);
-      fplbase::LogInfo("Font name: %s", str);
-      FontFamily family(str, true);
-      if (Open(family)) {
+    if (font_name != nullptr &&
+        CFStringGetCString(font_name, str, kStringLength,
+                           kCFStringEncodingUTF8)) {
+      // Weirdly, the LogInfo call here seems to crash if we only supply 1
+      // parameter. Perhaps the compiler is choosing the overload that takes
+      // a va_list?
+      fplbase::LogInfo("Font name: %s %d", str, i);
+      if (Open(str, true)) {
         // Retrieve the font size for an information.
         auto it = map_faces_.find(str);
         if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
           total_size += it->second->font_data_.size();
 
+          FontFamily family;
+          family.family_name_ = str;
           system_fallback_list_.push_back(family);
           ret = true;
         } else {
-          fplbase::LogInfo("Skipped loading font:%s", str);
+          fplbase::LogInfo("Skipped loading font:%s %d", str, i);
           Close(str);
         }
       }
