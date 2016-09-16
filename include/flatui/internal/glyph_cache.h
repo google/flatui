@@ -68,10 +68,10 @@ class GlyphCacheBuffer;
 
 // Constants for a cache entry size rounding up and padding between glyphs.
 // Adding a padding between cached glyph images to avoid sampling artifacts of
-// texture fetches.
+// texture fetches.  Padding can be configured for each GlyphCache.
 const int32_t kGlyphCacheHeightRound = 4;
-const int32_t kGlyphCachePaddingX = 1;
-const int32_t kGlyphCachePaddingY = 1;
+const int32_t kDefaultGlyphCachePaddingX = 1;
+const int32_t kDefaultGlyphCachePaddingY = 1;
 const int32_t kGlyphCachePaddingSDF = 4;
 
 // Flags that controls glyph image generation.
@@ -646,6 +646,10 @@ class GlyphCache {
   // Getter of the cache size.
   const mathfu::vec2i& get_size() const { return size_; }
 
+  // Getter/Setter of the glyph padding
+  const mathfu::vec2i& get_padding() const { return padding_; }
+  void set_padding(const mathfu::vec2i& padding) { padding_ = padding; }
+
  private:
   // Friend class, GlyphCacheBuffer needs an access to internal variables of the
   // class.
@@ -667,6 +671,9 @@ class GlyphCache {
 
   // Size of the glyph cache. Rounded to power of 2.
   mathfu::vec2i size_;
+
+  // Padding between glyphs.
+  mathfu::vec2i padding_;
 
   // Cache buffers for monochrome (1 channel) glyphs.
   GlyphCacheBuffer<uint8_t> buffers_;
