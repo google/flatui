@@ -24,7 +24,9 @@ using fplbase::LogError;
 namespace flatui {
 
 GlyphCache::GlyphCache(const mathfu::vec2i& size, int32_t max_slices)
-    : counter_(0), revision_(0) {
+    : counter_(0),
+      padding_(kDefaultGlyphCachePaddingX, kDefaultGlyphCachePaddingY),
+      revision_(0) {
   // Round up cache sizes to power of 2.
   size_ = mathfu::RoundUpToPowerOf2(size);
   buffers_.Initialize(this, size_, max_slices);
@@ -88,8 +90,8 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   // Adjust requested height & width.
   // Height is rounded up to multiple of kGlyphCacheHeightRound.
   // Expecting kGlyphCacheHeightRound is base 2.
-  int32_t req_width = entry.get_size().x() + kGlyphCachePaddingX;
-  int32_t req_height = ((entry.get_size().y() + kGlyphCachePaddingY +
+  int32_t req_width = entry.get_size().x() + padding_.x();
+  int32_t req_height = ((entry.get_size().y() + padding_.y() +
                          (kGlyphCacheHeightRound - 1)) &
                         ~(kGlyphCacheHeightRound - 1));
   // Find sufficient space in the buffer.
