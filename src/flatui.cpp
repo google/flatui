@@ -532,7 +532,7 @@ class InternalState : public LayoutManager {
       const fplbase::Attribute kFormat[] = {
           fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
       auto indices = buffer.get_indices(static_cast<int32_t>(i));
-      if (indices->size()) {
+      if (!indices->empty()) {
         Mesh::RenderArray(
             Mesh::kTriangles, static_cast<int>(indices->size()), kFormat,
             sizeof(FontVertex),
