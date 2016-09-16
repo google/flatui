@@ -68,7 +68,7 @@ inline HashedId HashId(const char *id, int32_t length,
 /// @return Returns the HashId corresponding to the `id`.
 inline HashedId HashId(const char *id, HashedId hash = kInitialHashValue) {
   auto length = strlen(id);
-  return HashId(id, length, hash);
+  return HashId(id, static_cast<int32_t>(length), hash);
 }
 
 /// @brief Hash a pointer to an object, of which there is guaranteed to be only
