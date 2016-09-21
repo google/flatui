@@ -1566,7 +1566,7 @@ int32_t FontBuffer::GetBufferIndex(int32_t slice) {
     indices_.resize(it->second + 1);
   }
   // Update the attribute stack.
-  if (it != attribute_history_.back()) {
+  if (!attribute_history_.size() || it != attribute_history_.back()) {
     attribute_history_.push_back(it);
   }
   assert(it->second < static_cast<int32_t>(indices_.size()));
