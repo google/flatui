@@ -98,7 +98,9 @@ class Grid {
   }
   bool get_invert() const { return inverted_; }
 
-  std::unique_ptr<std::vector<T>> get_buffer() { return p_; };
+  std::unique_ptr<std::vector<T>> get_buffer() {
+    return p_;
+  };
 
  protected:
   T* data_;
@@ -390,12 +392,11 @@ class DistanceComputer {
     // distance to the edge.
     const auto length = vec_to_edge_pixel.Length();
     const auto dist =
-        length > 0.0f
-            ?
+        length > 0.0f ?
             // Estimate based on direction to edge (accurate for large vectors).
             ApproximateDistanceToEdge(value, vec_to_edge_pixel)
-            :
-            // Estimate based on local gradient only.
+                      :
+                      // Estimate based on local gradient only.
             ApproximateDistanceToEdge(value, gradients_.Get(pixel));
     return length + dist;
   }

@@ -24,6 +24,10 @@
 #include <hb-ft.h>
 #include <hb-ot.h>
 
+// libunibreak header
+#include <unibreakdef.h>
+
+#include "font_manager.h"
 #include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 #include "internal/flatui_util.h"
@@ -34,19 +38,10 @@ using fplbase::LogError;
 
 namespace flatui {
 
-// Threshold value to flush a codepoint cache.
-// In the codepoint cache,
-static const int32_t kCodepointCacheFlushThreshold = 64 * 1024;
-
 HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec,
                             HbFontCache *cache) {
   auto it = cache->find(id);
   if (it != cache->end()) {
-    auto p = reinterpret_cast<HbComplexFont *>(it->second.get());
-    if (p->codepoint_cache_.size() > kCodepointCacheFlushThreshold) {
-      p->codepoint_cache_.clear();
-    }
-
     // The font has been already opened.
     return it->second.get();
   }
@@ -58,13 +53,6 @@ HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec,
   font->faces_ = *vec;
   font->complex_font_id_ = id;
 
-  // Create harfbuzz font information from freetype face.
-  auto face = (*vec)[0]->face_;
-  font->harfbuzz_font_ = hb_ft_font_create(face, NULL);
-  if (!font->harfbuzz_font_) {
-    cache->erase(insert.first);
-    return nullptr;
-  }
   // Override callbacks.
   auto table = hb_font_funcs_create();
   auto null_callback = [](void *) { return; };
@@ -83,7 +71,11 @@ HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec,
                                              null_callback);
   hb_font_funcs_set_glyph_name_func(table, HbGetName, font, null_callback);
   hb_font_funcs_make_immutable(table);
-  hb_font_set_funcs(font->harfbuzz_font_, table, face, null_callback);
+
+  for (size_t i = 0; i < font->faces_.size(); ++i) {
+    hb_font_set_funcs(font->faces_[i]->get_hb_font(), table, font->faces_[i],
+                      null_callback);
+  }
 
   return font;
 }
@@ -96,17 +88,51 @@ void HbComplexFont::Close(HashedId id, HbFontCache *cache) {
   cache->erase(it);
 }
 
-const GlyphInfo *HbComplexFont::GetGlyphInfo(uint32_t code_point) {
-  auto it = codepoint_cache_.find(code_point);
-  assert(it != codepoint_cache_.end());
-  return &it->second;
+int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
+                                          std::vector<int32_t> *font_data_index)
+    const {
+  font_data_index->resize(length);
+  std::fill(font_data_index->begin(), font_data_index->end(),
+            kFontIndexInvalid);
+  auto run = 0;
+  size_t i = 0;
+  size_t current_face = kFontIndexInvalid;
+  size_t text_idx = 0;
+  while (text_idx < length) {
+    auto unicode = ub_get_next_char_utf8(reinterpret_cast<const utf8_t *>(text),
+                                         length, &i);
+    // Current face has a priority since we want to have longer run for a font.
+    if (current_face != static_cast<size_t>(kFontIndexInvalid) &&
+        FT_Get_Char_Index(faces_[current_face]->get_face(), unicode)) {
+      (*font_data_index)[text_idx] = current_face;
+    } else {
+      // Check if any font has the glyph.
+      for (size_t face_idx = 0; faces_.size(); ++face_idx) {
+        if (face_idx != current_face &&
+            FT_Get_Char_Index(faces_[face_idx]->get_face(), unicode)) {
+          (*font_data_index)[text_idx] = face_idx;
+          if (face_idx != current_face) {
+            run++;
+            current_face = face_idx;
+          }
+          break;
+        }
+      }
+    }
+    text_idx = i;
+  }
+  return run;
+}
+
+const FaceData &HbComplexFont::GetFaceData() const {
+  return *faces_[current_face_index_];
 }
 
 int32_t HbComplexFont::GetBaseLine(int32_t size) const {
   // Return a baseline in the first prioritized font.
   auto face = faces_[0];
-  float unit_per_em = face->face_->ascender - face->face_->descender;
-  float base_line = size * face->face_->ascender / unit_per_em;
+  float unit_per_em = face->get_face()->ascender - face->get_face()->descender;
+  float base_line = size * face->get_face()->ascender / unit_per_em;
   if (base_line > size) {
     base_line = size;
   }
@@ -115,13 +141,11 @@ int32_t HbComplexFont::GetBaseLine(int32_t size) const {
 
 mathfu::vec2i HbComplexFont::GetUnderline(int32_t size) const {
   // Return a underline info in the first prioritized font.
-  auto face = faces_[0];
-  float unit_per_em = face->face_->ascender - face->face_->descender;
-  float underline = size *
-                    (face->face_->ascender - face->face_->underline_position) /
-                    unit_per_em;
-  float underline_thickness =
-      size * face->face_->underline_thickness / unit_per_em;
+  auto face = faces_[0]->get_face();
+  float unit_per_em = face->ascender - face->descender;
+  float underline =
+      size * (face->ascender - face->underline_position) / unit_per_em;
+  float underline_thickness = size * face->underline_thickness / unit_per_em;
   return mathfu::vec2i(underline - underline_thickness + 0.5f,
                        underline_thickness + 0.5f);
 }
@@ -131,13 +155,13 @@ void HbComplexFont::SetPixelSize(uint32_t size) {
   auto end = faces_.end();
   for (; it != end; ++it) {
     // Set scaling for non scalable bitmap font.
-    auto face = (*it)->face_;
+    auto face = (*it)->get_face();
     FT_Set_Pixel_Sizes(face, 0, size);
     if (!FT_IS_SCALABLE(face)) {
       // TODO:Choose the closest size if multiple sizes are available.
       auto available_size = face->available_sizes[0].height;
-      (*it)->scale_ = (static_cast<uint64_t>(size) << kHbFixedPointPrecision) /
-                      available_size;
+      (*it)->set_scale((static_cast<uint64_t>(size) << kHbFixedPointPrecision) /
+                       available_size);
     }
   }
 }
@@ -149,28 +173,14 @@ hb_bool_t HbComplexFont::HbGetGlyph(hb_font_t *font, void *font_data,
   (void)font;
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
-
-  // Fast path for a glyphs in the cache.
-  auto it = p->codepoint_cache_.find(unicode);
-  if (it != p->codepoint_cache_.end()) {
-    *glyph = unicode;
-    return true;
+  auto &face_data = p->GetFaceData();
+  auto code_point =
+      p->GetGlyph(face_data.get_face(), unicode, variation_selector);
+  if (!code_point) {
+    return false;
   }
-
-  // Iterate all faces and check if one of faces supports specified glyph.
-  hb_codepoint_t code_point = 0;
-  auto iterator = p->faces_.begin();
-  auto end = p->faces_.end();
-  for (; iterator != end; ++iterator) {
-    code_point = p->GetGlyph((*iterator)->face_, unicode, variation_selector);
-    if (code_point) {
-      *glyph = unicode;
-      p->codepoint_cache_.emplace(
-          std::make_pair(unicode, GlyphInfo(*iterator, code_point)));
-      break;
-    }
-  }
-  return code_point != 0;
+  *glyph = code_point;
+  return true;
 }
 
 hb_position_t HbComplexFont::HbGetHorizontalAdvance(hb_font_t *font,
@@ -181,9 +191,8 @@ hb_position_t HbComplexFont::HbGetHorizontalAdvance(hb_font_t *font,
   (void)font_data;
   if (!glyph) return 0;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto glyph_info = p->codepoint_cache_[glyph];
-  return p->GetGlyphAdvance(glyph_info.GetFtFace(), glyph_info.GetCodepoint(),
-                            glyph_info.GetFaceData()->scale_,
+  auto &face_data = p->GetFaceData();
+  return p->GetGlyphAdvance(face_data.get_face(), glyph, face_data.get_scale(),
                             FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
 }
 
@@ -194,10 +203,9 @@ hb_position_t HbComplexFont::HbGetVerticalAdvance(hb_font_t *font,
   (void)font;
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto glyph_info = p->codepoint_cache_[glyph];
+  auto &face_data = p->GetFaceData();
   return p->GetGlyphAdvance(
-      glyph_info.GetFtFace(), glyph_info.GetCodepoint(),
-      glyph_info.GetFaceData()->scale_,
+      face_data.get_face(), glyph, face_data.get_scale(),
       FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING | FT_LOAD_VERTICAL_LAYOUT);
 }
 
@@ -209,11 +217,10 @@ hb_bool_t HbComplexFont::HbGetVerticalOrigin(hb_font_t *font, void *font_data,
   (void)font_data;
   if (!glyph) return false;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto glyph_info = p->codepoint_cache_[glyph];
+  auto &face_data = p->GetFaceData();
   mathfu::vec2i origin;
-  auto scale = glyph_info.GetFaceData()->scale_;
-  auto b = p->GetGlyphVerticalOrigin(glyph_info.GetFtFace(),
-                                     glyph_info.GetCodepoint(),
+  auto scale = face_data.get_scale();
+  auto b = p->GetGlyphVerticalOrigin(face_data.get_face(), glyph,
                                      mathfu::vec2i(scale, scale), &origin);
   *x = origin.x();
   *y = origin.y();
@@ -228,16 +235,12 @@ hb_position_t HbComplexFont::HbGetHorizontalKerning(hb_font_t *font,
   (void)font;
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto left_font = p->codepoint_cache_[left_glyph];
-  if (left_font.GetFtFace() != p->codepoint_cache_[right_glyph].GetFtFace()) {
-    // Does not support a kerning between different fonts.
-    return 0;
-  }
+  auto &face_data = p->GetFaceData();
 
   uint32_t x_ppem, y_ppem;
-  hb_font_get_ppem(p->harfbuzz_font_, &x_ppem, &y_ppem);
-  return p->GetGlyphHorizontalKerning(
-      left_font.GetFtFace(), left_font.GetCodepoint(), right_glyph, x_ppem);
+  hb_font_get_ppem(p->GetHbFont(), &x_ppem, &y_ppem);
+  return p->GetGlyphHorizontalKerning(face_data.get_face(), left_glyph,
+                                      right_glyph, x_ppem);
 }
 
 hb_bool_t HbComplexFont::HbGetExtents(hb_font_t *font, void *font_data,
@@ -247,9 +250,8 @@ hb_bool_t HbComplexFont::HbGetExtents(hb_font_t *font, void *font_data,
   (void)font;
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto glyph_info = p->codepoint_cache_[glyph];
-  return p->GetGlyphExtents(glyph_info.GetFtFace(), glyph_info.GetCodepoint(),
-                            extents);
+  auto &face_data = p->GetFaceData();
+  return p->GetGlyphExtents(face_data.get_face(), glyph, extents);
 }
 
 hb_bool_t HbComplexFont::HgGetContourPoint(hb_font_t *font, void *font_data,
@@ -260,9 +262,9 @@ hb_bool_t HbComplexFont::HgGetContourPoint(hb_font_t *font, void *font_data,
   (void)font;
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto glyph_info = p->codepoint_cache_[glyph];
-  return p->GetGlyphContourPoint(glyph_info.GetFtFace(),
-                                 glyph_info.GetCodepoint(), point_index, x, y);
+  auto &face_data = p->GetFaceData();
+  return p->GetGlyphContourPoint(face_data.get_face(), glyph, point_index, x,
+                                 y);
 }
 
 hb_bool_t HbComplexFont::HbGetName(hb_font_t *font, void *font_data,
@@ -271,15 +273,14 @@ hb_bool_t HbComplexFont::HbGetName(hb_font_t *font, void *font_data,
   (void)font;
   (void)font_data;
   auto p = static_cast<HbComplexFont *>(user_data);
-  auto glyph_info = p->codepoint_cache_[glyph];
-  return p->GetGlyphName(glyph_info.GetFtFace(), glyph_info.GetCodepoint(),
-                         name, size);
+  auto &face_data = p->GetFaceData();
+  return p->GetGlyphName(face_data.get_face(), glyph, name, size);
 }
 
-HbFont::~HbFont() { hb_font_destroy(harfbuzz_font_); }
+HbFont::~HbFont() {}
 
 HbFont *HbFont::Open(const FaceData &face, HbFontCache *cache) {
-  auto it = cache->find(face.font_id_);
+  auto it = cache->find(face.get_font_id());
   if (it != cache->end()) {
     // The font has been already opened.
     return it->second.get();
@@ -287,16 +288,10 @@ HbFont *HbFont::Open(const FaceData &face, HbFontCache *cache) {
 
   // Insert the created entry to the hash map.
   auto insert = cache->insert(std::pair<HashedId, std::unique_ptr<HbFont>>(
-      face.font_id_, std::unique_ptr<HbFont>(new HbFont)));
+      face.get_font_id(), std::unique_ptr<HbFont>(new HbFont)));
   auto font = insert.first->second.get();
-  font->glyph_info_ = GlyphInfo(&face, 0);
+  font->face_data_ = &face;
 
-  // Create harfbuzz font information from freetype face.
-  font->harfbuzz_font_ = hb_ft_font_create(face.face_, NULL);
-  if (!font->harfbuzz_font_) {
-    cache->erase(insert.first);
-    return nullptr;
-  }
   return font;
 }
 
@@ -310,7 +305,7 @@ HbFont *HbFont::Open(HashedId id, HbFontCache *cache) {
 }
 
 void HbFont::Close(const FaceData &face, HbFontCache *cache) {
-  auto it = cache->find(face.font_id_);
+  auto it = cache->find(face.get_font_id());
   if (it == cache->end()) {
     return;
   }
@@ -318,9 +313,9 @@ void HbFont::Close(const FaceData &face, HbFontCache *cache) {
 }
 
 int32_t HbFont::GetBaseLine(int32_t size) const {
-  float unit_per_em =
-      glyph_info_.GetFtFace()->ascender - glyph_info_.GetFtFace()->descender;
-  float base_line = size * glyph_info_.GetFtFace()->ascender / unit_per_em;
+  auto face = face_data_->get_face();
+  float unit_per_em = face->ascender - face->descender;
+  float base_line = size * face->ascender / unit_per_em;
   if (base_line > size) {
     base_line = size;
   }
@@ -328,27 +323,23 @@ int32_t HbFont::GetBaseLine(int32_t size) const {
 }
 
 mathfu::vec2i HbFont::GetUnderline(int32_t size) const {
-  float unit_per_em =
-      glyph_info_.GetFtFace()->ascender - glyph_info_.GetFtFace()->descender;
-  float underline = size * (glyph_info_.GetFtFace()->ascender -
-                            glyph_info_.GetFtFace()->underline_position) /
-                    unit_per_em;
+  auto face = face_data_->get_face();
+  float unit_per_em = face->ascender - face->descender;
+  float underline =
+      size * (face->ascender - face->underline_position) / unit_per_em;
   float underline_thickness =
-      size * glyph_info_.GetFtFace()->underline_thickness / unit_per_em + 0.5f;
+      size * face->underline_thickness / unit_per_em + 0.5f;
   return mathfu::vec2i(underline - underline_thickness + 0.5f,
                        underline_thickness + 0.5f);
 }
 
 void HbFont::SetPixelSize(uint32_t size) {
-  FT_Set_Pixel_Sizes(glyph_info_.GetFtFace(), 0, size);
+  FT_Set_Pixel_Sizes(face_data_->get_face(), 0, size);
 }
 
-const GlyphInfo *HbFont::GetGlyphInfo(uint32_t code_point) {
-  glyph_info_.SetCodepoint(code_point);
-  return &glyph_info_;
-}
+const FaceData &HbFont::GetFaceData() const { return *face_data_; }
 
-HashedId HbFont::GetFontId() { return glyph_info_.GetFaceData()->font_id_; }
+HashedId HbFont::GetFontId() { return face_data_->get_font_id(); }
 
 hb_codepoint_t HbFont::GetGlyph(FT_Face face, hb_codepoint_t unicode,
                                 hb_codepoint_t variation_selector) {
@@ -450,6 +441,59 @@ bool HbFont::GetGlyphName(FT_Face face, hb_codepoint_t glyph, char *name,
   return (size && *name == 0) ? false : (ret != 0);
 }
 
-FT_Face GlyphInfo::GetFtFace() const { return face_->face_; }
+bool FaceData::Open(FT_Library ft, const FontFamily &family) {
+  const char *font_name = family.get_name().c_str();
+  auto by_name = family.is_family_name();
+
+  // Load the font file of assets.
+  auto index = 0;
+  if (family.is_font_collection()) {
+    font_name = family.get_original_name().c_str();
+    index = family.get_index();
+  }
+
+  if (by_name ||
+      !fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
+    // Fallback to open the specified font as a font name.
+    if (!OpenFontByName(font_name, &font_data_)) {
+      LogError("Can't load font resource: %s\n", font_name);
+      return false;
+    }
+  }
+  // Open the font using FreeType API.
+  FT_Error err = FT_New_Memory_Face(
+      ft, reinterpret_cast<const unsigned char *>(font_data_.c_str()),
+      static_cast<FT_Long>(font_data_.size()), index, &face_);
+  if (err) {
+    // Failed to open font.
+    LogError("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
+    return false;
+  }
+
+  // Create harfbuzz font information from the FreeType face.
+  harfbuzz_font_ = hb_ft_font_create(face_, NULL);
+  if (!harfbuzz_font_) {
+    Close();
+    return false;
+  }
+
+  // Set up parameters.
+  font_id_ = HashId(font_name);
+
+  return true;
+}
+
+void FaceData::Close() {
+  // Remove the font data associated to this face data.
+  if (harfbuzz_font_) {
+    hb_font_destroy(harfbuzz_font_);
+  }
+
+  if (face_) {
+    FT_Done_Face(face_);
+    face_ = nullptr;
+  }
+  font_data_.clear();
+}
 
 }  // namespace flatui

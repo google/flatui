@@ -190,20 +190,23 @@ class FontFamily {
   FontFamily(const std::string &name, int32_t index, const std::string &lang,
              bool family_name)
       : index_(index), family_name_(family_name) {
-    font_name_ = name;
+    // Normalize the font name.
+    font_name_ = NormalizeFontName(name);
     lang_ = lang;
     if (is_font_collection()) {
-      original_name_ = name;
-      font_name_ = CreateFontCollectionName(name);
+      font_name_ = CreateFontCollectionName(font_name_);
     }
+    original_name_ = name;
   };
   FontFamily(const char *name, bool family_name)
       : index_(kFontIndexInvalid), family_name_(family_name) {
-    font_name_ = name;
+    font_name_ = NormalizeFontName(name);
+    original_name_ = name;
   }
   FontFamily(const char *name)
       : index_(kFontIndexInvalid), family_name_(false) {
-    font_name_ = name;
+    font_name_ = NormalizeFontName(name);
+    original_name_ = name;
   };
 
   // Accessors to members.
@@ -212,9 +215,7 @@ class FontFamily {
   const std::string &get_name() const { return font_name_; }
   /// Original font name. When family_name_ is set, it's treated as a family
   /// name.
-  const std::string &get_original_name() const {
-    return original_name_.length() ? original_name_ : font_name_;
-  }
+  const std::string &get_original_name() const { return original_name_; }
   /// Language. The entry is ignored when opening a font.
   const std::string &get_language() const { return lang_; }
   /// Index in a font collection. kFontIndexInvalid indicates the font is not a
@@ -233,6 +234,15 @@ class FontFamily {
     ss << "#" << index_;
     return name + ss.str();
   }
+
+  static std::string NormalizeFontName(const std::string &name) {
+    std::size_t found = name.find_last_of("/\\");
+    if (found == std::string::npos) {
+      return name;
+    }
+    return name.substr(found + 1);
+  }
+
   std::string original_name_;
   std::string font_name_;
   std::string lang_;
@@ -889,15 +899,6 @@ class FontManager {
   /// rendering.
   void SetKerningScale(float kerning_scale) { kerning_scale_ = kerning_scale; }
 
-  /// @brief Open specified font by name and return the raw data.
-  /// Current implementation works on macOS/iOS and Android.
-  /// @return Returns true if the font is opened successfully.
-  ///
-  /// @param[in] font_name A font name to load.
-  /// @param[out] dest A string that font data will be loaded into.
-  /// @return true if the specified font is successfully opened.
-  bool OpenFontByName(const char *font_name, std::string *dest);
-
   /// @brief  Retrieve the system's font fallback list and all fonts in the
   /// list.
   /// The implementation is platform specific.
@@ -993,6 +994,9 @@ class FontManager {
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;
+
+  // A buffer includes font face index of the current font's faces.
+  std::vector<int32_t> fontface_index_;
 
   // An instance of signed distance field generator.
   // To avoid redundant initializations, the FontManager holds an instnce of the

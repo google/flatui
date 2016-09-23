@@ -32,6 +32,9 @@
 #endif
 #include "font_manager.h"
 
+using fplbase::LogInfo;
+using fplbase::LogError;
+
 namespace flatui {
 #ifdef _DEBUG
 #define FLATUI_PROFILE_SYSTEM_FONT_SEARCH (1)
@@ -296,25 +299,6 @@ static bool OpenFontByName(CFStringRef name, std::string* dest) {
 }
 #endif  // __APPLE__
 
-bool FontManager::OpenFontByName(const char* font_name, std::string* dest) {
-#ifdef __APPLE__
-  // Open the font using CGFont API and create font data from them.
-  auto name = CFStringCreateWithCString(kCFAllocatorDefault, font_name,
-                                        kCFStringEncodingUTF8);
-  bool ret = flatui::OpenFontByName(name, dest);
-  if (!ret) {
-    LogInfo("Can't load font resource: %s\n", font_name);
-  }
-  CFRelease(name);
-  return ret;
-#else   // __APPLE__
-  (void)font_name;
-  (void)dest;
-  fplbase::LogInfo("OpenFontByName() not implemented on the platform.");
-  return false;
-#endif  // __APPLE__
-}
-
 // Open system's default font with a fallback list.
 bool FontManager::OpenSystemFont() {
 #ifdef __APPLE__
@@ -385,9 +369,9 @@ bool FontManager::OpenSystemFontApple() {
       FontFamily family(str, true);
       if (Open(family)) {
         // Retrieve the font size for an information.
-        auto it = map_faces_.find(str);
-        if (UpdateFontCoverage(it->second->face_, &font_coverage)) {
-          total_size += it->second->font_data_.size();
+        auto it = map_faces_.find(family.get_name());
+        if (UpdateFontCoverage(it->second->get_face(), &font_coverage)) {
+          total_size += it->second->get_font_data().size();
 
           system_fallback_list_.push_back(family);
           ret = true;
@@ -547,8 +531,8 @@ bool FontManager::OpenSystemFontAndroid() {
     if (Open(*font_it)) {
       // Retrieve the font size for an information.
       auto face = map_faces_.find(font_it->get_name());
-      if (UpdateFontCoverage(face->second->face_, &font_coverage)) {
-        total_size += face->second->font_data_.size();
+      if (UpdateFontCoverage(face->second->get_face(), &font_coverage)) {
+        total_size += face->second->get_font_data().size();
         system_fallback_list_.push_back(std::move(*font_it));
         ret = true;
       } else {
@@ -572,7 +556,7 @@ bool FontManager::OpenSystemFontAndroid() {
   return ret;
 }
 
-void FontManager::ReorderSystemFonts(std::vector<FontFamily> *font_list) const {
+void FontManager::ReorderSystemFonts(std::vector<FontFamily>* font_list) const {
   // Re-order the list based on the system locale setting.
   auto locale = GetSystemLocale();
   auto it = locale.rbegin();
@@ -622,6 +606,25 @@ bool FontManager::UpdateFontCoverage(FT_Face face,
     code = FT_Get_Next_Char(face, code, &index);
   }
   return has_new_coverage;
+}
+
+bool FaceData::OpenFontByName(const char* font_name, std::string* dest) {
+#ifdef __APPLE__
+  // Open the font using CGFont API and create font data from them.
+  auto name = CFStringCreateWithCString(kCFAllocatorDefault, font_name,
+                                        kCFStringEncodingUTF8);
+  bool ret = flatui::OpenFontByName(name, dest);
+  if (!ret) {
+    LogInfo("Can't load font resource: %s\n", font_name);
+  }
+  CFRelease(name);
+  return ret;
+#else   // __APPLE__
+  (void)font_name;
+  (void)dest;
+  fplbase::LogInfo("OpenFontByName() not implemented on the platform.");
+  return false;
+#endif  // __APPLE__
 }
 
 }  // namespace flatui

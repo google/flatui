@@ -19,6 +19,7 @@
 
 /// @cond FLATUI_INTERNAL
 // Forward decls for FreeType & Harfbuzz
+typedef struct FT_LibraryRec_ *FT_Library;
 typedef struct FT_FaceRec_ *FT_Face;
 typedef signed long FT_Fixed;
 struct hb_font_t;
@@ -32,6 +33,8 @@ typedef int32_t hb_bool_t;
 /// @endcond
 
 namespace flatui {
+// Forward decl.
+class FontFamily;
 
 // Fixed point precision used in harfbuzz.
 const int32_t kHbFixedPointPrecision = 10;
@@ -52,16 +55,45 @@ class FaceData {
       : face_(nullptr),
         font_id_(kNullHash),
         system_font_(false),
-        scale_(1 << kHbFixedPointPrecision) {}
+        scale_(1 << kHbFixedPointPrecision),
+        harfbuzz_font_(nullptr) {}
 
   /// @brief The destructor for FaceData.
   ///
   /// @note This calls the `Close()` function.
   ~FaceData() { Close(); }
 
+  /// @brief Open a TTF/OTF font.
+  ///
+  /// @param[in] ft A FreeType library instance.
+  /// @param[in] family A FontFamily structure specifying a font name to open.
+  /// @return true if the specified font is successfully opened.
+  bool Open(FT_Library ft, const FontFamily &family);
+
   /// @brief Close the fontface.
   void Close();
 
+  /// @brief Open specified font by name and return the raw data.
+  /// Current implementation works on macOS/iOS and Android.
+  /// @return Returns true if the font is opened successfully.
+  ///
+  /// @param[in] font_name A font name to load.
+  /// @param[out] dest A string that font data will be loaded into.
+  bool OpenFontByName(const char *font_name, std::string *dest);
+
+  // Getter/Setters.
+  int32_t get_scale() const { return scale_; }
+  void set_scale(int32_t scale) { scale_ = scale; }
+
+  bool get_system_font_flag() const { return system_font_; }
+  void set_system_font_flag(bool flag) { system_font_ = flag; }
+
+  FT_Face get_face() const { return face_; }
+  HashedId get_font_id() const { return font_id_; }
+  hb_font_t *get_hb_font() const { return harfbuzz_font_; }
+  const std::string &get_font_data() const { return font_data_; }
+
+ private:
   /// @var face_
   ///
   /// @brief freetype's fontface instance.
@@ -86,39 +118,11 @@ class FaceData {
   ///
   /// @brief Scale applied for a layout.
   int32_t scale_;
-};
 
-/// @class GlyphInfo
-///
-/// @brief The glyph information that keeps FreeType face data and codepoint in
-/// the face data.
-class GlyphInfo {
- public:
-  GlyphInfo() : face_(nullptr), code_point_(0) {};
-  GlyphInfo(const FaceData *face, hb_codepoint_t code_point) {
-    face_ = face;
-    code_point_ = code_point;
-  }
-
-  /// @brief Getter of FT_Face for the glyph.
-  FT_Face GetFtFace() const;
-
-  /// @brief Getter of FaceData for the glyph.
-  const FaceData *GetFaceData() const { return face_; }
-
-  /// @brief Getter/Setter of the codepoint for the glyph.
-  hb_codepoint_t GetCodepoint() const { return code_point_; }
-  void SetCodepoint(hb_codepoint_t point) { code_point_ = point; }
-
- private:
-  /// @var face_
+  /// @var harfbuzz_font_
   ///
-  /// @brief FaceData instance.
-  const FaceData *face_;
-  /// @var code_point_
-  ///
-  /// @brief code_point in the face instance.
-  hb_codepoint_t code_point_;
+  /// @brief harfbuzz's font information instance.
+  hb_font_t *harfbuzz_font_;
 };
 
 class HbFont;
@@ -131,7 +135,7 @@ typedef std::unordered_map<HashedId, std::unique_ptr<HbFont>> HbFontCache;
 ///        https://github.com/behdad/harfbuzz/blob/master/src/hb-ft.cc
 class HbFont {
  public:
-  HbFont() : glyph_info_(nullptr, 0), harfbuzz_font_(nullptr) {}
+  HbFont() : face_data_(nullptr) {}
   virtual ~HbFont();
 
   /// @brief Create an instance of HbFont.
@@ -186,13 +190,10 @@ class HbFont {
   /// offset of the underline and y for the thickness of the underline.
   virtual mathfu::vec2i GetUnderline(int32_t size) const;
 
-  /// @brief Get the GlyphInfo for requested code point.
+  /// @brief Get the FaceData for requested code point.
   ///
-  /// @param[in] code_point A unicode code point.
-  ///
-  /// @return Returns a pointer to GlyphInfo structure that includes face and
-  /// glyph index in the face for requested code point.
-  virtual const GlyphInfo *GetGlyphInfo(uint32_t code_point);
+  /// @return Returns a reference to current FaceData structure.
+  virtual const FaceData &GetFaceData() const;
 
   /// @brief Get the font Id of an associated font.
   ///
@@ -203,14 +204,22 @@ class HbFont {
   /// @brief Get a pointer to the harfbuzz font structure.
   ///
   /// @return Returns a pointer to hb_font_t structure.
-  hb_font_t *GetHbFont() { return harfbuzz_font_; }
+  virtual hb_font_t *GetHbFont() { return face_data_->get_hb_font(); }
+
+  /// @brief Check if the font is a complex font with multiple font faces.
+  ///
+  /// @return Returns true if the font is a complex font.
+  virtual bool IsComplexFont() { return false; }
+
+  /// @brief Set the current  font face in the font.
+  virtual void SetCurrentFontIndex(int32_t /*index*/) {}
 
  private:
-  /// @var glyph_info_
+  /// @var face_data_
   ///
-  /// @brief the GlyphInfo structure that contains FreeType related
+  /// @brief the FaceData structure that contains FreeType related
   ///        information.
-  GlyphInfo glyph_info_;
+  const FaceData *face_data_;
 
  protected:
   ///
@@ -235,11 +244,6 @@ class HbFont {
   bool GetGlyphName(const FT_Face face, hb_codepoint_t glyph, char *name,
                     uint32_t size);
   hb_position_t ToHbPosition(FT_Fixed fixed);
-
-  /// @var harfbuzz_font_
-  ///
-  /// @brief harfbuzz's font information instance.
-  hb_font_t *harfbuzz_font_;
 };
 
 /// @class HbComplexFont
@@ -250,7 +254,7 @@ class HbFont {
 /// The class inherits HbFont as a public base class.
 class HbComplexFont : public HbFont {
  public:
-  HbComplexFont() : complex_font_id_(kNullHash) {}
+  HbComplexFont() : complex_font_id_(kNullHash), current_face_index_(0) {}
   virtual ~HbComplexFont() {};
 
   /// @brief Create an instance of HbFont. If a HbFont with same FaceData has
@@ -275,8 +279,23 @@ class HbComplexFont : public HbFont {
   int32_t GetBaseLine(int32_t size) const;
   mathfu::vec2i GetUnderline(int32_t size) const;
 
-  const GlyphInfo *GetGlyphInfo(uint32_t code_point);
+  const FaceData &GetFaceData() const;
   HashedId GetFontId() { return complex_font_id_; }
+
+  hb_font_t *GetHbFont() { return faces_[current_face_index_]->get_hb_font(); }
+  bool IsComplexFont() { return true; }
+
+  /// @brief Analyze given text stream and construct a vector holding font face
+  /// index used for each glyph.
+  /// @return Retuns a number of runs in the text.
+  int32_t AnalyzeFontFaceRun(const char *text, size_t length,
+                             std::vector<int32_t> *font_data_index) const;
+
+  void SetCurrentFontIndex(int32_t index) {
+    assert(index >= 0 && index < static_cast<int32_t>(faces_.size()));
+    current_face_index_ = index;
+  }
+  int32_t GetCurrentFaceIndex() const { return current_face_index_; }
 
  private:
   /// @brief HarfBuzz callback functions. They need to be a static member
@@ -325,20 +344,15 @@ class HbComplexFont : public HbFont {
   /// @brief A vector of FreeType faces used in the complex font.
   std::vector<FaceData *> faces_;
 
-  /// @var codepoint_cache_
-  ///
-  /// @brief A cache that keeps GlyphInfo containg FreeType face and
-  /// codepoint in the face.
-  /// The map keeps unicode values as a key and store correspoinding GlyphInfo
-  /// values.
-  /// Since a priority of faces can be different in multiple HbComplexFonts,
-  /// the cache is per HbComplexFont, not a global cache.
-  std::unordered_map<hb_codepoint_t, GlyphInfo> codepoint_cache_;
-
   /// @var complex_font_id_
   ///
   /// @brief Font ID derived from an array of FreeType face data.
   HashedId complex_font_id_;
+
+  /// @var current_face_index_
+  ///
+  /// @brief Index of the current font face.
+  int32_t current_face_index_;
 };
 
 }  // namespace flatui

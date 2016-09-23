@@ -142,13 +142,13 @@ class LayoutManager : public Group {
   // Helpers to convert entire vectors between virtual and physical coordinates.
   template <int D>
   mathfu::Vector<int, D> VirtualToPhysical(const mathfu::Vector<float, D> &v)
-    const {
+      const {
     return mathfu::Vector<int, D>(v * pixel_scale_ + 0.5f);
   }
 
   template <int D>
   mathfu::Vector<float, D> PhysicalToVirtual(const mathfu::Vector<int, D> &v)
-    const {
+      const {
     return mathfu::Vector<float, D>(v) / pixel_scale_;
   }
 
@@ -226,7 +226,6 @@ class LayoutManager : public Group {
       }
     }
   }
-
 
   // An element that has sub-elements.
   void StartGroup(const Group &group, HashedId hash) {

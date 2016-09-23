@@ -36,14 +36,14 @@ GlyphCache::GlyphCache(const mathfu::vec2i& size, int32_t max_slices)
 
 #ifdef GLYPH_CACHE_STATS
   ResetStats();
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
 }
 
 const GlyphCacheEntry* GlyphCache::Find(const GlyphKey& key) {
 #ifdef GLYPH_CACHE_STATS
   // Update debug variable.
   stats_.lookup_++;
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
   auto it = map_entries_.find(key);
   if (it != map_entries_.end()) {
     // Found an entry!
@@ -57,7 +57,7 @@ const GlyphCacheEntry* GlyphCache::Find(const GlyphKey& key) {
 #ifdef GLYPH_CACHE_STATS
     // Update debug variable.
     stats_.hit_++;
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
     return it->second.get();
   }
 
@@ -74,7 +74,7 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
 #ifdef GLYPH_CACHE_STATS
   // Adjust debug variable.
   stats_.lookup_--;
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
   if (p) {
     // Make sure cached entry has same properties.
     // The cache only support one entry per a glyph code point for now.
@@ -83,7 +83,7 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
 #ifdef GLYPH_CACHE_STATS
     // Adjust debug variable.
     stats_.hit_--;
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
     return p;
   }
 
@@ -91,9 +91,9 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   // Height is rounded up to multiple of kGlyphCacheHeightRound.
   // Expecting kGlyphCacheHeightRound is base 2.
   int32_t req_width = entry.get_size().x() + padding_.x();
-  int32_t req_height = ((entry.get_size().y() + padding_.y() +
-                         (kGlyphCacheHeightRound - 1)) &
-                        ~(kGlyphCacheHeightRound - 1));
+  int32_t req_height =
+      ((entry.get_size().y() + padding_.y() + (kGlyphCacheHeightRound - 1)) &
+       ~(kGlyphCacheHeightRound - 1));
   // Find sufficient space in the buffer.
   GlyphCacheEntry::iterator_row it_row;
   GlyphCacheEntry* ret;
@@ -111,7 +111,7 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
     }
 #ifdef GLYPH_CACHE_STATS
     stats_.set_fail_++;
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
     // TODO: Try to flush multiple rows and merge them to free up space.
     // Now we don't have any space in the cache.
     // It's caller's responsivility to recover from the situation.
@@ -165,7 +165,7 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
 bool GlyphCache::Flush() {
 #ifdef GLYPH_CACHE_STATS
   ResetStats();
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
   map_entries_.clear();
 
   // Clear buffers.
@@ -187,7 +187,7 @@ const GlyphCacheStats& GlyphCache::Status() {
   LogInfo("Cache hit: %d / %d", stats_.hit_, stats_.lookup_);
   LogInfo("Row flush: %d", stats_.row_flush_);
   LogInfo("Set fail: %d", stats_.set_fail_);
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
   return stats_;
 }
 
@@ -214,7 +214,7 @@ void GlyphCache::FlushCachedEntries(
 
 #ifdef GLYPH_CACHE_STATS
   stats_.row_flush_++;
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
 }
 
 #ifdef GLYPH_CACHE_STATS
@@ -225,7 +225,7 @@ void GlyphCache::ResetStats() {
   stats_.row_flush_ = 0;
   stats_.set_fail_ = 0;
 }
-#endif // GLYPH_CACHE_STATS
+#endif  // GLYPH_CACHE_STATS
 
 void GlyphCacheBufferBase::Initialize(GlyphCache* cache,
                                       const mathfu::vec2i& size,

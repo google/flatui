@@ -45,8 +45,7 @@ struct DynamicData {
     kVec2iData,
     kVec4Data,
     kStringData,
-    kVoidData
-  };
+    kVoidData};
 
   DynamicDataType type;
 

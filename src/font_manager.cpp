@@ -88,17 +88,20 @@ class WordEnumerator {
  public:
   // buffer: a buffer contains a linebreak information.
   // Note that the class accesses the given buffer while it's lifetime.
-  WordEnumerator(const std::vector<char> &buffer, bool single_line)
-      : current_index_(0), current_length_(0), finished_(false) {
-    buffer_ = &buffer;
-    single_line_ = single_line;
-  }
+  WordEnumerator(const std::vector<char> &buffer,
+                 const std::vector<int32_t> &face_index_buffer, bool multi_line)
+      : current_index_(0),
+        current_length_(0),
+        buffer_(&buffer),
+        face_index_buffer_(&face_index_buffer),
+        finished_(false),
+        multi_line_(multi_line) {}
 
   // Advance the current word index
   // return: true if the buffer has next word. false if the buffer finishes.
   bool Advance() {
     assert(buffer_);
-    if (single_line_ && finished_ == false) {
+    if (!multi_line_ && finished_ == false) {
       // For a single line, allow one iteration.
       finished_ = true;
       current_length_ = buffer_->size();
@@ -111,15 +114,26 @@ class WordEnumerator {
     }
 
     size_t index = current_index_;
+    auto current_face_index = GetFaceIndex(index);
+
     while (index < buffer_->size()) {
       auto word_info = (*buffer_)[index];
       if (word_info == LINEBREAK_MUSTBREAK ||
           word_info == LINEBREAK_ALLOWBREAK) {
+        current_length_ = index - current_index_ + 1;
         break;
+      }
+
+      // Check if the font face needs to be switched.
+      if (face_index_buffer_->size()) {
+        auto i = GetFaceIndex(index);
+        if (i != kFontIndexInvalid && i != current_face_index) {
+          current_length_ = index - current_index_;
+          break;
+        }
       }
       index++;
     }
-    current_length_ = index - current_index_ + 1;
     return true;
   }
 
@@ -139,6 +153,18 @@ class WordEnumerator {
     return current_index_;
   }
 
+  // Get an index of the current font face index.
+  int32_t GetCurrentFaceIndex() const {
+    return GetFaceIndex(current_index_);
+  }
+
+  int32_t GetFaceIndex(int32_t index) const {
+    if (face_index_buffer_->empty()) {
+      return 0;
+    }
+    return (*face_index_buffer_)[index];
+  }
+
   // Get a length of the current word in the given text buffer.
   size_t GetCurrentWordLength() const {
     assert(buffer_);
@@ -149,7 +175,7 @@ class WordEnumerator {
   bool CurrentWordMustBreak() {
     assert(buffer_);
     // Check if the first advance is made.
-    if (single_line_ || current_index_ + current_length_ == 0) return false;
+    if (!multi_line_ || current_index_ + current_length_ == 0) return false;
     return (*buffer_)[current_index_ + current_length_ - 1] ==
            LINEBREAK_MUSTBREAK;
   }
@@ -161,8 +187,9 @@ class WordEnumerator {
   size_t current_index_;
   size_t current_length_;
   const std::vector<char> *buffer_;
+  const std::vector<int32_t> *face_index_buffer_;
   bool finished_;
-  bool single_line_;
+  bool multi_line_;
 };
 
 FontManager::FontManager() {
@@ -433,7 +460,17 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text), length,
                         language_.c_str(), &wordbreak_info_[0]);
   }
-  WordEnumerator word_enum(wordbreak_info_, !multi_line);
+  if (current_font_->IsComplexFont()) {
+    // Analyze the text and set up an array of font face indices.
+    auto font = reinterpret_cast<HbComplexFont *>(current_font_);
+    if (font->AnalyzeFontFaceRun(text, length, &fontface_index_) > 1) {
+      // If we need to switch faces for the text, take a multi line path.
+      multi_line = true;
+    }
+  } else {
+    fontface_index_.clear();
+  }
+  WordEnumerator word_enum(wordbreak_info_, fontface_index_, multi_line);
 
   // Initialize font metrics parameters.
   int32_t base_line = current_font_->GetBaseLine(ysize);
@@ -468,6 +505,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
 
   // Find words and layout them.
   while (word_enum.Advance()) {
+    // Set font face index for current word.
+    current_font_->SetCurrentFontIndex(word_enum.GetCurrentFaceIndex());
+
     auto max_width = static_cast<uint32_t>(size.x()) * kFreeTypeUnit;
     if (!multi_line) {
       // Single line text.
@@ -493,6 +533,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       // performs a line break if either current word exceeds the max line
       // width or indicated a line break must happen due to a line break
       // character etc.
+
       auto rewind = 0;
       auto word_width = static_cast<uint32_t>(
           LayoutText(text + word_enum.GetCurrentWordIndex(),
@@ -504,8 +545,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         word_enum.Rewind(rewind);
       }
 
-      if (lastline_must_break || (line_width + word_width) / kFreeTypeUnit >
-                                     static_cast<uint32_t>(size.x())) {
+      if (lastline_must_break || ((line_width + word_width) / kFreeTypeUnit >
+                                      static_cast<uint32_t>(size.x()) &&
+                                  size.x())) {
         auto new_pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = lastline_must_break;
@@ -868,6 +910,9 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
     std::vector<FontBufferAttributes> original_slices =
         std::move(buffer->slices_);
 
+    // TODO: Current code wouldn't work with a AtributedFontBuffer as
+    // it would potentically be able to have multiple font face.
+    // Consider having fontID in FontBuffer attribute and respect it.
     auto &code_points = buffer->get_code_points();
     for (size_t j = 0; j < original_indices.size(); ++j) {
       auto indices = original_indices[j];
@@ -955,10 +1000,9 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
     auto code_point = glyph_info[i].codepoint;
     if (!code_point) continue;
 
-    auto info = current_font_->GetGlyphInfo(code_point);
-    FT_GlyphSlot glyph = info->GetFtFace()->glyph;
-    FT_Error err =
-        FT_Load_Glyph(info->GetFtFace(), info->GetCodepoint(), FT_LOAD_RENDER);
+    auto &face = current_font_->GetFaceData();
+    FT_GlyphSlot glyph = face.get_face()->glyph;
+    FT_Error err = FT_Load_Glyph(face.get_face(), code_point, FT_LOAD_RENDER);
 
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
@@ -1071,8 +1115,6 @@ bool FontManager::ExpandBuffer(int32_t width, int32_t height,
 
 bool FontManager::Open(const FontFamily &family) {
   const char *font_name = family.get_name().c_str();
-  auto by_name = family.is_family_name();
-
   auto it = map_faces_.find(font_name);
   if (it != map_faces_.end()) {
     // The font has been already opened.
@@ -1080,43 +1122,22 @@ bool FontManager::Open(const FontFamily &family) {
     return true;
   }
 
-  // Insert the created entry to the hash map.
+  // Create FaceData and insert the created entry to the hash map.
   auto insert =
       map_faces_.insert(std::pair<std::string, std::unique_ptr<FaceData>>(
-          font_name, std::unique_ptr<FaceData>(new FaceData)));
+          font_name, std::unique_ptr<FaceData>(new FaceData())));
   auto face = insert.first->second.get();
-  face->font_id_ = HashId(font_name);
 
 #if defined(FLATUI_SYSTEM_FONT)
   if (!strcmp(font_name, flatui::kSystemFont)) {
     // Load system font.
-    face->system_font_ = true;
+    face->set_system_font_flag(true);
     return OpenSystemFont();
   }
 #endif
 
-  // Load the font file of assets.
-  FT_Error err;
-  auto index = 0;
-  if (family.is_font_collection()) {
-    font_name = family.get_original_name().c_str();
-    index = family.get_index();
-  }
-  if (by_name || !fplbase::LoadFile(font_name, &face->font_data_)) {
-    // Fallback to open the specified font as a font name.
-    if (!OpenFontByName(font_name, &face->font_data_)) {
-      LogError("Can't load font resource: %s\n", font_name);
-      map_faces_.erase(insert.first);
-      return false;
-    }
-  }
-  // Open the font.
-  err = FT_New_Memory_Face(
-      *ft_, reinterpret_cast<const unsigned char *>(&face->font_data_[0]),
-      static_cast<FT_Long>(face->font_data_.size()), index, &face->face_);
-  if (err) {
-    // Failed to open font.
-    LogError("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
+  // Initialize the face.
+  if (!face->Open(*ft_, family)) {
     map_faces_.erase(insert.first);
     return false;
   }
@@ -1125,11 +1146,9 @@ bool FontManager::Open(const FontFamily &family) {
   if (!face_initialized_) {
     if (!SelectFont(font_name)) {
       Close(font_name);
-      map_faces_.erase(insert.first);
       return false;
     }
   }
-
   face_initialized_ = true;
   return true;
 }
@@ -1140,7 +1159,7 @@ bool FontManager::Close(const FontFamily &family) {
     return false;
   }
 
-  if (it->second->system_font_) {
+  if (it->second->get_system_font_flag()) {
     // Close the system font.
     CloseSystemFont();
   }
@@ -1152,6 +1171,7 @@ bool FontManager::Close(const FontFamily &family) {
   HbFont::Close(*it->second, &font_cache_);
   it->second->Close();
 
+  // Flush the texture cache.
   map_textures_.clear();
   map_buffers_.clear();
 
@@ -1175,13 +1195,14 @@ bool FontManager::Close(const char *font_name) {
 }
 
 bool FontManager::SelectFont(const char *font_name) {
-  auto it = map_faces_.find(font_name);
+  FontFamily family(font_name);
+  auto it = map_faces_.find(family.get_name());
   if (it == map_faces_.end()) {
     LogError("SelectFont error: '%s'", font_name);
     return false;
   }
 
-  if (it->second->system_font_) {
+  if (it->second->get_system_font_flag()) {
     // Select the system font.
     return SelectFont(&font_name, 1);
   }
@@ -1206,9 +1227,12 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
     return SelectFont(font_names[0]);
   }
 #endif
-
-  // Check if the font is already created.
-  auto id = HashId(font_names, count);
+  // Normalize the font names and create hash.
+  auto id = kInitialHashValue;
+  for (auto i = 0; i < count; ++i) {
+    FontFamily family = FontFamily(font_names[i]);
+    id = HashId(family.get_name().c_str(), id);
+  }
   current_font_ = HbFont::Open(id, &font_cache_);
 
   if (current_font_ == nullptr) {
@@ -1236,7 +1260,8 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
         }
       } else {
 #endif
-        auto it = map_faces_.find(font_names[i]);
+        FontFamily family = FontFamily(font_names[i]);
+        auto it = map_faces_.find(family.get_name());
         if (it == map_faces_.end()) {
           LogError("SelectFont error: '%s'", font_names[i]);
           return false;
@@ -1409,12 +1434,12 @@ void FontManager::SetLanguageSettings() {
 const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
                                                    uint32_t ysize,
                                                    GlyphFlags flags) {
-  auto glyph_info = current_font_->GetGlyphInfo(code_point);
-  GlyphKey key(glyph_info->GetFaceData()->font_id_, code_point, ysize, flags);
+  auto &face_data = current_font_->GetFaceData();
+  GlyphKey key(face_data.get_font_id(), code_point, ysize, flags);
   auto cache = glyph_cache_->Find(key);
 
   if (cache == nullptr) {
-    auto face = glyph_info->GetFtFace();
+    auto face = face_data.get_face();
     auto ft_flags = FT_LOAD_RENDER;
     if (FT_HAS_COLOR(face)) {
       ft_flags |= FT_LOAD_COLOR;
@@ -1426,7 +1451,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     }
     // Load glyph using harfbuzz layout information.
     // Note that harfbuzz takes care of ligatures.
-    FT_Error err = FT_Load_Glyph(face, glyph_info->GetCodepoint(), ft_flags);
+    FT_Error err = FT_Load_Glyph(face, code_point, ft_flags);
     if (err) {
       // Error. This could happen typically the loaded font does not support
       // particular glyph.
@@ -1435,11 +1460,9 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     }
 
     // Store the glyph to cache.
-    FT_GlyphSlot g = glyph_info->GetFtFace()->glyph;
+    FT_GlyphSlot g = face->glyph;
     GlyphCacheEntry entry;
     entry.set_code_point(code_point);
-    GlyphKey new_key(glyph_info->GetFaceData()->font_id_, code_point, ysize,
-                     flags);
     bool color_glyph = g->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
 
     // Does not support SDF for color glyphs.
@@ -1450,7 +1473,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
                              g->bitmap_top + kGlyphCachePaddingSDF));
       entry.set_size(vec2i(g->bitmap.width + kGlyphCachePaddingSDF * 2,
                            g->bitmap.rows + kGlyphCachePaddingSDF * 2));
-      cache = glyph_cache_->Set(nullptr, new_key, entry);
+      cache = glyph_cache_->Set(nullptr, key, entry);
       if (cache != nullptr) {
         // Generates SDF.
         auto buffer = glyph_cache_->get_monochrome_buffer();
@@ -1483,12 +1506,12 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         entry.set_offset(vec2i(
             vec2(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine)));
         entry.set_size(vec2i(new_width, new_height));
-        cache = glyph_cache_->Set(out_buffer, new_key, entry);
+        cache = glyph_cache_->Set(out_buffer, key, entry);
         free(out_buffer);
       } else {
         entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
         entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
-        cache = glyph_cache_->Set(g->bitmap.buffer, new_key, entry);
+        cache = glyph_cache_->Set(g->bitmap.buffer, key, entry);
       }
     }
 
@@ -1658,6 +1681,15 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       auto start_pos = it_start->position_.data[0];
       auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
       line_width = end_pos - start_pos;
+      if (layout_direction == kTextLayoutDirectionLTR) {
+        auto start_pos = it_start->position_.data[0];
+        auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
+        line_width = end_pos - start_pos;
+      } else if (layout_direction == kTextLayoutDirectionRTL) {
+        auto start_pos = (it_start + kEndPosOffset)->position_.data[0];
+        auto end_pos = it_end->position_.data[0];
+        line_width = start_pos - end_pos;
+      }
     }
 
     if (justify && word_boundary_.size() > 1) {
@@ -1780,15 +1812,6 @@ void FontBufferAttributes::WrapUnderline(int32_t vertex_index) {
   underline_info_.back().end_vertex_index_ = vertex_index;
   UnderlineInfo info(vertex_index + 1, underline_info_.back().y_pos_);
   underline_info_.push_back(info);
-}
-
-void FaceData::Close() {
-  // Remove the font data associated to this face data.
-  if (face_) {
-    FT_Done_Face(face_);
-    face_ = nullptr;
-  }
-  font_data_.clear();
 }
 
 void GlyphCacheRow::InvalidateReferencingBuffers() {

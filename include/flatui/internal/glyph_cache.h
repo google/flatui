@@ -537,9 +537,7 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
   int32_t get_num_slices() const {
     return static_cast<int32_t>(buffers_.size());
   }
-  int32_t get_num_max_slices() const {
-    return max_slices_;
-  }
+  int32_t get_num_max_slices() const { return max_slices_; }
   uint8_t* get(int32_t slice) const {
     return reinterpret_cast<uint8_t*>(buffers_[slice].get());
   }
