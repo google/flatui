@@ -44,6 +44,8 @@ DEPENDENCIES_FLATBUFFERS_DIR?=$(FPL_ROOT)/flatbuffers
 DEPENDENCIES_FPLUTIL_DIR?=$(FPL_ROOT)/fplutil
 # Location of the Freetype library.
 DEPENDENCIES_FREETYPE_DIR?=$(THIRD_PARTY_ROOT)/freetype
+# Location of the Gumbo library.
+DEPENDENCIES_GUMBO_DIR?=$(THIRD_PARTY_ROOT)/gumbo-parser
 # Location of the HarfBuzz library.
 DEPENDENCIES_HARFBUZZ_DIR?=$(THIRD_PARTY_ROOT)/harfbuzz
 # Location of the libunibreak library.

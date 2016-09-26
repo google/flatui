@@ -42,6 +42,8 @@ set_common_build_variables()
 
 set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
     CACHE PATH "Directory containing the harfbuzz cmake project.")
+set(dependencies_gumbo_cmake_dir "${CMAKE_MODULE_PATH}/gumbo-parser"
+    CACHE PATH "Directory containing the gumbo cmake project.")
 set(dependencies_freetype_cmake_dir "${CMAKE_MODULE_PATH}/freetype"
     CACHE PATH "Directory containing the freetype cmake project.")
 set(dependencies_libunibreak_cmake_dir "${CMAKE_MODULE_PATH}/libunibreak"
@@ -76,10 +78,15 @@ set(mathfu_build_benchmarks OFF CACHE BOOL "")
 set(mathfu_build_tests OFF CACHE BOOL "")
 add_subdirectory(${dependencies_mathfu_dir} ${tmp_dir}/mathfu)
 
-# Include harfbuzz, freetype and libunibreak.
+# Include harfbuzz, gumbo, freetype, and libunibreak.
 if(NOT TARGET harfbuzz)
   set_compiler_flags_for_external_libraries()
   add_subdirectory("${dependencies_harfbuzz_cmake_dir}" ${tmp_dir}/harfbuzz)
+  restore_compiler_flags()
+endif()
+if(NOT TARGET gumbo)
+  set_compiler_flags_for_external_libraries()
+  add_subdirectory("${dependencies_gumbo_cmake_dir}" ${tmp_dir}/gumbo-parser)
   restore_compiler_flags()
 endif()
 if(NOT TARGET freetype)
@@ -171,6 +178,9 @@ include_directories(${dependencies_harfbuzz_distr_dir}/src)
 # freetype includes.
 include_directories(${dependencies_freetype_distr_dir}/include)
 
+# gumbo includes.
+include_directories(${dependencies_gumbo_distr_dir}/src)
+
 # libunibreak includes.
 include_directories(${dependencies_libunibreak_distr_dir}/src)
 
@@ -191,7 +201,7 @@ add_dependencies(flatui flatui_generated_includes)
 add_dependencies(flatui fplbase_generated_includes)
 
 # Dependencies to libraries.
-target_link_libraries(flatui fplbase libfreetype libharfbuzz libunibreak motive)
+target_link_libraries(flatui fplbase gumbo libfreetype libharfbuzz libunibreak motive)
 
 # Additional flags for the target.
 mathfu_configure_flags(flatui)

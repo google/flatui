@@ -44,6 +44,15 @@
       "push": 0
     },
     {
+      "name": "gumbo-parser",
+      "url": "https://github.com/google/gumbo-parser",
+      "branch": "master",
+      "revision": "aa91b27b02c0c80c482e24348a457ed7c3c088e0",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
       "name": "harfbuzz",
       "url": "http://github.com/behdad/harfbuzz.git",
       "branch": "master",
