@@ -24,30 +24,56 @@
 
 namespace flatui {
 
-// Remove leading and trailing whitespace, and replace intermediate whitespace
-// with a single space. This emulates how HTML processes raw text fields.
+// Replace whitespace with a single space.
+// This emulates how HTML processes raw text fields.
 // Appends trimmed text to `out`.
 // Returns reference to `out`.
-std::string &TrimHtmlWhitespace(const char *text, std::string *out) {
+std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
+                                std::string *out) {
   const char *t = text;
 
-  // Skip leading whitespace.
-  while (std::isspace(*t)) ++t;
+  if (trim_leading_whitespace) {
+    while (std::isspace(*t)) ++t;
+  }
 
   for (;;) {
     // Output non-whitespace.
     while (!std::isspace(*t) && *t != '\0') out->push_back(*t++);
 
+    // Break out if at end of input. Note that we do *not* trim all
+    // trailing whitespace.
+    if (*t == '\0') break;
+
     // Skip whitespace.
     while (std::isspace(*t)) ++t;
-
-    // Break out if at end of input.
-    if (*t == '\0') break;
 
     // Insert single space to compensate for trimmed whitespace.
     out->push_back(' ');
   }
   return *out;
+}
+
+// Remove trailing whitespace. Then add a `prefix` if there is any preceeding
+// text.
+static std::string &StartHtmlLine(const char* prefix, std::string *out) {
+  // Trim trailing whitespace.
+  while (std::isspace(out->back())) out->pop_back();
+
+  // Append the new lines in `prefix`.
+  if (!out->empty()) {
+    out->append(prefix);
+  }
+  return *out;
+}
+
+// The very first text output we want to trim the leading whitespace.
+// We should also trim if the previous text ends in whitespace.
+static bool ShouldTrimLeadingWhitespace(const std::vector<HtmlSection>& s) {
+  if (s.size() <= 1) return true;
+
+  const std::string& prev_text = s.back().text.empty() ?
+                                 s[s.size() - 2].text : s.back().text;
+  return std::isspace(prev_text.back());
 }
 
 static void GumboTreeToHtmlSections(const GumboNode *node,
@@ -64,6 +90,16 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
           if (!s->back().text.empty()) {
             s->push_back(HtmlSection());
           }
+          break;
+
+        case GUMBO_TAG_P:
+        case GUMBO_TAG_H1:  // fallthrough
+        case GUMBO_TAG_H2:  // fallthrough
+        case GUMBO_TAG_H3:  // fallthrough
+        case GUMBO_TAG_H4:  // fallthrough
+        case GUMBO_TAG_H5:  // fallthrough
+        case GUMBO_TAG_H6:  // fallthrough
+          StartHtmlLine("\n\n", &s->back().text);
           break;
 
         default:
@@ -93,8 +129,8 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
           break;
         }
 
-        case GUMBO_TAG_HR:  // fallthrough
-        case GUMBO_TAG_P:
+        case GUMBO_TAG_HR:
+        case GUMBO_TAG_P:   // fallthrough
           s->back().text.append("\n\n");
           break;
 
@@ -114,9 +150,10 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
       break;
     }
 
-    // Append text without newlines.
+    // Append text without excessive whitespaces.
     case GUMBO_NODE_TEXT:
-      TrimHtmlWhitespace(node->v.text.text, &s->back().text);
+      TrimHtmlWhitespace(node->v.text.text, ShouldTrimLeadingWhitespace(*s),
+                         &s->back().text);
       break;
 
     // Ignore other node types.

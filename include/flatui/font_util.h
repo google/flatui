@@ -48,12 +48,15 @@ std::vector<HtmlSection> ParseHtml(const char *html);
 
 /// @brief Reprocess whitespace the in the manner of an HTML parser.
 ///
-/// Remove leading and trailing whitespace, and replace intermediate whitespace
-/// with a single space. This emulates how HTML processes raw text fields.
-/// Appends trimmed text to `out`.
+/// Replace intermediate whitespace with a single space.
+/// Also, remove leading whitespace if so requested.
 ///
+/// This emulates how HTML processes raw text fields.
+///
+/// Appends trimmed text to `out`.
 /// @return reference to `out`.
-std::string &TrimHtmlWhitespace(const char *text, std::string *out);
+std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
+                                std::string *out);
 
 }  // namespace flatui
 
