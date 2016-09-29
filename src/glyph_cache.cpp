@@ -26,7 +26,7 @@ namespace flatui {
 GlyphCache::GlyphCache(const mathfu::vec2i& size, int32_t max_slices)
     : counter_(0),
       padding_(kDefaultGlyphCachePaddingX, kDefaultGlyphCachePaddingY),
-      revision_(0) {
+      revision_(0), last_flushed_revision_(kNeverFlushed) {
   // Round up cache sizes to power of 2.
   size_ = mathfu::RoundUpToPowerOf2(size);
   buffers_.Initialize(this, size_, max_slices);
@@ -159,6 +159,8 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   buffer->UpdateRowLRU(it_row->get_it_lru_row());
   it_row->set_last_used_counter(counter_);
 
+  revision_ = counter_;
+
   return ret;
 }
 
@@ -175,7 +177,7 @@ bool GlyphCache::Flush() {
   }
 
   // Update cache revision.
-  revision_ = counter_;
+  last_flushed_revision_ = counter_;
   return true;
 }
 
@@ -210,7 +212,7 @@ void GlyphCache::FlushCachedEntries(
   // It's setting revision equal to the current counter value so that it just
   // change the revision once a rendering cycle even multiple cache flush
   // happens in a cycle.
-  revision_ = counter_;
+  last_flushed_revision_ = counter_;
 
 #ifdef GLYPH_CACHE_STATS
   stats_.row_flush_++;

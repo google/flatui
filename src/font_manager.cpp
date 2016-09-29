@@ -154,9 +154,7 @@ class WordEnumerator {
   }
 
   // Get an index of the current font face index.
-  int32_t GetCurrentFaceIndex() const {
-    return GetFaceIndex(current_index_);
-  }
+  int32_t GetCurrentFaceIndex() const { return GetFaceIndex(current_index_); }
 
   int32_t GetFaceIndex(int32_t index) const {
     if (face_index_buffer_->empty()) {
@@ -219,6 +217,7 @@ void FontManager::Initialize() {
   renderer_ = nullptr;
   face_initialized_ = false;
   current_atlas_revision_ = 0;
+  atlas_last_flush_revision_ = kNeverFlushed;
   current_pass_ = 0;
   line_height_scale_ = kLineHeightDefault;
   kerning_scale_ = kLineHeightDefault;
@@ -603,9 +602,6 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     // Add word boundary information.
     buffer->AddWordBoundary(parameters);
 
-    // Set buffer revision using glyph cache revision.
-    buffer->set_revision(glyph_cache_->get_revision());
-
     // Cleanup buffer contents.
     hb_buffer_clear_contents(harfbuzz_buf_);
   }
@@ -620,6 +616,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     buffer->UpdateLine(parameters, layout_direction_, true);
     buffer->ClearTemporaryBuffer();
   }
+
+  // Set buffer revision using glyph cache revision.
+  buffer->set_revision(glyph_cache_->get_revision());
 
   // Setup size.
   buffer->set_size(vec2i(max_line_width / kFreeTypeUnit, total_height));
@@ -894,7 +893,7 @@ int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
 
 FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
                                   FontBuffer *buffer) {
-  if (buffer->get_revision() != current_atlas_revision_) {
+  if (GetFontBufferStatus(*buffer) == kFontBufferStatusNeedReconstruct) {
     // Cache revision has been updated.
     // Some referencing glyph cache entries might have been evicted.
     // So we need to check glyph cache entries again while we can still use
@@ -1294,7 +1293,9 @@ bool FontManager::UpdatePass(bool start_subpass) {
   // Resolve glyph cache's dirty rects.
   if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
     glyph_cache_->ResolveDirtyRect();
+    // Cache texture is updated. Update counters as well.
     current_atlas_revision_ = glyph_cache_->get_revision();
+    atlas_last_flush_revision_ = glyph_cache_->get_last_flush_revision();
   }
 
   if (start_subpass) {
@@ -1305,7 +1306,6 @@ bool FontManager::UpdatePass(bool start_subpass) {
           "flush the atlas texture multiple times in one rendering pass.");
     }
     glyph_cache_->Flush();
-    current_atlas_revision_ = glyph_cache_->get_revision();
     current_pass_++;
   } else {
     // Reset pass.
@@ -1538,6 +1538,17 @@ void FontManager::EnableColorGlyph() {
   // Pass the command to the glyph cache.
   fplutil::MutexLock lock(*cache_mutex_);
   glyph_cache_->EnableColorGlyph();
+}
+
+FontBufferStatus FontManager::GetFontBufferStatus(const FontBuffer &font_buffer)
+    const {
+  if (font_buffer.get_revision() <= atlas_last_flush_revision_) {
+    return kFontBufferStatusNeedReconstruct;
+  } else if (font_buffer.get_revision() > current_atlas_revision_ &&
+             current_pass_ == kRenderPass) {
+    return kFontBufferStatusNeedCacheUpdate;
+  }
+  return kFontBufferStatusReady;
 }
 
 void FontBuffer::SetAttribute(const FontBufferAttributes &attribute) {

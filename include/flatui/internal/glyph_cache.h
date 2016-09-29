@@ -89,6 +89,9 @@ enum GlyphFormats {
 
 const float kSDFThresholdDefault = 16.0f / 255.0f;
 
+// A constant indicating the glyph cache has been never flushed.
+const int32_t kNeverFlushed = -1;
+
 // Bitwise OR operator for GlyphFlags enumeration.
 inline GlyphFlags operator|(GlyphFlags a, GlyphFlags b) {
   return static_cast<GlyphFlags>(static_cast<int>(a) | static_cast<int>(b));
@@ -634,9 +637,9 @@ class GlyphCache {
   GlyphCacheBuffer<uint8_t>* get_monochrome_buffer() { return &buffers_; }
   GlyphCacheBuffer<uint32_t>* get_color_buffer() { return &color_buffers_; }
 
-  // Getter/Setter of the counter.
-  uint32_t get_revision() const { return revision_; }
-  void set_revision(uint32_t revision) { revision_ = revision; }
+  // Getter of the counters.
+  int32_t get_revision() const { return revision_; }
+  int32_t get_last_flush_revision() const { return last_flushed_revision_; }
 
   // Getter of the cache size.
   const mathfu::vec2i& get_size() const { return size_; }
@@ -696,7 +699,10 @@ class GlyphCache {
   // glyph cache entries are still in the cache.
   // Note that the revision is not changed when new glyph entries are added
   // because existing entries are still valid in that case.
-  uint32_t revision_;
+  int32_t revision_;
+
+  // A cache revision when the cache is flushed last time.
+  int32_t last_flushed_revision_;
 
   // Variables to track usage stats.
   GlyphCacheStats stats_;

@@ -178,6 +178,20 @@ enum TextAlignment {
   kTextAlignmentCenterJustify = kTextAlignmentJustify | kTextAlignmentCenter,
 };
 
+/// @enum FontBufferStatus
+/// @brief A status of FontBuffer correspoinding current glyph cache contents.
+/// **Enumerations**:
+/// * `kFontBufferStatusReady` - The font buffer is ready to use.
+/// * `kFontBufferStatusNeedReconstruct` - The glyph cache has been flushed.
+/// * The font buffer needs to be reconstructed.
+/// * `kFontBufferStatusNeedCacheUpdate` - The glyph cache texture needs to be
+/// * uploaded.
+enum FontBufferStatus {
+  kFontBufferStatusReady = 0,
+  kFontBufferStatusNeedReconstruct = 1,
+  kFontBufferStatusNeedCacheUpdate = 2,
+};
+
 /// @struct FontFamily
 ///
 /// @brief A class holding font family information. The class provides various
@@ -772,7 +786,13 @@ class FontManager {
   /// updated when the ellipsis string is changed.
   void SetTextEllipsis(const char *ellipsis) { ellipsis_ = ellipsis; }
 
- private:
+  /// @brief Check a status of the font buffer.
+  /// @param[in] font_buffer font buffer to check.
+  ///
+  /// @return Returns a status of the FontBuffer if it's ready to use with
+  /// current texture atlas contents.
+  FontBufferStatus GetFontBufferStatus(const FontBuffer& font_buffer) const;
+private:
   // Pass indicating rendering pass.
   static const int32_t kRenderPass = -1;
 
@@ -963,7 +983,9 @@ class FontManager {
   std::unique_ptr<GlyphCache> glyph_cache_;
 
   // Current atlas texture's contents revision.
-  uint32_t current_atlas_revision_;
+  int32_t current_atlas_revision_;
+  // A revision that the atlas texture is flushed last time.
+  int32_t atlas_last_flush_revision_;
 
   // Current pass counter.
   // Current implementation only supports up to 2 passes in a rendering cycle.
@@ -1389,7 +1411,7 @@ class FontBuffer {
   ///
   /// If the cache revision and the buffer revision is different, the
   /// font_manager try to re-construct the buffer.
-  uint32_t get_revision() const { return revision_; }
+  int32_t get_revision() const { return revision_; }
 
   /// @return Returns the pass counter as an int32_t.
   ///
@@ -1648,7 +1670,7 @@ class FontBuffer {
   // Revision of the FontBuffer corresponding glyph cache revision.
   // Caller needs to check the revision value if glyph texture has referencing
   // entries by checking the revision.
-  uint32_t revision_;
+  int32_t revision_;
 
   // Pass id. Each pass should have it's own texture atlas contents.
   int32_t pass_;
