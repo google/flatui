@@ -1370,6 +1370,7 @@ class FontBuffer {
     if (caret_info) {
       caret_positions_.reserve(size + 1);
     }
+    line_start_indices_.push_back(0);
   }
 
   /// The destructor for FontBuffer.
@@ -1612,7 +1613,6 @@ class FontBuffer {
   void ClearTemporaryBuffer() {
     word_boundary_.clear();
     word_boundary_caret_.clear();
-    line_start_index_ = 0;
     line_start_caret_index_ = 0;
     attribute_map_.clear();
     attribute_history_.clear();
@@ -1660,8 +1660,6 @@ class FontBuffer {
       attribute_map_;
   static std::vector<attribute_map_it> attribute_history_;
 
-  // Start index of current line.
-  static uint32_t line_start_index_;
   static uint32_t line_start_caret_index_;
 
   // Size of the string in pixels.
@@ -1687,6 +1685,9 @@ class FontBuffer {
   // to
   // re-create the buffer (and release one reference count).
   bool valid_;
+
+  // Start glyph index of every line.
+  std::vector<uint32_t> line_start_indices_;
 
   // Set holding iterators in glyph cache rows. When the buffer is released,
   // the API releases all glyph rows in the set.

@@ -69,7 +69,6 @@ std::vector<uint32_t> FontBuffer::word_boundary_caret_;
 std::map<FontBufferAttributes, int32_t, FontBufferAttributes>
     FontBuffer::attribute_map_;
 std::vector<FontBuffer::attribute_map_it> FontBuffer::attribute_history_;
-uint32_t FontBuffer::line_start_index_;
 uint32_t FontBuffer::line_start_caret_index_;
 
 // Constants.
@@ -1685,8 +1684,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     auto line_width = 0;
     if (vertices_.size()) {
       const int32_t kEndPosOffset = 2;
-      auto it_start =
-          vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
+      auto it_start = vertices_.begin() +
+                      line_start_indices_.back() * kVerticesPerCodePoint;
       auto it_end =
           vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
       if (layout_direction == kTextLayoutDirectionLTR) {
@@ -1728,7 +1727,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
     // Update each glyph's position.
     auto boundary_index = 0;
-    for (auto idx = line_start_index_; idx < code_points_.size(); ++idx) {
+    for (auto idx = line_start_indices_.back(); idx < code_points_.size();
+         ++idx) {
       if (justify && idx >= word_boundary_[boundary_index]) {
         boundary_index++;
         offset += boundary_offset_change;
@@ -1762,7 +1762,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   }
 
   // Update current line information.
-  line_start_index_ = static_cast<uint32_t>(code_points_.size());
+  line_start_indices_.push_back(static_cast<uint32_t>(code_points_.size()));
   line_start_caret_index_ = static_cast<uint32_t>(caret_positions_.size());
   word_boundary_.clear();
   word_boundary_caret_.clear();
