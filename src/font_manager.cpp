@@ -317,9 +317,11 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
     return nullptr;
   }
 
-  int32_t start_glyph_index = 0;
   for (size_t i = 0; i < html_sections.size(); ++i) {
     auto &s = html_sections[i];
+
+    // Get the glyph index before appending text.
+    const int32_t start_glyph_index = buffer->get_glyph_count();
 
     // Set the attributes for either link (underlined & blue),
     // or normal (non-underlined & black).
@@ -338,7 +340,6 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
     if (has_link) {
       links->push_back(
           LinkInfo(s.link, start_glyph_index, buffer->get_glyph_count()));
-      start_glyph_index = buffer->get_glyph_count();
     }
 
     // If the buffer has an ellipsis, won't add text any more.
@@ -1768,31 +1769,71 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   word_boundary_caret_.clear();
 }
 
-mathfu::vec4 FontBuffer::get_aabb(int32_t start_index,
-                                  int32_t end_index) const {
-  auto start = std::max(0, start_index);
-  auto end =
-      std::min(static_cast<int32_t>(vertices_.size() / kVerticesPerCodePoint),
-               end_index);
-
-  mathfu::vec2 min = mathfu::kZeros2f;
-  mathfu::vec2 max = mathfu::kZeros2f;
-  if (vertices_.size()) {
-    auto &vert = vertices_[start * kVerticesPerCodePoint].position_;
-    min = max = mathfu::vec2(vert.data[0], vert.data[1]);
-
-    mathfu::vec4(vert.data[0], vert.data[1], vert.data[0], vert.data[1]);
-    // Basically vertices in FontVertex is a rect, but we are calculating AABB
-    // per vertex basis for a future proof.
-    for (auto i = start * kVerticesPerCodePoint + 1;
-         i < end * kVerticesPerCodePoint; ++i) {
-      auto &vert = vertices_[i].position_;
-      auto v = mathfu::vec2(vert.data[0], vert.data[1]);
-      min = vec2::Min(min, v);
-      max = vec2::Max(max, v);
-    }
+static void VertexExtents(const FontVertex* v, vec2* min_position,
+                          vec2* max_position) {
+  // Get extents of the glyph.
+  const float kInfinity = std::numeric_limits<float>::infinity();
+  vec2 min(kInfinity);
+  vec2 max(-kInfinity);
+  for (auto i = 0; i < FontBuffer::kVerticesPerCodePoint; ++i) {
+    const vec2 position(v[i].position_.data);
+    min = vec2::Min(min, position);
+    max = vec2::Max(max, position);
   }
-  return vec4(min, max);
+  *min_position = min;
+  *max_position = max;
+}
+
+std::vector<vec4> FontBuffer::CalculateBounds(
+    int32_t start_index, int32_t end_index) const {
+  const float kInfinity = std::numeric_limits<float>::infinity();
+  std::vector<vec4> extents;
+
+  // Clamp to vertex bounds.
+  const uint32_t start = std::max(0u, static_cast<uint32_t>(start_index));
+  const uint32_t end = std::min(
+      static_cast<uint32_t>(vertices_.size()) / kVerticesPerCodePoint,
+      static_cast<uint32_t>(end_index));
+
+  // Find `line` such that line_start_indices[line] is the *end* index of
+  // start's line.
+  assert(start <= end && end <= line_start_indices_.back());
+  uint32_t line = 0;
+  while (line_start_indices_[line] <= start) ++line;
+
+  // Prime the loop with the first glyph.
+  vec2 min(kInfinity);
+  vec2 max(-kInfinity);
+  for (auto i = start; i < end; ++i) {
+    // If i is on the next line, output the current extents.
+    const bool is_new_line = line_start_indices_[line] == i;
+    if (is_new_line) {
+      // Record the extents for the current line.
+      extents.push_back(vec4(min, max));
+
+      // Reset the extents for the next line.
+      min = vec2(kInfinity);
+      max = vec2(-kInfinity);
+
+      // Advance to the next line.
+      line++;
+      assert(line < line_start_indices_.size());
+    }
+
+    // Get extents of the next glyph.
+    vec2 glyph_min;
+    vec2 glyph_max;
+    VertexExtents(&vertices_[kVerticesPerCodePoint * i], &glyph_min,
+                  &glyph_max);
+
+    // Update our current bounds.
+    min = vec2::Min(min, glyph_min);
+    max = vec2::Max(min, glyph_max);
+  }
+
+  // Record the extents for the last line.
+  extents.push_back(vec4(min, max));
+  return extents;
 }
 
 void FontBufferAttributes::UpdateUnderline(int32_t vertex_index,

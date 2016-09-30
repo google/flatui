@@ -493,6 +493,8 @@ struct LinkInfo {
   std::string link;
 
   /// First glyph for the link text in the FontBuffer holding the rendered html.
+  /// Call FontBuffer::CalculateBounds(start_glyph_index, end_glyph_index) to
+  /// get the bounding boxes for the link text.
   int32_t start_glyph_index;
 
   /// First glyph not in the link text in the FontBuffer.
@@ -1461,6 +1463,12 @@ class FontBuffer {
   /// @return Returns `true` if the FontBuffer has an ellipsis appended.
   bool HasEllipsis() const { return has_ellipsis_; }
 
+  /// @brief Helper to retrieve AABB info for glyph index range.
+  /// Note that we return multiple AABB bounds if the glyphs span multiple
+  /// lines. Each vec4 is in the format (min_x, min_y, max_x, max_y).
+  std::vector<mathfu::vec4> CalculateBounds(int32_t start_index,
+                                            int32_t end_index) const;
+
   /// @brief Return current glyph count stored in the buffer.
   int32_t get_glyph_count() const {
     return static_cast<int32_t>(vertices_.size()) / 4;
@@ -1468,9 +1476,6 @@ class FontBuffer {
 
   /// @brief Gets the reference count of the buffer.
   uint32_t get_ref_count() const { return ref_count_; }
-
-  /// @brief Helper to retrieve AABB info with given index range of glyphs.
-  mathfu::vec4 get_aabb(int32_t start_index, int32_t end_index) const;
 
  private:
   // Make the FontManager and related classes as a friend class so that
