@@ -1689,9 +1689,6 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
           vertices_.begin() + line_start_index_ * kVerticesPerCodePoint;
       auto it_end =
           vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
-      auto start_pos = it_start->position_.data[0];
-      auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
-      line_width = end_pos - start_pos;
       if (layout_direction == kTextLayoutDirectionLTR) {
         auto start_pos = it_start->position_.data[0];
         auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
@@ -1700,6 +1697,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
         auto start_pos = (it_start + kEndPosOffset)->position_.data[0];
         auto end_pos = it_end->position_.data[0];
         line_width = start_pos - end_pos;
+      } else {
+        // TTB layout is currently not supported.
+        assert(0);
       }
     }
 
@@ -1804,7 +1804,8 @@ void FontBufferAttributes::UpdateUnderline(int32_t vertex_index,
     return;
   }
 
-  if (!underline_info_.size()) {
+  if (!underline_info_.size() || underline_info_.back().y_pos_ != y_pos) {
+    // Create new underline info.
     UnderlineInfo info(vertex_index, y_pos);
     underline_info_.push_back(info);
   } else {
