@@ -30,65 +30,108 @@ class FlatUIHtmlTest : public ::testing::Test {
   static void SetUpTestCase() {}
 };
 
-TEST_F(FlatUIHtmlTest, TrimWhitespace_Leading) {
+TEST_F(FlatUIHtmlTest, TrimWhitespace_LeadingTrue) {
   std::string trimmed;
-  EXPECT_EQ(TrimHtmlWhitespace("text.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("\ntext.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("\ntext.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace(" text.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace(" text.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace(" \ntext.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace(" \ntext.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("\n\ntext.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("\n\ntext.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("\r\ntext.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("\r\ntext.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("\v\ftext.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("\v\ftext.", true, &trimmed),
+                               std::string("text."));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("\t \r\ntext.", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("\t \r\ntext.", true, &trimmed),
+                               std::string("text."));
+  trimmed.clear();
+}
+
+TEST_F(FlatUIHtmlTest, TrimWhitespace_LeadingFalse) {
+  std::string trimmed;
+  EXPECT_EQ(TrimHtmlWhitespace("text.", false, &trimmed),
+                               std::string("text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace("\ntext.", false, &trimmed),
+                               std::string(" text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace(" text.", false, &trimmed),
+                               std::string(" text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace(" \ntext.", false, &trimmed),
+                               std::string(" text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace("\n\ntext.", false, &trimmed),
+                               std::string(" text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace("\r\ntext.", false, &trimmed),
+                               std::string(" text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace("\v\ftext.", false, &trimmed),
+                               std::string(" text."));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace("\t \r\ntext.", false, &trimmed),
+                               std::string(" text."));
   trimmed.clear();
 }
 
 TEST_F(FlatUIHtmlTest, TrimWhitespace_Trailing) {
   std::string trimmed;
-  EXPECT_EQ(TrimHtmlWhitespace("text.\n", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text.\n", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text. ", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text. ", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text. \n", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text. \n", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text.\n\n", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text.\n\n", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text.\r\n", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text.\r\n", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text.\v\f", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text.\v\f", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text.\t \r\n", &trimmed), std::string("text."));
+  EXPECT_EQ(TrimHtmlWhitespace("text.\t \r\n", true, &trimmed),
+                               std::string("text. "));
   trimmed.clear();
 }
 
 TEST_F(FlatUIHtmlTest, TrimWhitespace_Middle) {
   std::string trimmed;
-  EXPECT_EQ(TrimHtmlWhitespace("text text", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text text", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text \ntext", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text \ntext", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text  text", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text  text", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text\n\n text", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text\n\n text", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text\r\n text", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text\r\n text", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text\v\ftext", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text\v\ftext", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
-  EXPECT_EQ(TrimHtmlWhitespace("text\t \r\n text", &trimmed),
+  EXPECT_EQ(TrimHtmlWhitespace("text\t \r\n text", false, &trimmed),
             std::string("text text"));
   trimmed.clear();
 }
@@ -97,8 +140,14 @@ TEST_F(FlatUIHtmlTest, TrimWhitespace_All) {
   std::string trimmed;
   EXPECT_EQ(TrimHtmlWhitespace("\n\r \t  \nThe\nquick    brown\t\tfox "
                                "jumped\r\nover \n \tthe\t\n\r\r\nlazy dog.\n",
-                               &trimmed),
-            std::string("The quick brown fox jumped over the lazy dog."));
+                               true, &trimmed),
+            std::string("The quick brown fox jumped over the lazy dog. "));
+  trimmed.clear();
+  EXPECT_EQ(TrimHtmlWhitespace("\n\r \t  \nThe\nquick    brown\t\tfox "
+                               "jumped\r\nover \n \tthe\t\n\r\r\nlazy dog.\n",
+                               false, &trimmed),
+            std::string(" The quick brown fox jumped over the lazy dog. "));
+  trimmed.clear();
 }
 
 static void CheckHtmlParsing(const char* html, const HtmlSection* sections,
@@ -125,7 +174,7 @@ TEST_F(FlatUIHtmlTest, Basic) {
       "</body>\n"
       "</html>\n";
   static const HtmlSection kParsed[] = {
-      HtmlSection("My First Heading\n"
+      HtmlSection("My First Heading\n\n"
                   "My first paragraph.\n\n")};
   CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
 }
@@ -140,6 +189,49 @@ TEST_F(FlatUIHtmlTest, Link) {
       "</html>\n";
   static const HtmlSection kParsed[] = {
       HtmlSection("Link Text", "http://address")};
+  CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
+}
+
+TEST_F(FlatUIHtmlTest, AnchorSpace) {
+  static const char kHtml[] =
+      "<!DOCTYPE html>\n"
+      "<html>\n"
+      "<body>\n"
+      "<a href=\"http://address\">Link Text</a> following text\n"
+      "</body>\n"
+      "</html>\n";
+  static const HtmlSection kParsed[] = {
+      HtmlSection("Link Text", "http://address"),
+      HtmlSection(" following text ")};
+  CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
+}
+
+TEST_F(FlatUIHtmlTest, AnchorAfterParagraph) {
+  static const char kHtml[] =
+      "<!DOCTYPE html>\n"
+      "<html>\n"
+      "<body>\n"
+      "<p>Some paragraph.</p>\n"
+      "<a href=\"http://foo\">    Link text   </a>\n"
+      "</body>\n"
+      "</html>\n";
+  static const HtmlSection kParsed[] = {
+      HtmlSection("Some paragraph.\n\n"),
+      HtmlSection("Link text ", "http://foo")
+  };
+  CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
+}
+
+TEST_F(FlatUIHtmlTest, ParagraphNoWhitespace) {
+  static const char kHtml[] =
+      "<!DOCTYPE html>\n"
+      "<html>\n"
+      "<body>\n"
+      "Normal text<p>Paragraph text</p>\n"
+      "</body>\n"
+      "</html>\n";
+  static const HtmlSection kParsed[] = {
+      HtmlSection("Normal text\n\nParagraph text\n\n")};
   CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
 }
 
@@ -175,14 +267,14 @@ TEST_F(FlatUIHtmlTest, Spacing) {
       "Two breaks<br><br>\n"
       "Break<br>then text\n"
       "Horiontal rule<hr>\n"
-      "plenty\n of \n\nnewlines\n  \nand\nmore  newlines\n"
+      "plenty\n of \n\nnewlines\n  \nand\nmore  newlines"
       "</body>\n"
       "</html>\n";
   static const HtmlSection kParsed[] = {
-      HtmlSection("H1 heading\n"
-                  "H2 heading\n"
-                  "H3 heading\n"
-                  "H4 heading\n"
+      HtmlSection("H1 heading\n\n"
+                  "H2 heading\n\n"
+                  "H3 heading\n\n"
+                  "H4 heading\n\n"
                   "H5 heading\n"
                   "Single tag paragraph\n\n"
                   "Complete paragraph\n\n"
@@ -190,7 +282,7 @@ TEST_F(FlatUIHtmlTest, Spacing) {
                   "Two breaks\n\n"
                   "Break\nthen text "
                   "Horiontal rule\n\n"
-                  "plenty of newlines and more newlines")};
+                  "plenty of newlines and more newlines ")};
   CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
 }
 
@@ -202,7 +294,7 @@ TEST_F(FlatUIHtmlTest, SpecialCharacters) {
       "&lt;&gt;&amp;&quot;&apos;\n"
       "</body>\n"
       "</html>\n";
-  static const HtmlSection kParsed[] = {HtmlSection("<>&\"'")};
+  static const HtmlSection kParsed[] = {HtmlSection("<>&\"' ")};
   CheckHtmlParsing(kHtml, kParsed, FPL_ARRAYSIZE(kParsed));
 }
 
