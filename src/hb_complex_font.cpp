@@ -107,7 +107,8 @@ int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
       (*font_data_index)[text_idx] = current_face;
     } else {
       // Check if any font has the glyph.
-      for (size_t face_idx = 0; faces_.size(); ++face_idx) {
+      size_t face_idx = 0;
+      for (face_idx = 0; face_idx < faces_.size(); ++face_idx) {
         if (face_idx != current_face &&
             FT_Get_Char_Index(faces_[face_idx]->get_face(), unicode)) {
           (*font_data_index)[text_idx] = face_idx;
@@ -117,6 +118,9 @@ int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
           }
           break;
         }
+      }
+      if (face_idx == faces_.size()) {
+        fplbase::LogError("Requested glyph %x didn't match any font.", unicode);
       }
     }
     text_idx = i;
