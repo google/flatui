@@ -21,7 +21,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := main
 LOCAL_ARM_MODE := arm
 LOCAL_STATIC_LIBRARIES := fplbase flatui
-LOCAL_SRC_FILES := flatui_attributed_label.cpp
+LOCAL_SRC_FILES := flatui_html_label.cpp
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-add-path,$(FLATUI_DIR)/..)

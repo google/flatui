@@ -44,6 +44,7 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 
 LOCAL_STATIC_LIBRARIES := \
   flatbuffers \
+  libgumbo-parser \
   libmathfu \
   libgtest \
   libgmock \

@@ -92,17 +92,16 @@ int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
                                           std::vector<int32_t> *font_data_index)
     const {
   font_data_index->resize(length);
-  std::fill(font_data_index->begin(), font_data_index->end(),
-            kFontIndexInvalid);
+  std::fill(font_data_index->begin(), font_data_index->end(), kIndexInvalid);
   auto run = 0;
   size_t i = 0;
-  size_t current_face = kFontIndexInvalid;
+  size_t current_face = kIndexInvalid;
   size_t text_idx = 0;
   while (text_idx < length) {
     auto unicode = ub_get_next_char_utf8(reinterpret_cast<const utf8_t *>(text),
                                          length, &i);
     // Current face has a priority since we want to have longer run for a font.
-    if (current_face != static_cast<size_t>(kFontIndexInvalid) &&
+    if (current_face != static_cast<size_t>(kIndexInvalid) &&
         FT_Get_Char_Index(faces_[current_face]->get_face(), unicode)) {
       (*font_data_index)[text_idx] = current_face;
     } else {

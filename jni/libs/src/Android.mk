@@ -38,6 +38,7 @@ LOCAL_EXPORT_C_INCLUDES := \
 LOCAL_C_INCLUDES := \
   $(LOCAL_EXPORT_C_INCLUDES) \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
+  $(DEPENDENCIES_GUMBO_DIR)/src \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
   $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
   $(DEPENDENCIES_STB_DIR) \
@@ -68,6 +69,7 @@ LOCAL_STATIC_LIBRARIES := \
   libmathfu \
   libmotive \
   libfreetype \
+  libgumbo-parser \
   libharfbuzz \
   libunibreak
 
