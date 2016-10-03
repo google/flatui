@@ -17,7 +17,8 @@
 #include <cctype>
 #include <sstream>
 
-#include "../../gumbo-parser/src/gumbo.h"  // TODO: Install properly
+#include <gumbo.h>
+
 #include "font_manager.h"
 #include "font_util.h"
 #include "fplbase/fpl_common.h"

@@ -1845,7 +1845,7 @@ void FontBufferAttributes::UpdateUnderline(int32_t vertex_index,
     return;
   }
 
-  if (!underline_info_.size() || underline_info_.back().y_pos_ != y_pos) {
+  if (underline_info_.empty() || underline_info_.back().y_pos_ != y_pos) {
     // Create new underline info.
     UnderlineInfo info(vertex_index, y_pos);
     underline_info_.push_back(info);
