@@ -15,9 +15,14 @@
 #include "precompiled.h"
 #include <chrono>
 #include <flatbuffers/flatbuffers.h>
-// FreeType headers.
+
+// FreeType2 headers.
+// This method of including is odd, but it's the recommended way
+// (see https://www.freetype.org/freetype2/docs/tutorial/step1.html).
+// It's also necessary to support both Freetype 2.5 and 2.6, since
+// the main header is <freetype.h> in 2.5, but <freetype/freetype.h> in 2.6.
 #include <ft2build.h>
-#include <freetype.h>
+#include FT_FREETYPE_H
 
 // Platform specific headers.
 #ifdef __ANDROID__
