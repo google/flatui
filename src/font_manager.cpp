@@ -224,6 +224,7 @@ void FontManager::Initialize() {
   SetLocale(kDefaultLanguage);
   cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
   appending_buffer_ = false;
+  line_width_ = 0;
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
@@ -404,6 +405,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
   // Set initial attribute.
   buffer->ClearTemporaryBuffer();
   buffer->SetAttribute(FontBufferAttributes());
+  line_width_ = 0;
 
   if (!FillBuffer(text, length, parameters, buffer.get(), text_pos)) {
     return nullptr;
@@ -481,7 +483,6 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     pos += *pos_offset;
   }
 
-  int32_t line_width = 0;
   int32_t max_line_width = parameters.get_line_length();
   int32_t total_height = ysize;
   bool lastline_must_break = false;
@@ -531,7 +532,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       auto rewind = 0;
       auto word_width = static_cast<int32_t>(
           LayoutText(text + word_enum.GetCurrentWordIndex(),
-                     word_enum.GetCurrentWordLength(), max_width, line_width,
+                     word_enum.GetCurrentWordLength(), max_width, line_width_,
                      &rewind) *
           scale);
       if (rewind) {
@@ -540,7 +541,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       }
 
       if (lastline_must_break ||
-          ((line_width + word_width) / kFreeTypeUnit > size.x() && size.x())) {
+          ((line_width_ + word_width) / kFreeTypeUnit > size.x() && size.x())) {
         auto new_pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = lastline_must_break;
@@ -570,13 +571,13 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
               s.c_str());
         }
         // Reset the line width.
-        line_width = word_width;
+        line_width_ = word_width;
       } else {
-        line_width += word_width;
+        line_width_ += word_width;
       }
       // In case of the layout is left/center aligned, max line width is
       // adjusted based on layout results.
-      max_line_width = std::max(max_line_width, line_width);
+      max_line_width = std::max(max_line_width, line_width_);
       lastline_must_break = word_enum.CurrentWordMustBreak();
     }
 

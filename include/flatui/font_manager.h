@@ -1006,6 +1006,9 @@ class FontManager {
   float line_height_scale_;
   float kerning_scale_;
 
+  // Current line width. Needs to be persistent while appending buffers.
+  int32_t line_width_;
+
   // Ellipsis settings.
   std::string ellipsis_;
 
