@@ -280,6 +280,14 @@ hb_bool_t HbComplexFont::HbGetName(hb_font_t *font, void *font_data,
   return p->GetGlyphName(face_data.get_face(), glyph, name, size);
 }
 
+void HbComplexFont::SetCurrentFontIndex(int32_t index) {
+  // Not to crash even a glyph is not found within current font face set.
+  if (index == kIndexInvalid) {
+    index = 0;
+  }
+  current_face_index_ = index;
+}
+
 HbFont::~HbFont() {}
 
 HbFont *HbFont::Open(const FaceData &face, HbFontCache *cache) {

@@ -285,10 +285,7 @@ class HbComplexFont : public HbFont {
   int32_t AnalyzeFontFaceRun(const char *text, size_t length,
                              std::vector<int32_t> *font_data_index) const;
 
-  void SetCurrentFontIndex(int32_t index) {
-    assert(index >= 0 && index < static_cast<int32_t>(faces_.size()));
-    current_face_index_ = index;
-  }
+  void SetCurrentFontIndex(int32_t index);
   int32_t GetCurrentFaceIndex() const { return current_face_index_; }
 
  private:
