@@ -54,7 +54,6 @@ class FaceData {
   FaceData()
       : face_(nullptr),
         font_id_(kNullHash),
-        system_font_(false),
         scale_(1 << kHbFixedPointPrecision),
         harfbuzz_font_(nullptr) {}
 
@@ -85,13 +84,12 @@ class FaceData {
   int32_t get_scale() const { return scale_; }
   void set_scale(int32_t scale) { scale_ = scale; }
 
-  bool get_system_font_flag() const { return system_font_; }
-  void set_system_font_flag(bool flag) { system_font_ = flag; }
-
   FT_Face get_face() const { return face_; }
   HashedId get_font_id() const { return font_id_; }
   hb_font_t *get_hb_font() const { return harfbuzz_font_; }
   const std::string &get_font_data() const { return font_data_; }
+
+  void set_font_id(HashedId id) { font_id_ = id; }
 
  private:
   /// @var face_
@@ -109,10 +107,6 @@ class FaceData {
   /// @var font_id_
   /// @brief Hashed value of the font face.
   HashedId font_id_;
-
-  /// @var system_font_
-  /// @brief A flag indicating the font is a system font.
-  bool system_font_;
 
   /// @var scale_
   ///

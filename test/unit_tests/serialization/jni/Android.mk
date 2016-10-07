@@ -27,6 +27,7 @@ LOCAL_SRC_FILES := \
   ../mocks/fplbase_mocks.cpp \
   $(FLATUI_DIR)/src/font_manager.cpp \
   $(FLATUI_DIR)/src/font_systemfont.cpp \
+  $(FLATUI_DIR)/src/font_util.cpp \
   $(FLATUI_DIR)/src/glyph_cache.cpp \
   $(FLATUI_DIR)/src/hb_complex_font.cpp \
   $(FLATUI_DIR)/src/micro_edit.cpp \
@@ -43,6 +44,7 @@ LOCAL_C_INCLUDES := \
   $(DEPENDENCIES_FPLBASE_DIR)/gen/include \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
   $(DEPENDENCIES_FPLBASE_DIR)/include \
+  $(DEPENDENCIES_GUMBO_DIR)/src \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
   $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
   $(DEPENDENCIES_STB_DIR)
@@ -57,8 +59,9 @@ LOCAL_STATIC_LIBRARIES := \
   flatbuffers \
   libmathfu \
   libfreetype \
-  libgtest \
   libgmock \
+  libgtest \
+  libgumbo-parser \
   libharfbuzz \
   libunibreak
 

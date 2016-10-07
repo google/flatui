@@ -370,7 +370,7 @@ bool FontManager::OpenSystemFontApple() {
       // Weirdly, the LogInfo call here seems to crash if we only supply 1
       // parameter. Perhaps the compiler is choosing the overload that takes
       // a va_list?
-      fplbase::LogInfo("Font name: %s %d", str, i);
+      fplbase::LogInfo("Font name: %s", str);
       FontFamily family(str, true);
       if (Open(family)) {
         // Retrieve the font size for an information.
@@ -515,7 +515,7 @@ bool FontManager::OpenSystemFontAndroid() {
 
       std::string str = kSystemFontFolder + font.text_;
       auto idx = font.attributes_["index"];
-      auto font_index = kFontIndexInvalid;
+      auto font_index = kIndexInvalid;
       if (idx.length()) {
         font_index = atoi(idx.c_str());
       }
@@ -603,13 +603,16 @@ bool FontManager::UpdateFontCoverage(FT_Face face,
   auto has_new_coverage = false;
   FT_UInt index = 0;
   FT_ULong code = FT_Get_First_Char(face, &index);
+  int32_t new_glyph = 0;
   while (index != 0) {
     if (font_coverage->find(code) == font_coverage->end()) {
       has_new_coverage = true;
       font_coverage->insert(code);
+      new_glyph++;
     }
     code = FT_Get_Next_Char(face, code, &index);
   }
+  fplbase::LogInfo("Has %d new glyphs", new_glyph);
   return has_new_coverage;
 }
 

@@ -40,16 +40,17 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   input.Initialize();
 
   // Open OpenType font including the color emoji font.
-  const char* fonts[] = {
-    "fonts/NotoSansCJKjp-Bold.otf",
-    "fonts/NotoNaskhArabic-Regular.ttf",
-    "fonts/NotoColorEmoji.ttf"
+  const FontFamily fonts[] = {
+    FontFamily("fonts/NotoSansCJKjp-Bold.otf"),
+    FontFamily("fonts/NotoNaskhArabic-Regular.ttf"),
+    FontFamily("fonts/NotoColorEmoji.ttf")
   };
   fontman.EnableColorGlyph();
 
   for (size_t i = 0; i < FPL_ARRAYSIZE(fonts); ++i) {
     fontman.Open(fonts[i]);
   }
+  fontman.SelectFont(fonts, FPL_ARRAYSIZE(fonts));
   fontman.SetRenderer(renderer);
 
   // Load textures.
@@ -127,8 +128,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       } else {
         SetTextLocale("en");
       }
-      SetTextFont(fonts, 3);
-
       SetTextEllipsis("...");
 
       StartGroup(kLayoutOverlay, 0);

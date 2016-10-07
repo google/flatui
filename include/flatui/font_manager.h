@@ -25,13 +25,6 @@
 #include "flatui/internal/flatui_util.h"
 #include "flatui/internal/hb_complex_font.h"
 
-/// @cond FLATUI_INTERNAL
-// Use libunibreak for a line breaking.
-#if !defined(FLATUI_USE_LIBUNIBREAK)
-// For now, it's automatically turned on.
-#define FLATUI_USE_LIBUNIBREAK 1
-#endif  // !defined(FLATUI_USE_LIBUNIBREAK)
-
 #if defined(__APPLE__) || defined(__ANDROID__)
 #define FLATUI_SYSTEM_FONT (1)
 #endif  // defined(__APPLE__) || defined(__ANDROID__)
@@ -113,8 +106,8 @@ const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
 /// @brief The default language used for a line break.
 const char *const kDefaultLanguage = "en";
 
-// Constant that indicates invalid texture atlas index.
-const int32_t kInvalidSliceIndex = -1;
+// Constant that indicates invalid index.
+const int32_t kIndexInvalid = -1;
 
 // Constant that indicates default color of the attributed buffer.
 const uint32_t kDefaultColor = 0xffffffff;
@@ -126,6 +119,7 @@ const uint32_t kDefaultColor = 0xffffffff;
 /// SelectFont() API
 /// Currently the system font is supported on iOS/macOS and Android only.
 const char *const kSystemFont = ".SystemFont";
+const HashedId kSystemFontId = HashId(kSystemFont);
 #endif  // FLATUI_SYSTEM_FONT
 
 /// @enum TextLayoutDirection
@@ -197,7 +191,6 @@ enum FontBufferStatus {
 /// @brief A class holding font family information. The class provides various
 /// ways to support fonts such as a font collection (multiple fonts in a file),
 /// referencing a font by a famly name etc.
-const int32_t kFontIndexInvalid = -1;
 class FontFamily {
  public:
   // Constructors
@@ -213,12 +206,11 @@ class FontFamily {
     original_name_ = name;
   };
   FontFamily(const char *name, bool family_name)
-      : index_(kFontIndexInvalid), family_name_(family_name) {
+      : index_(kIndexInvalid), family_name_(family_name) {
     font_name_ = NormalizeFontName(name);
     original_name_ = name;
   }
-  FontFamily(const char *name)
-      : index_(kFontIndexInvalid), family_name_(false) {
+  FontFamily(const char *name) : index_(kIndexInvalid), family_name_(false) {
     font_name_ = NormalizeFontName(name);
     original_name_ = name;
   };
@@ -232,14 +224,14 @@ class FontFamily {
   const std::string &get_original_name() const { return original_name_; }
   /// Language. The entry is ignored when opening a font.
   const std::string &get_language() const { return lang_; }
-  /// Index in a font collection. kFontIndexInvalid indicates the font is not a
+  /// Index in a font collection. kIndexInvalid indicates the font is not a
   /// font collection.
   int32_t get_index() const { return index_; }
   /// Check if the font name is a family name.
   bool is_family_name() const { return family_name_; }
   /// Check if the font is in a font collection that holds multiple fonts in a
   /// single file.
-  bool is_font_collection() const { return index_ != kFontIndexInvalid; }
+  bool is_font_collection() const { return index_ != kIndexInvalid; }
 
  protected:
   std::string CreateFontCollectionName(const std::string &name) {
@@ -793,8 +785,9 @@ class FontManager {
   ///
   /// @return Returns a status of the FontBuffer if it's ready to use with
   /// current texture atlas contents.
-  FontBufferStatus GetFontBufferStatus(const FontBuffer& font_buffer) const;
-private:
+  FontBufferStatus GetFontBufferStatus(const FontBuffer &font_buffer) const;
+
+ private:
   // Pass indicating rendering pass.
   static const int32_t kRenderPass = -1;
 
@@ -815,8 +808,8 @@ private:
 
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
-  uint32_t LayoutText(const char *text, size_t length, uint32_t max_width = 0,
-                      uint32_t current_width = 0, int32_t *rewind = nullptr);
+  int32_t LayoutText(const char *text, size_t length, int32_t max_width = 0,
+                     int32_t current_width = 0, int32_t *rewind = nullptr);
 
   // Helper function to add string information to the buffer.
   bool UpdateBuffer(const WordEnumerator &word_enum,
@@ -1215,17 +1208,13 @@ struct FontVertex {
 class FontBufferAttributes {
  public:
   FontBufferAttributes()
-      : slice_index_(kInvalidSliceIndex),
-        underline_(false),
-        color_(kDefaultColor) {}
+      : slice_index_(kIndexInvalid), underline_(false), color_(kDefaultColor) {}
 
   /// @brief The constructor to set default values.
   /// @param[in] underline A flag indicating if the attribute has underline.
   /// @param[in] color A color value of the attribute in RGBA8888.
   FontBufferAttributes(bool underline, uint32_t color)
-      : slice_index_(kInvalidSliceIndex),
-        underline_(underline),
-        color_(color) {}
+      : slice_index_(kIndexInvalid), underline_(underline), color_(color) {}
 
   /// @brief The equal-to operator for comparing FontBufferAttributes for
   /// equality.

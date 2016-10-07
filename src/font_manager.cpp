@@ -28,9 +28,8 @@
 #include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 
-#ifdef FLATUI_USE_LIBUNIBREAK
+// libUnibreak header
 #include "linebreak.h"
-#endif
 
 // STB_image to resize PNG glyph.
 // Disable warnings in STB_image_resize.
@@ -126,7 +125,7 @@ class WordEnumerator {
       // Check if the font face needs to be switched.
       if (face_index_buffer_->size()) {
         auto i = GetFaceIndex(index);
-        if (i != kFontIndexInvalid && i != current_face_index) {
+        if (i != kIndexInvalid && i != current_face_index) {
           current_length_ = index - current_index_;
           break;
         }
@@ -241,12 +240,8 @@ void FontManager::Initialize() {
     harfbuzz_buf_ = hb_buffer_create();
   }
 
-#ifdef FLATUI_USE_LIBUNIBREAK
   // Initialize libunibreak
   init_linebreak();
-#else
-#error libunibreak is required for multiline label support!
-#endif
 }
 
 void FontManager::Terminate() {
@@ -486,9 +481,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     pos += *pos_offset;
   }
 
-  uint32_t line_width = 0;
-  uint32_t max_line_width = parameters.get_line_length();
-  uint32_t total_height = ysize;
+  int32_t line_width = 0;
+  int32_t max_line_width = parameters.get_line_length();
+  int32_t total_height = ysize;
   bool lastline_must_break = false;
   bool first_character = true;
   auto line_height = ysize * line_height_scale_;
@@ -507,11 +502,11 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     // Set font face index for current word.
     current_font_->SetCurrentFontIndex(word_enum.GetCurrentFaceIndex());
 
-    auto max_width = static_cast<uint32_t>(size.x()) * kFreeTypeUnit;
+    auto max_width = size.x() * kFreeTypeUnit;
     if (!multi_line) {
       // Single line text.
       // In this mode, it layouts all string into single line.
-      max_line_width = static_cast<uint32_t>(LayoutText(text, length) * scale) +
+      max_line_width = static_cast<int32_t>(LayoutText(text, length) * scale) +
                        buffer->get_size().x() * kFreeTypeUnit;
 
       if (size.x() && max_line_width > max_width && !caret_info) {
@@ -534,7 +529,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       // character etc.
 
       auto rewind = 0;
-      auto word_width = static_cast<uint32_t>(
+      auto word_width = static_cast<int32_t>(
           LayoutText(text + word_enum.GetCurrentWordIndex(),
                      word_enum.GetCurrentWordLength(), max_width, line_width,
                      &rewind) *
@@ -544,14 +539,12 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         word_enum.Rewind(rewind);
       }
 
-      if (lastline_must_break || ((line_width + word_width) / kFreeTypeUnit >
-                                      static_cast<uint32_t>(size.x()) &&
-                                  size.x())) {
+      if (lastline_must_break ||
+          ((line_width + word_width) / kFreeTypeUnit > size.x() && size.x())) {
         auto new_pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = lastline_must_break;
-        if (size.y() && total_height > static_cast<uint32_t>(size.y()) &&
-            !caret_info) {
+        if (size.y() && total_height > size.y() && !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
           if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
@@ -775,8 +768,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
     return true;
   }
 
-  auto max_width =
-      static_cast<uint32_t>(parameters.get_size().x()) * kFreeTypeUnit;
+  auto max_width = parameters.get_size().x() * kFreeTypeUnit;
 
   // Dump current string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer, pos,
@@ -925,7 +917,7 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
 
         // Reconstruct indices.
         auto attr = original_slices[j];
-        attr.slice_index_ = kInvalidSliceIndex;
+        attr.slice_index_ = kIndexInvalid;
         buffer->SetAttribute(attr);
 
         // Expand buffer if necessary.
@@ -1130,7 +1122,7 @@ bool FontManager::Open(const FontFamily &family) {
 #if defined(FLATUI_SYSTEM_FONT)
   if (!strcmp(font_name, flatui::kSystemFont)) {
     // Load system font.
-    face->set_system_font_flag(true);
+    face->set_font_id(kSystemFontId);
     return OpenSystemFont();
   }
 #endif
@@ -1158,7 +1150,7 @@ bool FontManager::Close(const FontFamily &family) {
     return false;
   }
 
-  if (it->second->get_system_font_flag()) {
+  if (it->second->get_font_id() == kSystemFontId) {
     // Close the system font.
     CloseSystemFont();
   }
@@ -1201,7 +1193,7 @@ bool FontManager::SelectFont(const char *font_name) {
     return false;
   }
 
-  if (it->second->get_system_font_flag()) {
+  if (it->second->get_font_id() == kSystemFontId) {
     // Select the system font.
     return SelectFont(&font_name, 1);
   }
@@ -1211,11 +1203,9 @@ bool FontManager::SelectFont(const char *font_name) {
 }
 
 bool FontManager::SelectFont(const FontFamily *font_families, int32_t count) {
-  std::vector<std::string> vec;
   std::vector<const char *> vec_name;
   for (auto i = 0; i < count; ++i) {
-    vec.push_back(font_families[i].get_name());
-    vec_name.push_back(vec[i].c_str());
+    vec_name.push_back(font_families[i].get_name().c_str());
   }
   return SelectFont(&vec_name[0], count);
 }
@@ -1314,15 +1304,15 @@ bool FontManager::UpdatePass(bool start_subpass) {
   return true;
 }
 
-uint32_t FontManager::LayoutText(const char *text, size_t length,
-                                 uint32_t max_width, uint32_t current_width,
-                                 int32_t *rewind) {
+int32_t FontManager::LayoutText(const char *text, size_t length,
+                                int32_t max_width, int32_t current_width,
+                                int32_t *rewind) {
   // Update language settings.
   SetLanguageSettings();
 
   // Layout the text.
-  hb_buffer_add_utf8(harfbuzz_buf_, text, static_cast<unsigned int>(length), 0,
-                     static_cast<int>(length));
+  hb_buffer_add_utf8(harfbuzz_buf_, text, static_cast<uint32_t>(length), 0,
+                     static_cast<int32_t>(length));
   hb_shape(current_font_->GetHbFont(), harfbuzz_buf_, nullptr, 0);
 
   // Retrieve layout info.
@@ -1568,8 +1558,7 @@ FontBuffer::attribute_map_it FontBuffer::LookUpAttribute(
       return it;
     }
   }
-  auto ret =
-      attribute_map_.insert(std::make_pair(attribute, kInvalidSliceIndex));
+  auto ret = attribute_map_.insert(std::make_pair(attribute, kIndexInvalid));
   return ret.first;
 }
 
@@ -1580,12 +1569,12 @@ int32_t FontBuffer::GetBufferIndex(int32_t slice) {
   }
   auto new_attr = attribute_history_.back()->first;
   // Remove temporary attribute.
-  if (new_attr.get_slice_index() == kInvalidSliceIndex) {
+  if (new_attr.get_slice_index() == kIndexInvalid) {
     attribute_history_.pop_back();
   }
   new_attr.set_slice_index(slice);
   auto it = LookUpAttribute(new_attr);
-  if (it->second == kInvalidSliceIndex) {
+  if (it->second == kIndexInvalid) {
     // Resize index buffers.
     it->second = static_cast<int32_t>(slices_.size());
     slices_.push_back(it->first);
@@ -1769,8 +1758,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   word_boundary_caret_.clear();
 }
 
-static void VertexExtents(const FontVertex* v, vec2* min_position,
-                          vec2* max_position) {
+static void VertexExtents(const FontVertex *v, vec2 *min_position,
+                          vec2 *max_position) {
   // Get extents of the glyph.
   const float kInfinity = std::numeric_limits<float>::infinity();
   vec2 min(kInfinity);
@@ -1784,16 +1773,16 @@ static void VertexExtents(const FontVertex* v, vec2* min_position,
   *max_position = max;
 }
 
-std::vector<vec4> FontBuffer::CalculateBounds(
-    int32_t start_index, int32_t end_index) const {
+std::vector<vec4> FontBuffer::CalculateBounds(int32_t start_index,
+                                              int32_t end_index) const {
   const float kInfinity = std::numeric_limits<float>::infinity();
   std::vector<vec4> extents;
 
   // Clamp to vertex bounds.
   const uint32_t start = std::max(0u, static_cast<uint32_t>(start_index));
-  const uint32_t end = std::min(
-      static_cast<uint32_t>(vertices_.size()) / kVerticesPerCodePoint,
-      static_cast<uint32_t>(end_index));
+  const uint32_t end =
+      std::min(static_cast<uint32_t>(vertices_.size()) / kVerticesPerCodePoint,
+               static_cast<uint32_t>(end_index));
 
   // Find `line` such that line_start_indices[line] is the *end* index of
   // start's line.
