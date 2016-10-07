@@ -26,7 +26,8 @@ namespace flatui {
 GlyphCache::GlyphCache(const mathfu::vec2i& size, int32_t max_slices)
     : counter_(0),
       padding_(kDefaultGlyphCachePaddingX, kDefaultGlyphCachePaddingY),
-      revision_(0), last_flushed_revision_(kNeverFlushed) {
+      revision_(0),
+      last_flushed_revision_(kNeverFlushed) {
   // Round up cache sizes to power of 2.
   size_ = mathfu::RoundUpToPowerOf2(size);
   buffers_.Initialize(this, size_, max_slices);
@@ -138,6 +139,9 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   if (image != nullptr) {
     buffer->CopyImage(pos, reinterpret_cast<const uint8_t*>(image), ret);
   }
+  // Clear a padding region.
+  buffer->ClearPaddingRegion(pos, padding_, ret);
+
   buffer->UpdateDirtyRect(pos.z(),
                           mathfu::vec4i(pos.xy(), pos.xy() + ret->get_size()));
 
