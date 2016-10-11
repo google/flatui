@@ -1151,10 +1151,12 @@ bool FontManager::Close(const FontFamily &family) {
     return false;
   }
 
+#if defined(FLATUI_SYSTEM_FONT)
   if (it->second->get_font_id() == kSystemFontId) {
     // Close the system font.
     CloseSystemFont();
   }
+#endif  // FLATUI_SYSTEM_FONT
 
   // Acquire cache mutex.
   fplutil::MutexLock lock(*cache_mutex_);
@@ -1194,10 +1196,12 @@ bool FontManager::SelectFont(const char *font_name) {
     return false;
   }
 
+#if defined(FLATUI_SYSTEM_FONT)
   if (it->second->get_font_id() == kSystemFontId) {
     // Select the system font.
     return SelectFont(&font_name, 1);
   }
+#endif  // FLATUI_SYSTEM_FONT
 
   current_font_ = HbFont::Open(*it->second.get(), &font_cache_);
   return current_font_ != nullptr;
