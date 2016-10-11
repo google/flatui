@@ -480,8 +480,7 @@ class InternalState : public LayoutManager {
     // Set text color.
     renderer_.set_color(text_color_);
 
-    std::vector<LinkInfo> links;
-    auto buffer = fontman_.GetHtmlBuffer(html, parameter, &links);
+    auto buffer = fontman_.GetHtmlBuffer(html, parameter);
     assert(buffer);
     Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
   }

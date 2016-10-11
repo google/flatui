@@ -628,15 +628,15 @@ class FontManager {
   /// including anchors, paragraphs, and breaks.
   /// @param[in] parameters The FontBufferParameters specifying the parameters
   /// for the FontBuffer.
-  /// @param[out] links Receives information on where the anchor links are
-  /// located in the rendered FontBuffer, and the linked-to addresses.
+  ///
+  /// @note call get_links() on the returned FontBuffer to receive information
+  /// on where the anchor links are located, and the linked-to addresses.
   ///
   /// @return Returns `nullptr` if the HTML does not fit in the glyph cache.
   ///  When this happens, caller may flush the glyph cache with
   /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
   FontBuffer *GetHtmlBuffer(const char *html,
-                            const FontBufferParameters &parameters,
-                            std::vector<LinkInfo> *links);
+                            const FontBufferParameters &parameters);
 
   /// @brief Release the FonBuffer instance.
   /// If the FontBuffer is a reference counting buffer, the API decrements the
@@ -1461,6 +1461,10 @@ class FontBuffer {
   std::vector<mathfu::vec4> CalculateBounds(int32_t start_index,
                                             int32_t end_index) const;
 
+  /// @brief Return glyph indices and linked-to address of any HREF links that
+  /// have been rendered to this FontBuffer.
+  const std::vector<LinkInfo>& get_links() const { return links_; }
+
   /// @brief Return current glyph count stored in the buffer.
   int32_t get_glyph_count() const {
     return static_cast<int32_t>(vertices_.size()) / 4;
@@ -1647,6 +1651,11 @@ class FontBuffer {
   // vertices information because we support ligatures so that single glyph
   // can include multiple caret positions.
   std::vector<mathfu::vec2i> caret_positions_;
+
+  // Glyph indices and linked-to address of any links that have been rendered
+  // in this FontBuffer. Call FontBuffer::CalculateBounds() to get the
+  // bounding boxes for the link text.
+  std::vector<LinkInfo> links_;
 
   // Temporary buffers used while generating FontBuffer.
   // Word boundary information. This information is used only with a typography

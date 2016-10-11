@@ -279,8 +279,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
 }
 
 FontBuffer *FontManager::GetHtmlBuffer(const char *html,
-                                       const FontBufferParameters &parameters,
-                                       std::vector<LinkInfo> *links) {
+                                       const FontBufferParameters &parameters) {
   {
     // Acquire cache mutex.
     fplutil::MutexLock lock(*cache_mutex_);
@@ -334,7 +333,7 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
 
     // Record link info.
     if (has_link) {
-      links->push_back(
+      buffer->links_.push_back(
           LinkInfo(s.link, start_glyph_index, buffer->get_glyph_count()));
     }
 
