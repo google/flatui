@@ -477,8 +477,8 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
                           const mathfu::vec2i &padding,
                           const GlyphCacheEntry *entry) {
     auto dest = buffers_[pos.z()].get();
-    assert(pos.x() + entry->get_size().x() < size_.x());
-    assert(pos.y() + entry->get_size().y() < size_.y());
+    assert(pos.x() + entry->get_size().x() + padding.x() <= size_.x());
+    assert(pos.y() + entry->get_size().y() + padding.y() <= size_.y());
 
     // Clear vertical padding region.
     for (int32_t y = 0; y < entry->get_size().y(); ++y) {
