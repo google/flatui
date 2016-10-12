@@ -1615,6 +1615,7 @@ class FontBuffer {
     word_boundary_.clear();
     word_boundary_caret_.clear();
     line_start_caret_index_ = 0;
+    lastline_must_break_ = false;
     attribute_map_.clear();
     attribute_history_.clear();
   }
@@ -1667,6 +1668,7 @@ class FontBuffer {
   static std::vector<attribute_map_it> attribute_history_;
 
   static uint32_t line_start_caret_index_;
+  static bool lastline_must_break_;
 
   // Size of the string in pixels.
   mathfu::vec2i size_;

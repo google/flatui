@@ -69,6 +69,7 @@ std::map<FontBufferAttributes, int32_t, FontBufferAttributes>
     FontBuffer::attribute_map_;
 std::vector<FontBuffer::attribute_map_it> FontBuffer::attribute_history_;
 uint32_t FontBuffer::line_start_caret_index_;
+bool FontBuffer::lastline_must_break_;
 
 // Constants.
 const int32_t kVerticesPerGlyph = 4;
@@ -484,7 +485,6 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
 
   int32_t max_line_width = parameters.get_line_length();
   int32_t total_height = ysize;
-  bool lastline_must_break = false;
   bool first_character = true;
   auto line_height = ysize * line_height_scale_;
 
@@ -539,11 +539,11 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         word_enum.Rewind(rewind);
       }
 
-      if (lastline_must_break ||
+      if (buffer->lastline_must_break_ ||
           ((line_width_ + word_width) / kFreeTypeUnit > size.x() && size.x())) {
         auto new_pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
-        first_character = lastline_must_break;
+        first_character = buffer->lastline_must_break_;
         if (size.y() && total_height > size.y() && !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
@@ -553,12 +553,13 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
           }
           // Update alignment after an ellipsis is appended.
           buffer->UpdateLine(parameters, layout_direction_,
-                             lastline_must_break);
+                             buffer->lastline_must_break_);
           hb_buffer_clear_contents(harfbuzz_buf_);
           break;
         }
         // Line break.
-        buffer->UpdateLine(parameters, layout_direction_, lastline_must_break);
+        buffer->UpdateLine(parameters, layout_direction_,
+                           buffer->lastline_must_break_);
         pos = new_pos;
 
         if (word_width > max_width) {
@@ -577,7 +578,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       // In case of the layout is left/center aligned, max line width is
       // adjusted based on layout results.
       max_line_width = std::max(max_line_width, line_width_);
-      lastline_must_break = word_enum.CurrentWordMustBreak();
+      buffer->lastline_must_break_ = word_enum.CurrentWordMustBreak();
     }
 
     // Update the first caret position.
@@ -587,8 +588,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     }
 
     // Add string information to the buffer.
-    if (!UpdateBuffer(word_enum, parameters, base_line, lastline_must_break,
-                      buffer, &pos, &initial_metrics)) {
+    if (!UpdateBuffer(word_enum, parameters, base_line,
+                      buffer->lastline_must_break_, buffer, &pos,
+                      &initial_metrics)) {
       return nullptr;
     }
 
