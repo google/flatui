@@ -451,10 +451,24 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   current_font_->SetPixelSize(converted_ysize);
 
   // Retrieve word breaking information using libunibreak.
-  wordbreak_info_.resize(length);
+  auto buffer_length = 0;
   if (length) {
-    set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text), length,
+    buffer_length = length + 1;
+  }
+  wordbreak_info_.resize(buffer_length);
+  if (length) {
+    // We tweak the last byte of libunibreak's output rather than always to have
+    // LINEBREAK_MUSTBREAK but can be either ALLOWBREAK or MUSTBREAK to work
+    // with the appending FontBuffers feature.
+    // libUnibreak won't access out of range of 'text' as it's expected 0
+    // terminated string.
+    set_linebreaks_utf8(reinterpret_cast<const utf8_t *>(text), buffer_length,
                         language_.c_str(), &wordbreak_info_[0]);
+    // Dispose the last element and update the last element.
+    wordbreak_info_.pop_back();
+    if (wordbreak_info_.back() != LINEBREAK_MUSTBREAK) {
+      wordbreak_info_.back() = LINEBREAK_ALLOWBREAK;
+    }
   }
   if (current_font_->IsComplexFont()) {
     // Analyze the text and set up an array of font face indices.
@@ -1762,6 +1776,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   line_start_caret_index_ = static_cast<uint32_t>(caret_positions_.size());
   word_boundary_.clear();
   word_boundary_caret_.clear();
+  lastline_must_break_ = false;
 }
 
 static void VertexExtents(const FontVertex *v, vec2 *min_position,
@@ -1840,7 +1855,8 @@ void FontBufferAttributes::UpdateUnderline(int32_t vertex_index,
     return;
   }
 
-  if (underline_info_.empty() || underline_info_.back().y_pos_ != y_pos) {
+  if (underline_info_.empty() || underline_info_.back().y_pos_ != y_pos ||
+      underline_info_.back().end_vertex_index_ != vertex_index - 1) {
     // Create new underline info.
     UnderlineInfo info(vertex_index, y_pos);
     underline_info_.push_back(info);

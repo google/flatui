@@ -92,11 +92,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
           "<h1>My First Heading</h1>\n"
           "<p>My first paragraph.</p>\n"
           "<a href=\"http://address\">Link text</a>\n"
-          "plenty\n of \n\nnewlines\n  \nand\nmore  newlines\n"
+          "plenty\n of \n\nnewlines\n  \nand\nmore  newlines.\n"
           "\n"
+          "More text with<br><a href=\"http://address\">Link</a>\n"
+          "with <a href=\"http://address\">more Link</a>\n"
           "</body>\n"
           "</html>\n",
-          40, mathfu::vec2(400, 0), flatui::kTextAlignmentLeft, "id5");
+          40, mathfu::vec2(500, 0), flatui::kTextAlignmentLeft, "id5");
 
       EndGroup();
     });
