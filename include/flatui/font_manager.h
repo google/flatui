@@ -50,6 +50,7 @@ namespace flatui {
 class FaceData;
 class FontTexture;
 class FontBuffer;
+class FontBufferContext;
 class FontMetrics;
 class WordEnumerator;
 struct ScriptInfo;
@@ -814,19 +815,19 @@ class FontManager {
   // Helper function to add string information to the buffer.
   bool UpdateBuffer(const WordEnumerator &word_enum,
                     const FontBufferParameters &parameters, int32_t base_line,
-                    bool lastline_must_break, FontBuffer *buffer,
+                    FontBuffer *buffer, FontBufferContext *context,
                     mathfu::vec2 *pos, FontMetrics *metrics);
 
   // Helper function to remove entries from the buffer for specified width.
   void RemoveEntries(const FontBufferParameters &parameters,
                      uint32_t required_width, FontBuffer *buffer,
-                     mathfu::vec2 *pos);
+                     FontBufferContext *context, mathfu::vec2 *pos);
 
   // Helper function to append ellipsis to the buffer.
   bool AppendEllipsis(const WordEnumerator &word_enum,
                       const FontBufferParameters &parameters, int32_t base_line,
-                      FontBuffer *buffer, mathfu::vec2 *pos,
-                      FontMetrics *metrics);
+                      FontBuffer *buffer, FontBufferContext *context,
+                      mathfu::vec2 *pos, FontMetrics *metrics);
 
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
@@ -882,12 +883,8 @@ class FontManager {
   // Fill in the FontBuffer with the given text.
   FontBuffer *FillBuffer(const char *text, uint32_t length,
                          const FontBufferParameters &parameters,
-                         FontBuffer *buffer, mathfu::vec2 *text_pos = nullptr);
-
-  // Append texts to existing buffer.
-  FontBuffer *AppendBuffer(const char *text, uint32_t length,
-                           const FontBufferParameters &parameters,
-                           FontBuffer *buffer, mathfu::vec2 *text_pos);
+                         FontBuffer *buffer, FontBufferContext *context,
+                         mathfu::vec2 *text_pos = nullptr);
 
   // Update language related settings.
   void SetLanguageSettings();
@@ -998,9 +995,6 @@ class FontManager {
   static const ScriptInfo script_table_[];
   static const char *language_table_[];
   hb_language_t hb_language_;
-
-  // flag indicating it's appending a font buffer.
-  bool appending_buffer_;
 
   // Line height for a multi line text.
   float line_height_scale_;
@@ -1309,6 +1303,71 @@ class FontBufferAttributes {
   uint32_t color_;
 };
 
+/// @class FontBufferContext
+/// @brief Temporary buffers used while generating FontBuffer.
+/// Word boundary information. This information is used only with a typography
+/// layout with a justification.
+class FontBufferContext {
+ public:
+  FontBufferContext()
+      : line_start_caret_index_(0),
+        lastline_must_break_(false),
+        appending_buffer_(false) {}
+
+  /// @var Type defining an interator to the attribute map that is tracking
+  /// FontBufferAttribute.
+  typedef std::map<FontBufferAttributes, int32_t,
+                   FontBufferAttributes>::iterator attribute_map_it;
+
+  /// @brief Clear the temporary buffers.
+  void Clear() {
+    word_boundary_.clear();
+    word_boundary_caret_.clear();
+    line_start_caret_index_ = 0;
+    lastline_must_break_ = false;
+    attribute_map_.clear();
+    attribute_history_.clear();
+  }
+
+  /// @brief Set attribute to the FontBuffer. The attribute is used while
+  /// constructing a FontBuffer.
+  void SetAttribute(const FontBufferAttributes &attribute);
+
+  /// @brief Look up an attribute from the attribute map while constructing
+  /// attributed FontBuffer.
+  attribute_map_it LookUpAttribute(const FontBufferAttributes &attribute);
+
+  // Getter/Setter
+  bool lastline_must_break() const { return lastline_must_break_; }
+  void set_lastline_must_break(bool b) { lastline_must_break_ = b; }
+
+  bool appending_buffer() const { return appending_buffer_; }
+  void set_appending_buffer(bool b) { appending_buffer_ = b; }
+
+  uint32_t line_start_caret_index() const { return line_start_caret_index_; }
+  void set_line_start_caret_index(uint32_t i) { line_start_caret_index_ = i; }
+
+  std::vector<attribute_map_it> &attribute_history() {
+    return attribute_history_;
+  };
+  std::vector<uint32_t> &word_boundary() {
+    return word_boundary_;
+  };
+  std::vector<uint32_t> &word_boundary_caret() {
+    return word_boundary_caret_;
+  };
+
+ private:
+  std::vector<uint32_t> word_boundary_;
+  std::vector<uint32_t> word_boundary_caret_;
+  std::map<FontBufferAttributes, int32_t, FontBufferAttributes> attribute_map_;
+  std::vector<attribute_map_it> attribute_history_;
+  uint32_t line_start_caret_index_;
+  bool lastline_must_break_;
+  // flag indicating it's appending a font buffer.
+  bool appending_buffer_;
+};
+
 /// @class FontBuffer
 ///
 /// @brief this is used with the texture atlas rendering.
@@ -1328,11 +1387,6 @@ class FontBuffer {
   /// FontBuffer instances.
   typedef std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
                    FontBufferParameters>::iterator fontbuffer_map_it;
-
-  /// @var Type defining an interator to the attribute map that is tracking
-  /// FontBufferAttribute.
-  typedef std::map<FontBufferAttributes, int32_t,
-                   FontBufferAttributes>::iterator attribute_map_it;
 
   /// @brief The default constructor for a FontBuffer.
   FontBuffer()
@@ -1463,7 +1517,7 @@ class FontBuffer {
 
   /// @brief Return glyph indices and linked-to address of any HREF links that
   /// have been rendered to this FontBuffer.
-  const std::vector<LinkInfo>& get_links() const { return links_; }
+  const std::vector<LinkInfo> &get_links() const { return links_; }
 
   /// @brief Return current glyph count stored in the buffer.
   int32_t get_glyph_count() const {
@@ -1558,6 +1612,7 @@ class FontBuffer {
   /// @param[in] y The `y` position of the caret.
   void AddCaretPosition(int32_t x, int32_t y);
 
+  /// @brief Add the caret position to the buffer.
   ///
   /// @param[in] pos The position of the caret.
   void AddCaretPosition(const mathfu::vec2 &pos);
@@ -1566,7 +1621,10 @@ class FontBuffer {
   /// It may use the information to justify text layout later.
   ///
   /// @param[in] parameters Text layout parameters used to update the layout.
-  void AddWordBoundary(const FontBufferParameters &parameters);
+  /// @param[in] context FontBuffer context that is used while constructing a
+  /// FontBuffer.
+  void AddWordBoundary(const FontBufferParameters &parameters,
+                       FontBufferContext *context);
 
   /// @brief Update UV information of a glyph entry.
   ///
@@ -1580,17 +1638,18 @@ class FontBuffer {
   /// buffer contents based on typography layout settings.
   ///
   /// @param[in] parameters Text layout parameters used to update the layout.
-  /// @param[in] last_line Indicate if the line is the last line in the
-  /// paragraph.
+  /// @param[in] context FontBuffer context that is used while constructing a
+  /// FontBuffer.
   void UpdateLine(const FontBufferParameters &parameters,
-                  TextLayoutDirection layout_direction, bool last_line);
+                  TextLayoutDirection layout_direction,
+                  FontBufferContext *context);
 
   /// @brief Sets the reference count of the buffer.
   void set_ref_count(uint32_t ref_count) { ref_count_ = ref_count; }
 
   /// @brief Retrieve an internal buffer index of accounting atlas slice in the
   /// FontBuffer.
-  int32_t GetBufferIndex(int32_t slice);
+  int32_t GetBufferIndex(int32_t slice, FontBufferContext *context);
 
   // @brief Invalidate the FontBuffer.
   void Invalidate() { valid_ = false; }
@@ -1610,23 +1669,6 @@ class FontBuffer {
       begin++;
     }
   }
-
-  void ClearTemporaryBuffer() {
-    word_boundary_.clear();
-    word_boundary_caret_.clear();
-    line_start_caret_index_ = 0;
-    lastline_must_break_ = false;
-    attribute_map_.clear();
-    attribute_history_.clear();
-  }
-
-  /// @brief Set attribute to the FontBuffer. The attribute is used while
-  /// constructing a FontBuffer.
-  void SetAttribute(const FontBufferAttributes &attribute);
-
-  /// @brief Look up an attribute from the attribute map while constructing
-  /// attributed FontBuffer.
-  attribute_map_it LookUpAttribute(const FontBufferAttributes &attribute);
 
   // Font metrics information.
   FontMetrics metrics_;
@@ -1657,18 +1699,6 @@ class FontBuffer {
   // in this FontBuffer. Call FontBuffer::CalculateBounds() to get the
   // bounding boxes for the link text.
   std::vector<LinkInfo> links_;
-
-  // Temporary buffers used while generating FontBuffer.
-  // Word boundary information. This information is used only with a typography
-  // layout with a justification.
-  static std::vector<uint32_t> word_boundary_;
-  static std::vector<uint32_t> word_boundary_caret_;
-  static std::map<FontBufferAttributes, int32_t, FontBufferAttributes>
-      attribute_map_;
-  static std::vector<attribute_map_it> attribute_history_;
-
-  static uint32_t line_start_caret_index_;
-  static bool lastline_must_break_;
 
   // Size of the string in pixels.
   mathfu::vec2i size_;

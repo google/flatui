@@ -62,15 +62,6 @@ namespace flatui {
 FT_Library *FontManager::ft_;
 hb_buffer_t *FontManager::harfbuzz_buf_;
 
-// Static members in FontBuffer.
-std::vector<uint32_t> FontBuffer::word_boundary_;
-std::vector<uint32_t> FontBuffer::word_boundary_caret_;
-std::map<FontBufferAttributes, int32_t, FontBufferAttributes>
-    FontBuffer::attribute_map_;
-std::vector<FontBuffer::attribute_map_it> FontBuffer::attribute_history_;
-uint32_t FontBuffer::line_start_caret_index_;
-bool FontBuffer::lastline_must_break_;
-
 // Constants.
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
@@ -224,7 +215,6 @@ void FontManager::Initialize() {
   version_ = &FontVersion();
   SetLocale(kDefaultLanguage);
   cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
-  appending_buffer_ = false;
   line_width_ = 0;
 
   if (ft_ == nullptr) {
@@ -301,10 +291,10 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
   // Convert HTML into subsections that have the same formatting.
   std::vector<HtmlSection> html_sections = ParseHtml(html);
 
-  // Indicate that it is going to append multiple FontBuffer.
-  appending_buffer_ = true;
-
   // Otherwise create new buffer.
+  FontBufferContext ctx;
+  ctx.set_appending_buffer(true);
+
   FontBufferParameters params = parameters;
   mathfu::vec2 pos = mathfu::kZeros2f;
   FontBuffer *buffer = CreateBuffer("", 0, params, &pos);
@@ -322,14 +312,12 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
     // Set the attributes for either link (underlined & blue),
     // or normal (non-underlined & black).
     const bool has_link = !s.link.empty();
-    buffer->SetAttribute(has_link ? kHtmlLinkAttributes
-                                  : kHtmlNormalAttributes);
+    ctx.SetAttribute(has_link ? kHtmlLinkAttributes : kHtmlNormalAttributes);
 
     // Append text as per usual.
     {
       fplutil::MutexLock lock(*cache_mutex_);
-      buffer =
-          AppendBuffer(s.text.c_str(), s.text.length(), params, buffer, &pos);
+      FillBuffer(s.text.c_str(), s.text.length(), params, buffer, &ctx, &pos);
     }
 
     // Record link info.
@@ -344,20 +332,9 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
     }
   }
 
-  appending_buffer_ = false;
-  buffer->UpdateLine(parameters, layout_direction_, true);
-  buffer->ClearTemporaryBuffer();
+  ctx.set_lastline_must_break(true);
+  buffer->UpdateLine(parameters, layout_direction_, &ctx);
 
-  return buffer;
-}
-
-FontBuffer *FontManager::AppendBuffer(const char *text, uint32_t length,
-                                      const FontBufferParameters &parameters,
-                                      FontBuffer *buffer,
-                                      mathfu::vec2 *text_pos) {
-  if (!FillBuffer(text, length, parameters, buffer, text_pos)) {
-    return nullptr;
-  }
   return buffer;
 }
 
@@ -403,11 +380,11 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
       new FontBuffer(length, parameters.get_caret_info_flag()));
 
   // Set initial attribute.
-  buffer->ClearTemporaryBuffer();
-  buffer->SetAttribute(FontBufferAttributes());
+  FontBufferContext ctx;
+  ctx.SetAttribute(FontBufferAttributes());
   line_width_ = 0;
 
-  if (!FillBuffer(text, length, parameters, buffer.get(), text_pos)) {
+  if (!FillBuffer(text, length, parameters, buffer.get(), &ctx, text_pos)) {
     return nullptr;
   }
 
@@ -435,6 +412,7 @@ FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
 FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
                                     const FontBufferParameters &parameters,
                                     FontBuffer *buffer,
+                                    FontBufferContext *context,
                                     mathfu::vec2 *pos_offset) {
   auto size = parameters.get_size();
   auto multi_line = parameters.get_multi_line_setting();
@@ -526,8 +504,8 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       if (size.x() && max_line_width > max_width && !caret_info) {
         // The text size exceeds given size.
         // Rewind the buffers and add an ellipsis if it's speficied.
-        if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
-                            &initial_metrics)) {
+        if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
+                            &pos, &initial_metrics)) {
           return nullptr;
         }
       }
@@ -553,27 +531,25 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         word_enum.Rewind(rewind);
       }
 
-      if (buffer->lastline_must_break_ ||
+      if (context->lastline_must_break() ||
           ((line_width_ + word_width) / kFreeTypeUnit > size.x() && size.x())) {
         auto new_pos = vec2(pos_start, pos.y() + line_height);
         total_height += static_cast<int32_t>(line_height);
-        first_character = buffer->lastline_must_break_;
+        first_character = context->lastline_must_break();
         if (size.y() && total_height > size.y() && !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
-          if (!AppendEllipsis(word_enum, parameters, base_line, buffer, &pos,
-                              &initial_metrics)) {
+          if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
+                              &pos, &initial_metrics)) {
             return nullptr;
           }
           // Update alignment after an ellipsis is appended.
-          buffer->UpdateLine(parameters, layout_direction_,
-                             buffer->lastline_must_break_);
+          buffer->UpdateLine(parameters, layout_direction_, context);
           hb_buffer_clear_contents(harfbuzz_buf_);
           break;
         }
         // Line break.
-        buffer->UpdateLine(parameters, layout_direction_,
-                           buffer->lastline_must_break_);
+        buffer->UpdateLine(parameters, layout_direction_, context);
         pos = new_pos;
 
         if (word_width > max_width) {
@@ -592,7 +568,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       // In case of the layout is left/center aligned, max line width is
       // adjusted based on layout results.
       max_line_width = std::max(max_line_width, line_width_);
-      buffer->lastline_must_break_ = word_enum.CurrentWordMustBreak();
+      context->set_lastline_must_break(word_enum.CurrentWordMustBreak());
     }
 
     // Update the first caret position.
@@ -602,14 +578,13 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     }
 
     // Add string information to the buffer.
-    if (!UpdateBuffer(word_enum, parameters, base_line,
-                      buffer->lastline_must_break_, buffer, &pos,
+    if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, &pos,
                       &initial_metrics)) {
       return nullptr;
     }
 
     // Add word boundary information.
-    buffer->AddWordBoundary(parameters);
+    buffer->AddWordBoundary(parameters, context);
 
     // Cleanup buffer contents.
     hb_buffer_clear_contents(harfbuzz_buf_);
@@ -621,9 +596,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   }
 
   // Update the last line.
-  if (appending_buffer_ == false) {
-    buffer->UpdateLine(parameters, layout_direction_, true);
-    buffer->ClearTemporaryBuffer();
+  if (context->appending_buffer() == false) {
+    context->set_lastline_must_break(true);
+    buffer->UpdateLine(parameters, layout_direction_, context);
   }
 
   // Set buffer revision using glyph cache revision.
@@ -661,8 +636,8 @@ void FontManager::ReleaseBuffer(FontBuffer *buffer) {
 
 bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                const FontBufferParameters &parameters,
-                               int32_t base_line, bool lastline_must_break,
-                               FontBuffer *buffer, mathfu::vec2 *pos,
+                               int32_t base_line, FontBuffer *buffer,
+                               FontBufferContext *context, mathfu::vec2 *pos,
                                FontMetrics *metrics) {
   auto ysize = static_cast<int32_t>(parameters.get_font_size());
   auto converted_ysize = ConvertSize(ysize);
@@ -718,7 +693,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       }
 
       // Expand buffer if necessary.
-      auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z());
+      auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z(), context);
       buffer->AddIndices(buffer_idx, buffer->get_glyph_count());
 
       // Construct intermediate vertices array.
@@ -749,7 +724,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
     }
 
     // Update caret information if it has been requested.
-    bool end_of_line = lastline_must_break == true && i == glyph_count - 1;
+    bool end_of_line =
+        context->lastline_must_break() == true && i == glyph_count - 1;
     if (parameters.get_caret_info_flag() && end_of_line == false) {
       // Is the current glyph a ligature?
       // We are not using hb_ot_layout_get_ligature_carets() as the API barely
@@ -777,8 +753,10 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
 bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
                                  const FontBufferParameters &parameters,
                                  int32_t base_line, FontBuffer *buffer,
-                                 mathfu::vec2 *pos, FontMetrics *metrics) {
+                                 FontBufferContext *context, mathfu::vec2 *pos,
+                                 FontMetrics *metrics) {
   buffer->has_ellipsis_ = true;
+  context->set_lastline_must_break(false);
 
   if (!ellipsis_.length()) {
     return true;
@@ -787,7 +765,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   auto max_width = parameters.get_size().x() * kFreeTypeUnit;
 
   // Dump current string to the buffer.
-  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer, pos,
+  if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, pos,
                     metrics)) {
     return false;
   }
@@ -802,10 +780,10 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 
   // Remove some glyph entries from the buffer to have a room for the
   // ellipsis string.
-  RemoveEntries(parameters, ellipsis_width, buffer, pos);
+  RemoveEntries(parameters, ellipsis_width, buffer, context, pos);
 
   // Add ellipsis string to the buffer.
-  if (!UpdateBuffer(word_enum, parameters, base_line, false, buffer, pos,
+  if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, pos,
                     metrics)) {
     return false;
   }
@@ -818,7 +796,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 
 void FontManager::RemoveEntries(const FontBufferParameters &parameters,
                                 uint32_t required_width, FontBuffer *buffer,
-                                mathfu::vec2 *pos) {
+                                FontBufferContext *context, mathfu::vec2 *pos) {
   auto max_width = parameters.get_size().x();
 
   // Determine how many letters to remove.
@@ -836,7 +814,7 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
       kVerticesPerGlyph;
   auto removing_index =
       static_cast<int32_t>(vertices.size()) + kLastElementIndex;
-  auto latest_attribute = buffer->attribute_history_.back();
+  auto latest_attribute = context->attribute_history().back();
 
   assert(entries_to_remove >= 0 && removing_index >= 0);
   while (entries_to_remove--) {
@@ -851,8 +829,8 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     } else {
       // There is no indices to remove in the index buffer.
       // Switch to prior buffer.
-      buffer->attribute_history_.pop_back();
-      latest_attribute = buffer->attribute_history_.back();
+      context->attribute_history().pop_back();
+      latest_attribute = context->attribute_history().back();
       entries_to_remove++;
       continue;
     }
@@ -908,8 +886,8 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
     // layout information.
 
     // Set freetype settings.
+    FontBufferContext ctx;
     current_font_->SetPixelSize(ysize);
-    buffer->ClearTemporaryBuffer();
 
     // Keep original buffer.
     std::vector<std::vector<uint16_t>> original_indices =
@@ -934,10 +912,10 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
         // Reconstruct indices.
         auto attr = original_slices[j];
         attr.slice_index_ = kIndexInvalid;
-        buffer->SetAttribute(attr);
+        ctx.SetAttribute(attr);
 
         // Expand buffer if necessary.
-        auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z());
+        auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z(), &ctx);
         buffer->AddIndices(buffer_idx, index);
 
         // Update UV.
@@ -946,7 +924,6 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
     }
     // Update revision.
     buffer->set_revision(glyph_cache_->get_revision());
-    buffer->ClearTemporaryBuffer();
   }
   return buffer;
 }
@@ -1561,7 +1538,7 @@ FontBufferStatus FontManager::GetFontBufferStatus(const FontBuffer &font_buffer)
   return kFontBufferStatusReady;
 }
 
-void FontBuffer::SetAttribute(const FontBufferAttributes &attribute) {
+void FontBufferContext::SetAttribute(const FontBufferAttributes &attribute) {
   auto it = LookUpAttribute(attribute);
 
   if (attribute_history_.size() == 0 || it != attribute_history_.back()) {
@@ -1569,7 +1546,7 @@ void FontBuffer::SetAttribute(const FontBufferAttributes &attribute) {
   }
 }
 
-FontBuffer::attribute_map_it FontBuffer::LookUpAttribute(
+FontBufferContext::attribute_map_it FontBufferContext::LookUpAttribute(
     const FontBufferAttributes &attribute) {
   if (attribute_map_.size()) {
     // Check if we already has an entry in the map.
@@ -1582,18 +1559,20 @@ FontBuffer::attribute_map_it FontBuffer::LookUpAttribute(
   return ret.first;
 }
 
-int32_t FontBuffer::GetBufferIndex(int32_t slice) {
+int32_t FontBuffer::GetBufferIndex(int32_t slice, FontBufferContext *context) {
+  auto &attr_history = context->attribute_history();
+
   // Check if we can use the latest attribute in the attribute stack.
-  if (attribute_history_.back()->first.get_slice_index() == slice) {
-    return attribute_history_.back()->second;
+  if (attr_history.back()->first.get_slice_index() == slice) {
+    return attr_history.back()->second;
   }
-  auto new_attr = attribute_history_.back()->first;
+  auto new_attr = attr_history.back()->first;
   // Remove temporary attribute.
   if (new_attr.get_slice_index() == kIndexInvalid) {
-    attribute_history_.pop_back();
+    attr_history.pop_back();
   }
   new_attr.set_slice_index(slice);
-  auto it = LookUpAttribute(new_attr);
+  auto it = context->LookUpAttribute(new_attr);
   if (it->second == kIndexInvalid) {
     // Resize index buffers.
     it->second = static_cast<int32_t>(slices_.size());
@@ -1601,8 +1580,8 @@ int32_t FontBuffer::GetBufferIndex(int32_t slice) {
     indices_.resize(it->second + 1);
   }
   // Update the attribute stack.
-  if (!attribute_history_.size() || it != attribute_history_.back()) {
-    attribute_history_.push_back(it);
+  if (!attr_history.size() || it != attr_history.back()) {
+    attr_history.push_back(it);
   }
   assert(it->second < static_cast<int32_t>(indices_.size()));
   return it->second;
@@ -1663,22 +1642,24 @@ void FontBuffer::AddCaretPosition(int32_t x, int32_t y) {
   caret_positions_.push_back(mathfu::vec2i(x, y));
 }
 
-void FontBuffer::AddWordBoundary(const FontBufferParameters &parameters) {
+void FontBuffer::AddWordBoundary(const FontBufferParameters &parameters,
+                                 FontBufferContext *context) {
   if (parameters.get_text_alignment() & kTextAlignmentJustify) {
     // Keep the word boundary info for a later use for a justificaiton.
-    word_boundary_.push_back(static_cast<uint32_t>(code_points_.size()));
-    word_boundary_caret_.push_back(
+    context->word_boundary().push_back(
+        static_cast<uint32_t>(code_points_.size()));
+    context->word_boundary_caret().push_back(
         static_cast<uint32_t>(caret_positions_.size()));
   }
 }
 
 void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
                             TextLayoutDirection layout_direction,
-                            bool last_line) {
+                            FontBufferContext *context) {
   // Update previous line layout if necessary.
   auto align = parameters.get_text_alignment() & ~kTextAlignmentJustify;
   auto justify = parameters.get_text_alignment() & kTextAlignmentJustify;
-  if (last_line) {
+  if (context->lastline_must_break()) {
     justify = false;
   }
 
@@ -1689,6 +1670,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
                       // When we justify a text, the offset is increased for
                       // each word boundary by boundary_offset_change.
     auto boundary_offset_change = 0;
+    auto &word_boundary = context->word_boundary();
 
     // Retrieve the line width from glyph's vertices.
     auto line_width = 0;
@@ -1712,13 +1694,13 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       }
     }
 
-    if (justify && word_boundary_.size() > 1) {
+    if (justify && word_boundary.size() > 1) {
       // With a justification, we add an offset for each word boundary.
       // For each word boundary (e.g. spaces), we stretch them slightly to align
       // both the left and right ends of each line of text.
       boundary_offset_change =
           static_cast<int32_t>((parameters.get_size().x() - line_width) /
-                               (word_boundary_.size() - 1));
+                               (word_boundary.size() - 1));
     } else {
       justify = false;
       offset = parameters.get_size().x() - line_width;
@@ -1739,7 +1721,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     auto boundary_index = 0;
     for (auto idx = line_start_indices_.back(); idx < code_points_.size();
          ++idx) {
-      if (justify && idx >= word_boundary_[boundary_index]) {
+      if (justify && idx >= word_boundary[boundary_index]) {
         boundary_index++;
         offset += boundary_offset_change;
       }
@@ -1753,9 +1735,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     // Update caret position, too.
     if (HasCaretPositions()) {
       boundary_index = 0;
-      for (auto idx = line_start_caret_index_; idx < caret_positions_.size();
-           ++idx) {
-        if (justify && idx >= word_boundary_caret_[boundary_index]) {
+      for (auto idx = context->line_start_caret_index();
+           idx < caret_positions_.size(); ++idx) {
+        if (justify && idx >= context->word_boundary_caret()[boundary_index]) {
           boundary_index++;
           offset_caret += boundary_offset_change;
         }
@@ -1764,8 +1746,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     }
 
     // Update underline information if necessary.
-    if (attribute_history_.back()->first.get_underline()) {
-      auto index = attribute_history_.back()->second;
+    auto &attr_history = context->attribute_history();
+    if (attr_history.back()->first.get_underline()) {
+      auto index = attr_history.back()->second;
       slices_[index]
           .WrapUnderline((get_vertices().size() - 1) / kVerticesPerGlyph);
     }
@@ -1773,10 +1756,11 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
   // Update current line information.
   line_start_indices_.push_back(static_cast<uint32_t>(code_points_.size()));
-  line_start_caret_index_ = static_cast<uint32_t>(caret_positions_.size());
-  word_boundary_.clear();
-  word_boundary_caret_.clear();
-  lastline_must_break_ = false;
+  context->set_lastline_must_break(false);
+  context->set_line_start_caret_index(
+      static_cast<uint32_t>(caret_positions_.size()));
+  context->word_boundary().clear();
+  context->word_boundary_caret().clear();
 }
 
 static void VertexExtents(const FontVertex *v, vec2 *min_position,
