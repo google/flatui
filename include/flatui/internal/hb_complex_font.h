@@ -289,6 +289,8 @@ class HbComplexFont : public HbFont {
   int32_t GetCurrentFaceIndex() const { return current_face_index_; }
 
  private:
+  void OverrideCallbacks(int32_t i);
+
   /// @brief HarfBuzz callback functions. They need to be a static member
   /// function to match callback signatures defined in harfbuzz.
   static hb_bool_t HbGetGlyph(hb_font_t *font, void *font_data,

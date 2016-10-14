@@ -52,31 +52,6 @@ HbFont *HbComplexFont::Open(HashedId id, std::vector<FaceData *> *vec,
   auto font = static_cast<HbComplexFont *>(insert.first->second.get());
   font->faces_ = *vec;
   font->complex_font_id_ = id;
-
-  // Override callbacks.
-  auto table = hb_font_funcs_create();
-  auto null_callback = [](void *) { return; };
-  hb_font_funcs_set_glyph_func(table, HbGetGlyph, font, null_callback);
-  hb_font_funcs_set_glyph_h_advance_func(table, HbGetHorizontalAdvance, font,
-                                         null_callback);
-  hb_font_funcs_set_glyph_v_advance_func(table, HbGetVerticalAdvance, font,
-                                         null_callback);
-  hb_font_funcs_set_glyph_v_origin_func(table, HbGetVerticalOrigin, font,
-                                        null_callback);
-  hb_font_funcs_set_glyph_h_kerning_func(table, HbGetHorizontalKerning, font,
-                                         null_callback);
-  hb_font_funcs_set_glyph_extents_func(table, HbGetExtents, font,
-                                       null_callback);
-  hb_font_funcs_set_glyph_contour_point_func(table, HgGetContourPoint, font,
-                                             null_callback);
-  hb_font_funcs_set_glyph_name_func(table, HbGetName, font, null_callback);
-  hb_font_funcs_make_immutable(table);
-
-  for (size_t i = 0; i < font->faces_.size(); ++i) {
-    hb_font_set_funcs(font->faces_[i]->get_hb_font(), table, font->faces_[i],
-                      null_callback);
-  }
-
   return font;
 }
 
@@ -86,6 +61,29 @@ void HbComplexFont::Close(HashedId id, HbFontCache *cache) {
     return;
   }
   cache->erase(it);
+}
+
+void HbComplexFont::OverrideCallbacks(int32_t i) {
+  // Override callbacks.
+  auto table = hb_font_funcs_create();
+  auto null_callback = [](void *) { return; };
+  hb_font_funcs_set_glyph_func(table, HbGetGlyph, this, null_callback);
+  hb_font_funcs_set_glyph_h_advance_func(table, HbGetHorizontalAdvance, this,
+                                         null_callback);
+  hb_font_funcs_set_glyph_v_advance_func(table, HbGetVerticalAdvance, this,
+                                         null_callback);
+  hb_font_funcs_set_glyph_v_origin_func(table, HbGetVerticalOrigin, this,
+                                        null_callback);
+  hb_font_funcs_set_glyph_h_kerning_func(table, HbGetHorizontalKerning, this,
+                                         null_callback);
+  hb_font_funcs_set_glyph_extents_func(table, HbGetExtents, this,
+                                       null_callback);
+  hb_font_funcs_set_glyph_contour_point_func(table, HgGetContourPoint, this,
+                                             null_callback);
+  hb_font_funcs_set_glyph_name_func(table, HbGetName, this, null_callback);
+  hb_font_funcs_make_immutable(table);
+
+  hb_font_set_funcs(faces_[i]->get_hb_font(), table, faces_[i], null_callback);
 }
 
 int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
@@ -286,6 +284,7 @@ void HbComplexFont::SetCurrentFontIndex(int32_t index) {
     index = 0;
   }
   current_face_index_ = index;
+  OverrideCallbacks(current_face_index_);
 }
 
 HbFont::~HbFont() {}

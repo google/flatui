@@ -429,10 +429,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   current_font_->SetPixelSize(converted_ysize);
 
   // Retrieve word breaking information using libunibreak.
-  auto buffer_length = 0;
-  if (length) {
-    buffer_length = length + 1;
-  }
+  auto buffer_length = length ? length + 1 : 0;
   wordbreak_info_.resize(buffer_length);
   if (length) {
     // We tweak the last byte of libunibreak's output rather than always to have
