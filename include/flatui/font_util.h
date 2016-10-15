@@ -18,8 +18,15 @@
 #include <string>
 #include <vector>
 
+#include "mathfu/glsl_mappings.h"
+
 /// @brief Namespace for FlatUI library.
 namespace flatui {
+
+/// @cond FLATUI_INTERNAL
+// Forward decl.
+class FontBuffer;
+/// @endcond
 
 /// @class HtmlSection
 ///
@@ -57,6 +64,28 @@ std::vector<HtmlSection> ParseHtml(const char *html);
 /// @return reference to `out`.
 std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
                                 std::string *out);
+
+/// @brief Generate a triangle strip data representing underline geometry for
+/// FontBuffer.
+///
+/// @param buffer FontBuffer to generate an underline geometory.
+/// @param pos An offset value that is added to generated vertices position.
+/// @return A vector of vec3 that includes a triangle strip data representing
+/// underline information of given FontBuffer. The strip is devided into pieces
+/// with a same width of each underlined character.
+///
+/// Below is an example to use API and render the underline strip using FPLBase
+/// API.
+/// auto line = GenerateUnderlineVertices(buffer, pos);
+/// color_shader_->Set(renderer_);
+/// static const fplbase::Attribute format[] = {fplbase::kPosition3f,
+/// fplbase::kEND};
+/// fplbase::Mesh::RenderArray(fplbase::Mesh::kTriangleStrip, line.size(),
+///                            format, sizeof(mathfu::vec3_packed),
+///                            &line[0]);
+/// Note that a stride value of vec3 is 16 bytes.
+std::vector<mathfu::vec3_packed> GenerateUnderlineVertices(
+    const FontBuffer &buffer, const mathfu::vec2 &pos);
 
 }  // namespace flatui
 

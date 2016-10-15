@@ -25,6 +25,9 @@
 
 namespace flatui {
 
+using mathfu::vec3;
+using mathfu::vec3_packed;
+
 // Replace whitespace with a single space.
 // This emulates how HTML processes raw text fields.
 // Appends trimmed text to `out`.
@@ -56,7 +59,7 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
 
 // Remove trailing whitespace. Then add a `prefix` if there is any preceeding
 // text.
-static std::string &StartHtmlLine(const char* prefix, std::string *out) {
+static std::string &StartHtmlLine(const char *prefix, std::string *out) {
   // Trim trailing whitespace.
   while (std::isspace(out->back())) out->pop_back();
 
@@ -69,11 +72,11 @@ static std::string &StartHtmlLine(const char* prefix, std::string *out) {
 
 // The very first text output we want to trim the leading whitespace.
 // We should also trim if the previous text ends in whitespace.
-static bool ShouldTrimLeadingWhitespace(const std::vector<HtmlSection>& s) {
+static bool ShouldTrimLeadingWhitespace(const std::vector<HtmlSection> &s) {
   if (s.size() <= 1) return true;
 
-  const std::string& prev_text = s.back().text.empty() ?
-                                 s[s.size() - 2].text : s.back().text;
+  const std::string &prev_text =
+      s.back().text.empty() ? s[s.size() - 2].text : s.back().text;
   return std::isspace(prev_text.back());
 }
 
@@ -131,7 +134,7 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
         }
 
         case GUMBO_TAG_HR:
-        case GUMBO_TAG_P:   // fallthrough
+        case GUMBO_TAG_P:  // fallthrough
           s->back().text.append("\n\n");
           break;
 
@@ -177,6 +180,75 @@ std::vector<HtmlSection> ParseHtml(const char *html) {
     s.pop_back();
   }
   return s;
+}
+
+static size_t NumUnderlineVertices(const FontBuffer &buffer) {
+  const int32_t kUnderlineVerticesPerGlyph = 2;
+  const int32_t kExtraUnderlineVerticesPerInfo = 2;
+  size_t num_verts = 0;
+  // The first strip doesn't need a triangle to stich.
+  num_verts -= kExtraUnderlineVerticesPerInfo;
+  auto &slices = buffer.get_slices();
+  for (size_t i = 0; i < slices.size(); ++i) {
+    auto regions = slices.at(i).get_underline_info();
+    for (size_t i = 0; i < regions.size(); ++i) {
+      auto info = regions[i];
+      num_verts += (info.end_vertex_index_ - info.start_vertex_index_ + 2) *
+                   kUnderlineVerticesPerGlyph;
+      num_verts += kExtraUnderlineVerticesPerInfo;
+    }
+  }
+  return num_verts;
+}
+
+std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
+                                                   const mathfu::vec2 &pos) {
+  std::vector<vec3_packed> vec(NumUnderlineVertices(buffer));
+  auto &slices = buffer.get_slices();
+  auto &vertices = buffer.get_vertices();
+  bool degenerated_triangle = false;
+  vec.clear();
+  for (size_t i = 0; i < slices.size(); ++i) {
+    if (slices.at(i).get_underline()) {
+      // Generate underline strips.
+      const int32_t kVerticesPerGlyph = 4;
+      auto regions = slices.at(i).get_underline_info();
+      for (size_t i = 0; i < regions.size(); ++i) {
+        auto info = regions[i];
+        auto y_start = info.y_pos_.x() + pos.y();
+        auto y_end = y_start + info.y_pos_.y();
+
+        if (degenerated_triangle) {
+          // Add degenerated triangle to connect multiple strips.
+          auto start_pos = vec3(vertices.at(info.start_vertex_index_ *
+                                            kVerticesPerGlyph).position_);
+          vec.push_back(vec.back());
+          vec.push_back(
+              vec3_packed(vec3(start_pos.x() + pos.x(), y_start, 0.f)));
+        }
+
+        // Add vertices.
+        for (auto idx = info.start_vertex_index_; idx <= info.end_vertex_index_;
+             ++idx) {
+          auto strip_pos = vec3(vertices.at(idx * kVerticesPerGlyph).position_);
+          vec.push_back(
+              vec3_packed(vec3(strip_pos.x() + pos.x(), y_start, 0.f)));
+          vec.push_back(vec3_packed(vec3(strip_pos.x() + pos.x(), y_end, 0.f)));
+        }
+
+        // Add last 2 vertices.
+        auto end_pos =
+            vec3(vertices.at(info.end_vertex_index_ * kVerticesPerGlyph +
+                             kVerticesPerGlyph - 1).position_);
+        vec.push_back(vec3_packed(vec3(end_pos.x() + pos.x(), y_start, 0.f)));
+        vec.push_back(vec3_packed(vec3(end_pos.x() + pos.x(), y_end, 0.f)));
+
+        degenerated_triangle = true;
+      }
+    }
+  }
+  assert(NumUnderlineVertices(buffer) == vec.size());
+  return vec;
 }
 
 }  // namespace flatui
