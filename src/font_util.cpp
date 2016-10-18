@@ -186,8 +186,6 @@ static size_t NumUnderlineVertices(const FontBuffer &buffer) {
   const int32_t kUnderlineVerticesPerGlyph = 2;
   const int32_t kExtraUnderlineVerticesPerInfo = 2;
   size_t num_verts = 0;
-  // The first strip doesn't need a triangle to stich.
-  num_verts -= kExtraUnderlineVerticesPerInfo;
   auto &slices = buffer.get_slices();
   for (size_t i = 0; i < slices.size(); ++i) {
     auto regions = slices.at(i).get_underline_info();
@@ -198,16 +196,25 @@ static size_t NumUnderlineVertices(const FontBuffer &buffer) {
       num_verts += kExtraUnderlineVerticesPerInfo;
     }
   }
+  if (num_verts) {
+    // Subtract the amount of the first strip which doesn't need a triangle to
+    // stitch.
+    num_verts -= kExtraUnderlineVerticesPerInfo;
+  }
   return num_verts;
 }
 
 std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
                                                    const mathfu::vec2 &pos) {
-  std::vector<vec3_packed> vec(NumUnderlineVertices(buffer));
+  std::vector<vec3_packed> vec;
+  auto num_verts = NumUnderlineVertices(buffer);
+  if (!num_verts) {
+    return vec;
+  }
+  vec.reserve(num_verts);
   auto &slices = buffer.get_slices();
   auto &vertices = buffer.get_vertices();
   bool degenerated_triangle = false;
-  vec.clear();
   for (size_t i = 0; i < slices.size(); ++i) {
     if (slices.at(i).get_underline()) {
       // Generate underline strips.
@@ -247,7 +254,7 @@ std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
       }
     }
   }
-  assert(NumUnderlineVertices(buffer) == vec.size());
+  assert(num_verts == vec.size());
   return vec;
 }
 
