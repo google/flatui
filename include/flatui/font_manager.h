@@ -1157,7 +1157,7 @@ class FontTexture : public fplbase::Texture {
   /// @brief The default constructor for a FontTexture.
   FontTexture()
       : fplbase::Texture(nullptr, fplbase::kFormatLuminance,
-                         fplbase::kTextureFlagsNone) {}
+                         fplbase::kTextureFlagsClampToEdge) {}
 
   /// @brief The destructor for FontTexture.
   ~FontTexture() {}

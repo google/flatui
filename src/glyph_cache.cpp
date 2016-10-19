@@ -142,8 +142,11 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   // Clear a padding region.
   buffer->ClearPaddingRegion(pos, padding_, ret);
 
-  buffer->UpdateDirtyRect(pos.z(),
-                          mathfu::vec4i(pos.xy(), pos.xy() + ret->get_size()));
+  // Dirty rect = region size + padding area + additional upper left/top line.
+  const mathfu::vec4i dirty_rect(
+      mathfu::vec2i::Max(mathfu::kZeros2i, pos.xy() - mathfu::kOnes2i),
+      pos.xy() + ret->get_size() + padding_);
+  buffer->UpdateDirtyRect(pos.z(), dirty_rect);
 
   // Update UV of the entry.
   mathfu::vec4 uv(
