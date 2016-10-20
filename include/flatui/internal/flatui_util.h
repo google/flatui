@@ -89,6 +89,22 @@ inline HashedId HashPointer(const void *ptr) {
   return hash;
 }
 
+/// @brief Hash a value.
+///
+/// @param[in] i An integer value to be hashed.
+///
+/// @return Returns the HashId corresponding to the `i`.
+inline HashedId HashValue(int32_t i) {
+  // This method of integer hashing simply randomizes the integer space given,
+  // in case there is an uneven distribution in the input (like is often the
+  // case with pointers due to memory allocator implementations causing
+  // higher and lower bits to be similar).
+  // Knuth: "The Art of Computer Programming", section 6.4
+  auto hash = static_cast<HashedId>(static_cast<size_t>(i) * 2654435761);
+  assert(hash != kNullHash);
+  return hash;
+}
+
 /// @brief Hash an array of C-string into a `HashId`.
 ///
 /// @warning This function asserts if the `id` collides with `kNullHash`.
@@ -126,6 +142,15 @@ inline bool EqualId(HashedId hash1, HashedId hash2) {
   return hash1 == hash2;
 }
 /// @endcond
+
+/// @brief A hash combine function.
+/// Using a similar algorithm to the boost implementation.
+/// http://www.boost.org/doc/libs/1_37_0/doc/html/hash/reference.html#boost.hash_combine
+template <class T>
+inline size_t HashCombine(size_t seed, const T &v) {
+  return static_cast<size_t>(HashValue(*reinterpret_cast<const int32_t *>(&v)) +
+                             0x9e3779b9 + (seed << 6) + (seed >> 2));
+}
 
 }  // namespace flatui
 

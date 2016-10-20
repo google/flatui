@@ -76,12 +76,14 @@ static bool ShouldTrimLeadingWhitespace(const std::vector<HtmlSection> &s) {
   if (s.size() <= 1) return true;
 
   const std::string &prev_text =
-      s.back().text.empty() ? s[s.size() - 2].text : s.back().text;
+      s.back().text().empty() ? s[s.size() - 2].text() : s.back().text();
   return std::isspace(prev_text.back());
 }
 
 static void GumboTreeToHtmlSections(const GumboNode *node,
-                                    std::vector<HtmlSection> *s) {
+                                    std::vector<HtmlSection> *s,
+                                    HtmlSection *current_setting) {
+  std::string original_face;
   switch (node->type) {
     // Process non-text elements, possibly recursing into child nodes.
     case GUMBO_NODE_ELEMENT: {
@@ -89,13 +91,35 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
 
       // Tree prefix processing.
       switch (element.tag) {
-        case GUMBO_TAG_A:
-          // Start a new section for the anchor.
-          if (!s->back().text.empty()) {
-            s->push_back(HtmlSection());
+        case GUMBO_TAG_A: {
+          // Record the link address.
+          GumboAttribute *href =
+              gumbo_get_attribute(&element.attributes, "href");
+          if (href != nullptr) {
+            // Start a new section for the anchor.
+            if (!s->back().text().empty()) {
+              s->push_back(HtmlSection());
+            }
+            s->back().set_link(href->value);
           }
           break;
-
+        }
+        case GUMBO_TAG_FONT: {
+          // Record the properties.
+          GumboAttribute *face =
+              gumbo_get_attribute(&element.attributes, "face");
+          if (face != nullptr) {
+            // Start a new section for the font tag.
+            if (!s->back().text().empty()) {
+              s->push_back(HtmlSection());
+            }
+            // Keep current setting and update font face setting.
+            original_face = current_setting->face();
+            s->back().set_face(face->value);
+            current_setting->set_face(face->value);
+          }
+          break;
+        }
         case GUMBO_TAG_P:
         case GUMBO_TAG_H1:  // fallthrough
         case GUMBO_TAG_H2:  // fallthrough
@@ -103,39 +127,38 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
         case GUMBO_TAG_H4:  // fallthrough
         case GUMBO_TAG_H5:  // fallthrough
         case GUMBO_TAG_H6:  // fallthrough
-          StartHtmlLine("\n\n", &s->back().text);
+          StartHtmlLine("\n\n", &s->back().text());
           break;
 
         default:
           break;
       }
-      const size_t node_section = s->size() - 1;
 
       // Tree children processing via recursion.
       for (unsigned int i = 0; i < element.children.length; ++i) {
         const GumboNode *child =
             static_cast<GumboNode *>(element.children.data[i]);
-        GumboTreeToHtmlSections(child, s);
+        GumboTreeToHtmlSections(child, s, current_setting);
       }
 
       // Tree postfix processing.
       switch (element.tag) {
-        case GUMBO_TAG_A: {
-          // Record the link address.
-          GumboAttribute *href =
-              gumbo_get_attribute(&element.attributes, "href");
-          if (href != nullptr) {
-            (*s)[node_section].link = href->value;
-          }
-
+        case GUMBO_TAG_A:
           // Start a new section for the non-anchor.
           s->push_back(HtmlSection());
           break;
+        case GUMBO_TAG_FONT: {
+          // Restore the font setting if it's changed.
+          if (s->back().face() != original_face) {
+            s->push_back(HtmlSection());
+            s->back().set_face(original_face);
+            current_setting->set_face(original_face);
+          }
+          break;
         }
-
         case GUMBO_TAG_HR:
         case GUMBO_TAG_P:  // fallthrough
-          s->back().text.append("\n\n");
+          s->back().text().append("\n\n");
           break;
 
         case GUMBO_TAG_H1:  // fallthrough
@@ -145,7 +168,7 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
         case GUMBO_TAG_H5:  // fallthrough
         case GUMBO_TAG_H6:  // fallthrough
         case GUMBO_TAG_BR:
-          s->back().text.append("\n");
+          s->back().text().append("\n");
           break;
 
         default:
@@ -157,7 +180,7 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
     // Append text without excessive whitespaces.
     case GUMBO_NODE_TEXT:
       TrimHtmlWhitespace(node->v.text.text, ShouldTrimLeadingWhitespace(*s),
-                         &s->back().text);
+                         &s->back().text());
       break;
 
     // Ignore other node types.
@@ -166,20 +189,22 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
   }
 }
 
-std::vector<HtmlSection> ParseHtml(const char *html) {
+bool ParseHtml(const char *html, std::vector<HtmlSection> *s) {
   // Ensure there is an HtmlSection that can be appended to.
-  std::vector<HtmlSection> s(1);
+  assert(!s->size());
+  s->push_back(HtmlSection());
 
   // Parse html into tree, with Gumbo, then process the tree.
   GumboOutput *gumbo = gumbo_parse(html);
-  GumboTreeToHtmlSections(gumbo->root, &s);
+  HtmlSection current_setting;
+  GumboTreeToHtmlSections(gumbo->root, s, &current_setting);
   gumbo_destroy_output(&kGumboDefaultOptions, gumbo);
 
   // Prune empty last section.
-  if (s.back().text.empty()) {
-    s.pop_back();
+  if (s->back().text().empty()) {
+    s->pop_back();
   }
-  return s;
+  return true;
 }
 
 static size_t NumUnderlineVertices(const FontBuffer &buffer) {

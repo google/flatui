@@ -24,7 +24,6 @@
 #include <hb-ot.h>
 
 #include "font_manager.h"
-#include "font_util.h"
 #include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 
@@ -269,6 +268,16 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
   return buffer;
 }
 
+void FontManager::SetFontProperties(const HtmlSection &font_section,
+                                    const FontBufferContext &ctx) {
+  auto face = font_section.face();
+  if (face != "") {
+    SelectFont(face);
+  } else {
+    current_font_ = ctx.original_font();
+  }
+}
+
 FontBuffer *FontManager::GetHtmlBuffer(const char *html,
                                        const FontBufferParameters &parameters) {
   {
@@ -289,15 +298,16 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
   }
 
   // Convert HTML into subsections that have the same formatting.
-  std::vector<HtmlSection> html_sections = ParseHtml(html);
+  std::vector<HtmlSection> html_sections;
+  ParseHtml(html, &html_sections);
 
   // Otherwise create new buffer.
   FontBufferContext ctx;
   ctx.set_appending_buffer(true);
+  ctx.set_original_font(current_font_);
 
-  FontBufferParameters params = parameters;
   mathfu::vec2 pos = mathfu::kZeros2f;
-  FontBuffer *buffer = CreateBuffer("", 0, params, &pos);
+  FontBuffer *buffer = CreateBuffer("", 0, parameters, &pos);
   if (buffer == nullptr) {
     fplbase::LogError("Failed to create buffer.");
     return nullptr;
@@ -311,19 +321,21 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
 
     // Set the attributes for either link (underlined & blue),
     // or normal (non-underlined & black).
-    const bool has_link = !s.link.empty();
+    bool has_link = !s.link().empty();
     ctx.SetAttribute(has_link ? kHtmlLinkAttributes : kHtmlNormalAttributes);
+    SetFontProperties(s, ctx);
 
     // Append text as per usual.
-    {
+    if (s.text().length()) {
       fplutil::MutexLock lock(*cache_mutex_);
-      FillBuffer(s.text.c_str(), s.text.length(), params, buffer, &ctx, &pos);
+      FillBuffer(s.text().c_str(), s.text().length(), parameters, buffer, &ctx,
+                 &pos);
     }
 
     // Record link info.
     if (has_link) {
       buffer->links_.push_back(
-          LinkInfo(s.link, start_glyph_index, buffer->get_glyph_count()));
+          LinkInfo(s.link(), start_glyph_index, buffer->get_glyph_count()));
     }
 
     // If the buffer has an ellipsis, won't add text any more.
@@ -1177,18 +1189,17 @@ bool FontManager::Close(const char *font_name) {
   return Close(family);
 }
 
-bool FontManager::SelectFont(const char *font_name) {
-  FontFamily family(font_name);
+bool FontManager::SelectFont(const FontFamily &family) {
   auto it = map_faces_.find(family.get_name());
   if (it == map_faces_.end()) {
-    LogError("SelectFont error: '%s'", font_name);
+    LogError("SelectFont error: '%s'", family.get_name().c_str());
     return false;
   }
 
 #if defined(FLATUI_SYSTEM_FONT)
   if (it->second->get_font_id() == kSystemFontId) {
     // Select the system font.
-    return SelectFont(&font_name, 1);
+    return SelectFont(&family, 1);
   }
 #endif  // FLATUI_SYSTEM_FONT
 
@@ -1197,24 +1208,16 @@ bool FontManager::SelectFont(const char *font_name) {
 }
 
 bool FontManager::SelectFont(const FontFamily *font_families, int32_t count) {
-  std::vector<const char *> vec_name;
-  for (auto i = 0; i < count; ++i) {
-    vec_name.push_back(font_families[i].get_name().c_str());
-  }
-  return SelectFont(&vec_name[0], count);
-}
-
-bool FontManager::SelectFont(const char *font_names[], int32_t count) {
 #if defined(FLATUI_SYSTEM_FONT)
-  if (count == 1 && strcmp(font_names[0], kSystemFont)) {
-    return SelectFont(font_names[0]);
+  // Open single font file.
+  if (count == 1 && strcmp(font_families[0].get_name().c_str(), kSystemFont)) {
+    return SelectFont(font_families[0]);
   }
 #endif
   // Normalize the font names and create hash.
   auto id = kInitialHashValue;
   for (auto i = 0; i < count; ++i) {
-    FontFamily family = FontFamily(font_names[i]);
-    id = HashId(family.get_name().c_str(), id);
+    id = HashId(font_families[i].get_name().c_str(), id);
   }
   current_font_ = HbFont::Open(id, &font_cache_);
 
@@ -1222,7 +1225,7 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
     std::vector<FaceData *> v;
     for (auto i = 0; i < count; ++i) {
 #if defined(FLATUI_SYSTEM_FONT)
-      if (!strcmp(font_names[i], kSystemFont)) {
+      if (!strcmp(font_families[i].get_name().c_str(), kSystemFont)) {
         // Select the system font.
         if (i != count - 1) {
           LogInfo(
@@ -1243,10 +1246,10 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
         }
       } else {
 #endif
-        FontFamily family = FontFamily(font_names[i]);
-        auto it = map_faces_.find(family.get_name());
+        auto it = map_faces_.find(font_families[i].get_name());
         if (it == map_faces_.end()) {
-          LogError("SelectFont error: '%s'", font_names[i]);
+          LogError("SelectFont error: '%s'",
+                   font_families[i].get_name().c_str());
           return false;
         }
         v.push_back(it->second.get());
@@ -1257,6 +1260,19 @@ bool FontManager::SelectFont(const char *font_names[], int32_t count) {
     current_font_ = HbComplexFont::Open(id, &v, &font_cache_);
   }
   return current_font_ != nullptr;
+}
+
+bool FontManager::SelectFont(const char *font_name) {
+  FontFamily family(font_name);
+  return SelectFont(family);
+}
+
+bool FontManager::SelectFont(const char *font_names[], int32_t count) {
+  std::vector<FontFamily> vec_family;
+  for (auto i = 0; i < count; ++i) {
+    vec_family.push_back(FontFamily(font_names[i]));
+  }
+  return SelectFont(&vec_family[0], count);
 }
 
 void FontManager::StartLayoutPass() {

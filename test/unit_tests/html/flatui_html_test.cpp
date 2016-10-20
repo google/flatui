@@ -152,13 +152,14 @@ TEST_F(FlatUIHtmlTest, TrimWhitespace_All) {
 
 static void CheckHtmlParsing(const char* html, const HtmlSection* sections,
                              size_t num_sections) {
-  const std::vector<HtmlSection> s = flatui::ParseHtml(html);
+  std::vector<HtmlSection> s;
+  flatui::ParseHtml(html, &s);
 
   EXPECT_EQ(num_sections, s.size());
   const size_t num_s = std::min(num_sections, s.size());
   for (size_t i = 0; i < num_s; ++i) {
-    EXPECT_EQ(sections[i].text, s[i].text);
-    EXPECT_EQ(sections[i].link, s[i].link);
+    EXPECT_EQ(sections[i].text(), s[i].text());
+    EXPECT_EQ(sections[i].link(), s[i].link());
   }
 }
 

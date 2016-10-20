@@ -46,6 +46,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fontman.SetRenderer(renderer);
   // Open OpenType font.
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
+  fontman.Open("fonts/Roboto-Regular.ttf");
+  fontman.SelectFont("fonts/NotoSansCJKjp-Bold.otf");
 
   // Load textures.
   assetman.StartLoadingTextures();
@@ -95,7 +97,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
           "plenty\n of \n\nnewlines\n  \nand\nmore  newlines.\n"
           "\n"
           "More text with<br><a href=\"http://address\">Link</a>\n"
-          "with <a href=\"http://address\">more Link</a>\n"
+          "with <a href=\"http://address\">more Link</a><br/>\n"
+          "<font face=\"fonts/Roboto-Regular.ttf\" size=\"30\" "
+          "color=\"#800000\">Roboto Regular</font>.<br/>\n"
+          "<font face=\"fonts/Roboto-Regular.ttf\" size=\"30\" "
+          "color=\"#800000\">font <font "
+          "face=\"fonts/NotoSansCJKjp-Bold.otf\">nested"
+          "</font> size</font> Default font.\n"
           "</body>\n"
           "</html>\n",
           40, mathfu::vec2(500, 0), flatui::kTextAlignmentLeft, "id5");
