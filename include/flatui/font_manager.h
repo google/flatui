@@ -679,7 +679,10 @@ class FontManager {
   /// @brief Flush the existing glyph cache contents and start new layout pass.
   ///
   /// Call this API while in a layout pass when the glyph cache is fragmented.
-  void FlushAndUpdate() { UpdatePass(true); }
+  // Returns false if the API failed to acquire a mutex when it's running in
+  // multithreaded mode. In that case, make sure the caller invokes the API
+  // repeatedly.
+  bool FlushAndUpdate() { return UpdatePass(true); }
 
   /// @brief Flush the existing FontBuffer in the cache.
   ///
@@ -696,7 +699,10 @@ class FontManager {
   /// @brief Indicates a start of new render pass.
   ///
   /// Call the API each time the user starts a render pass.
-  void StartRenderPass() { UpdatePass(false); }
+  // Returns false if the API failed to acquire a mutex when it's running in
+  // multithreaded mode. In that case, make sure the caller invokes the API
+  // repeatedly.
+  bool StartRenderPass() { return UpdatePass(false); }
 
   /// @return Returns font atlas texture.
   ///
