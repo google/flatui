@@ -1528,8 +1528,7 @@ FontBufferStatus FontManager::GetFontBufferStatus(const FontBuffer &font_buffer)
     const {
   if (font_buffer.get_revision() <= atlas_last_flush_revision_) {
     return kFontBufferStatusNeedReconstruct;
-  } else if (font_buffer.get_revision() > current_atlas_revision_ &&
-             current_pass_ == kRenderPass) {
+  } else if (font_buffer.get_revision() > current_atlas_revision_) {
     return kFontBufferStatusNeedCacheUpdate;
   }
   return kFontBufferStatusReady;
