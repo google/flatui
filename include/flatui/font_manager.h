@@ -19,6 +19,7 @@
 #include <sstream>
 #include "fplbase/renderer.h"
 #include "fplutil/mutex.h"
+#include "flatui/font_util.h"
 #include "flatui/version.h"
 #include "flatui/internal/distance_computer.h"
 #include "flatui/internal/glyph_cache.h"
@@ -215,6 +216,11 @@ class FontFamily {
     font_name_ = NormalizeFontName(name);
     original_name_ = name;
   };
+  FontFamily(const std::string &name)
+      : index_(kIndexInvalid), family_name_(false) {
+    font_name_ = NormalizeFontName(name);
+    original_name_ = name;
+  };
 
   // Accessors to members.
   /// Font name. When the font is in a font collection file, the name is mangled
@@ -351,15 +357,14 @@ class FontBufferParameters {
   /// @return Returns a `size_t` of the hash of the FontBufferParameters.
   size_t operator()(const FontBufferParameters &key) const {
     // Note that font_id_, text_id_ and cache_id_ are already hashed values.
-    size_t value = (key.cache_id_ << 1) >> 1;
+    size_t value = key.cache_id_;
     if (key.cache_id_ == kNullHash) {
-      value = value ^ (key.font_id_ ^ (key.text_id_ << 1)) >> 1;
-      value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
-      value = value ^ (std::hash<float>()(key.kerning_scale_) << 1) >> 1;
-      value = value ^ (std::hash<float>()(key.line_height_scale_) << 1) >> 1;
-      value = value ^ (std::hash<int32_t>()(key.flags_value_) << 1) >> 1;
-      value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
-      value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
+      value = HashCombine<float>(value, key.font_size_);
+      value = HashCombine<float>(value, key.kerning_scale_);
+      value = HashCombine<float>(value, key.line_height_scale_);
+      value = HashCombine<int32_t>(value, key.flags_value_);
+      value = HashCombine<int32_t>(value, key.size_.x());
+      value = HashCombine<int32_t>(value, key.size_.y());
     }
     return value;
   }
@@ -367,14 +372,15 @@ class FontBufferParameters {
   /// @brief The compare operator for FontBufferParameters.
   bool operator()(const FontBufferParameters &lhs,
                   const FontBufferParameters &rhs) const {
+    if (lhs.cache_id_ != kNullHash) {
+      return lhs.cache_id_ < rhs.cache_id_;
+    }
     return std::tie(lhs.font_id_, lhs.text_id_, lhs.font_size_,
                     lhs.kerning_scale_, lhs.line_height_scale_,
-                    lhs.flags_value_, lhs.size_.x(), lhs.size_.y(),
-                    lhs.cache_id_) <
+                    lhs.flags_value_, lhs.size_.x(), lhs.size_.y()) <
            std::tie(rhs.font_id_, rhs.text_id_, rhs.font_size_,
                     rhs.kerning_scale_, rhs.line_height_scale_,
-                    rhs.flags_value_, rhs.size_.x(), rhs.size_.y(),
-                    rhs.cache_id_);
+                    rhs.flags_value_, rhs.size_.x(), rhs.size_.y());
   }
 
   /// @return Returns a font hash id.
@@ -573,6 +579,9 @@ class FontManager {
   /// @return Returns `true` if the font was selected successfully. Otherwise it
   /// returns false.
   bool SelectFont(const char *font_name);
+
+  /// @brief Select the current font face with a FontFamily.
+  bool SelectFont(const FontFamily &family);
 
   /// @brief Select the current font faces with a fallback priority.
   ///
@@ -894,6 +903,10 @@ class FontManager {
 
   // Update language related settings.
   void SetLanguageSettings();
+
+  // Apply HtmlFontSection settings while parsing HTML text.
+  void SetFontProperties(const HtmlSection &font_section,
+                         const FontBufferContext &ctx);
 
   // Look up a supported locale.
   // Returns nullptr if the API doesn't find the specified locale.
@@ -1240,9 +1253,9 @@ class FontBufferAttributes {
   /// @return Returns a `size_t` of the hash of the FontBufferAttributes.
   size_t operator()(const FontBufferAttributes &key) const {
     // Note that font_id_, text_id_ and cache_id_ are already hashed values.
-    size_t value = (std::hash<int32_t>()(key.slice_index_) << 1) >> 1;
-    value = value ^ (std::hash<bool>()(key.underline_) << 1) >> 1;
-    value = value ^ (std::hash<uint32_t>()(key.color_) << 1) >> 1;
+    size_t value = std::hash<int32_t>()(key.slice_index_);
+    value = HashCombine<bool>(value, key.underline_);
+    value = HashCombine<uint32_t>(value, key.color_);
     return value;
   }
 
@@ -1318,7 +1331,8 @@ class FontBufferContext {
   FontBufferContext()
       : line_start_caret_index_(0),
         lastline_must_break_(false),
-        appending_buffer_(false) {}
+        appending_buffer_(false),
+        original_font_(nullptr) {}
 
   /// @var Type defining an interator to the attribute map that is tracking
   /// FontBufferAttribute.
@@ -1333,6 +1347,7 @@ class FontBufferContext {
     lastline_must_break_ = false;
     attribute_map_.clear();
     attribute_history_.clear();
+    original_font_ = nullptr;
   }
 
   /// @brief Set attribute to the FontBuffer. The attribute is used while
@@ -1363,6 +1378,9 @@ class FontBufferContext {
     return word_boundary_caret_;
   };
 
+  HbFont *original_font() const { return original_font_; }
+  void set_original_font(HbFont *font) { original_font_ = font; }
+
  private:
   std::vector<uint32_t> word_boundary_;
   std::vector<uint32_t> word_boundary_caret_;
@@ -1372,6 +1390,8 @@ class FontBufferContext {
   bool lastline_must_break_;
   // flag indicating it's appending a font buffer.
   bool appending_buffer_;
+
+  HbFont *original_font_;
 };
 
 /// @class FontBuffer

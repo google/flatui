@@ -146,10 +146,9 @@ class GlyphKey {
   // Hash function.
   size_t operator()(const GlyphKey &key) const {
     // Note that font_id_ is an already hashed value.
-    auto value =
-        key.font_id_ ^ (std::hash<uint32_t>()(key.code_point_) << 1) >> 1;
-    value = value ^ (std::hash<uint32_t>()(key.glyph_size_) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.flags_) << 1) >> 1;
+    auto value = HashCombine<uint32_t>(key.font_id_, key.code_point_);
+    value = HashCombine<uint32_t>(value, key.glyph_size_);
+    value = HashCombine<int32_t>(value, key.flags_);
     return value;
   }
 

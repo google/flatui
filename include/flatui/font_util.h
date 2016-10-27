@@ -31,27 +31,63 @@ class FontBuffer;
 /// @class HtmlSection
 ///
 /// @brief A string of text that has the same formatting, and optional HREF.
-struct HtmlSection {
-  HtmlSection() {}
-  explicit HtmlSection(const std::string &text) : text(text) {}
-  HtmlSection(const std::string &text, const std::string &link)
-      : text(text), link(link) {}
+class HtmlSection {
+ public:
+  HtmlSection() : size_(0), color_(0) {}
+  explicit HtmlSection(const std::string &text)
+      : text_(text), size_(0), color_(0) {}
+  explicit HtmlSection(const std::string &text, const std::string &link)
+      : text_(text), link_(link), size_(0), color_(0) {}
+  virtual ~HtmlSection() {}
+  // Copy constructor.
+  HtmlSection(const HtmlSection &obj)
+      : text_(obj.text_),
+        link_(obj.link_),
+        face_(obj.face_),
+        size_(obj.size_),
+        color_(obj.color_) {}
 
+  // Accessors of the section type and parameters.
+  const std::string &text() const { return text_; }
+  std::string &text() { return text_; }
+
+  // Setter/Getter for Anchor tag.
+  const std::string &link() const { return link_; }
+  void set_link(const char *link) { link_ = link; }
+
+  // Setter/Getter for Font tag properties.
+  const std::string &face() const { return face_; }
+  void set_face(const char *face) { face_ = face; }
+  void set_face(const std::string &face) { face_ = face; }
+  int32_t size() const { return size_; }
+  void set_size(int32_t size) { size_ = size; }
+  uint32_t color() const { return color_; }
+  void set_color(uint32_t color) { color_ = color; }
+
+ protected:
   /// The text to render on screen. If `link` is specified, should be rendered
   /// as an HTML link (i.e. underlined and in blue).
-  std::string text;
+  std::string text_;
 
   /// The HREF link to visit when `text` is clicked.
-  std::string link;
+  std::string link_;
+
+  /// A parameter used in font tag. The contents of the variable depends on a
+  /// type.
+  std::string face_;
+  int32_t size_;
+  uint32_t color_;
 };
 
 /// @brief Convert HTML into a vector of text strings which have the same
 /// formatting.
 ///
 /// @param html HTML text.
-/// @return A vector of HTML sections. For now, these are either sections with
+/// @param out A vector of HTML sections. For now, these are either sections
+/// with
 /// links or without, and we don't specify anything like bold or italics.
-std::vector<HtmlSection> ParseHtml(const char *html);
+/// @return true if the given html is successfully parsed.
+bool ParseHtml(const char *html, std::vector<HtmlSection> *out);
 
 /// @brief Reprocess whitespace the in the manner of an HTML parser.
 ///
