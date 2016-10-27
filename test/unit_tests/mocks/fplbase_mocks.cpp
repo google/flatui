@@ -60,7 +60,7 @@ Texture* AssetManager::FindTexture(const char* filename) {
 // asset_manager.h
 AssetManager::AssetManager(Renderer& renderer) : renderer_(renderer) {}
 void AssetManager::ClearAllAssets() {}
-Shader* AssetManager::LoadShader(const char*) { return nullptr; }
+Shader* AssetManager::LoadShader(const char *, bool) { return nullptr; }
 
 // async_loader.h
 AsyncLoader::AsyncLoader() {}

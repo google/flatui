@@ -65,7 +65,8 @@ hb_buffer_t *FontManager::harfbuzz_buf_;
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
 static const FontBufferAttributes kHtmlLinkAttributes(true, 0x0000FFFF);
-static const FontBufferAttributes kHtmlNormalAttributes(false, 0xFFFFFFFF);
+static const FontBufferAttributes kHtmlNormalAttributes(false,
+                                                        kDefaultColor);
 
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
@@ -269,12 +270,31 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
 }
 
 void FontManager::SetFontProperties(const HtmlSection &font_section,
-                                    const FontBufferContext &ctx) {
-  auto face = font_section.face();
+                                    FontBufferParameters *param,
+                                    FontBufferContext *ctx) {
+  auto &face = font_section.face();
   if (face != "") {
     SelectFont(face);
   } else {
-    current_font_ = ctx.original_font();
+    current_font_ = ctx->original_font();
+  }
+  bool has_link = !font_section.link().empty();
+  // Set the attributes for either link (underlined & blue),
+  // or normal (with a color attribute).
+  if (has_link) {
+    ctx->SetAttribute(kHtmlLinkAttributes);
+  } else {
+    auto color = font_section.color() ? font_section.color() : kDefaultColor;
+    auto attribute = FontBufferAttributes(false, color);
+    ctx->SetAttribute(attribute);
+  }
+
+  auto size = font_section.size();
+  if (size) {
+    param->set_font_size(size);
+  } else {
+    // Restore original size.
+    param->set_font_size(ctx->original_font_size());
   }
 }
 
@@ -305,6 +325,8 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
   FontBufferContext ctx;
   ctx.set_appending_buffer(true);
   ctx.set_original_font(current_font_);
+  ctx.set_original_font_size(parameters.get_font_size());
+  ctx.set_current_font_size(parameters.get_font_size());
 
   mathfu::vec2 pos = mathfu::kZeros2f;
   FontBuffer *buffer = CreateBuffer("", 0, parameters, &pos);
@@ -313,26 +335,25 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
     return nullptr;
   }
 
+  // Use non-const version of the parameter for a font size change.
+  auto param = parameters;
   for (size_t i = 0; i < html_sections.size(); ++i) {
     auto &s = html_sections[i];
 
     // Get the glyph index before appending text.
     const int32_t start_glyph_index = buffer->get_glyph_count();
 
-    // Set the attributes for either link (underlined & blue),
-    // or normal (non-underlined & black).
-    bool has_link = !s.link().empty();
-    ctx.SetAttribute(has_link ? kHtmlLinkAttributes : kHtmlNormalAttributes);
-    SetFontProperties(s, ctx);
+    SetFontProperties(s, &param, &ctx);
 
     // Append text as per usual.
     if (s.text().length()) {
       fplutil::MutexLock lock(*cache_mutex_);
-      FillBuffer(s.text().c_str(), s.text().length(), parameters, buffer, &ctx,
+      FillBuffer(s.text().c_str(), s.text().length(), param, buffer, &ctx,
                  &pos);
     }
 
     // Record link info.
+    bool has_link = !s.link().empty();
     if (has_link) {
       buffer->links_.push_back(
           LinkInfo(s.link(), start_glyph_index, buffer->get_glyph_count()));
@@ -345,7 +366,7 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
   }
 
   ctx.set_lastline_must_break(true);
-  buffer->UpdateLine(parameters, layout_direction_, &ctx);
+  buffer->UpdateLine(param, layout_direction_, &ctx);
 
   return buffer;
 }
@@ -470,8 +491,33 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   WordEnumerator word_enum(wordbreak_info_, fontface_index_, multi_line);
 
   // Initialize font metrics parameters.
-  int32_t base_line = current_font_->GetBaseLine(ysize);
-  FontMetrics initial_metrics(base_line, 0, base_line, base_line - ysize, 0);
+  int32_t max_line_width = parameters.get_line_length();
+  // Height calculation needs to use ysize before conversion.
+  int32_t total_height = ysize;
+  bool first_character = true;
+  auto line_height = ysize * line_height_scale_;
+  FontMetrics initial_metrics;
+  int32_t base_line = context->original_base_line();
+  if (!base_line) {
+    // The context has not been set yet. Initialize metrics.
+    base_line = current_font_->GetBaseLine(ysize);
+    context->set_original_base_line(base_line);
+    initial_metrics =
+        FontMetrics(base_line, 0, base_line, base_line - ysize, 0);
+  } else {
+    // Appending FontBuffers, restore parameters from existing context and
+    // buffer.
+    initial_metrics = buffer->metrics();
+    max_line_width = buffer->get_size().x() * kFreeTypeUnit;
+    total_height = buffer->get_size().y();
+
+    if (context->current_font_size() != ysize) {
+      // Adjust glyph positions in current line?
+      auto offset = buffer->AdjustCurrentLine(parameters, context);
+      pos_offset->y() += offset;
+      context->set_current_font_size(ysize);
+    }
+  }
 
   // Set up positions.
   float pos_start = 0;
@@ -482,20 +528,6 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   mathfu::vec2 pos = vec2(pos_start, 0);
   if (pos_offset != nullptr) {
     pos += *pos_offset;
-  }
-
-  int32_t max_line_width = parameters.get_line_length();
-  int32_t total_height = ysize;
-  bool first_character = true;
-  auto line_height = ysize * line_height_scale_;
-
-  if (buffer->get_size().y()) {
-    // Seems like the buffer is already initialized and we are appending to the
-    // buffer. Retrieve information from the buffer.
-    max_line_width = buffer->get_size().x() * kFreeTypeUnit;
-    total_height = buffer->get_size().y();
-    initial_metrics = buffer->metrics();
-    base_line = initial_metrics.base_line();
   }
 
   // Find words and layout them.
@@ -1773,6 +1805,28 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       static_cast<uint32_t>(caret_positions_.size()));
   context->word_boundary().clear();
   context->word_boundary_caret().clear();
+}
+
+float FontBuffer::AdjustCurrentLine(const FontBufferParameters &parameters,
+                                    FontBufferContext *context) {
+  auto new_ysize = static_cast<int32_t>(parameters.get_font_size());
+  auto offset = 0;
+  if (new_ysize > context->current_font_size() && line_start_indices_.size() &&
+      !context->lastline_must_break()) {
+    // Adjust glyph positions in current line.
+    offset = new_ysize * parameters.get_line_height_scale() -
+             context->current_font_size() * parameters.get_line_height_scale();
+
+    for (auto idx = line_start_indices_.back(); idx < code_points_.size();
+         ++idx) {
+      auto it = vertices_.begin() + idx * kVerticesPerCodePoint;
+      for (auto i = 0; i < kVerticesPerCodePoint; ++i) {
+        it->position_.data[1] += offset;
+        it++;
+      }
+    }
+  }
+  return offset;
 }
 
 static void VertexExtents(const FontVertex *v, vec2 *min_position,

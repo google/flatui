@@ -59,8 +59,11 @@ class HtmlSection {
   const std::string &face() const { return face_; }
   void set_face(const char *face) { face_ = face; }
   void set_face(const std::string &face) { face_ = face; }
+
   int32_t size() const { return size_; }
   void set_size(int32_t size) { size_ = size; }
+
+  // Color value in RGBA.
   uint32_t color() const { return color_; }
   void set_color(uint32_t color) { color_ = color; }
 

@@ -906,7 +906,7 @@ class FontManager {
 
   // Apply HtmlFontSection settings while parsing HTML text.
   void SetFontProperties(const HtmlSection &font_section,
-                         const FontBufferContext &ctx);
+                         FontBufferParameters *param, FontBufferContext *ctx);
 
   // Look up a supported locale.
   // Returns nullptr if the API doesn't find the specified locale.
@@ -1332,7 +1332,10 @@ class FontBufferContext {
       : line_start_caret_index_(0),
         lastline_must_break_(false),
         appending_buffer_(false),
-        original_font_(nullptr) {}
+        original_font_(nullptr),
+        original_font_size_(0.0f),
+        current_font_size_(0.0f),
+        original_base_line_(0) {}
 
   /// @var Type defining an interator to the attribute map that is tracking
   /// FontBufferAttribute.
@@ -1348,6 +1351,9 @@ class FontBufferContext {
     attribute_map_.clear();
     attribute_history_.clear();
     original_font_ = nullptr;
+    original_font_size_ = 0.0f;
+    current_font_size_ = 0.0f;
+    original_base_line_ = 0;
   }
 
   /// @brief Set attribute to the FontBuffer. The attribute is used while
@@ -1381,6 +1387,17 @@ class FontBufferContext {
   HbFont *original_font() const { return original_font_; }
   void set_original_font(HbFont *font) { original_font_ = font; }
 
+  float original_font_size() const { return original_font_size_; }
+  void set_original_font_size(float size) { original_font_size_ = size; }
+
+  float current_font_size() const { return current_font_size_; }
+  void set_current_font_size(int32_t size) { current_font_size_ = size; }
+
+  int32_t original_base_line() const { return original_base_line_; }
+  void set_original_base_line(int32_t base_line) {
+    original_base_line_ = base_line;
+  }
+
  private:
   std::vector<uint32_t> word_boundary_;
   std::vector<uint32_t> word_boundary_caret_;
@@ -1392,6 +1409,9 @@ class FontBufferContext {
   bool appending_buffer_;
 
   HbFont *original_font_;
+  float original_font_size_;
+  float current_font_size_;
+  int32_t original_base_line_;
 };
 
 /// @class FontBuffer
@@ -1669,6 +1689,15 @@ class FontBuffer {
   void UpdateLine(const FontBufferParameters &parameters,
                   TextLayoutDirection layout_direction,
                   FontBufferContext *context);
+  /// @brief Adjust glyph positions in current line when a glyph size is changed
+  /// to larger size while appending buffers.
+  ///
+  /// @param[in] parameters Text layout parameters used to update the layout.
+  /// @param[in] context FontBuffer context that is used while constructing a
+  /// FontBuffer.
+  /// @return return an offset value for glyph's y position.
+  float AdjustCurrentLine(const FontBufferParameters &parameters,
+                          FontBufferContext *context);
 
   /// @brief Sets the reference count of the buffer.
   void set_ref_count(uint32_t ref_count) { ref_count_ = ref_count; }

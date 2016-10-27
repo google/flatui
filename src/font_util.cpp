@@ -19,6 +19,7 @@
 
 #include <gumbo.h>
 
+#include "flatui.h"
 #include "font_manager.h"
 #include "font_util.h"
 #include "fplbase/fpl_common.h"
@@ -80,10 +81,28 @@ static bool ShouldTrimLeadingWhitespace(const std::vector<HtmlSection> &s) {
   return std::isspace(prev_text.back());
 }
 
+static bool ParseColorValue(const char *value, uint32_t *color) {
+  // We only support a hex formatted parameter.
+  if (*value++ != '#') {
+    return false;
+  }
+  uint32_t ret = std::stoi(value, nullptr, 16);
+  if (ret >= 0xffffff) {
+    return false;
+  }
+  // Convert RGB value to RGBA.
+  ret = ret << 8 | 0xff;
+  *color = ret;
+  return true;
+}
+
 static void GumboTreeToHtmlSections(const GumboNode *node,
                                     std::vector<HtmlSection> *s,
                                     HtmlSection *current_setting) {
-  std::string original_face;
+  auto original_face = current_setting->face();
+  auto original_color = current_setting->color();
+  auto original_size = current_setting->size();
+
   switch (node->type) {
     // Process non-text elements, possibly recursing into child nodes.
     case GUMBO_NODE_ELEMENT: {
@@ -108,15 +127,53 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
           // Record the properties.
           GumboAttribute *face =
               gumbo_get_attribute(&element.attributes, "face");
+          GumboAttribute *color =
+              gumbo_get_attribute(&element.attributes, "color");
+          GumboAttribute *size =
+              gumbo_get_attribute(&element.attributes, "size");
+
+          // Start a new section for the font tag.
+          bool new_params =
+              face != nullptr || color != nullptr || size != nullptr;
+          if (new_params && !s->back().text().empty()) {
+            s->push_back(HtmlSection());
+          }
           if (face != nullptr) {
-            // Start a new section for the font tag.
-            if (!s->back().text().empty()) {
-              s->push_back(HtmlSection());
-            }
             // Keep current setting and update font face setting.
             original_face = current_setting->face();
             s->back().set_face(face->value);
             current_setting->set_face(face->value);
+          } else {
+            s->back().set_face(current_setting->face());
+          }
+          if (color != nullptr) {
+            uint32_t color_value = kDefaultColor;
+            if (ParseColorValue(color->value, &color_value)) {
+              // Keep current setting and update font face setting.
+              original_color = current_setting->color();
+              s->back().set_color(color_value);
+              current_setting->set_color(color_value);
+            } else {
+              LogInfo("Failed to parse a value: %s", color->value);
+            }
+          } else {
+            s->back().set_color(current_setting->color());
+          }
+          if (size != nullptr) {
+            auto value = std::stoi(size->value, nullptr, 10);
+            if (value) {
+              // Convert the virtual size to physical size.
+              value = VirtualToPhysical(vec2(0, value)).y();
+
+              // Keep current setting and update font face setting.
+              original_size = current_setting->size();
+              s->back().set_size(value);
+              current_setting->set_size(value);
+            } else {
+              LogInfo("Failed to parse a value: %s", size->value);
+            }
+          } else {
+            s->back().set_size(current_setting->size());
           }
           break;
         }
@@ -149,11 +206,20 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
           break;
         case GUMBO_TAG_FONT: {
           // Restore the font setting if it's changed.
-          if (s->back().face() != original_face) {
+          bool new_params = s->back().face() != original_face ||
+                            s->back().color() != original_color ||
+                            s->back().size() != original_size;
+          if (new_params) {
             s->push_back(HtmlSection());
-            s->back().set_face(original_face);
-            current_setting->set_face(original_face);
           }
+
+          // Restore settings.
+          current_setting->set_face(original_face);
+          s->back().set_face(original_face);
+          current_setting->set_color(original_color);
+          s->back().set_color(original_color);
+          current_setting->set_size(original_size);
+          s->back().set_size(original_size);
           break;
         }
         case GUMBO_TAG_HR:
