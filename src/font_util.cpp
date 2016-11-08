@@ -257,7 +257,7 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
 
 bool ParseHtml(const char *html, std::vector<HtmlSection> *s) {
   // Ensure there is an HtmlSection that can be appended to.
-  assert(!s->size());
+  assert(s->empty());
   s->push_back(HtmlSection());
 
   // Parse html into tree, with Gumbo, then process the tree.

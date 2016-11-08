@@ -1391,7 +1391,7 @@ class FontBufferContext {
   void set_original_font_size(float size) { original_font_size_ = size; }
 
   float current_font_size() const { return current_font_size_; }
-  void set_current_font_size(int32_t size) { current_font_size_ = size; }
+  void set_current_font_size(float size) { current_font_size_ = size; }
 
   int32_t original_base_line() const { return original_base_line_; }
   void set_original_base_line(int32_t base_line) {

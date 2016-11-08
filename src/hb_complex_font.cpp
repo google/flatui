@@ -151,21 +151,7 @@ mathfu::vec2i HbComplexFont::GetUnderline(int32_t size) const {
                        underline_thickness + 0.5f);
 }
 
-void HbComplexFont::SetPixelSize(uint32_t size) {
-  auto it = faces_.begin();
-  auto end = faces_.end();
-  for (; it != end; ++it) {
-    // Set scaling for non scalable bitmap font.
-    auto face = (*it)->get_face();
-    FT_Set_Pixel_Sizes(face, 0, size);
-    if (!FT_IS_SCALABLE(face)) {
-      // TODO:Choose the closest size if multiple sizes are available.
-      auto available_size = face->available_sizes[0].height;
-      (*it)->set_scale((static_cast<uint64_t>(size) << kHbFixedPointPrecision) /
-                       available_size);
-    }
-  }
-}
+void HbComplexFont::SetPixelSize(uint32_t size) { pixel_size_ = size; }
 
 hb_bool_t HbComplexFont::HbGetGlyph(hb_font_t *font, void *font_data,
                                     hb_codepoint_t unicode,
@@ -285,11 +271,13 @@ void HbComplexFont::SetCurrentFontIndex(int32_t index) {
   }
   current_face_index_ = index;
   OverrideCallbacks(current_face_index_);
+  // Set font size to the active font.
+  faces_[current_face_index_]->SetSize(pixel_size_);
 }
 
 HbFont::~HbFont() {}
 
-HbFont *HbFont::Open(const FaceData &face, HbFontCache *cache) {
+HbFont *HbFont::Open(FaceData &face, HbFontCache *cache) {
   auto it = cache->find(face.get_font_id());
   if (it != cache->end()) {
     // The font has been already opened.
@@ -344,7 +332,7 @@ mathfu::vec2i HbFont::GetUnderline(int32_t size) const {
 }
 
 void HbFont::SetPixelSize(uint32_t size) {
-  FT_Set_Pixel_Sizes(face_data_->get_face(), 0, size);
+  face_data_->SetSize(size);
 }
 
 const FaceData &HbFont::GetFaceData() const { return *face_data_; }
@@ -504,6 +492,20 @@ void FaceData::Close() {
     face_ = nullptr;
   }
   font_data_.clear();
+}
+
+void FaceData::SetSize(uint32_t size) {
+  assert(size);
+  if (current_size_ == size) return;
+
+  FT_Set_Pixel_Sizes(get_face(), 0, size);
+  if (!FT_IS_SCALABLE(get_face())) {
+    // TODO:Choose the closest size if multiple sizes are available.
+    auto available_size = get_face()->available_sizes[0].height;
+    set_scale((static_cast<uint64_t>(size) << kHbFixedPointPrecision) /
+              available_size);
+  }
+  current_size_ = size;
 }
 
 }  // namespace flatui

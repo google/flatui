@@ -60,7 +60,7 @@ Texture* AssetManager::FindTexture(const char* filename) {
 // asset_manager.h
 AssetManager::AssetManager(Renderer& renderer) : renderer_(renderer) {}
 void AssetManager::ClearAllAssets() {}
-Shader* AssetManager::LoadShader(const char *, bool) { return nullptr; }
+Shader* AssetManager::LoadShader(const char*, bool) { return nullptr; }
 
 // async_loader.h
 AsyncLoader::AsyncLoader() {}
@@ -97,7 +97,7 @@ void Shader::SetUniform(UniformHandle, const float*, size_t) {}
 UniformHandle Shader::FindUniform(const char*) { return 0; }
 
 // texture.h
-Texture::Texture(const char *, TextureFormat, TextureFlags) {}
+Texture::Texture(const char*, TextureFormat, TextureFlags) {}
 void Texture::Delete() {}
 void Texture::Load() {}
 void Texture::Finalize() {}
@@ -120,8 +120,8 @@ bool LoeadWithIncludes(const char*, std::string*, std::string*) {
   return false;
 }
 #ifdef __ANDROID__
-JNIEnv *AndroidGetJNIEnv() { return nullptr; }
+JNIEnv* AndroidGetJNIEnv() { return nullptr; }
 int32_t AndroidGetApiLevel() { return 0; }
-#endif // __ANDROID__
+#endif  // __ANDROID__
 
 }  // fplbase

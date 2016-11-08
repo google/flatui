@@ -65,8 +65,7 @@ hb_buffer_t *FontManager::harfbuzz_buf_;
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
 static const FontBufferAttributes kHtmlLinkAttributes(true, 0x0000FFFF);
-static const FontBufferAttributes kHtmlNormalAttributes(false,
-                                                        kDefaultColor);
+static const FontBufferAttributes kHtmlNormalAttributes(false, kDefaultColor);
 
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
@@ -115,7 +114,7 @@ class WordEnumerator {
       }
 
       // Check if the font face needs to be switched.
-      if (face_index_buffer_->size()) {
+      if (!face_index_buffer_->empty()) {
         auto i = GetFaceIndex(index);
         if (i != kIndexInvalid && i != current_face_index) {
           current_length_ = index - current_index_;
@@ -1585,14 +1584,14 @@ FontBufferStatus FontManager::GetFontBufferStatus(const FontBuffer &font_buffer)
 void FontBufferContext::SetAttribute(const FontBufferAttributes &attribute) {
   auto it = LookUpAttribute(attribute);
 
-  if (attribute_history_.size() == 0 || it != attribute_history_.back()) {
+  if (attribute_history_.empty() || it != attribute_history_.back()) {
     attribute_history_.push_back(it);
   }
 }
 
 FontBufferContext::attribute_map_it FontBufferContext::LookUpAttribute(
     const FontBufferAttributes &attribute) {
-  if (attribute_map_.size()) {
+  if (!attribute_map_.empty()) {
     // Check if we already has an entry in the map.
     auto it = attribute_map_.find(attribute);
     if (it != attribute_map_.end()) {
@@ -1624,7 +1623,7 @@ int32_t FontBuffer::GetBufferIndex(int32_t slice, FontBufferContext *context) {
     indices_.resize(it->second + 1);
   }
   // Update the attribute stack.
-  if (!attr_history.size() || it != attr_history.back()) {
+  if (attr_history.empty() || it != attr_history.back()) {
     attr_history.push_back(it);
   }
   assert(it->second < static_cast<int32_t>(indices_.size()));
@@ -1718,7 +1717,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
     // Retrieve the line width from glyph's vertices.
     auto line_width = 0;
-    if (vertices_.size()) {
+    if (!vertices_.empty()) {
       const int32_t kEndPosOffset = 2;
       auto it_start = vertices_.begin() +
                       line_start_indices_.back() * kVerticesPerCodePoint;
@@ -1811,8 +1810,8 @@ float FontBuffer::AdjustCurrentLine(const FontBufferParameters &parameters,
                                     FontBufferContext *context) {
   auto new_ysize = static_cast<int32_t>(parameters.get_font_size());
   auto offset = 0;
-  if (new_ysize > context->current_font_size() && line_start_indices_.size() &&
-      !context->lastline_must_break()) {
+  if (new_ysize > context->current_font_size() &&
+      !line_start_indices_.empty() && !context->lastline_must_break()) {
     // Adjust glyph positions in current line.
     offset = new_ysize * parameters.get_line_height_scale() -
              context->current_font_size() * parameters.get_line_height_scale();

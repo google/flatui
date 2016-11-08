@@ -55,6 +55,7 @@ class FaceData {
       : face_(nullptr),
         font_id_(kNullHash),
         scale_(1 << kHbFixedPointPrecision),
+        current_size_(0),
         harfbuzz_font_(nullptr) {}
 
   /// @brief The destructor for FaceData.
@@ -79,6 +80,10 @@ class FaceData {
   /// @param[in] font_name A font name to load.
   /// @param[out] dest A string that font data will be loaded into.
   bool OpenFontByName(const char *font_name, std::string *dest);
+
+  /// @brief Set font size to the facedata.
+  /// @param[in] size Face size in pixels.
+  void SetSize(uint32_t size);
 
   // Getter/Setters.
   int32_t get_scale() const { return scale_; }
@@ -113,6 +118,11 @@ class FaceData {
   /// @brief Scale applied for a layout.
   int32_t scale_;
 
+  /// @var current_size_
+  ///
+  /// @brief Current font size.
+  uint32_t current_size_;
+
   /// @var harfbuzz_font_
   ///
   /// @brief harfbuzz's font information instance.
@@ -141,7 +151,7 @@ class HbFont {
   ///
   /// @return A pointer to HbFont associated with the FaceData data.
   ///         Return nullptr if a font class initialization failed.
-  static HbFont *Open(const FaceData &face, HbFontCache *cache);
+  static HbFont *Open(FaceData &face, HbFontCache *cache);
 
   /// @brief Look up a font via hash ID.
   ///
@@ -213,7 +223,7 @@ class HbFont {
   ///
   /// @brief the FaceData structure that contains FreeType related
   ///        information.
-  const FaceData *face_data_;
+  FaceData *face_data_;
 
  protected:
   ///
@@ -248,7 +258,8 @@ class HbFont {
 /// The class inherits HbFont as a public base class.
 class HbComplexFont : public HbFont {
  public:
-  HbComplexFont() : complex_font_id_(kNullHash), current_face_index_(0) {}
+  HbComplexFont()
+      : complex_font_id_(kNullHash), current_face_index_(0), pixel_size_(0) {}
   virtual ~HbComplexFont() {};
 
   /// @brief Create an instance of HbFont. If a HbFont with same FaceData has
@@ -270,6 +281,7 @@ class HbComplexFont : public HbFont {
 
   /// @brief Overriding virtual methods.
   void SetPixelSize(uint32_t size);
+  uint32_t GetPixelSize() const { return pixel_size_; }
   int32_t GetBaseLine(int32_t size) const;
   mathfu::vec2i GetUnderline(int32_t size) const;
 
@@ -346,6 +358,11 @@ class HbComplexFont : public HbFont {
   ///
   /// @brief Index of the current font face.
   int32_t current_face_index_;
+
+  /// @var pixel_size_
+  ///
+  /// @brief Pixel sizse of the complex font.
+  uint32_t pixel_size_;
 };
 
 }  // namespace flatui

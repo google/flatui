@@ -135,7 +135,7 @@ class XMLParser {
         nodes_[sibling_node_].sibling_index_ = index;
       }
     }
-    if (node_stack_.size()) {
+    if (!node_stack_.empty()) {
       if (nodes_[node_stack_.back()].child_index_ == kInvalidNode) {
         nodes_[node_stack_.back()].child_index_ = index;
       }
@@ -332,7 +332,7 @@ bool FontManager::CloseSystemFont() {
 bool FontManager::OpenSystemFontApple() {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 || \
     __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_8
-  if (system_fallback_list_.size()) {
+  if (!system_fallback_list_.empty()) {
     fplbase::LogInfo("The system font is already loaded.");
     return true;
   }
