@@ -85,6 +85,9 @@ class FaceData {
   /// @param[in] size Face size in pixels.
   void SetSize(uint32_t size);
 
+  /// @brief Get font size to the facedata.
+  uint32_t GetSize() const { return current_size_; }
+
   // Getter/Setters.
   int32_t get_scale() const { return scale_; }
   void set_scale(int32_t scale) { scale_ = scale; }
@@ -180,6 +183,9 @@ class HbFont {
   ///       associated fonts.
   virtual void SetPixelSize(uint32_t size);
 
+  /// @brief Get pixel size to the font.
+  virtual uint32_t GetPixelSize() const;
+
   /// @brief Get a base line of the font.
   ///
   /// @param[in] size A font size in pixel.
@@ -203,7 +209,7 @@ class HbFont {
   ///
   /// @return Returns HashId of an associated font that can be used as a key of
   ///         disctionaries.
-  virtual HashedId GetFontId();
+  virtual HashedId GetFontId() const;
 
   /// @brief Get a pointer to the harfbuzz font structure.
   ///
@@ -215,8 +221,11 @@ class HbFont {
   /// @return Returns true if the font is a complex font.
   virtual bool IsComplexFont() { return false; }
 
-  /// @brief Set the current  font face in the font.
-  virtual void SetCurrentFontIndex(int32_t /*index*/) {}
+  /// @brief Set the current  font face index in the font.
+  virtual void SetCurrentFaceIndex(int32_t /*index*/) {}
+
+  /// @brief Get an ID of the the current font face.
+  virtual HashedId GetCurrentFaceId() const { return GetFontId(); }
 
  private:
   /// @var face_data_
@@ -286,7 +295,7 @@ class HbComplexFont : public HbFont {
   mathfu::vec2i GetUnderline(int32_t size) const;
 
   const FaceData &GetFaceData() const;
-  HashedId GetFontId() { return complex_font_id_; }
+  HashedId GetFontId() const { return complex_font_id_; }
 
   hb_font_t *GetHbFont() { return faces_[current_face_index_]->get_hb_font(); }
   bool IsComplexFont() { return true; }
@@ -297,8 +306,8 @@ class HbComplexFont : public HbFont {
   int32_t AnalyzeFontFaceRun(const char *text, size_t length,
                              std::vector<int32_t> *font_data_index) const;
 
-  void SetCurrentFontIndex(int32_t index);
-  int32_t GetCurrentFaceIndex() const { return current_face_index_; }
+  void SetCurrentFaceIndex(int32_t index);
+  HashedId GetCurrentFaceId() const { return faces_[current_face_index_]->get_font_id(); }
 
  private:
   void OverrideCallbacks(int32_t i);

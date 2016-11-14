@@ -659,6 +659,15 @@ class FontManager {
   /// cycle.
   void ReleaseBuffer(FontBuffer *buffer);
 
+  /// @brief Optionally flush the glyph cache and update existing FontBuffer's
+  /// UV information.
+  /// The API doesn't change a reference count of buffers.
+  /// Note that current implementation references font instances and it is the
+  /// caller's responsibility not to close font files in use.
+  ///
+  /// @param[in] flush_cache set true to flush existing glyph cache contents.
+  void RemapBuffers(bool flush_cache);
+
   /// @brief Set the renderer to be used to create texture instances.
   ///
   /// @param[in] renderer The Renderer to set for creating textures.
@@ -875,7 +884,7 @@ class FontManager {
 
   // Update UV value in the FontBuffer.
   // Returns nullptr if one of UV values couldn't be updated.
-  FontBuffer *UpdateUV(int32_t ysize, GlyphFlags flags, FontBuffer *buffer);
+  FontBuffer *UpdateUV(GlyphFlags flags, FontBuffer *buffer);
 
   // Convert requested glyph size using SizeSelector if it's set.
   int32_t ConvertSize(int32_t size);
@@ -1253,7 +1262,7 @@ class FontBufferAttributes {
   /// @return Returns a `size_t` of the hash of the FontBufferAttributes.
   size_t operator()(const FontBufferAttributes &key) const {
     // Note that font_id_, text_id_ and cache_id_ are already hashed values.
-    size_t value = std::hash<int32_t>()(key.slice_index_);
+    size_t value = HashValue(key.slice_index_);
     value = HashCombine<bool>(value, key.underline_);
     value = HashCombine<uint32_t>(value, key.color_);
     return value;
@@ -1414,6 +1423,28 @@ class FontBufferContext {
   int32_t original_base_line_;
 };
 
+/// @struct GlyphInfo
+///
+/// @brief This struct holds the glyph information that is used when re-creating
+/// a FontBuffer.
+///
+struct GlyphInfo {
+  GlyphInfo(HashedId face_id, uint32_t code_point, float size)
+      : face_id_(face_id), code_point_(code_point), size_(size) {}
+
+  /// @var face_id
+  /// @brief An ID indicating a font face.
+  HashedId face_id_;
+
+  /// @var code_point
+  /// @brief A code point in the font face.
+  uint32_t code_point_;
+
+  /// @var size
+  /// @brief A glyph size.
+  float size_;
+};
+
 /// @class FontBuffer
 ///
 /// @brief this is used with the texture atlas rendering.
@@ -1460,7 +1491,7 @@ class FontBuffer {
         ref_count_(0),
         has_ellipsis_(false),
         valid_(true) {
-    code_points_.reserve(size);
+    glyph_info_.reserve(size);
     if (caret_info) {
       caret_positions_.reserve(size + 1);
     }
@@ -1493,8 +1524,8 @@ class FontBuffer {
   /// undefined behavior.
   std::vector<FontVertex> &get_vertices() { return vertices_; }
 
-  /// @return Returns the array of code points as a const std::vector<uint32_t>.
-  const std::vector<uint32_t> &get_code_points() const { return code_points_; }
+  /// @return Returns the array of GlyphInfo as a const std::vector<GlyphInfo>.
+  const std::vector<GlyphInfo> &get_glyph_info() const { return glyph_info_; }
 
   /// @return Returns the size of the string as a const vec2i reference.
   const mathfu::vec2i get_size() const { return size_; }
@@ -1521,12 +1552,12 @@ class FontBuffer {
   ///
   /// @return Returns `true`.
   bool Verify() const {
-    assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
+    assert(vertices_.size() == glyph_info_.size() * kVerticesPerCodePoint);
     size_t sum_indices = 0;
     for (size_t i = 0; i < indices_.size(); ++i) {
       sum_indices += indices_[i].size();
     }
-    assert(sum_indices == code_points_.size() * kIndiciesPerCodePoint);
+    assert(sum_indices == glyph_info_.size() * kIndiciesPerCodePoint);
     return valid_;
   }
 
@@ -1622,10 +1653,13 @@ class FontBuffer {
   /// @return Returns an iterator pointing the map in the FontManager.
   fontbuffer_map_it get_iterator() { return it_map_; }
 
-  /// @brief Adds a codepoint of a glyph to the codepoint array.
+  /// @brief Adds a codepoint and related info of a glyph to the glyph info
+  /// array.
   ///
   /// @param[in] codepoint A codepoint of the glyph.
-  void AddCodepoint(uint32_t codepoint) { code_points_.push_back(codepoint); }
+  void AddGlyphInfo(HashedId face_id, uint32_t codepoint, float size) {
+    glyph_info_.push_back(GlyphInfo(face_id, codepoint, size));
+  }
 
   /// @brief Adds 4 vertices to be used for a glyph rendering to the
   /// vertex array.
@@ -1741,9 +1775,9 @@ class FontBuffer {
   // Vertices data of the font buffer.
   std::vector<FontVertex> vertices_;
 
-  // Code points used in the buffer. This array is used to fetch and update UV
-  // entries when the glyph cache is flushed.
-  std::vector<uint32_t> code_points_;
+  // Code points and related mapping information used in the buffer. This array
+  // is used to fetch and update UV entries when the glyph cache is flushed.
+  std::vector<GlyphInfo> glyph_info_;
 
   // Caret positions in the buffer. We need to track them differently than a
   // vertices information because we support ligatures so that single glyph
@@ -1806,6 +1840,7 @@ struct ScriptInfo {
   /// @var script
   /// @brief ISO 15924 Script code.
   const char *script;
+
   /// @var direction
   /// @brief Script layout direciton.
   TextLayoutDirection direction;

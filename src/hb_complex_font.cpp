@@ -264,7 +264,7 @@ hb_bool_t HbComplexFont::HbGetName(hb_font_t *font, void *font_data,
   return p->GetGlyphName(face_data.get_face(), glyph, name, size);
 }
 
-void HbComplexFont::SetCurrentFontIndex(int32_t index) {
+void HbComplexFont::SetCurrentFaceIndex(int32_t index) {
   // Not to crash even a glyph is not found within current font face set.
   if (index == kIndexInvalid) {
     index = 0;
@@ -335,9 +335,13 @@ void HbFont::SetPixelSize(uint32_t size) {
   face_data_->SetSize(size);
 }
 
+uint32_t HbFont::GetPixelSize() const {
+  return face_data_->GetSize();
+}
+
 const FaceData &HbFont::GetFaceData() const { return *face_data_; }
 
-HashedId HbFont::GetFontId() { return face_data_->get_font_id(); }
+HashedId HbFont::GetFontId() const { return face_data_->get_font_id(); }
 
 hb_codepoint_t HbFont::GetGlyph(FT_Face face, hb_codepoint_t unicode,
                                 hb_codepoint_t variation_selector) {

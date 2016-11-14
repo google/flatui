@@ -65,7 +65,6 @@ hb_buffer_t *FontManager::harfbuzz_buf_;
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
 static const FontBufferAttributes kHtmlLinkAttributes(true, 0x0000FFFF);
-static const FontBufferAttributes kHtmlNormalAttributes(false, kDefaultColor);
 
 // Enumerate words in a specified buffer using line break information generated
 // by libunibreak.
@@ -283,8 +282,8 @@ void FontManager::SetFontProperties(const HtmlSection &font_section,
   if (has_link) {
     ctx->SetAttribute(kHtmlLinkAttributes);
   } else {
-    auto color = font_section.color() ? font_section.color() : kDefaultColor;
-    auto attribute = FontBufferAttributes(false, color);
+    auto attribute = FontBufferAttributes(
+        false, font_section.color() ? font_section.color() : kDefaultColor);
     ctx->SetAttribute(attribute);
   }
 
@@ -379,10 +378,7 @@ FontBuffer *FontManager::FindBuffer(const FontBufferParameters &parameters) {
     }
 
     // Update UV of the buffer
-    auto ysize = static_cast<int32_t>(parameters.get_font_size());
-    auto converted_ysize = ConvertSize(ysize);
-    auto ret = UpdateUV(converted_ysize, parameters.get_glyph_flags(),
-                        it->second.get());
+    auto ret = UpdateUV(parameters.get_glyph_flags(), it->second.get());
 
     // Increment the reference count if the buffer is ref counting buffer.
     if (parameters.get_ref_count_flag()) {
@@ -532,7 +528,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   // Find words and layout them.
   while (word_enum.Advance()) {
     // Set font face index for current word.
-    current_font_->SetCurrentFontIndex(word_enum.GetCurrentFaceIndex());
+    current_font_->SetCurrentFaceIndex(word_enum.GetCurrentFaceIndex());
 
     auto max_width = size.x() * kFreeTypeUnit;
     if (!multi_line) {
@@ -674,6 +670,23 @@ void FontManager::ReleaseBuffer(FontBuffer *buffer) {
   }
 }
 
+void FontManager::RemapBuffers(bool flush_cache) {
+  // Acquire cache mutex.
+  fplutil::MutexLock lock(*cache_mutex_);
+
+  if (flush_cache) {
+    glyph_cache_->Flush();
+    atlas_last_flush_revision_ = glyph_cache_->get_last_flush_revision();
+  }
+
+  auto it = map_buffers_.begin();
+  auto end = map_buffers_.end();
+  while (it != end) {
+    UpdateUV(it->first.get_glyph_flags(), it->second.get());
+    it++;
+  }
+}
+
 bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                const FontBufferParameters &parameters,
                                int32_t base_line, FontBuffer *buffer,
@@ -722,7 +735,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
     if (cache->get_size().x() && cache->get_size().y()) {
       // Add the code point to the buffer. This information is used when
       // re-fetching UV information when the texture atlas is updated.
-      buffer->AddCodepoint(code_point);
+      buffer->AddGlyphInfo(current_font_->GetCurrentFaceId(), code_point,
+                           converted_ysize);
 
       // Calculate internal/external leading value and expand a buffer if
       // necessary.
@@ -876,7 +890,7 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     }
 
     // Remove codepoint.
-    buffer->code_points_.pop_back();
+    buffer->glyph_info_.pop_back();
 
     // Keep the x position of removed glyph and use it for a start of the
     // ellipsis string.
@@ -917,8 +931,7 @@ int32_t FontManager::GetCaretPosCount(const WordEnumerator &word_enum,
   return num_characters;
 }
 
-FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
-                                  FontBuffer *buffer) {
+FontBuffer *FontManager::UpdateUV(GlyphFlags flags, FontBuffer *buffer) {
   if (GetFontBufferStatus(*buffer) == kFontBufferStatusNeedReconstruct) {
     // Cache revision has been updated.
     // Some referencing glyph cache entries might have been evicted.
@@ -927,32 +940,44 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
 
     // Set freetype settings.
     FontBufferContext ctx;
-    current_font_->SetPixelSize(ysize);
+    auto current_font = current_font_;
+    auto current_size = current_font_->GetPixelSize();
 
     // Keep original buffer.
     std::vector<std::vector<uint16_t>> original_indices =
         std::move(buffer->indices_);
     std::vector<FontBufferAttributes> original_slices =
         std::move(buffer->slices_);
+    auto &glyph_info = buffer->get_glyph_info();
 
-    // TODO: Current code wouldn't work with a AtributedFontBuffer as
-    // it would potentically be able to have multiple font face.
-    // Consider having fontID in FontBuffer attribute and respect it.
-    auto &code_points = buffer->get_code_points();
+    auto current_face_id = kNullHash;
     for (size_t j = 0; j < original_indices.size(); ++j) {
+      // Set up attributes and fonts.
+      auto attr = original_slices[j];
+      attr.slice_index_ = kIndexInvalid;
+      ctx.SetAttribute(attr);
+
       auto indices = original_indices[j];
       for (size_t i = 0; i < indices.size(); i += kIndicesPerGlyph) {
+        // Reconstruct indices.
         auto index = indices[i] / kVerticesPerGlyph;
-        auto code_point = code_points.at(index);
-        auto cache = GetCachedEntry(code_point, ysize, flags);
+        auto &info = glyph_info.at(index);
+
+        if (current_face_id != info.face_id_) {
+          current_font_ = HbFont::Open(info.face_id_, &font_cache_);
+          if (current_font_ == nullptr) {
+            fplbase::LogError("A font in use has been closed! fontID:%d",
+                              info.face_id_);
+            return buffer;
+          }
+          current_face_id = info.face_id_;
+        }
+        current_font_->SetPixelSize(info.size_);
+
+        auto cache = GetCachedEntry(info.code_point_, info.size_, flags);
         if (cache == nullptr) {
           return nullptr;
         }
-
-        // Reconstruct indices.
-        auto attr = original_slices[j];
-        attr.slice_index_ = kIndexInvalid;
-        ctx.SetAttribute(attr);
 
         // Expand buffer if necessary.
         auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z(), &ctx);
@@ -964,7 +989,12 @@ FontBuffer *FontManager::UpdateUV(int32_t ysize, GlyphFlags flags,
     }
     // Update revision.
     buffer->set_revision(glyph_cache_->get_revision());
+
+    // Restore font.
+    current_font_ = current_font;
+    current_font_->SetPixelSize(current_size);
   }
+
   return buffer;
 }
 
@@ -1165,6 +1195,9 @@ bool FontManager::Open(const FontFamily &family) {
     map_faces_.erase(insert.first);
     return false;
   }
+
+  // Register the font face to the cache.
+  HbFont::Open(*face, &font_cache_);
 
   // Set first opened font as a default font.
   if (!face_initialized_) {
@@ -1690,7 +1723,7 @@ void FontBuffer::AddWordBoundary(const FontBufferParameters &parameters,
   if (parameters.get_text_alignment() & kTextAlignmentJustify) {
     // Keep the word boundary info for a later use for a justificaiton.
     context->word_boundary().push_back(
-        static_cast<uint32_t>(code_points_.size()));
+        static_cast<uint32_t>(glyph_info_.size()));
     context->word_boundary_caret().push_back(
         static_cast<uint32_t>(caret_positions_.size()));
   }
@@ -1722,7 +1755,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       auto it_start = vertices_.begin() +
                       line_start_indices_.back() * kVerticesPerCodePoint;
       auto it_end =
-          vertices_.begin() + (code_points_.size() - 1) * kVerticesPerCodePoint;
+          vertices_.begin() + (glyph_info_.size() - 1) * kVerticesPerCodePoint;
       if (layout_direction == kTextLayoutDirectionLTR) {
         auto start_pos = it_start->position_.data[0];
         auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
@@ -1762,7 +1795,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
     // Update each glyph's position.
     auto boundary_index = 0;
-    for (auto idx = line_start_indices_.back(); idx < code_points_.size();
+    for (auto idx = line_start_indices_.back(); idx < glyph_info_.size();
          ++idx) {
       if (justify && idx >= word_boundary[boundary_index]) {
         boundary_index++;
@@ -1798,7 +1831,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   }
 
   // Update current line information.
-  line_start_indices_.push_back(static_cast<uint32_t>(code_points_.size()));
+  line_start_indices_.push_back(static_cast<uint32_t>(glyph_info_.size()));
   context->set_lastline_must_break(false);
   context->set_line_start_caret_index(
       static_cast<uint32_t>(caret_positions_.size()));
@@ -1816,7 +1849,7 @@ float FontBuffer::AdjustCurrentLine(const FontBufferParameters &parameters,
     offset = new_ysize * parameters.get_line_height_scale() -
              context->current_font_size() * parameters.get_line_height_scale();
 
-    for (auto idx = line_start_indices_.back(); idx < code_points_.size();
+    for (auto idx = line_start_indices_.back(); idx < glyph_info_.size();
          ++idx) {
       auto it = vertices_.begin() + idx * kVerticesPerCodePoint;
       for (auto i = 0; i < kVerticesPerCodePoint; ++i) {
