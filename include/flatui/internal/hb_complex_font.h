@@ -307,7 +307,9 @@ class HbComplexFont : public HbFont {
                              std::vector<int32_t> *font_data_index) const;
 
   void SetCurrentFaceIndex(int32_t index);
-  HashedId GetCurrentFaceId() const { return faces_[current_face_index_]->get_font_id(); }
+  HashedId GetCurrentFaceId() const {
+    return faces_[current_face_index_]->get_font_id();
+  }
 
  private:
   void OverrideCallbacks(int32_t i);

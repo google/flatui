@@ -480,7 +480,7 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
   }
 
   // Set up parameters.
-  font_id_ = HashId(font_name);
+  font_id_ = HashId(family.get_name().c_str());
 
   return true;
 }
