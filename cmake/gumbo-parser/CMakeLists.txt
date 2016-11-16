@@ -18,10 +18,9 @@ project(gumbo)
 set(gumbo_dir ${dependencies_gumbo_distr_dir})
 
 # Include gumbo header files.
-include_directories(${gumbo_dir}/src)
 
 # Gumbo source files.
-set(gumbo_SRCS
+set(gumbo_0_10_1_SRCS
     ${gumbo_dir}/src/attribute.c
     ${gumbo_dir}/src/attribute.h
     ${gumbo_dir}/src/char_ref.c
@@ -50,6 +49,41 @@ set(gumbo_SRCS
     ${gumbo_dir}/src/util.h
     ${gumbo_dir}/src/vector.c
     ${gumbo_dir}/src/vector.h)
+
+set(gumbo_0_9_0_SRCS
+    ${gumbo_dir}/attribute.c
+    ${gumbo_dir}/attribute.h
+    ${gumbo_dir}/char_ref.c
+    ${gumbo_dir}/char_ref.h
+    ${gumbo_dir}/error.c
+    ${gumbo_dir}/error.h
+    ${gumbo_dir}/gumbo.h
+    ${gumbo_dir}/insertion_mode.h
+    ${gumbo_dir}/parser.c
+    ${gumbo_dir}/parser.h
+    ${gumbo_dir}/string_buffer.c
+    ${gumbo_dir}/string_buffer.h
+    ${gumbo_dir}/string_piece.c
+    ${gumbo_dir}/string_piece.h
+    ${gumbo_dir}/tag.c
+    ${gumbo_dir}/token_type.h
+    ${gumbo_dir}/tokenizer.c
+    ${gumbo_dir}/tokenizer.h
+    ${gumbo_dir}/tokenizer_states.h
+    ${gumbo_dir}/utf8.c
+    ${gumbo_dir}/utf8.h
+    ${gumbo_dir}/util.c
+    ${gumbo_dir}/util.h
+    ${gumbo_dir}/vector.c
+    ${gumbo_dir}/vector.h)
+
+if (EXISTS ${gumbo_dir}/src/tag_enum.h)
+  set(gumbo_SRCS ${gumbo_0_10_1_SRCS})
+  include_directories(${gumbo_dir}/src)
+else()
+  set(gumbo_SRCS ${gumbo_0_9_0_SRCS})
+  include_directories(${gumbo_dir} ${gumbo_dir}/../..)
+endif()
 
 # Compile as C99 (default is C89, which Gumbo is not written in).
 if(CMAKE_COMPILER_IS_GNUCC OR

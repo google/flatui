@@ -19,7 +19,7 @@
 #include "stb_image.h"
 
 #include <ft2build.h>
-#include <freetype.h>
+#include FT_FREETYPE_H
 
 // Structures used in FreeType's libpng code.
 // We define those structures for our own use to bridge stb_image to libpng.

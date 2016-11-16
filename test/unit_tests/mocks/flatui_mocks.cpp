@@ -74,11 +74,11 @@ void PositionGroup(Alignment horizontal, Alignment vertical,
 }
 
 // These functions are not yet mocked, and are only here to satisfy the linker.
-mathfu::vec2i VirtualToPhysical(const mathfu::vec2) {
+mathfu::vec2i VirtualToPhysical(const mathfu::vec2&) {
   return mathfu::vec2i(0, 0);
 }
 
-mathfu::vec2 PhysicalToVirtual(const mathfu::vec2i) {
+mathfu::vec2 PhysicalToVirtual(const mathfu::vec2i&) {
   return mathfu::vec2(0.0f, 0.0f);
 }
 

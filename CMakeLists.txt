@@ -25,19 +25,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 # Temporary files (like object files) created while compiling projects.
 set(tmp_dir ${CMAKE_CURRENT_BINARY_DIR}/obj)
 
-# Configurable locations of dependencies of this project.
-if(NOT DEFINED fpl_root)
-  get_filename_component(fpl_root "${CMAKE_CURRENT_LIST_DIR}/../../libs"
-       REALPATH)
-  if(NOT EXISTS "${fpl_root}")
-    set(fpl_root "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
-  endif ()
-endif()
-
-# Extra MSVC compile flags
-#    wd4316: object allocated on the heap may not be aligned for required type
-#            in glyph_cache.h
-include (${fpl_root}/fplutil/buildutil/cmake_common.txt)
+# Call fplutil to get locations of dependencies and set common build settings.
+include("cmake/find_fplutil.cmake")
+include("${fplutil_dir}/buildutil/cmake_common.txt")
 set_common_build_variables()
 
 set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
@@ -109,6 +99,7 @@ endif()
 if(NOT TARGET motive)
  set(motive_build_samples OFF CACHE BOOL "")
  set(motive_build_tests OFF CACHE BOOL "")
+ set(motive_build_viewer OFF CACHE BOOL "")
  add_subdirectory("${dependencies_motive_dir}" ${tmp_dir}/motive)
 endif()
 
@@ -139,7 +130,6 @@ set(flatui_SRCS
 
 # Includes for this project.
 include_directories(src include include/flatui)
-
 if(use_pregenerated_headers)
   include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
 endif()
@@ -181,7 +171,11 @@ include_directories(${dependencies_harfbuzz_distr_dir}/src)
 include_directories(${dependencies_freetype_distr_dir}/include)
 
 # gumbo includes.
-include_directories(${dependencies_gumbo_distr_dir}/src)
+if(EXISTS ${dependencies_gumbo_distr_dir}/src)
+  include_directories(${dependencies_gumbo_distr_dir}/src)
+else()
+  include_directories(${dependencies_gumbo_distr_dir})
+endif()
 
 # libunibreak includes.
 include_directories(${dependencies_libunibreak_distr_dir}/src)
@@ -210,11 +204,17 @@ mathfu_configure_flags(flatui)
 
 # Post process function.
 function(flatui_post_process target folder_name)
-# Copy flatui resource files
-add_custom_command(TARGET ${target} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${dependencies_flatui_dir}/assets
-                       ${dependencies_flatui_dir}/${folder_name}/assets)
+  # Copy flatui resource files from flatui/assets
+  # and flatui/${folder_name}/assets into
+  # bin/assets.
+  set(flatui_assets_dir
+      "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${folder_name}/assets")
+  add_custom_command(
+      TARGET ${target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${dependencies_flatui_dir}/assets ${flatui_assets_dir}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${dependencies_flatui_dir}/${folder_name}/assets ${flatui_assets_dir})
 endfunction()
 
 if(MSVC)
