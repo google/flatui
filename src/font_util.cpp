@@ -86,7 +86,7 @@ static bool ParseColorValue(const char *value, uint32_t *color) {
   if (*value++ != '#') {
     return false;
   }
-  uint32_t ret = std::stoi(value, nullptr, 16);
+  uint32_t ret = static_cast<uint32_t>(std::strtol(value, nullptr, 16));
   if (ret >= 0xffffff) {
     return false;
   }
@@ -160,7 +160,8 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
             s->back().set_color(current_setting->color());
           }
           if (size != nullptr) {
-            auto value = std::stoi(size->value, nullptr, 10);
+            auto value =
+                static_cast<int>(std::strtol(size->value, nullptr, 10));
             if (value) {
               // Convert the virtual size to physical size.
               value = VirtualToPhysical(vec2(0, value)).y();
