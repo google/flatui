@@ -56,7 +56,8 @@ class FaceData {
         font_id_(kNullHash),
         scale_(1 << kHbFixedPointPrecision),
         current_size_(0),
-        harfbuzz_font_(nullptr) {}
+        harfbuzz_font_(nullptr),
+        ref_count_(0) {}
 
   /// @brief The destructor for FaceData.
   ///
@@ -99,6 +100,10 @@ class FaceData {
 
   void set_font_id(HashedId id) { font_id_ = id; }
 
+  // Reference counting.
+  int32_t AddRef() { return ++ref_count_; }
+  int32_t Release() { return --ref_count_; }
+
  private:
   /// @var face_
   ///
@@ -130,6 +135,11 @@ class FaceData {
   ///
   /// @brief harfbuzz's font information instance.
   hb_font_t *harfbuzz_font_;
+
+  /// @var ref_count_
+  ///
+  /// @brief Reference counter.
+  int32_t ref_count_;
 };
 
 class HbFont;

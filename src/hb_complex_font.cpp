@@ -486,9 +486,15 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
 }
 
 void FaceData::Close() {
+  // Don't release if it's still referenced.
+  if (ref_count_) {
+    return;
+  }
+
   // Remove the font data associated to this face data.
   if (harfbuzz_font_) {
     hb_font_destroy(harfbuzz_font_);
+    harfbuzz_font_ = nullptr;
   }
 
   if (face_) {

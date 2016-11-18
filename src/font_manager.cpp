@@ -1173,6 +1173,7 @@ bool FontManager::Open(const FontFamily &family) {
   if (it != map_faces_.end()) {
     // The font has been already opened.
     LogInfo("Specified font '%s' is already opened.", font_name);
+    it->second->AddRef();
     return true;
   }
 
@@ -1181,6 +1182,7 @@ bool FontManager::Open(const FontFamily &family) {
       map_faces_.insert(std::pair<std::string, std::unique_ptr<FaceData>>(
           font_name, std::unique_ptr<FaceData>(new FaceData())));
   auto face = insert.first->second.get();
+  face->AddRef();
 
 #if defined(FLATUI_SYSTEM_FONT)
   if (!strcmp(font_name, flatui::kSystemFont)) {
@@ -1202,6 +1204,7 @@ bool FontManager::Open(const FontFamily &family) {
   // Set first opened font as a default font.
   if (!face_initialized_) {
     if (!SelectFont(font_name)) {
+      face->Release();
       Close(font_name);
       return false;
     }
@@ -1214,6 +1217,9 @@ bool FontManager::Close(const FontFamily &family) {
   auto it = map_faces_.find(family.get_name());
   if (it == map_faces_.end()) {
     return false;
+  }
+  if (it->second->Release()) {
+    return true;
   }
 
 #if defined(FLATUI_SYSTEM_FONT)
