@@ -1460,7 +1460,9 @@ void Run(fplbase::AssetManager &assetman, FontManager &fontman,
 
   auto &renderer = assetman.renderer();
   renderer.SetBlendMode(fplbase::kBlendModeAlpha);
-  renderer.DepthTest(internal_state.depth_test());
+  renderer.SetDepthFunction(internal_state.depth_test()
+                                ? fplbase::kDepthFunctionLess
+                                : fplbase::kDepthFunctionDisabled);
 
   gui_definition();
 
