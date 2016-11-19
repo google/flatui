@@ -362,9 +362,9 @@ int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
                               std::vector<vec2i>::const_iterator end_it) {
   auto compare = [this](const vec2i &lhs, const vec2i &rhs) {
     if (direction_ == kTextLayoutDirectionRTL) {
-      return lhs.x() >= rhs.x();
+      return lhs.x() > rhs.x();
     } else {
-      return lhs.x() <= rhs.x();
+      return lhs.x() < rhs.x();
     }
   };
   const auto it = std::upper_bound(start_it, end_it, pointer_position, compare);
