@@ -331,13 +331,9 @@ mathfu::vec2i HbFont::GetUnderline(int32_t size) const {
                        underline_thickness + 0.5f);
 }
 
-void HbFont::SetPixelSize(uint32_t size) {
-  face_data_->SetSize(size);
-}
+void HbFont::SetPixelSize(uint32_t size) { face_data_->SetSize(size); }
 
-uint32_t HbFont::GetPixelSize() const {
-  return face_data_->GetSize();
-}
+uint32_t HbFont::GetPixelSize() const { return face_data_->GetSize(); }
 
 const FaceData &HbFont::GetFaceData() const { return *face_data_; }
 
@@ -453,19 +449,29 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
     font_name = family.get_original_name().c_str();
     index = family.get_index();
   }
-
-  if (by_name ||
-      !fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
-    // Fallback to open the specified font as a font name.
-    if (!OpenFontByName(font_name, &font_data_)) {
-      LogError("Can't load font resource: %s\n", font_name);
-      return false;
+  // Try to map the file first.
+  auto size = 0;
+  auto p = fplbase::MapFile(family.get_original_name().c_str(), 0, &size);
+  if (p) {
+    mapped_data_ = p;
+    font_size_ = size;
+  } else {
+    // Fallback to regular file load.
+    if (by_name ||
+        !fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
+      // Fallback to open the specified font as a font name.
+      if (!OpenFontByName(font_name, &font_data_)) {
+        LogError("Can't load font resource: %s\n", font_name);
+        return false;
+      }
     }
+    p = font_data_.c_str();
+    font_size_ = font_data_.size();
   }
   // Open the font using FreeType API.
-  FT_Error err = FT_New_Memory_Face(
-      ft, reinterpret_cast<const unsigned char *>(font_data_.c_str()),
-      static_cast<FT_Long>(font_data_.size()), index, &face_);
+  FT_Error err =
+      FT_New_Memory_Face(ft, reinterpret_cast<const unsigned char *>(p),
+                         static_cast<FT_Long>(get_font_size()), index, &face_);
   if (err) {
     // Failed to open font.
     LogError("Failed to initialize font:%s FT_Error:%d\n", font_name, err);
@@ -501,7 +507,12 @@ void FaceData::Close() {
     FT_Done_Face(face_);
     face_ = nullptr;
   }
-  font_data_.clear();
+  if (mapped_data_) {
+    fplbase::UnmapFile(mapped_data_, font_size_);
+    mapped_data_ = nullptr;
+  } else {
+    font_data_.clear();
+  }
 }
 
 void FaceData::SetSize(uint32_t size) {

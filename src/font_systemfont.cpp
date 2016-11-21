@@ -376,7 +376,7 @@ bool FontManager::OpenSystemFontApple() {
         // Retrieve the font size for an information.
         auto it = map_faces_.find(family.get_name());
         if (UpdateFontCoverage(it->second->get_face(), &font_coverage)) {
-          total_size += it->second->get_font_data().size();
+          total_size += it->second->get_font_size();
 
           system_fallback_list_.push_back(family);
           ret = true;
@@ -537,7 +537,7 @@ bool FontManager::OpenSystemFontAndroid() {
       // Retrieve the font size for an information.
       auto face = map_faces_.find(font_it->get_name());
       if (UpdateFontCoverage(face->second->get_face(), &font_coverage)) {
-        total_size += face->second->get_font_data().size();
+        total_size += face->second->get_font_size();
         system_fallback_list_.push_back(std::move(*font_it));
         ret = true;
       } else {
@@ -550,7 +550,6 @@ bool FontManager::OpenSystemFontAndroid() {
   }
 #ifdef FLATUI_PROFILE_SYSTEM_FONT_SEARCH
   auto end = std::chrono::system_clock::now();
-
   fplbase::LogInfo(
       "Loaded system font. %d fonts in the fallback list."
       " Total size:%d KB, Duration:%d msec",

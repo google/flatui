@@ -53,6 +53,8 @@ class FaceData {
   /// @brief The default constructor for FaceData.
   FaceData()
       : face_(nullptr),
+        mapped_data_(nullptr),
+        font_size_(0),
         font_id_(kNullHash),
         scale_(1 << kHbFixedPointPrecision),
         current_size_(0),
@@ -96,8 +98,7 @@ class FaceData {
   FT_Face get_face() const { return face_; }
   HashedId get_font_id() const { return font_id_; }
   hb_font_t *get_hb_font() const { return harfbuzz_font_; }
-  const std::string &get_font_data() const { return font_data_; }
-
+  int32_t get_font_size() const { return font_size_; }
   void set_font_id(HashedId id) { font_id_ = id; }
 
   // Reference counting.
@@ -115,7 +116,9 @@ class FaceData {
   /// @brief Opened font file data.
   ///
   /// The file needs to be kept open until FreeType finishes using the file.
+  const void *mapped_data_;
   std::string font_data_;
+  int32_t font_size_;
 
   /// @var font_id_
   /// @brief Hashed value of the font face.
