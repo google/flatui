@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(flatuiserializationsample)
 
-build_flatbuffers(${CMAKE_CURRENT_SOURCE_DIR}/custom_widgets.fbs
+build_flatbuffers(${CMAKE_CURRENT_SOURCE_DIR}/schemas/custom_widgets.fbs
                   ""
                   flatui_sample_generated_includes
                   ""

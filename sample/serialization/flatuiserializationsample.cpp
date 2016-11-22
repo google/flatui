@@ -113,7 +113,6 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
   // Set the local directory to the assets folder for this sample.
   bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample/assets");
   assert(result);
-
   fplbase::AssetManager assetman(renderer);
 
   flatui::FontManager fontman;
@@ -127,13 +126,13 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
 
   // Load then parse the JSON using the FlatBuffer schema.
   std::string first_menu_json, second_menu_json, schema, custom_widgets;
-  bool ok = flatbuffers::LoadFile("../serialization/first_menu.json", false,
+  bool ok = flatbuffers::LoadFile("serialization/first_menu.json", false,
                                   &first_menu_json) &&
-            flatbuffers::LoadFile("../serialization/second_menu.json", false,
+            flatbuffers::LoadFile("serialization/second_menu.json", false,
                                   &second_menu_json) &&
-            flatbuffers::LoadFile("../serialization/custom_widgets.fbs", false,
+            flatbuffers::LoadFile("schemas/custom_widgets.fbs", false,
                                   &custom_widgets) &&
-            flatbuffers::LoadFile("../../schemas/flatui.fbs", false, &schema);
+            flatbuffers::LoadFile("schemas/flatui.fbs", false, &schema);
 
   if (!ok) {
     fplbase::LogError("Couldn't load files!\n");
@@ -141,7 +140,7 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
   }
 
   flatbuffers::Parser first_parser, second_parser;
-  const char* include_directories[] = {"../../../fplbase/schemas", nullptr};
+  const char* include_directories[] = {"schemas", nullptr};
   ok = first_parser.Parse(schema.c_str(), include_directories) &&
        first_parser.Parse(custom_widgets.c_str()) &&
        first_parser.Parse(first_menu_json.c_str()) &&

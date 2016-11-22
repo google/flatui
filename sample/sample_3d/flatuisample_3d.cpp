@@ -38,7 +38,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   input.Initialize();
 
   // Set the local directory to the assets folder for this sample.
-  bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample_3d/assets");
+  bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample/assets");
   assert(result);
 
   fplbase::AssetManager assetman(renderer);

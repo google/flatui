@@ -259,7 +259,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
     if (buffer == nullptr) {
       LogError(
           "The given text '%s' with size:%d does not fit a glyph cache. "
-          "Try to increase a cache size or use GetTexture() API ",
+          "Try to increase a cache size or use GetTexture() API "
           "instead.\n", text, parameter.get_size().y());
     }
   }

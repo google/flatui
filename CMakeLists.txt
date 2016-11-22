@@ -214,7 +214,17 @@ function(flatui_post_process target folder_name)
       COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${dependencies_flatui_dir}/assets ${flatui_assets_dir}
       COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${dependencies_flatui_dir}/${folder_name}/assets ${flatui_assets_dir})
+          ${dependencies_flatui_dir}/${folder_name}/assets ${flatui_assets_dir}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${dependencies_flatui_dir}/schemas ${flatui_assets_dir}/schemas
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${dependencies_flatui_dir}/sample/serialization/schemas ${flatui_assets_dir}/schemas
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+          ${dependencies_fplbase_dir}/schemas ${flatui_assets_dir}/schemas
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${flatui_assets_dir}/serialization
+      COMMAND ${CMAKE_COMMAND} -E copy
+          ${dependencies_flatui_dir}/sample/serialization/first_menu.json ${flatui_assets_dir}/serialization
+          ${dependencies_flatui_dir}/sample/serialization/second_menu.json ${flatui_assets_dir}/serialization)
 endfunction()
 
 if(MSVC)

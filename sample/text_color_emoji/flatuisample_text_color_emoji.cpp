@@ -81,7 +81,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       SetVirtualResolution(1000);
 
       // Activate 2 fonts.
-      SetTextFont(fonts, 2);
+      SetTextFont(fonts, FPL_ARRAYSIZE(fonts));
 
       // Start our root group.
       StartGroup(flatui::kLayoutVerticalCenter);
