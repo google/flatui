@@ -60,7 +60,9 @@ Texture* AssetManager::FindTexture(const char* filename) {
 // asset_manager.h
 AssetManager::AssetManager(Renderer& renderer) : renderer_(renderer) {}
 void AssetManager::ClearAllAssets() {}
-Shader* AssetManager::LoadShader(const char*, bool) { return nullptr; }
+Shader* AssetManager::LoadShader(const char*, bool, const char*) {
+  return nullptr;
+}
 
 // async_loader.h
 AsyncLoader::AsyncLoader() {}
@@ -100,7 +102,7 @@ UniformHandle Shader::FindUniform(const char*) { return 0; }
 Texture::Texture(const char*, TextureFormat, TextureFlags) {}
 void Texture::Delete() {}
 void Texture::Load() {}
-void Texture::Finalize() {}
+bool Texture::Finalize() { return false; }
 void Texture::LoadFromMemory(const uint8_t*, const mathfu::vec2i&,
                              TextureFormat) {}
 void Texture::Set(size_t) {}
