@@ -1887,8 +1887,11 @@ std::vector<vec4> FontBuffer::CalculateBounds(int32_t start_index,
   const float kInfinity = std::numeric_limits<float>::infinity();
   std::vector<vec4> extents;
 
+  start_index = std::max(0, start_index);
+  end_index = std::max(0, end_index);
+
   // Clamp to vertex bounds.
-  const uint32_t start = std::max(0u, static_cast<uint32_t>(start_index));
+  const uint32_t start = static_cast<uint32_t>(start_index);
   const uint32_t end =
       std::min(static_cast<uint32_t>(vertices_.size()) / kVerticesPerCodePoint,
                static_cast<uint32_t>(end_index));
