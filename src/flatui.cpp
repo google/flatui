@@ -23,6 +23,7 @@
 #include "motive/engine.h"
 #include "motive/init.h"
 
+using flatui::AnimCurveDescription;
 using fplbase::Button;
 using fplbase::InputSystem;
 using fplbase::LogError;
@@ -30,6 +31,7 @@ using fplbase::LogInfo;
 using fplbase::Mesh;
 using fplbase::Shader;
 using fplbase::Texture;
+using motive::MotiveCurveShape;
 
 namespace flatui {
 
@@ -43,7 +45,7 @@ enum FontShaderType {
 
 struct Anim {
   bool called_last_frame;
-  motive::Motivator motivator;
+  motive::MotivatorNf motivator;
 };
 
 Direction GetDirection(Layout layout) {
@@ -140,18 +142,18 @@ class InternalState : public LayoutManager {
     color_shader_ = matman_.LoadShader("shaders/color");
     assert(color_shader_);
 
-    font_shaders_[kFontShaderTypeDefault][0]
-        .set(matman_.LoadShader("shaders/font"));
-    font_shaders_[kFontShaderTypeDefault][1]
-        .set(matman_.LoadShader("shaders/font_clipping"));
-    font_shaders_[kFontShaderTypeSdf][0]
-        .set(matman_.LoadShader("shaders/font_sdf"));
-    font_shaders_[kFontShaderTypeSdf][1]
-        .set(matman_.LoadShader("shaders/font_clipping_sdf"));
-    font_shaders_[kFontShaderTypeColor][0]
-        .set(matman_.LoadShader("shaders/font_color"));
-    font_shaders_[kFontShaderTypeColor][1]
-        .set(matman_.LoadShader("shaders/font_clipping_color"));
+    font_shaders_[kFontShaderTypeDefault][0].set(
+        matman_.LoadShader("shaders/font"));
+    font_shaders_[kFontShaderTypeDefault][1].set(
+        matman_.LoadShader("shaders/font_clipping"));
+    font_shaders_[kFontShaderTypeSdf][0].set(
+        matman_.LoadShader("shaders/font_sdf"));
+    font_shaders_[kFontShaderTypeSdf][1].set(
+        matman_.LoadShader("shaders/font_clipping_sdf"));
+    font_shaders_[kFontShaderTypeColor][0].set(
+        matman_.LoadShader("shaders/font_color"));
+    font_shaders_[kFontShaderTypeColor][1].set(
+        matman_.LoadShader("shaders/font_clipping_color"));
 
     text_color_ = mathfu::kOnes4f;
 
@@ -166,6 +168,7 @@ class InternalState : public LayoutManager {
 
     if (!persistent_.initialized) {
       motive::SplineInit::Register();
+      motive::EaseInEaseOutInit::Register();
       persistent_.initialized = true;
     }
   }
@@ -365,13 +368,15 @@ class InternalState : public LayoutManager {
 
           // Specify IME rect to input system.
           auto ime_rect = pos + buffer->GetCaretPosition(input_region_start);
-          auto ime_size = pos + buffer->GetCaretPosition(input_region_start +
-                                                         input_region_length) -
+          auto ime_size = pos +
+                          buffer->GetCaretPosition(input_region_start +
+                                                   input_region_length) -
                           ime_rect;
           if (focus_region_length) {
             ime_rect = pos + buffer->GetCaretPosition(focus_region_start);
-            ime_size = pos + buffer->GetCaretPosition(focus_region_start +
-                                                      focus_region_length) -
+            ime_size = pos +
+                       buffer->GetCaretPosition(focus_region_start +
+                                                focus_region_length) -
                        ime_rect;
           }
           vec4 rect;
@@ -883,48 +888,33 @@ class InternalState : public LayoutManager {
     return it != persistent_.animations.end() ? &(it->second) : nullptr;
   }
 
-  // Initialize an array of Motive Targets with the values of targets.
-  static void CreateMotiveTargets(const float *values, int dimensions,
-                                  motive::MotiveTime target_time,
-                                  motive::MotiveTarget1f *targets) {
-    for (int i = 0; i < dimensions; ++i) {
-      targets[i] = motive::MotiveTarget1f(
-          motive::MotiveNode1f(values[i], 0, target_time));
-    }
-  }
-
   // Create a new Motivator if it isn't found in our hashmap and initialize it
   // with starting values. Return the current value of the motivator.
-  const float *Animatable(const std::string id, const float *starting_values,
-                          int dimensions) {
+  const float *Animatable(const std::string &id, const float *starting_values,
+                          const float *starting_velocities, int dimensions) {
     assert(motive_engine_);
     Anim *current = FindAnim(id);
     if (!current) {
-      motive::MotiveTarget1f targets[kMaxDimensions];
-      CreateMotiveTargets(starting_values, dimensions, 0, targets);
-      motive::MotivatorNf motivator(motive::SplineInit(), motive_engine_,
-                                    dimensions, targets);
-      Anim animation;
-      animation.motivator = motivator;
-      current = &(persistent_.animations[id] = animation);
+      current = &persistent_.animations[id];
+      current->motivator.Initialize(
+          motive::EaseInEaseOutInit(starting_values, starting_velocities),
+          motive_engine_, dimensions);
     }
     current->called_last_frame = true;
-    return reinterpret_cast<motive::MotivatorNf *>(&current->motivator)
-        ->Values();
+    return current->motivator.Values();
   }
 
-  // Set the target value to which the motivator animates.
-  void StartAnimation(const std::string id, double target_time,
-                      const float *target_values, int dimensions) {
+  // Set the target value and velocity to which the motivator animates.
+  void StartAnimation(const std::string &id, const float *target_values,
+                      const float *target_velocities,
+                      const AnimCurveDescription &description) {
     Anim *current = FindAnim(id);
     if (current) {
-      const motive::MotiveTime motive_target_time =
-          static_cast<motive::MotiveTime>(target_time * kSecondsToMotiveTime);
-      motive::MotiveTarget1f targets[kMaxDimensions];
-      CreateMotiveTargets(target_values, dimensions, motive_target_time,
-                          targets);
-      reinterpret_cast<motive::MotivatorNf *>(&current->motivator)
-          ->SetTargets(targets);
+      const MotiveCurveShape target(description.typical_delta_distance,
+                                    description.typical_total_time,
+                                    description.bias);
+      current->motivator.SetTargetWithShape(target_values, target_velocities,
+                                            target);
     }
   }
 
@@ -1094,10 +1084,10 @@ class InternalState : public LayoutManager {
                   mathfu::InRange2D(persistent_.drag_start_position_, position_,
                                     position_ + size_) &&
                   !mathfu::InRange2D(
-                       pointer_pos_[i],
-                       persistent_.drag_start_position_ - drag_start_threshold_,
-                       persistent_.drag_start_position_ +
-                           drag_start_threshold_)) {
+                      pointer_pos_[i],
+                      persistent_.drag_start_position_ - drag_start_threshold_,
+                      persistent_.drag_start_position_ +
+                          drag_start_threshold_)) {
                 // Start drag event.
                 // Note that any element the event can recieve the drag start
                 // event, so that parent layer can start a dragging operation
@@ -1666,13 +1656,15 @@ const FlatUIVersion *GetFlatUIVersion() { return Gui()->GetFlatUIVersion(); }
 namespace details {
 
 const float *Animatable(const std::string &id, const float *starting_values,
-                        int dimensions) {
-  return Gui()->Animatable(id, starting_values, dimensions);
+                        const float *starting_velocities, int dimensions) {
+  return Gui()->Animatable(id, starting_values, starting_velocities,
+                           dimensions);
 }
 
-void StartAnimation(const std::string &id, double target_time,
-                    const float *target_values, int dimensions) {
-  Gui()->StartAnimation(id, target_time, target_values, dimensions);
+void StartAnimation(const std::string &id, const float *target_values,
+                    const float *target_velocities,
+                    const AnimCurveDescription &description) {
+  Gui()->StartAnimation(id, target_values, target_velocities, description);
 }
 
 }  // namespace details

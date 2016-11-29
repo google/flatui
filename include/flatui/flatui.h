@@ -42,6 +42,34 @@ static const int kMaxDimensions = 4;
 // Multiplier to convert a second to MotiveTime.
 static const int kSecondsToMotiveTime = 10000;
 
+/// @brief Describes a curve's typical shape.
+struct AnimCurveDescription {
+  AnimCurveDescription()
+      : typical_delta_distance(0.0f), typical_total_time(0.0f), bias(0.0f) {}
+  AnimCurveDescription(float typical_delta_distance, float typical_total_time,
+                       float bias)
+      : typical_delta_distance(typical_delta_distance),
+        typical_total_time(typical_total_time),
+        bias(bias) {}
+  /// The distance between start and end values.
+  float typical_delta_distance;
+
+  /// The typical time it takes to go the typical distance.
+  float typical_total_time;
+
+  /// Determines how much the curve should ease-in and how much it should
+  /// ease-out. Should be a value from 0.0 to 1.0.
+  /// Examples of potential bias values and what they would represent:
+  /// 0.0: ease-in but no ease out (a.k.a. "fly-out").
+  /// 0.3: ease-in more slowly and ease-out more quickly (i.e. less
+  /// responsive).
+  /// 0.5: symmetrical curve: equal ease-in and ease-out.
+  /// 0.7: ease-out more slowly and ease-in more quickly (i.e. more
+  /// reponsive).
+  /// 1.0: ease-out but no ease in (a.k.a. "fly-in").
+  float bias;
+};
+
 /// @file
 /// @addtogroup flatui_core
 //
@@ -720,10 +748,10 @@ void EndSlider();
 /// ID for the CustomElement.
 /// @param[in] renderer The function that is invoked during the render pass
 /// to render the element.
-void CustomElement(
-    const mathfu::vec2 &virtual_size, const char *id,
-    const std::function<
-        void(const mathfu::vec2i &pos, const mathfu::vec2i &size)> renderer);
+void CustomElement(const mathfu::vec2 &virtual_size, const char *id,
+                   const std::function<void(const mathfu::vec2i &pos,
+                                            const mathfu::vec2i &size)>
+                       renderer);
 
 /// @brief Render a Texture to a specific position with a given size.
 ///
@@ -916,26 +944,37 @@ class FloatConverter<mathfu::Vector<float, d>> {
 /// variables represented by float pointers instead. The User will call
 /// the templated version of Animatable().
 ///
-/// @param[in] id A string that uniquely identifies a motivator
-/// @param[in] starting_value A float pointer to a mathfu::vector
+/// @param[in] id A string that uniquely identifies a motivator.
+/// @param[in] starting_values An array of length dimensions that contains
+/// the value we want our curve to begin at.
+/// @param[in] starting_velocities An array of length dimensions that
+/// contains the velocity we want our curve to begin with. A velocity of 0.0f
+/// would mean our curve would start flat while a large velocity would give our
+/// curve a steeper ease-in. If the curve is overdetermined, the desired start
+/// velocities might not be achieved.
 /// @param[in] dimensions An int representing the number of dimensions of the
-/// mathfu::vector
+/// array.
 ///
 /// @return Returns a float pointer to the value of the motivator.
 const float *Animatable(const std::string &id, const float *starting_values,
-                        int dimensions);
+                        const float *starting_velocities, int dimensions);
 
 /// @brief This function is called by Animation() with its templated variable
 /// represented by a float pointer instead. The user will call the templated
 /// version of StartAnimation().
 ///
-/// @param[in] id A string that uniquely identifies a motivator
-/// @param[in] target_time The duration of the animation, in seconds
-/// @param[in] target_value A float pointer to a mathfu::vector
-/// @param[in] dimensions An int representing the number of dimensions of the
-/// mathfu::vector
-void StartAnimation(const std::string &id, double target_time,
-                    const float *target_values, int dimensions);
+/// @param[in] id A string that uniquely identifies a motivator.
+/// @param[in] target_values An array of length dimensions that contains
+/// the value we want our curve to end at.
+/// @param[in] target_velocities An array of length dimensions that
+/// contains the velocity we want our curve to end at. A velocity of 0.0f would
+/// mean our curve would end with a flatter ease-out curve. A large velocity
+/// would give our curve a steeper ease-out. If the curve is overdetermined, the
+/// desired end velocities might not be achieved.
+/// @param[in] description A description of the curve's typical shape.
+void StartAnimation(const std::string &id, const float *target_values,
+                    const float *target_velocities,
+                    const AnimCurveDescription &description);
 
 }  // namespace details
 
@@ -947,29 +986,41 @@ void StartAnimation(const std::string &id, double target_time,
 /// @warning This function only works if you have passed in a MotiveEngine
 /// to Run().
 ///
-/// @param[in] id A string that uniquely identifies a motivator
-/// @param[in] starting_value A variable of type T that is used to initialze
-/// a motivator
+/// @param[in] id A string that uniquely identifies a motivator.
+/// @param[in] starting_value An array of length dimensions that contains
+/// the value we want our curve to begin at.
+/// @param[in] starting_velocity An array of length dimensions that
+/// contains the velocity we want our curve to begin with. A velocity of 0.0f
+/// would mean our curve would start flat while a large velocity would give our
+/// curve a steeper ease-in. If the curve is overdetermined, the desired start
+/// velocities might not be achieved.
 template <typename T>
-T Animatable(std::string id, T starting_value) {
+T Animatable(const std::string &id, T starting_value, T starting_velocity) {
   const float *motion = details::Animatable(
       id, details::FloatConverter<T>::ToFloatArray(starting_value),
+      details::FloatConverter<T>::ToFloatArray(starting_velocity),
       details::FloatConverter<T>::Dimension());
   return details::FloatConverter<T>::FromFloatArray(motion);
 }
 
-/// @brief This function sets the target value to which a Motivator, that
-/// is identified by id, animates.
+/// @brief This function sets the target value and velocity to which a
+/// Motivator, that is identified by id, animates.
 ///
-/// @param[in] id A string that uniquely identifies a motivator
-/// @param[in] target_value A variable of type T that represents the final
-/// value of the motivator
-/// @param[in] target_time A double representing the duration of the animation
+/// @param[in] id A string that uniquely identifies a motivator.
+/// @param[in] target_value An array of length dimensions that contains
+/// the value we want our curve to end at.
+/// @param[in] target_velocity An array of length dimensions that
+/// contains the velocity we want our curve to end at. A velocity of 0.0f would
+/// mean our curve would end with a flatter ease-out curve. A large velocity
+/// would give our curve a steeper ease-out. If the curve is overdetermined, the
+/// desired end velocities might not be achieved.
+/// @param[in] description A description of the curve's typical shape.
 template <typename T>
-void StartAnimation(std::string id, T target_value, double target_time) {
+void StartAnimation(const std::string &id, T target_value, T target_velocity,
+                    const AnimCurveDescription &description) {
   details::StartAnimation(
-      id, target_time, details::FloatConverter<T>::ToFloatArray(target_value),
-      details::FloatConverter<T>::Dimension());
+      id, details::FloatConverter<T>::ToFloatArray(target_value),
+      details::FloatConverter<T>::ToFloatArray(target_velocity), description);
 }
 
 }  // namespace flatui

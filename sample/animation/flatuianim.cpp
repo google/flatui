@@ -22,6 +22,7 @@
 #include "motive/engine.h"
 #include "motive/init.h"
 
+using flatui::AnimCurveDescription;
 using flatui::EndGroup;
 using flatui::Margin;
 using flatui::Run;
@@ -37,6 +38,20 @@ static const vec4 kBackgroundColors[] = {
     vec4(0.5f, 0.5f, 0.5f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f),
     vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
 };
+// Create curve's typical shape with a typical delta distance of 1.0f,
+// a typical total time of 7000.0f, and a bias of 0.5f.
+// For this sample, we want a gradual transition from one background color to
+// another. By choosing a small distance to traverse and a long total time for
+// that traversal, we are able to generate a gentler, more gradual animation
+// curve.
+// Additionally, the bias of 0.5f gives us an even ease-in and ease-out
+// change from one color to another.
+// For this specific sample, we are working with animating colors. Since colors
+// range from 0~1, the maximum distance a color can travel is 1. We have chosen
+// that maximum as our typical distance. We choose 7000 as our typical total
+// time so that the transition will take 7 seconds when the color has to travel
+// from 0 to 1, its typical delta distance.
+static const AnimCurveDescription kCurveDescription(1.0f, 7000.0f, 0.5f);
 
 extern "C" int FPL_main(int /*argc*/, char** argv) {
   MotiveEngine motive_engine;
@@ -93,13 +108,14 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
                                  vec4(255.0f, 228.0f, 196.0f, 0.5f));
 
       // Create the button and check for input event.
-      bg = flatui::Animatable<vec4>("color_fading",
-                                    kBackgroundColors[color_idx]);
+      bg = flatui::Animatable<vec4>(
+          "color_fading", kBackgroundColors[color_idx], mathfu::kZeros4f);
 
       if (TextButton("background", 50, Margin(10)) & flatui::kEventWentUp) {
         color_idx = (color_idx + 1) % FPL_ARRAYSIZE(kBackgroundColors);
         flatui::StartAnimation<vec4>("color_fading",
-                                     kBackgroundColors[color_idx], 1.0);
+                                     kBackgroundColors[color_idx],
+                                     mathfu::kZeros4f, kCurveDescription);
       }
 
       EndGroup();
