@@ -55,7 +55,6 @@ class FlatUIRefCountTest : public ::testing::Test {
 
     // Open OpenType font.
     font_manager_->Open("fonts/NotoSansCJKjp-Bold.otf");
-    font_manager_->SetRenderer(renderer_);
   }
 
   virtual void TearDown() {

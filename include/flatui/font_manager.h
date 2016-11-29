@@ -668,11 +668,6 @@ class FontManager {
   /// @param[in] flush_cache set true to flush existing glyph cache contents.
   void RemapBuffers(bool flush_cache);
 
-  /// @brief Set the renderer to be used to create texture instances.
-  ///
-  /// @param[in] renderer The Renderer to set for creating textures.
-  void SetRenderer(fplbase::Renderer &renderer);
-
   /// @return Returns `true` if a font has been loaded. Otherwise it returns
   /// `false`.
   bool FontLoaded() { return face_initialized_; }
@@ -965,9 +960,6 @@ class FontManager {
   /// @brief  Close all fonts in the system's font fallback list opened by
   /// OpenSystemFont().
   bool CloseSystemFont();
-
-  // Renderer instance.
-  fplbase::Renderer *renderer_;
 
   // flag indicating if a font file has loaded.
   bool face_initialized_;

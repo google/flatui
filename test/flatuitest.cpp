@@ -51,7 +51,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     fontman.Open(fonts[i]);
   }
   fontman.SelectFont(fonts, FPL_ARRAYSIZE(fonts));
-  fontman.SetRenderer(renderer);
 
   // Load textures.
   auto tex_about = assetman.LoadTexture("textures/text_about.webp");

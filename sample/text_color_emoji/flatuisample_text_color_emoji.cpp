@@ -51,7 +51,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fplbase::AssetManager assetman(renderer);
 
   flatui::FontManager fontman;
-  fontman.SetRenderer(renderer);
   // Open OpenType font including the color emoji font.
   const char* fonts[] = {
     "fonts/NotoSansCJKjp-Bold.otf",

@@ -72,7 +72,6 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
   fplbase::AssetManager assetman(renderer);
 
   flatui::FontManager fontman;
-  fontman.SetRenderer(renderer);
   // Open OpenType font.
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
 

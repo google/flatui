@@ -202,7 +202,6 @@ FontManager::~FontManager() { delete cache_mutex_; }
 
 void FontManager::Initialize() {
   // Initialize variables.
-  renderer_ = nullptr;
   face_initialized_ = false;
   current_atlas_revision_ = 0;
   atlas_last_flush_revision_ = kNeverFlushed;
@@ -241,10 +240,6 @@ void FontManager::Terminate() {
 
   FT_Done_FreeType(*ft_);
   ft_ = nullptr;
-}
-
-void FontManager::SetRenderer(fplbase::Renderer &renderer) {
-  renderer_ = &renderer;
 }
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
