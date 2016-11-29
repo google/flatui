@@ -171,6 +171,7 @@ class DistanceComputer {
       InitializeDistanceGrid();
       ComputeDistances();
       inverted_image.invert(invert, 0xff);
+      gradients_.invert(false, mathfu::kZeros2f);
     }
 
     // Copy the value to the destination buffer.
