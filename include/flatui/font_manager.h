@@ -188,6 +188,16 @@ enum FontBufferStatus {
   kFontBufferStatusNeedCacheUpdate = 2,
 };
 
+/// @enum EllipsisMode
+/// @brief A flag controlling appending behavior of the ellipsis.
+/// **Enumerations**:
+/// * `kEllipsisModeTruncateCharacter` - Truncate characters to make a space.
+/// * `kEllipsisModeTruncateWord` - Truncate whole word to make a space.
+enum EllipsisMode {
+  kEllipsisModeTruncateCharacter = 0,
+  kEllipsisModeTruncateWord = 1,
+};
+
 /// @struct FontFamily
 ///
 /// @brief A class holding font family information. The class provides various
@@ -795,10 +805,17 @@ class FontManager {
   /// Can be multiple characters, typically '...'. When a string in a widget
   /// doesn't fit to the given size, the string is truncated to fit the ellipsis
   /// string appended at the end.
+  /// @param[in] mode A flag controlling appending behavior of the ellipsis.
+  /// Default is kEllipsisModeTruncateCharacter.
+  ///
   /// Note: FontManager doesn't support dynamic change of the ellipsis string
   /// in current version. FontBuffer contents that has been created are not
   /// updated when the ellipsis string is changed.
-  void SetTextEllipsis(const char *ellipsis) { ellipsis_ = ellipsis; }
+  void SetTextEllipsis(const char *ellipsis,
+                       EllipsisMode mode = kEllipsisModeTruncateCharacter) {
+    ellipsis_ = ellipsis;
+    ellipsis_mode_ = mode;
+  }
 
   /// @brief Check a status of the font buffer.
   /// @param[in] font_buffer font buffer to check.
@@ -1025,6 +1042,7 @@ class FontManager {
 
   // Ellipsis settings.
   std::string ellipsis_;
+  EllipsisMode ellipsis_mode_;
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;

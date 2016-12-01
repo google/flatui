@@ -213,6 +213,7 @@ void FontManager::Initialize() {
   SetLocale(kDefaultLanguage);
   cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
   line_width_ = 0;
+  ellipsis_mode_ = kEllipsisModeTruncateCharacter;
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
@@ -255,7 +256,8 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
       LogError(
           "The given text '%s' with size:%d does not fit a glyph cache. "
           "Try to increase a cache size or use GetTexture() API "
-          "instead.\n", text, parameter.get_size().y());
+          "instead.\n",
+          text, parameter.get_size().y());
     }
   }
 
@@ -575,6 +577,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
             return nullptr;
           }
           // Update alignment after an ellipsis is appended.
+          context->set_lastline_must_break(true);
           buffer->UpdateLine(parameters, layout_direction_, context);
           hb_buffer_clear_contents(harfbuzz_buf_);
           break;
@@ -852,6 +855,20 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
   const int32_t kLastElementIndex = -2;
   auto &vertices = buffer->get_vertices();
   auto vert_index = vertices.size() - 1;
+
+  // Remove words when the eliminate mode if per word basis.
+  if (ellipsis_mode_ == kEllipsisModeTruncateWord &&
+      !context->word_boundary().empty()) {
+    auto it = context->word_boundary().rbegin();
+    auto end = context->word_boundary().rend();
+    do {
+      vert_index = *it * kVerticesPerGlyph - 1;
+    } while (++it != end &&
+             max_width - vertices.at(vert_index).position_.data[0] <
+                 required_width / kFreeTypeUnit);
+  }
+
+  // Remove characters.
   while (max_width - vertices.at(vert_index).position_.data[0] <
              required_width / kFreeTypeUnit &&
          vert_index >= kVerticesPerGlyph) {
@@ -895,6 +912,14 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     for (size_t j = 0; j < kVerticesPerGlyph; ++j) {
       buffer->vertices_.pop_back();
     }
+  }
+
+  // Position ellipsis a bit closer to the last character.
+  if (ellipsis_mode_ == kEllipsisModeTruncateWord) {
+    const float kSpacingBeforeEllipsis = 0.5f;
+    pos->x() =
+        pos->x() - (pos->x() - buffer->vertices_.back().position_.data[0]) *
+                       kSpacingBeforeEllipsis;
   }
 }
 

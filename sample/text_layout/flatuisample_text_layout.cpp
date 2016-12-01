@@ -53,6 +53,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   flatui::FontManager fontman;
   // Open OpenType font.
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
+  fontman.SetTextEllipsis("...", flatui::kEllipsisModeTruncateWord);
 
   auto tex_circle = assetman.LoadTexture("textures/white_circle.webp");
   auto tex_bar = assetman.LoadTexture("textures/gray_bar.webp");
@@ -127,7 +128,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             "reprehenderit in voluptate velit esse cillum dolore eu fugiat "
             "nulla pariatur. Excepteur sint occaecat cupidatat non proident, "
             "sunt in culpa qui officia deserunt mollit anim id est laborum.";
-        Label(string, 35, vec2(800, 800),
+        Label(string, 35, vec2(800, 400),
               alignments[current_alignment].alignment);
 
         // Show controls to change parameters.
