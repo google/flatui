@@ -26,6 +26,11 @@ namespace flatui {
 /// @brief A typedef to represent the ID of a hash.
 typedef uint32_t HashedId;
 
+/// @typedef SequenceId
+///
+/// @brief A typedef to represent the ID of a sequence.
+typedef uint64_t SequenceId;
+
 /// @var kNullHash
 ///
 /// @brief A sentinel value to demarcate a `null` or invalid hash.
@@ -69,6 +74,23 @@ inline HashedId HashId(const char *id, int32_t length,
 inline HashedId HashId(const char *id, HashedId hash = kInitialHashValue) {
   auto length = strlen(id);
   return HashId(id, static_cast<int32_t>(length), hash);
+}
+
+/// @brief Returns a hash that XORs the high and low bits of seq.
+///
+/// @param[in] seq A number that could start from 0 and increase with every
+///                unique instance of id.
+inline HashedId HashIdFromSequence(SequenceId seq) {
+  return static_cast<HashedId>((seq >> 32) ^ seq);
+}
+
+/// @brief Returns a HashedId of the passed in sequence and id.
+///
+/// @param[in] id A C-string representing the ID to hash.
+/// @param[in] seq A number that could start from 0 and increase with every
+///                unique instance of id.
+inline HashedId HashedSequenceId(const char *id, SequenceId seq) {
+  return HashId(id, HashIdFromSequence(seq));
 }
 
 /// @brief Hash a pointer to an object, of which there is guaranteed to be only
