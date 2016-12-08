@@ -955,6 +955,18 @@ void StartAnimation(HashedId id, const float *target_values,
 
 }  // namespace details
 
+/// @brief Returns the time remaining for an animation.
+///
+/// @param[in] A HashedId that uniquely identifies a motivator.
+double AnimationTimeRemaining(HashedId id);
+
+/// @brief Returns the time remaining for an animation.
+///
+/// @param[in] A C-string in UTF-8 format that uniquely identifies a motivator.
+inline double AnimationTimeRemaining(const char *id) {
+  return AnimationTimeRemaining(HashId(id));
+}
+
 /// @return Returns a value of type T.
 ///
 /// @brief This function creates a new Motivator if it doesn't already exist

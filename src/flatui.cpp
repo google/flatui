@@ -914,6 +914,16 @@ class InternalState : public LayoutManager {
     }
   }
 
+  // Return the time remaining until the animation asssociated with id is
+  // done.
+  double AnimationTimeRemaining(HashedId id) {
+    Anim *current = FindAnim(id);
+    if (current) {
+      return static_cast<double>(current->motivator.TargetTime());
+    }
+    return 0.0;
+  }
+
   // Set scroll speed of the scroll group.
   // scroll_speed_drag: Scroll speed with a pointer drag operation.
   // scroll_speed_wheel: Scroll speed with a mouse wheel operation.
@@ -1664,5 +1674,10 @@ void StartAnimation(HashedId id, const float *target_values,
 }
 
 }  // namespace details
+
+// Find the time remaining for the animation specified by id.
+double AnimationTimeRemaining(HashedId id) {
+  return Gui()->AnimationTimeRemaining(id);
+}
 
 }  // namespace flatui
