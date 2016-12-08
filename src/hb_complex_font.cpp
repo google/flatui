@@ -209,8 +209,8 @@ hb_bool_t HbComplexFont::HbGetVerticalOrigin(hb_font_t *font, void *font_data,
   auto scale = face_data.get_scale();
   auto b = p->GetGlyphVerticalOrigin(face_data.get_face(), glyph,
                                      mathfu::vec2i(scale, scale), &origin);
-  *x = origin.x();
-  *y = origin.y();
+  *x = origin.x;
+  *y = origin.y;
   return b;
 }
 
@@ -387,8 +387,8 @@ bool HbFont::GetGlyphVerticalOrigin(FT_Face face, hb_codepoint_t glyph,
     y = face->glyph->metrics.horiBearingY + face->glyph->metrics.vertBearingY;
   }
 
-  origin->x() = (scale.x() * static_cast<int64_t>(x)) >> kHbFixedPointPrecision;
-  origin->y() = (scale.y() * static_cast<int64_t>(y)) >> kHbFixedPointPrecision;
+  origin->x = (scale.x * static_cast<int64_t>(x)) >> kHbFixedPointPrecision;
+  origin->y = (scale.y * static_cast<int64_t>(y)) >> kHbFixedPointPrecision;
   return true;
 }
 

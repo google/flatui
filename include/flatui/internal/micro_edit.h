@@ -98,8 +98,8 @@ class MicroEdit {
 
   // Set a window size of the editor in UI in pixels.
   void SetWindowSize(const mathfu::vec2i &size) {
-    window_.z() = size.x();
-    window_.w() = size.y();
+    window_.z = size.x;
+    window_.w = size.y;
   }
 
   // Pick a caret position from the pointer position.

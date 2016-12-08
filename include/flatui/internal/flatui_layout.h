@@ -71,16 +71,16 @@ class Group {
   void Extend(const vec2i &extension) {
     switch (direction_) {
       case kDirHorizontal:
-        size_ = vec2i(size_.x() + extension.x() + (size_.x() ? spacing_ : 0),
-                      std::max(size_.y(), extension.y()));
+        size_ = vec2i(size_.x + extension.x + (size_.x ? spacing_ : 0),
+                      std::max(size_.y, extension.y));
         break;
       case kDirVertical:
-        size_ = vec2i(std::max(size_.x(), extension.x()),
-                      size_.y() + extension.y() + (size_.y() ? spacing_ : 0));
+        size_ = vec2i(std::max(size_.x, extension.x),
+                      size_.y + extension.y + (size_.y ? spacing_ : 0));
         break;
       case kDirOverlay:
-        size_ = vec2i(std::max(size_.x(), extension.x()),
-                      std::max(size_.y(), extension.y()));
+        size_ = vec2i(std::max(size_.x, extension.x),
+                      std::max(size_.y, extension.y));
         break;
     }
   }
@@ -325,10 +325,10 @@ class LayoutManager : public Group {
     assert(!layout_pass_);
     switch (direction_) {
       case kDirHorizontal:
-        position_ += vec2i(size.x() + spacing_, 0);
+        position_ += vec2i(size.x + spacing_, 0);
         break;
       case kDirVertical:
-        position_ += vec2i(0, size.y() + spacing_);
+        position_ += vec2i(0, size.y + spacing_);
         break;
       case kDirOverlay:
         // Keep at starting position.
@@ -377,8 +377,8 @@ class LayoutManager : public Group {
 
   // Initialize the scaling factor for the virtual resolution.
   void SetScale() {
-    auto scale = vec2(canvas_size_) / virtual_resolution_;
-    pixel_scale_ = std::min(scale.x(), scale.y());
+    vec2 scale = vec2(canvas_size_) / virtual_resolution_;
+    pixel_scale_ = std::min(scale.x, scale.y);
   }
 
  protected:

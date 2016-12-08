@@ -257,7 +257,7 @@ FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
           "The given text '%s' with size:%d does not fit a glyph cache. "
           "Try to increase a cache size or use GetTexture() API "
           "instead.\n",
-          text, parameter.get_size().y());
+          text, parameter.get_size().y);
     }
   }
 
@@ -500,13 +500,13 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     // Appending FontBuffers, restore parameters from existing context and
     // buffer.
     initial_metrics = buffer->metrics();
-    max_line_width = buffer->get_size().x() * kFreeTypeUnit;
-    total_height = buffer->get_size().y();
+    max_line_width = buffer->get_size().x * kFreeTypeUnit;
+    total_height = buffer->get_size().y;
 
     if (context->current_font_size() != ysize) {
       // Adjust glyph positions in current line?
       auto offset = buffer->AdjustCurrentLine(parameters, context);
-      pos_offset->y() += offset;
+      pos_offset->y += offset;
       context->set_current_font_size(ysize);
     }
   }
@@ -515,7 +515,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   float pos_start = 0;
   if (layout_direction_ == kTextLayoutDirectionRTL) {
     // In RTL layout, the glyph position start from right.
-    pos_start = static_cast<float>(size.x());
+    pos_start = static_cast<float>(size.x);
   }
   mathfu::vec2 pos = vec2(pos_start, 0);
   if (pos_offset != nullptr) {
@@ -527,14 +527,14 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     // Set font face index for current word.
     current_font_->SetCurrentFaceIndex(word_enum.GetCurrentFaceIndex());
 
-    auto max_width = size.x() * kFreeTypeUnit;
+    auto max_width = size.x * kFreeTypeUnit;
     if (!multi_line) {
       // Single line text.
       // In this mode, it layouts all string into single line.
       max_line_width = static_cast<int32_t>(LayoutText(text, length) * scale) +
-                       buffer->get_size().x() * kFreeTypeUnit;
+                       buffer->get_size().x * kFreeTypeUnit;
 
-      if (size.x() && max_line_width > max_width && !caret_info) {
+      if (size.x && max_line_width > max_width && !caret_info) {
         // The text size exceeds given size.
         // Rewind the buffers and add an ellipsis if it's speficied.
         if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
@@ -543,8 +543,8 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         }
       }
 
-      if (layout_direction_ == kTextLayoutDirectionRTL && size.x() == 0) {
-        pos.x() = static_cast<float>(max_line_width / kFreeTypeUnit);
+      if (layout_direction_ == kTextLayoutDirectionRTL && size.x == 0) {
+        pos.x = static_cast<float>(max_line_width / kFreeTypeUnit);
       }
     } else {
       // Multi line text.
@@ -565,11 +565,11 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       }
 
       if (context->lastline_must_break() ||
-          ((line_width_ + word_width) / kFreeTypeUnit > size.x() && size.x())) {
-        auto new_pos = vec2(pos_start, pos.y() + line_height);
+          ((line_width_ + word_width) / kFreeTypeUnit > size.x && size.x)) {
+        auto new_pos = vec2(pos_start, pos.y + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = context->lastline_must_break();
-        if (size.y() && total_height > size.y() && !caret_info) {
+        if (size.y && total_height > size.y && !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
           if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
@@ -719,7 +719,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       return false;
     }
 
-    auto pos_advance =
+    mathfu::vec2 pos_advance =
         mathfu::vec2(
             static_cast<float>(glyph_pos[idx].x_advance) * kerning_scale_,
             static_cast<float>(-glyph_pos[idx].y_advance)) *
@@ -730,7 +730,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
     }
 
     // Register vertices only when the glyph has a size.
-    if (cache->get_size().x() && cache->get_size().y()) {
+    if (cache->get_size().x && cache->get_size().y) {
       // Add the code point to the buffer. This information is used when
       // re-fetching UV information when the texture atlas is updated.
       buffer->AddGlyphInfo(current_font_->GetCurrentFaceId(), code_point,
@@ -739,13 +739,13 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       // Calculate internal/external leading value and expand a buffer if
       // necessary.
       FontMetrics new_metrics;
-      if (UpdateMetrics(cache->get_offset().y(), cache->get_size().y(),
-                        *metrics, &new_metrics)) {
+      if (UpdateMetrics(cache->get_offset().y, cache->get_size().y, *metrics,
+                        &new_metrics)) {
         *metrics = new_metrics;
       }
 
       // Expand buffer if necessary.
-      auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z(), context);
+      auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z, context);
       buffer->AddIndices(buffer_idx, buffer->get_glyph_count());
 
       // Construct intermediate vertices array.
@@ -759,7 +759,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       if (buffer->get_slices().at(buffer_idx).get_underline()) {
         buffer->UpdateUnderline(
             buffer_idx, (buffer->get_vertices().size() - 1) / kVerticesPerGlyph,
-            current_font_->GetUnderline(converted_ysize) + vec2i(pos->y(), 0));
+            current_font_->GetUnderline(converted_ysize) + vec2i(pos->y, 0));
       }
 
       // Update references if the buffer is ref counting buffer.
@@ -788,13 +788,13 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                      static_cast<int32_t>(glyph_count),
                                      static_cast<int32_t>(idx));
 
-      auto scaled_offset = cache->get_offset().x() * scale;
+      auto scaled_offset = cache->get_offset().x * scale;
       float scaled_base_line = base_line * scale;
       // Add caret points
       for (auto caret = 1; caret <= carets; ++caret) {
         buffer->AddCaretPosition(
-            *pos + vec2(idx_advance * (scaled_offset - pos_advance.x() +
-                                       caret * pos_advance.x() / carets),
+            *pos + vec2(idx_advance * (scaled_offset - pos_advance.x +
+                                       caret * pos_advance.x / carets),
                         scaled_base_line));
       }
     }
@@ -814,7 +814,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
     return true;
   }
 
-  auto max_width = parameters.get_size().x() * kFreeTypeUnit;
+  auto max_width = parameters.get_size().x * kFreeTypeUnit;
 
   // Dump current string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, pos,
@@ -849,7 +849,7 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 void FontManager::RemoveEntries(const FontBufferParameters &parameters,
                                 uint32_t required_width, FontBuffer *buffer,
                                 FontBufferContext *context, mathfu::vec2 *pos) {
-  auto max_width = parameters.get_size().x();
+  auto max_width = parameters.get_size().x;
 
   // Determine how many letters to remove.
   const int32_t kLastElementIndex = -2;
@@ -906,7 +906,7 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
 
     // Keep the x position of removed glyph and use it for a start of the
     // ellipsis string.
-    pos->x() = (buffer->vertices_.end() - 3)->position_.data[0];
+    pos->x = (buffer->vertices_.end() - 3)->position_.data[0];
 
     // Remove vertices.
     for (size_t j = 0; j < kVerticesPerGlyph; ++j) {
@@ -917,9 +917,9 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
   // Position ellipsis a bit closer to the last character.
   if (ellipsis_mode_ == kEllipsisModeTruncateWord) {
     const float kSpacingBeforeEllipsis = 0.5f;
-    pos->x() =
-        pos->x() - (pos->x() - buffer->vertices_.back().position_.data[0]) *
-                       kSpacingBeforeEllipsis;
+    pos->x = pos->x -
+             (pos->x - buffer->vertices_.back().position_.data[0]) *
+                 kSpacingBeforeEllipsis;
   }
 }
 
@@ -1000,7 +1000,7 @@ FontBuffer *FontManager::UpdateUV(GlyphFlags flags, FontBuffer *buffer) {
         }
 
         // Expand buffer if necessary.
-        auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z(), &ctx);
+        auto buffer_idx = buffer->GetBufferIndex(cache->get_pos().z, &ctx);
         buffer->AddIndices(buffer_idx, index);
 
         // Update UV.
@@ -1103,14 +1103,14 @@ FontTexture *FontManager::GetTexture(const char *text, uint32_t length,
 
     if (i == 0 && glyph->bitmap_left < 0) {
       // Slightly shift all text to right.
-      pos.x() = static_cast<float>(-glyph->bitmap_left);
+      pos.x = static_cast<float>(-glyph->bitmap_left);
     }
 
     // Copy the texture
     uint32_t y_offset = initial_metrics.base_line() - glyph->bitmap_top;
     for (uint32_t y = 0; y < glyph->bitmap.rows; ++y) {
-      memcpy(&image[(static_cast<size_t>(pos.y()) + y + y_offset) * width +
-                    static_cast<size_t>(pos.x()) + glyph->bitmap_left],
+      memcpy(&image[(static_cast<size_t>(pos.y) + y + y_offset) * width +
+                    static_cast<size_t>(pos.x) + glyph->bitmap_left],
              &glyph->bitmap.buffer[y * glyph->bitmap.pitch],
              glyph->bitmap.width);
     }
@@ -1568,8 +1568,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         // Generates SDF.
         auto buffer = glyph_cache_->get_monochrome_buffer();
         auto pos = cache->get_pos();
-        auto stride = buffer->get_size().x();
-        auto p = buffer->get(pos.z()) + pos.x() + pos.y() * stride;
+        auto stride = buffer->get_size().x;
+        auto p = buffer->get(pos.z) + pos.x + pos.y * stride;
         Grid<uint8_t> src(g->bitmap.buffer,
                           vec2i(g->bitmap.width, g->bitmap.rows),
                           kGlyphCachePaddingSDF, g->bitmap.width);
@@ -1713,30 +1713,30 @@ void FontBuffer::UpdateUnderline(int32_t buffer_idx, int32_t vertex_index,
 void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
                              float scale, const GlyphCacheEntry &entry) {
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
-  auto scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
-  auto scaled_size = mathfu::vec2(entry.get_size()) * scale;
+  mathfu::vec2 scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
+  mathfu::vec2 scaled_size = mathfu::vec2(entry.get_size()) * scale;
   float scaled_base_line = base_line * scale;
 
-  auto x = rounded_pos.x() + scaled_offset.x();
-  auto y = rounded_pos.y() + scaled_base_line - scaled_offset.y();
+  auto x = rounded_pos.x + scaled_offset.x;
+  auto y = rounded_pos.y + scaled_base_line - scaled_offset.y;
   auto uv = entry.get_uv();
-  vertices_.push_back(FontVertex(x, y, 0.0f, uv.x(), uv.y()));
-  vertices_.push_back(FontVertex(x, y + scaled_size.y(), 0.0f, uv.x(), uv.w()));
-  vertices_.push_back(FontVertex(x + scaled_size.x(), y, 0.0f, uv.z(), uv.y()));
-  vertices_.push_back(FontVertex(x + scaled_size.x(), y + scaled_size.y(), 0.0f,
-                                 uv.z(), uv.w()));
+  vertices_.push_back(FontVertex(x, y, 0.0f, uv.x, uv.y));
+  vertices_.push_back(FontVertex(x, y + scaled_size.y, 0.0f, uv.x, uv.w));
+  vertices_.push_back(FontVertex(x + scaled_size.x, y, 0.0f, uv.z, uv.y));
+  vertices_.push_back(
+      FontVertex(x + scaled_size.x, y + scaled_size.y, 0.0f, uv.z, uv.w));
 }
 
 void FontBuffer::UpdateUV(int32_t index, const mathfu::vec4 &uv) {
   vertices_[index * 4].uv_ = uv.xy();
-  vertices_[index * 4 + 1].uv_ = mathfu::vec2(uv.x(), uv.w());
-  vertices_[index * 4 + 2].uv_ = mathfu::vec2(uv.z(), uv.y());
+  vertices_[index * 4 + 1].uv_ = mathfu::vec2(uv.x, uv.w);
+  vertices_[index * 4 + 2].uv_ = mathfu::vec2(uv.z, uv.y);
   vertices_[index * 4 + 3].uv_ = uv.zw();
 }
 
 void FontBuffer::AddCaretPosition(const mathfu::vec2 &pos) {
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
-  AddCaretPosition(rounded_pos.x(), rounded_pos.y());
+  AddCaretPosition(rounded_pos.x, rounded_pos.y);
 }
 
 void FontBuffer::AddCaretPosition(int32_t x, int32_t y) {
@@ -1766,7 +1766,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   }
 
   // Do nothing when the width of the text rect is not specified.
-  if ((justify || align != kTextAlignmentLeft) && parameters.get_size().x()) {
+  if ((justify || align != kTextAlignmentLeft) && parameters.get_size().x) {
     // Adjust glyph positions.
     auto offset = 0;  // Offset to add for each glyph position.
                       // When we justify a text, the offset is increased for
@@ -1800,12 +1800,11 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       // With a justification, we add an offset for each word boundary.
       // For each word boundary (e.g. spaces), we stretch them slightly to align
       // both the left and right ends of each line of text.
-      boundary_offset_change =
-          static_cast<int32_t>((parameters.get_size().x() - line_width) /
-                               (word_boundary.size() - 1));
+      boundary_offset_change = static_cast<int32_t>(
+          (parameters.get_size().x - line_width) / (word_boundary.size() - 1));
     } else {
       justify = false;
-      offset = parameters.get_size().x() - line_width;
+      offset = parameters.get_size().x - line_width;
       if (align == kTextAlignmentCenter) {
         offset = offset / 2;  // Centering.
       }
@@ -1843,7 +1842,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
           boundary_index++;
           offset_caret += boundary_offset_change;
         }
-        caret_positions_[idx].x() += offset_caret;
+        caret_positions_[idx].x += offset_caret;
       }
     }
 

@@ -79,8 +79,8 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   if (p) {
     // Make sure cached entry has same properties.
     // The cache only support one entry per a glyph code point for now.
-    assert(p->get_size().x() == entry.get_size().x());
-    assert(p->get_size().y() == entry.get_size().y());
+    assert(p->get_size().x == entry.get_size().x);
+    assert(p->get_size().y == entry.get_size().y);
 #ifdef GLYPH_CACHE_STATS
     // Adjust debug variable.
     stats_.hit_--;
@@ -91,9 +91,9 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   // Adjust requested height & width.
   // Height is rounded up to multiple of kGlyphCacheHeightRound.
   // Expecting kGlyphCacheHeightRound is base 2.
-  int32_t req_width = entry.get_size().x() + padding_.x();
+  int32_t req_width = entry.get_size().x + padding_.x;
   int32_t req_height =
-      ((entry.get_size().y() + padding_.y() + (kGlyphCacheHeightRound - 1)) &
+      ((entry.get_size().y + padding_.y + (kGlyphCacheHeightRound - 1)) &
        ~(kGlyphCacheHeightRound - 1));
   // Find sufficient space in the buffer.
   GlyphCacheEntry::iterator_row it_row;
@@ -146,7 +146,7 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
   const mathfu::vec4i dirty_rect(
       mathfu::vec2i::Max(mathfu::kZeros2i, pos.xy() - mathfu::kOnes2i),
       pos.xy() + ret->get_size() + padding_);
-  buffer->UpdateDirtyRect(pos.z(), dirty_rect);
+  buffer->UpdateDirtyRect(pos.z, dirty_rect);
 
   // Update UV of the entry.
   mathfu::vec4 uv(
@@ -154,7 +154,7 @@ const GlyphCacheEntry* GlyphCache::Set(const void* const image,
       mathfu::vec2(pos.xy() + entry.get_size()) / mathfu::vec2(size_));
   ret->set_uv(uv);
 
-  pos.z() = it_row->get_slice();
+  pos.z = it_row->get_slice();
   ret->set_pos(pos);
 
   // Establish links.
@@ -190,7 +190,7 @@ bool GlyphCache::Flush() {
 
 const GlyphCacheStats& GlyphCache::Status() {
 #ifdef GLYPH_CACHE_STATS
-  LogInfo("Cache size: %dx%d", size_.x(), size_.y());
+  LogInfo("Cache size: %dx%d", size_.x, size_.y);
   LogInfo("Cache slices: %d", get_num_slices());
   LogInfo("Cached glyphs: %d", map_entries_.size());
   LogInfo("Cache hit: %d / %d", stats_.hit_, stats_.lookup_);
@@ -201,7 +201,7 @@ const GlyphCacheStats& GlyphCache::Status() {
 }
 
 void GlyphCache::EnableColorGlyph() {
-  if (color_buffers_.get_size().x() == 0) {
+  if (color_buffers_.get_size().x == 0) {
     // Initialize color buffer.
     color_buffers_.Initialize(this, size_, max_slices_);
     color_buffers_.InsertNewBuffer();
@@ -263,12 +263,12 @@ bool GlyphCacheBufferBase::FindRow(int32_t req_width, int32_t req_height,
     if (it_row->get_num_glyphs() == 0) {
       // Putting first entry to the row.
       // In this case, we create new empty row to track rest of free space.
-      auto original_height = it_row->get_size().y();
+      auto original_height = it_row->get_size().y;
       auto original_y_pos = it_row->get_y_pos();
 
       if (original_height >= req_height + kGlyphCacheHeightRound) {
         // Create new row in free space.
-        it_row->set_size(mathfu::vec2i(size_.x(), req_height));
+        it_row->set_size(mathfu::vec2i(size_.x, req_height));
 
         // Update row height map key as well.
         map_row_.erase(it_row->get_it_row_height_map());
@@ -278,7 +278,7 @@ bool GlyphCacheBufferBase::FindRow(int32_t req_width, int32_t req_height,
         it_row->set_it_row_height_map(it_map);
 
         InsertNewRow(it_row->get_slice(), original_y_pos + req_height,
-                     mathfu::vec2i(size_.x(), original_height - req_height),
+                     mathfu::vec2i(size_.x, original_height - req_height),
                      list_row_.end());
       }
     }
@@ -300,8 +300,8 @@ void GlyphCacheBufferBase::InsertNewRow(
     if (next_entry->get_num_glyphs() == 0 && next_entry->get_slice() == slice) {
       // We can merge them.
       mathfu::vec2i next_size = next_entry->get_size();
-      next_size.y() += size.y();
-      next_entry->set_y_pos(next_entry->get_y_pos() - size.y());
+      next_size.y += size.y;
+      next_entry->set_y_pos(next_entry->get_y_pos() - size.y);
       next_entry->set_size(next_size);
       next_entry->set_last_used_counter(cache_->get_counter());
       return;
@@ -312,7 +312,7 @@ void GlyphCacheBufferBase::InsertNewRow(
   auto it = list_row_.insert(pos, GlyphCacheRow(slice, y_pos, size));
   auto it_lru_row = lru_row_.insert(lru_row_.end(), it);
   auto it_map = map_row_.insert(
-      std::pair<int32_t, GlyphCacheEntry::iterator_row>(size.y(), it));
+      std::pair<int32_t, GlyphCacheEntry::iterator_row>(size.y, it));
 
   // Update a link.
   it->set_it_lru_row(it_lru_row);

@@ -164,7 +164,7 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
                 static_cast<int>(std::strtol(size->value, nullptr, 10));
             if (value) {
               // Convert the virtual size to physical size.
-              value = VirtualToPhysical(vec2(0, value)).y();
+              value = VirtualToPhysical(vec2(0, value)).y;
 
               // Keep current setting and update font face setting.
               original_size = current_setting->size();
@@ -314,33 +314,31 @@ std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
       auto regions = slices.at(i).get_underline_info();
       for (size_t i = 0; i < regions.size(); ++i) {
         auto info = regions[i];
-        auto y_start = info.y_pos_.x() + pos.y();
-        auto y_end = y_start + info.y_pos_.y();
+        auto y_start = info.y_pos_.x + pos.y;
+        auto y_end = y_start + info.y_pos_.y;
 
         if (degenerated_triangle) {
           // Add degenerated triangle to connect multiple strips.
           auto start_pos = vec3(vertices.at(info.start_vertex_index_ *
                                             kVerticesPerGlyph).position_);
           vec.push_back(vec.back());
-          vec.push_back(
-              vec3_packed(vec3(start_pos.x() + pos.x(), y_start, 0.f)));
+          vec.push_back(vec3_packed(vec3(start_pos.x + pos.x, y_start, 0.f)));
         }
 
         // Add vertices.
         for (auto idx = info.start_vertex_index_; idx <= info.end_vertex_index_;
              ++idx) {
           auto strip_pos = vec3(vertices.at(idx * kVerticesPerGlyph).position_);
-          vec.push_back(
-              vec3_packed(vec3(strip_pos.x() + pos.x(), y_start, 0.f)));
-          vec.push_back(vec3_packed(vec3(strip_pos.x() + pos.x(), y_end, 0.f)));
+          vec.push_back(vec3_packed(vec3(strip_pos.x + pos.x, y_start, 0.f)));
+          vec.push_back(vec3_packed(vec3(strip_pos.x + pos.x, y_end, 0.f)));
         }
 
         // Add last 2 vertices.
         auto end_pos =
             vec3(vertices.at(info.end_vertex_index_ * kVerticesPerGlyph +
                              kVerticesPerGlyph - 1).position_);
-        vec.push_back(vec3_packed(vec3(end_pos.x() + pos.x(), y_start, 0.f)));
-        vec.push_back(vec3_packed(vec3(end_pos.x() + pos.x(), y_end, 0.f)));
+        vec.push_back(vec3_packed(vec3(end_pos.x + pos.x, y_start, 0.f)));
+        vec.push_back(vec3_packed(vec3(end_pos.x + pos.x, y_end, 0.f)));
 
         degenerated_triangle = true;
       }

@@ -260,14 +260,14 @@ class GlyphCacheRow {
     slice_ = slice;
     last_used_counter_ = 0;
     y_pos_ = y_pos;
-    remaining_width_ = size.x();
+    remaining_width_ = size.x;
     size_ = size;
     cached_entries_.clear();
   }
 
   // Check if the row has a room for a requested width and height.
   bool DoesFit(const mathfu::vec2i &size) const {
-    return !(size.x() > remaining_width_ || size.y() > size_.y());
+    return !(size.x > remaining_width_ || size.y > size_.y);
   }
 
   // Reserve an area in the row.
@@ -276,8 +276,8 @@ class GlyphCacheRow {
     assert(DoesFit(size));
 
     // Update row info.
-    int32_t pos = size_.x() - remaining_width_;
-    remaining_width_ -= size.x();
+    int32_t pos = size_.x - remaining_width_;
+    remaining_width_ -= size.x;
     cached_entries_.push_back(it);
     return pos;
   }
@@ -462,12 +462,12 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
   // Copy glyph image into the buffer.
   void CopyImage(const mathfu::vec3i &pos, const uint8_t *const src,
                  const GlyphCacheEntry *entry) {
-    auto dest = buffers_[pos.z()].get();
-    auto src_stride = entry->get_size().x() * sizeof(T);
-    assert(pos.x() < size_.x());
-    assert(pos.y() < size_.y());
-    for (int32_t y = 0; y < entry->get_size().y(); ++y) {
-      memcpy(dest + pos.x() + (pos.y() + y) * size_.x(), src + y * src_stride,
+    auto dest = buffers_[pos.z].get();
+    auto src_stride = entry->get_size().x * sizeof(T);
+    assert(pos.x < size_.x);
+    assert(pos.y < size_.y);
+    for (int32_t y = 0; y < entry->get_size().y; ++y) {
+      memcpy(dest + pos.x + (pos.y + y) * size_.x, src + y * src_stride,
              src_stride);
     }
   }
@@ -475,39 +475,39 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
   void ClearPaddingRegion(const mathfu::vec3i &pos,
                           const mathfu::vec2i &padding,
                           const GlyphCacheEntry *entry) {
-    auto dest = buffers_[pos.z()].get();
-    assert(pos.x() + entry->get_size().x() + padding.x() <= size_.x());
-    assert(pos.y() + entry->get_size().y() + padding.y() <= size_.y());
+    auto dest = buffers_[pos.z].get();
+    assert(pos.x + entry->get_size().x + padding.x <= size_.x);
+    assert(pos.y + entry->get_size().y + padding.y <= size_.y);
 
     // Clear vertical padding region.
-    for (int32_t y = 0; y < entry->get_size().y(); ++y) {
-      const int32_t dest_y = (pos.y() + y) * size_.x();
-      for (int32_t x = 0; x < padding.x(); ++x) {
-        const int32_t dest_x = pos.x() + entry->get_size().x() + x;
+    for (int32_t y = 0; y < entry->get_size().y; ++y) {
+      const int32_t dest_y = (pos.y + y) * size_.x;
+      for (int32_t x = 0; x < padding.x; ++x) {
+        const int32_t dest_x = pos.x + entry->get_size().x + x;
         *(dest + dest_x + dest_y) = 0;
       }
     }
     // Clear horizontal padding region.
-    for (int32_t y = 0; y < padding.y(); ++y) {
-      const int32_t dest_y = (pos.y() + entry->get_size().y() + y) * size_.x();
-      for (int32_t x = 0; x < entry->get_size().x(); ++x) {
-        const int32_t dest_x = pos.x() + x;
+    for (int32_t y = 0; y < padding.y; ++y) {
+      const int32_t dest_y = (pos.y + entry->get_size().y + y) * size_.x;
+      for (int32_t x = 0; x < entry->get_size().x; ++x) {
+        const int32_t dest_x = pos.x + x;
         *(dest + dest_x + dest_y) = 0;
       }
     }
 
     // Clear regions between cache rows.
-    if (pos.y() > 0 && padding.y()) {
-      const int32_t dest_y = (pos.y() - 1) * size_.x();
-      for (int32_t x = 0; x < entry->get_size().x(); ++x) {
-        const int32_t dest_x = pos.x() + x;
+    if (pos.y > 0 && padding.y) {
+      const int32_t dest_y = (pos.y - 1) * size_.x;
+      for (int32_t x = 0; x < entry->get_size().x; ++x) {
+        const int32_t dest_x = pos.x + x;
         *(dest + dest_x + dest_y) = 0;
       }
     }
-    if (pos.x() > 0 && padding.x()) {
-      const int32_t dest_x = pos.x() - 1;
-      for (int32_t y = 0; y < entry->get_size().y(); ++y) {
-        const int32_t dest_y = (pos.y() + y) * size_.x();
+    if (pos.x > 0 && padding.x) {
+      const int32_t dest_x = pos.x - 1;
+      for (int32_t y = 0; y < entry->get_size().y; ++y) {
+        const int32_t dest_y = (pos.y + y) * size_.x;
         *(dest + dest_x + dest_y) = 0;
       }
     }
@@ -522,11 +522,11 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
 
     // Allocate the glyph cache buffer.
     // A buffer format can be 8/32 bpp (32 bpp is mostly used for Emoji).
-    buffers_[new_index].reset(new T[size_.x() * size_.y()]);
+    buffers_[new_index].reset(new T[size_.x * size_.y]);
 
     // Clearing allocated buffer.
     memset(buffers_[new_index].get(), kCacheClearValue,
-           size_.x() * size_.y() * sizeof(T));
+           size_.x * size_.y * sizeof(T));
 
     // Create first (empty) row entry.
     auto index = new_index | buffer_format();
@@ -556,12 +556,11 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
         // Give a texture size but don't have to clear the texture here.
         textures_[i].LoadFromMemory(nullptr, get_size(), get_texture_format());
       }
-      if (rect.z() - rect.x() > 0 && rect.w() - rect.y() > 0) {
+      if (rect.z - rect.x > 0 && rect.w - rect.y > 0) {
         textures_[i].Set(0);
         fplbase::Texture::UpdateTexture(
-            get_texture_format(), 0, rect.y(), get_size().x(),
-            rect.w() - rect.y(),
-            get(i) + get_element_size() * get_size().x() * rect.y());
+            get_texture_format(), 0, rect.y, get_size().x, rect.w - rect.y,
+            get(i) + get_element_size() * get_size().x * rect.y);
       }
     }
     set_dirty_state(false);
@@ -779,7 +778,7 @@ bool GlyphCacheBuffer<T>::PurgeCache(int32_t req_height) {
       // We can not evict the row.
       continue;
     }
-    if (row->get_size().y() >= req_height) {
+    if (row->get_size().y >= req_height) {
       // Now flush & initialize the row.
       // Invalidate FontBuffers that are referencing the row.
       row->InvalidateReferencingBuffers();

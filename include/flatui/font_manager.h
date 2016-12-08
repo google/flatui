@@ -352,8 +352,8 @@ class FontBufferParameters {
       return cache_id_ == other.cache_id_;
     }
     return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
-            font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
-            size_.y() == other.size_.y() &&
+            font_size_ == other.font_size_ && size_.x == other.size_.x &&
+            size_.y == other.size_.y &&
             kerning_scale_ == other.kerning_scale_ &&
             line_height_scale_ == other.line_height_scale_ &&
             flags_value_ == other.flags_value_ && cache_id_ == other.cache_id_);
@@ -373,8 +373,8 @@ class FontBufferParameters {
       value = HashCombine<float>(value, key.kerning_scale_);
       value = HashCombine<float>(value, key.line_height_scale_);
       value = HashCombine<int32_t>(value, key.flags_value_);
-      value = HashCombine<int32_t>(value, key.size_.x());
-      value = HashCombine<int32_t>(value, key.size_.y());
+      value = HashCombine<int32_t>(value, key.size_.x);
+      value = HashCombine<int32_t>(value, key.size_.y);
     }
     return value;
   }
@@ -387,10 +387,10 @@ class FontBufferParameters {
     }
     return std::tie(lhs.font_id_, lhs.text_id_, lhs.font_size_,
                     lhs.kerning_scale_, lhs.line_height_scale_,
-                    lhs.flags_value_, lhs.size_.x(), lhs.size_.y()) <
+                    lhs.flags_value_, lhs.size_.x, lhs.size_.y) <
            std::tie(rhs.font_id_, rhs.text_id_, rhs.font_size_,
                     rhs.kerning_scale_, rhs.line_height_scale_,
-                    rhs.flags_value_, rhs.size_.x(), rhs.size_.y());
+                    rhs.flags_value_, rhs.size_.x, rhs.size_.y);
   }
 
   /// @return Returns a font hash id.
@@ -430,7 +430,7 @@ class FontBufferParameters {
   bool get_rtl_layout_flag() const { return flags_.rtl_layout; }
 
   /// Retrieve a line length of the text based on given parameters.
-  /// a fixed line length (get_size.x()) will be used if the text is justified
+  /// a fixed line length (get_size.x) will be used if the text is justified
   /// or right aligned otherwise the line length will be determined by the text
   /// layout phase.
   /// @return Returns the expected line width.
@@ -440,20 +440,20 @@ class FontBufferParameters {
       return 0;
     } else {
       // Other settings will use max width of the given area.
-      return size_.x() * kFreeTypeUnit;
+      return size_.x * kFreeTypeUnit;
     }
   }
 
   /// @return Returns the multi line setting.
   bool get_multi_line_setting() const {
-    // size.x() == 0 indicates a single line mode.
-    if (!size_.x()) {
+    // size.x == 0 indicates a single line mode.
+    if (!size_.x) {
       return false;
     }
     if (get_text_alignment() != kTextAlignmentLeft) {
       return true;
     } else {
-      return size_.y() == 0 || size_.y() > font_size_;
+      return size_.y == 0 || size_.y > font_size_;
     }
   }
 

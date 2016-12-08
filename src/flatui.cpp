@@ -185,21 +185,21 @@ class InternalState : public LayoutManager {
     if (layout_pass_) {
       for (int i = 0; i <= pointer_max_active_index_; i++) {
         auto clip_pos =
-            vec2(pointer_pos_[i]) / vec2(renderer_.window_size()) * 2 - 1;
-        clip_pos.y() *= -1;  // Mouse coords are LH, clip space is RH.
+            vec2(pointer_pos_[i]) / vec2(renderer_.window_size()) * 2.0f - 1.0f;
+        clip_pos.y *= -1;  // Mouse coords are LH, clip space is RH.
         // Get two 3d positions at the pointer position to form a ray
         auto obj_pos1 = imvp * vec4(vec2(clip_pos), vec2(-0.5f, 1.0f));
         auto obj_pos2 = imvp * vec4(vec2(clip_pos), vec2(0.5f, 1.0f));
         // (inverse) perspective divide.
-        obj_pos1 /= obj_pos1.w();
-        obj_pos2 /= obj_pos2.w();
+        obj_pos1 /= obj_pos1.w;
+        obj_pos2 /= obj_pos2.w;
         auto ray = obj_pos2 - obj_pos1;
         // Find where the ray intersects object-space plane Z=0.
-        auto t = (0.0f - obj_pos1.z()) / ray.z();
+        auto t = (0.0f - obj_pos1.z) / ray.z;
         auto on_plane = t * ray.xy() + obj_pos1.xy();
         pointer_pos_[i] = vec2i(on_plane + 0.5f);
         // Back into LH UI pixels.
-        pointer_pos_[i].y() = canvas_size_.y() - pointer_pos_[i].y();
+        pointer_pos_[i].y = canvas_size_.y - pointer_pos_[i].y;
         // TODO(wvo): transform delta relative to current pointer_pos_ ?
       }
     }
@@ -213,8 +213,8 @@ class InternalState : public LayoutManager {
   // If that ever changes, we also need to change our use of glScissor below.
   void SetOrtho() {
     auto ortho_mat = mathfu::mat4::Ortho(
-        0.0f, static_cast<float>(canvas_size_.x()),
-        static_cast<float>(canvas_size_.y()), 0.0f, -1.0f, 1.0f);
+        0.0f, static_cast<float>(canvas_size_.x),
+        static_cast<float>(canvas_size_.y), 0.0f, -1.0f, 1.0f);
     renderer_.set_model_view_projection(ortho_mat);
   }
 
@@ -249,8 +249,7 @@ class InternalState : public LayoutManager {
     auto hash = HashPointer(&texture);
     if (layout_pass_) {
       auto virtual_image_size = vec2(
-          texture.original_size().x() * ysize / texture.original_size().y(),
-          ysize);
+          texture.original_size().x * ysize / texture.original_size().y, ysize);
       // Map the size to real screen pixels, rounding to the nearest int
       // for pixel-aligned rendering.
       auto size = VirtualToPhysical(virtual_image_size);
@@ -290,8 +289,8 @@ class InternalState : public LayoutManager {
     auto ui_text = text;
     auto edit_mode = kMultipleLines;
     // Check if the editbox is a single line editbox.
-    if (physical_label_size.y() == 0 || physical_label_size.y() == size.y()) {
-      physical_label_size.y() = size.y();
+    if (physical_label_size.y == 0 || physical_label_size.y == size.y) {
+      physical_label_size.y = size.y;
       edit_mode = kSingleLine;
     }
     if (edit_status && persistent_.text_edit_.GetEditingText()) {
@@ -300,7 +299,7 @@ class InternalState : public LayoutManager {
     }
     auto parameter = FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
-        static_cast<float>(size.y()), physical_label_size, alignment,
+        static_cast<float>(size.y), physical_label_size, alignment,
         glyph_flags_, edit_status == kEditStatusInEdit, false,
         fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
         text_kerning_scale_, text_line_height_scale_);
@@ -309,8 +308,8 @@ class InternalState : public LayoutManager {
     assert(buffer);
 
     // Check if the editbox is an auto expanding edit box.
-    if (physical_label_size.x() == 0) {
-      physical_label_size.x() = buffer->get_size().x();
+    if (physical_label_size.x == 0) {
+      physical_label_size.x = buffer->get_size().x;
       edit_mode = kSingleLine;
     }
 
@@ -358,12 +357,12 @@ class InternalState : public LayoutManager {
 
           // Calculate and render an input text region.
           DrawUnderline(*buffer, input_region_start, input_region_length, pos,
-                        static_cast<float>(size.y()), kInputLineWidth);
+                        static_cast<float>(size.y), kInputLineWidth);
 
           // Calculate and render a focus text region inside the input text.
           if (focus_region_length) {
             DrawUnderline(*buffer, focus_region_start, focus_region_length, pos,
-                          static_cast<float>(size.y()), kFocusLineWidth);
+                          static_cast<float>(size.y), kFocusLineWidth);
           }
 
           // Specify IME rect to input system.
@@ -380,10 +379,10 @@ class InternalState : public LayoutManager {
                        ime_rect;
           }
           vec4 rect;
-          rect.x() = static_cast<float>(ime_rect.x());
-          rect.y() = static_cast<float>(ime_rect.y());
-          rect.z() = static_cast<float>(ime_size.x());
-          rect.w() = static_cast<float>(ime_size.y());
+          rect.x = static_cast<float>(ime_rect.x);
+          rect.y = static_cast<float>(ime_rect.y);
+          rect.z = static_cast<float>(ime_size.x);
+          rect.w = static_cast<float>(ime_size.y);
           input_.SetTextInputRect(rect);
         }
       }
@@ -394,14 +393,14 @@ class InternalState : public LayoutManager {
         const float kCaretWidth = 4.0f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
-        auto caret_height = size.y() * kCaretPositionSizeFactor;
-        if (caret_pos.x() >= window.x() - kCaretWidth &&
-            caret_pos.x() <= window.x() + window.z() + kCaretWidth &&
-            caret_pos.y() >= window.y() &&
-            caret_pos.y() - caret_height <= window.y() + window.w()) {
+        auto caret_height = size.y * kCaretPositionSizeFactor;
+        if (caret_pos.x >= window.x - kCaretWidth &&
+            caret_pos.x <= window.x + window.z + kCaretWidth &&
+            caret_pos.y >= window.y &&
+            caret_pos.y - caret_height <= window.y + window.w) {
           caret_pos += pos;
           // Caret Y position is at the base line, add some offset.
-          caret_pos.y() -= static_cast<int>(caret_height);
+          caret_pos.y -= static_cast<int>(caret_height);
 
           auto caret_size = VirtualToPhysical(vec2(kCaretWidth, ysize));
           RenderCaret(caret_pos, caret_size);
@@ -432,8 +431,8 @@ class InternalState : public LayoutManager {
 
     auto startpos = buffer.GetCaretPosition(start);
     auto size = buffer.GetCaretPosition(start + length) - startpos;
-    startpos.y() += static_cast<int>(font_size * kUnderlineOffsetFactor);
-    size.y() += static_cast<int>(line_width);
+    startpos.y += static_cast<int>(font_size * kUnderlineOffsetFactor);
+    size.y += static_cast<int>(line_width);
 
     RenderQuad(color_shader_, mathfu::kOnes4f, pos + startpos, size);
   }
@@ -459,7 +458,7 @@ class InternalState : public LayoutManager {
     auto size = VirtualToPhysical(vec2(0, ysize));
     return FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
-        static_cast<float>(size.y()), physical_label_size, alignment,
+        static_cast<float>(size.y), physical_label_size, alignment,
         glyph_flags_, false, false,
         fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
         text_kerning_scale_, text_line_height_scale_, hash_id);
@@ -495,7 +494,7 @@ class InternalState : public LayoutManager {
                       bool render_outer_color) {
     auto &slices = buffer.get_slices();
     auto current_format = fplbase::kFormatAuto;
-    bool clipping = clip_rect.z() != 0.0f && clip_rect.w() != 0.0f;
+    bool clipping = clip_rect.z != 0.0f && clip_rect.w != 0.0f;
     FontShader *current_shader = nullptr;
     vec4 color = mathfu::kZeros4f;
 
@@ -573,11 +572,10 @@ class InternalState : public LayoutManager {
                              .at(info.end_vertex_index_ * kVerticesPerGlyph +
                                  kVerticesPerGlyph - 1)
                              .position_;
-          auto p =
-              vec2i(start_pos.data[0] + pos.x(), info.y_pos_.x() + pos.y());
+          auto p = vec2i(start_pos.data[0] + pos.x, info.y_pos_.x + pos.y);
           // NOTE: Use abs value for a size to account with RTL.
           auto size = vec2i(std::abs(end_pos.data[0] - start_pos.data[0]),
-                            info.y_pos_.y());
+                            info.y_pos_.y);
           RenderQuad(color_shader_, color, p, size);
         }
         current_format = fplbase::kFormatAuto;
@@ -604,10 +602,9 @@ class InternalState : public LayoutManager {
         pos = Position(*element);
 
         bool clipping = false;
-        if (window.z() && window.w()) {
-          clipping = window.x() || window.y() ||
-                     (buffer.get_size().x() > window.z()) ||
-                     (buffer.get_size().y() > window.w());
+        if (window.z && window.w) {
+          clipping = window.x || window.y || (buffer.get_size().x > window.z) ||
+                     (buffer.get_size().y > window.w);
         }
 
         if (clipping) {
@@ -617,8 +614,8 @@ class InternalState : public LayoutManager {
           // Set a window to show a part of the label.
           auto start = vec2(position_ - pos);
           auto end = start + vec2(window.zw());
-          start.y() -= buffer.metrics().internal_leading();
-          end.y() -= buffer.metrics().external_leading();
+          start.y -= buffer.metrics().internal_leading();
+          end.y -= buffer.metrics().external_leading();
 
           if (parameter.get_glyph_flags() &
               (kGlyphFlagsInnerSDF | kGlyphFlagsOuterSDF)) {
@@ -706,8 +703,7 @@ class InternalState : public LayoutManager {
       // glClipPlane, or stencil buffer).
       assert(default_projection_);
       renderer_.ScissorOn(
-          vec2i(position_.x(), canvas_size_.y() - position_.y() - psize.y()),
-          psize);
+          vec2i(position_.x, canvas_size_.y - position_.y - psize.y), psize);
 
       vec2i pointer_delta = mathfu::kZeros2i;
       int32_t scroll_speed = static_cast<int32_t>(scroll_speed_drag_);
@@ -821,14 +817,14 @@ class InternalState : public LayoutManager {
             event & kEventIsDown) {
           switch (direction) {
             case kDirHorizontal:
-              *value = static_cast<float>(GetPointerPosition().x() -
-                                          position_.x() - scroll_margin) /
-                       static_cast<float>(size_.x() - scroll_margin * 2.0f);
+              *value = static_cast<float>(GetPointerPosition().x - position_.x -
+                                          scroll_margin) /
+                       static_cast<float>(size_.x - scroll_margin * 2.0f);
               break;
             case kDirVertical:
-              *value = static_cast<float>(GetPointerPosition().y() -
-                                          position_.y() - scroll_margin) /
-                       static_cast<float>(size_.y() - scroll_margin * 2.0f);
+              *value = static_cast<float>(GetPointerPosition().y - position_.y -
+                                          scroll_margin) /
+                       static_cast<float>(size_.y - scroll_margin * 2.0f);
               break;
             default:
               assert(0);
@@ -1205,7 +1201,7 @@ class InternalState : public LayoutManager {
     }
 #endif
     // For testing, also support keyboard:
-    if (!dir.x() && !dir.y()) {
+    if (!dir.x && !dir.y) {
       dir = CheckButtons(input_.GetButton(fplbase::FPLK_LEFT),
                          input_.GetButton(fplbase::FPLK_RIGHT),
                          input_.GetButton(fplbase::FPLK_UP),
@@ -1217,21 +1213,21 @@ class InternalState : public LayoutManager {
 
   int GetNavigationDirection() {
     auto dir = GetNavigationDirection2D();
-    if (dir.y()) return dir.y();
-    return dir.x();
+    if (dir.y) return dir.y;
+    return dir.x;
   }
 
   vec2i CheckButtons(const Button &left, const Button &right, const Button &up,
                      const Button &down, const Button &action) {
     vec2i dir = mathfu::kZeros2i;
-    if (left.went_up()) dir.x() = -1;
-    if (right.went_up()) dir.x() = 1;
-    if (up.went_up()) dir.y() = -1;
-    if (down.went_up()) dir.y() = 1;
+    if (left.went_up()) dir.x = -1;
+    if (right.went_up()) dir.x = 1;
+    if (up.went_up()) dir.y = -1;
+    if (down.went_up()) dir.y = 1;
     if (action.went_up()) gamepad_event = kEventWentUp;
     if (action.went_down()) gamepad_event = kEventWentDown;
     if (action.is_down()) gamepad_event = kEventIsDown;
-    if (dir.x() || dir.y() || gamepad_event != kEventHover)
+    if (dir.x || dir.y || gamepad_event != kEventHover)
       persistent_.is_last_event_pointer_type = false;
     return dir;
   }

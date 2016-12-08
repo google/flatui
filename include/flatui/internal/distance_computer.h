@@ -47,19 +47,19 @@ class Grid {
   void SetSize(const vec2i& size, T initial_value) {
     size_ = size;
     padding_ = 0;
-    stride_ = size.x();
+    stride_ = size.x;
     if (p_ == nullptr) {
       p_ = std::unique_ptr<std::vector<T>>(new std::vector<T>());
     } else {
       p_->clear();
     }
-    p_->resize(size.x() * size.y(), initial_value);
+    p_->resize(size.x * size.y, initial_value);
     data_ = &(*p_)[0];
     return;
   }
 
-  int32_t GetWidth() const { return size_.x() + padding_ * 2; }
-  int32_t GetHeight() const { return size_.y() + padding_ * 2; }
+  int32_t GetWidth() const { return size_.x + padding_ * 2; }
+  int32_t GetHeight() const { return size_.y + padding_ * 2; }
   const vec2i GetSize() const {
     return size_ + vec2i(padding_ * 2, padding_ * 2);
   }
@@ -67,27 +67,27 @@ class Grid {
 
   // Setter to the buffer.
   void Set(const vec2i& pos, T value) {
-    auto p = pos - vec2i(padding_, padding_);
+    vec2i p = pos - vec2i(padding_, padding_);
     if (!mathfu::InRange2D(p, mathfu::kZeros2i, size_)) {
       return;
     }
-    data_[p.x() + p.y() * stride_] = value;
+    data_[p.x + p.y * stride_] = value;
   }
 
   // Getter to the buffer.
   T Get(const vec2i& pos) const {
-    auto p = pos - vec2i(padding_, padding_);
+    vec2i p = pos - vec2i(padding_, padding_);
     if (inverted_) {
       if (!mathfu::InRange2D(p, mathfu::kZeros2i, size_)) {
         return T(std::numeric_limits<FundamentalType>::max());
       }
       return T(std::numeric_limits<FundamentalType>::max()) -
-             data_[p.x() + p.y() * stride_];
+             data_[p.x + p.y * stride_];
     } else {
       if (!mathfu::InRange2D(p, mathfu::kZeros2i, size_)) {
         return T(std::numeric_limits<FundamentalType>::min());
       }
-      return data_[p.x() + p.y() * stride_];
+      return data_[p.x + p.y * stride_];
     }
   }
 
@@ -137,13 +137,13 @@ class DistanceComputer {
   void Compute(const Grid<T, FundamentalType>& image,
                Grid<T, FundamentalType>* dest, GlyphFlags flag) {
     auto original_size = image.GetOriginalSize();
-    if (original_size.x() == 0 || original_size.y() == 0) {
+    if (original_size.x == 0 || original_size.y == 0) {
       return;
     }
     auto genearate_inner_distance = flag & kGlyphFlagsInnerSDF;
     auto size = image.GetSize();
-    auto width = size.x();
-    auto height = size.y();
+    auto width = size.x;
+    auto height = size.y;
     // Compute the local gradients in both dimensions.
     gradients_.SetSize(size, mathfu::kZeros2f);
     distances_to_edges_.SetSize(size, mathfu::kZeros2i);
@@ -273,19 +273,18 @@ class DistanceComputer {
       // transposition, do the work in the first octant (positive gradients, x
       // gradient >= y gradient) for simplicity.
       vec2 g = vec2(fabs(gradient[0]), fabs(gradient[1])).Normalized();
-      if (g.x() < g.y()) std::swap(g.x(), g.y());
-      const auto gradient_value = static_cast<float>(0.5f * g.y() / g.x());
+      if (g.x < g.y) std::swap(g.x, g.y);
+      const auto gradient_value = static_cast<float>(0.5f * g.y / g.x);
       float dist;
       if (value < gradient_value) {
         // 0 <= value < gradient_value.
-        dist = 0.5f * (g.x() + g.y()) - sqrtf(2.0f * g.x() * g.y() * value);
+        dist = 0.5f * (g.x + g.y) - sqrtf(2.0f * g.x * g.y * value);
       } else if (value < 1.0f - gradient_value) {
         // gradient_value <= value <= 1 - gradient_value.
-        dist = (0.5f - value) * g.x();
+        dist = (0.5f - value) * g.x;
       } else {
         // 1 - gradient_value < value <= 1.
-        dist = -0.5f * (g.x() + g.y()) +
-               sqrtf(2.0f * g.x() * g.y() * (1.0f - value));
+        dist = -0.5f * (g.x + g.y) + sqrtf(2.0f * g.x * g.y * (1.0f - value));
       }
       return dist;
     }
