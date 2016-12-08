@@ -879,14 +879,14 @@ class InternalState : public LayoutManager {
   // If no state currently exists for `id` because
   // `Animatable(id)` was not called the previous frame,
   // return nullptr.
-  static Anim *FindAnim(const std::string &id) {
+  static Anim *FindAnim(HashedId id) {
     auto it = persistent_.animations.find(id);
     return it != persistent_.animations.end() ? &(it->second) : nullptr;
   }
 
   // Create a new Motivator if it isn't found in our hashmap and initialize it
   // with starting values. Return the current value of the motivator.
-  const float *Animatable(const std::string &id, const float *starting_values,
+  const float *Animatable(HashedId id, const float *starting_values,
                           const float *starting_velocities, int dimensions) {
     assert(motive_engine_);
     Anim *current = FindAnim(id);
@@ -901,7 +901,7 @@ class InternalState : public LayoutManager {
   }
 
   // Set the target value and velocity to which the motivator animates.
-  void StartAnimation(const std::string &id, const float *target_values,
+  void StartAnimation(HashedId id, const float *target_values,
                       const float *target_velocities,
                       const AnimCurveDescription &description) {
     Anim *current = FindAnim(id);
@@ -1417,7 +1417,7 @@ class InternalState : public LayoutManager {
     bool initialized;
 
     // HashMap for storing animations.
-    std::unordered_map<std::string, Anim> animations;
+    std::unordered_map<HashedId, Anim> animations;
   } persistent_;
 
   // Disable copy constructor.
@@ -1651,13 +1651,13 @@ const FlatUIVersion *GetFlatUIVersion() { return Gui()->GetFlatUIVersion(); }
 
 namespace details {
 
-const float *Animatable(const std::string &id, const float *starting_values,
+const float *Animatable(HashedId id, const float *starting_values,
                         const float *starting_velocities, int dimensions) {
   return Gui()->Animatable(id, starting_values, starting_velocities,
                            dimensions);
 }
 
-void StartAnimation(const std::string &id, const float *target_values,
+void StartAnimation(HashedId id, const float *target_values,
                     const float *target_velocities,
                     const AnimCurveDescription &description) {
   Gui()->StartAnimation(id, target_values, target_velocities, description);
