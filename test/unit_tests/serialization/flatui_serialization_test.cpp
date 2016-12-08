@@ -72,38 +72,38 @@ TEST_F(FlatUISerializationTest, TestCreateMargin) {
           ->margin());
 
   flatui::Margin m = flatui::CreateMargin(margin_buf);
-  ASSERT_EQ(1.0f, m.borders.x());
-  ASSERT_EQ(2.0f, m.borders.y());
-  ASSERT_EQ(3.0f, m.borders.z());
-  ASSERT_EQ(4.0f, m.borders.w());
+  ASSERT_EQ(1.0f, m.borders.x);
+  ASSERT_EQ(2.0f, m.borders.y);
+  ASSERT_EQ(3.0f, m.borders.z);
+  ASSERT_EQ(4.0f, m.borders.w);
 
   margin_buf->mutate_size_right(-1.0f);
   m = flatui::CreateMargin(margin_buf);
-  ASSERT_EQ(1.0f, m.borders.x());
-  ASSERT_EQ(2.0f, m.borders.y());
-  ASSERT_EQ(1.0f, m.borders.z());
-  ASSERT_EQ(2.0f, m.borders.w());
+  ASSERT_EQ(1.0f, m.borders.x);
+  ASSERT_EQ(2.0f, m.borders.y);
+  ASSERT_EQ(1.0f, m.borders.z);
+  ASSERT_EQ(2.0f, m.borders.w);
 
   margin_buf->mutate_size_top(-1.0f);
   m = flatui::CreateMargin(margin_buf);
-  ASSERT_EQ(1.0f, m.borders.x());
-  ASSERT_EQ(1.0f, m.borders.y());
-  ASSERT_EQ(1.0f, m.borders.z());
-  ASSERT_EQ(1.0f, m.borders.w());
+  ASSERT_EQ(1.0f, m.borders.x);
+  ASSERT_EQ(1.0f, m.borders.y);
+  ASSERT_EQ(1.0f, m.borders.z);
+  ASSERT_EQ(1.0f, m.borders.w);
 
   margin_buf->mutate_size_left(-1.0f);
   m = flatui::CreateMargin(margin_buf);
-  ASSERT_EQ(0.0f, m.borders.x());
-  ASSERT_EQ(0.0f, m.borders.y());
-  ASSERT_EQ(0.0f, m.borders.z());
-  ASSERT_EQ(0.0f, m.borders.w());
+  ASSERT_EQ(0.0f, m.borders.x);
+  ASSERT_EQ(0.0f, m.borders.y);
+  ASSERT_EQ(0.0f, m.borders.z);
+  ASSERT_EQ(0.0f, m.borders.w);
 
   // Invalid input test
   m = flatui::CreateMargin(nullptr);
-  ASSERT_EQ(0.0f, m.borders.x());
-  ASSERT_EQ(0.0f, m.borders.y());
-  ASSERT_EQ(0.0f, m.borders.z());
-  ASSERT_EQ(0.0f, m.borders.w());
+  ASSERT_EQ(0.0f, m.borders.x);
+  ASSERT_EQ(0.0f, m.borders.y);
+  ASSERT_EQ(0.0f, m.borders.z);
+  ASSERT_EQ(0.0f, m.borders.w);
 }
 
 TEST_F(FlatUISerializationTest, TestCreateSetVirtualResolution) {

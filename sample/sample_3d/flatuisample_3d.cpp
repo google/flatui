@@ -72,8 +72,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     // interesting way. This generates an mvp that we'll use to translate
     // UI events with. We compute that here ahead of time since we need the
     // mvp both for event processing in the UI and to display the UI.
-    auto aspect = static_cast<float>(renderer.window_size().x()) /
-                                     renderer.window_size().y();
+    auto aspect = static_cast<float>(renderer.window_size().x) /
+                                     renderer.window_size().y;
     auto projection = mathfu::mat4::Perspective(70, aspect, 1, 10000);
     auto scale = mathfu::mat4::FromScaleVector(mathfu::kOnes3f * 0.1f);
     auto rot = mathfu::mat4::FromRotationMatrix(
@@ -97,7 +97,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
     // Set a custom ortho matrix for our square UI panel.
     renderer.set_model_view_projection(
-        mathfu::mat4::Ortho(0.0, render_target_size.x(), render_target_size.y(),
+        mathfu::mat4::Ortho(0.0, render_target_size.x, render_target_size.y,
                             0.0, -1.0, 1.0));
 
     // Create FlatUI with 3 buttons.
@@ -137,7 +137,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     // that way our projected coordinates match.
     fplbase::Mesh::RenderAAQuadAlongX(
           mathfu::kZeros3f,
-          mathfu::vec3(render_target_size.x(), render_target_size.y(), 0),
+          mathfu::vec3(render_target_size.x, render_target_size.y, 0),
           mathfu::vec2(0, 0),
           mathfu::vec2(1, 1));
   }
