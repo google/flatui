@@ -15,14 +15,6 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(flatuitest)
 
-add_executable(flatuitest flatuitest.cpp)
-add_dependencies(flatuitest fplbase flatui)
-mathfu_configure_flags(flatuitest)
-target_link_libraries(flatuitest fplbase flatui)
-
-# FlatUI postprocess
-flatui_post_process(flatuitest "test")
-
 # Import gmock if it is not already present.
 # Note: gmock includes gtest.
 if(NOT TARGET gtest OR NOT TARGET gmock)
@@ -49,7 +41,7 @@ string(REPLACE "-Wextra" "" cxx_default "${cxx_default}")
 include_directories(${gtest_incdir}
                     ${gtest_hack_incdir}
                     ${gmock_incdir}
-                    ${CMAKE_CURRENT_LIST_DIR}/unit_tests
+                    ${CMAKE_CURRENT_LIST_DIR}
                     ${dependencies_flatui_dir}
                     ${dependencies_fplutil_dir}/libfplutil/include)
 
@@ -73,7 +65,7 @@ function(test_executable name)
   cxx_executable_with_flags("flatui_${name}_test"
       "${cxx_default}"
       "${COMMON_LIBS}"
-      ${CMAKE_CURRENT_LIST_DIR}/unit_tests/${name}/flatui_${name}_test.cpp
+      ${CMAKE_CURRENT_LIST_DIR}/${name}/flatui_${name}_test.cpp
       ${ARGN})
   add_dependencies(flatui_${name}_test
       flatui

@@ -32,6 +32,9 @@ using ::testing::SaveArg;
 // specifiers.
 
 class FlatUIRefCountTest : public ::testing::Test {
+ public:
+   MATHFU_DEFINE_CLASS_SIMD_AWARE_NEW_DELETE
+
  protected:
   static void SetUpTestCase() {       // Called once, before any tests.
     flatui::SetErrorOutputCount(-1);  // Disable error count limit.

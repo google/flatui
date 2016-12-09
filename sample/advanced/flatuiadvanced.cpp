@@ -31,11 +31,12 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fplbase::AssetManager assetman(renderer);
 
   // Set the local directory to the assets for this test.
-  bool result = fplbase::ChangeToUpstreamDir(argv[0], "test/assets");
+  bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample/assets");
   assert(result);
+  (void)result;
 
   // Initialize stuff.
-  renderer.Initialize(vec2i(800, 600), "FlatUI test");
+  renderer.Initialize(vec2i(800, 600), "FlatUI sample");
   renderer.SetCulling(fplbase::kCullingModeBack);
   input.Initialize();
 

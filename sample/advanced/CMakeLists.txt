@@ -11,21 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+cmake_minimum_required(VERSION 2.8.12)
 
-LOCAL_PATH := $(call my-dir)/..
+project(flatuiadvanced)
 
-FLATUI_DIR := $(LOCAL_PATH)/..
-include $(FLATUI_DIR)/jni/android_config.mk
+add_executable(flatuiadvanced flatuiadvanced.cpp)
+add_dependencies(flatuiadvanced fplbase flatui)
+mathfu_configure_flags(flatuiadvanced)
+target_link_libraries(flatuiadvanced fplbase flatui)
 
-include $(CLEAR_VARS)
-LOCAL_MODULE := main
-LOCAL_ARM_MODE := arm
-LOCAL_STATIC_LIBRARIES := fplbase flatui
-LOCAL_SRC_FILES := flatuitest.cpp
-include $(BUILD_SHARED_LIBRARY)
+# FlatUI postprocess
+flatui_post_process(flatuiadvanced "test")
 
-$(call import-add-path,$(FLATUI_DIR)/..)
-$(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
-
-$(call import-module, flatui/jni)
-$(call import-module, fplbase/jni)
