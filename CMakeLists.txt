@@ -224,6 +224,7 @@ function(flatui_post_process target folder_name)
       COMMAND ${CMAKE_COMMAND} -E make_directory ${flatui_assets_dir}/serialization
       COMMAND ${CMAKE_COMMAND} -E copy
           ${dependencies_flatui_dir}/sample/serialization/first_menu.json ${flatui_assets_dir}/serialization
+      COMMAND ${CMAKE_COMMAND} -E copy
           ${dependencies_flatui_dir}/sample/serialization/second_menu.json ${flatui_assets_dir}/serialization)
 endfunction()
 
