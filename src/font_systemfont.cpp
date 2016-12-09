@@ -329,6 +329,15 @@ bool FontManager::CloseSystemFont() {
 
 // A system font access implementation for iOS/macOS.
 #ifdef __APPLE__
+
+static void LogInfoProxy(const char* fmt, ...) {
+  // There's an awful resolution order error which using a REAL va_list lets us dodge.
+  va_list my_list;
+  va_start(my_list, fmt);
+  fplbase::LogInfo(fmt, my_list);
+  va_end(my_list);
+}
+
 bool FontManager::OpenSystemFontApple() {
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_6_0 || \
     __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_8
@@ -367,10 +376,7 @@ bool FontManager::OpenSystemFontApple() {
     if (font_name != nullptr &&
         CFStringGetCString(font_name, str, kStringLength,
                            kCFStringEncodingUTF8)) {
-      // Weirdly, the LogInfo call here seems to crash if we only supply 1
-      // parameter. Perhaps the compiler is choosing the overload that takes
-      // a va_list?
-      fplbase::LogInfo("Font name: %s", str);
+      LogInfoProxy("Font name %s", str);
       FontFamily family(str, true);
       if (Open(family)) {
         // Retrieve the font size for an information.
