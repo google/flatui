@@ -17,12 +17,13 @@ project(harfbuzz)
 
 set(harfbuzz_dir ${dependencies_harfbuzz_distr_dir})
 
-if(use_pregenerated_headers)
-  # Include pregeneraged harfbuzz header files on Windows.
-  # On Windows, building harfbuzz requires prerequisites set up properly
+if(use_pregenerated_headers OR NOT EXISTS ${harfbuzz_dir}/autogen.sh)
+  # Include pregenerated harfbuzz header files on Windows, OSX, and any
+  # platform that does not have the autogen.sh script in their harfbuzz
+  # directory. Building harfbuzz requires prerequisites set up properly
   # (e.g.ragel, auto tools). To make the build process easier, we commit
-  # pre-generated header files to our repository and include them only on
-  # Windows.
+  # pre-generated header files to our repository and use them when we can't
+  # generate them with harfbuzz.
   include_directories(${dependencies_flatui_dir}/external/include/harfbuzz)
 else()
   # Execute configuration script and make
