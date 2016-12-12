@@ -957,25 +957,25 @@ void StartAnimation(HashedId id, const float *target_values,
 
 /// @brief Returns the time remaining for an animation.
 ///
-/// @param[in] A HashedId that uniquely identifies a motivator.
+/// @param[in] A HashedId that uniquely identifies an animation.
 double AnimationTimeRemaining(HashedId id);
 
 /// @brief Returns the time remaining for an animation.
 ///
-/// @param[in] A C-string in UTF-8 format that uniquely identifies a motivator.
+/// @param[in] A C-string in UTF-8 format that uniquely identifies an animation.
 inline double AnimationTimeRemaining(const char *id) {
   return AnimationTimeRemaining(HashId(id));
 }
 
 /// @return Returns a value of type T.
 ///
-/// @brief This function creates a new Motivator if it doesn't already exist
+/// @brief This function creates a new animation if it doesn't already exist
 /// and returns the current value of it.
 ///
 /// @warning This function only works if you have passed in a MotiveEngine
 /// to Run().
 ///
-/// @param[in] id A HashedId that uniquely identifies a motivator.
+/// @param[in] id A HashedId that uniquely identifies an animation.
 /// @param[in] starting_value An array of length dimensions that contains
 /// the value we want our curve to begin at.
 /// @param[in] starting_velocity An array of length dimensions that
@@ -994,14 +994,14 @@ T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
 
 /// @return Returns a value of type T.
 ///
-/// @brief This function creates a new Motivator if it doesn't already exist
+/// @brief This function creates a new animation if it doesn't already exist
 /// and returns the current value of it.
 ///
 /// @warning This function only works if you have passed in a MotiveEngine
 /// to Run().
 ///
-/// @param[in] id A C-string in UTF-8 format that uniquely identifies a
-///               motivator.
+/// @param[in] id A C-string in UTF-8 format that uniquely identifies an
+///               animation.
 /// @param[in] starting_value An array of length dimensions that contains
 /// the value we want our curve to begin at.
 /// @param[in] starting_velocity An array of length dimensions that
@@ -1015,10 +1015,10 @@ T Animatable(const char *id, const T& starting_value,
   return Animatable<T>(HashId(id), starting_value, starting_velocity);
 }
 
-/// @brief This function sets the target value and velocity to which a
-/// Motivator, that is identified by id, animates.
+/// @brief This function sets the target value and velocity to which an
+/// animation, that is identified by id, animates.
 ///
-/// @param[in] id A HashedId that uniquely identifies a motivator.
+/// @param[in] id A HashedId that uniquely identifies an animation.
 /// @param[in] target_value An array of length dimensions that contains
 /// the value we want our curve to end at.
 /// @param[in] target_velocity An array of length dimensions that
@@ -1036,11 +1036,11 @@ void StartAnimation(HashedId id, const T& target_value,
       details::FloatConverter<T>::ToFloatArray(target_velocity), description);
 }
 
-/// @brief This function sets the target value and velocity to which a
-/// Motivator, that is identified by id, animates.
+/// @brief This function sets the target value and velocity to which an
+/// animation, that is identified by id, animates.
 ///
-/// @param[in] id A C-string in UTF-8 format that uniquely identifies a
-///               motivator.
+/// @param[in] id A C-string in UTF-8 format that uniquely identifies an
+///               animation.
 /// @param[in] target_value An array of length dimensions that contains
 /// the value we want our curve to end at.
 /// @param[in] target_velocity An array of length dimensions that
