@@ -197,7 +197,7 @@ class LayoutManager : public Group {
 
   // Set the margin for the current group.
   void SetMargin(const Margin &margin) {
-    margin_ = VirtualToPhysical(margin.borders);
+    margin_ = VirtualToPhysical(vec4(margin.borders));
   }
 
   // Generic element with user supplied renderer.

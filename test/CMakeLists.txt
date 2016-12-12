@@ -15,6 +15,13 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(flatuitest)
 
+# gtest seems to prefer the non-DLL runtime on Windows, which conflicts with
+# everything else.
+option(
+  gtest_force_shared_crt
+  "Use shared (DLL) run-time lib even when Google Test is built as static lib."
+  ON)
+
 # Import gmock if it is not already present.
 # Note: gmock includes gtest.
 if(NOT TARGET gtest OR NOT TARGET gmock)

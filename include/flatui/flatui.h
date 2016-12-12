@@ -297,7 +297,7 @@ struct Margin {
   /// @brief Create a Margin with all four sides of equal size.
   ///
   /// @param[in] m A float size to be used as the margin on all sides.
-  Margin(float m) : borders(m) {}
+  Margin(float m) : borders(mathfu::vec4(m)) {}
 
   /// @brief Create a Margin with the left and right sizes of `x`, and top
   /// and bottom sizes of `y`.
@@ -306,7 +306,7 @@ struct Margin {
   /// right sides.
   /// @param[in] y A float size to be used as the margin for the right and
   /// left sides.
-  Margin(float x, float y) : borders(x, y, x, y) {}
+  Margin(float x, float y) : borders(mathfu::vec4(x, y, x, y)) {}
 
   // Create a margin specifying all 4 sides individually.
   /// @brief Creates a margin specifying all four sides individually.
@@ -317,7 +317,7 @@ struct Margin {
   /// @param[in] bottom A float size to be used as the margin for the bottom
   /// side.
   Margin(float left, float top, float right, float bottom)
-      : borders(left, top, right, bottom) {}
+      : borders(mathfu::vec4(left, top, right, bottom)) {}
 
   /// @var borders
   ///
@@ -325,7 +325,7 @@ struct Margin {
   /// four sides of the margin.
   ///
   /// The internal layout of the margin is: `left`, `top`, `right`, `bottom`.
-  mathfu::vec4 borders;
+  mathfu::vec4_packed borders;
 };
 
 /// @brief Converts a virtual screen coordinate to a physical value.
@@ -984,7 +984,7 @@ inline double AnimationTimeRemaining(const char *id) {
 /// curve a steeper ease-in. If the curve is overdetermined, the desired start
 /// velocities might not be achieved.
 template <typename T>
-T Animatable(HashedId id, T starting_value, T starting_velocity) {
+T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
   const float *motion = details::Animatable(
       id, details::FloatConverter<T>::ToFloatArray(starting_value),
       details::FloatConverter<T>::ToFloatArray(starting_velocity),
@@ -1010,7 +1010,8 @@ T Animatable(HashedId id, T starting_value, T starting_velocity) {
 /// curve a steeper ease-in. If the curve is overdetermined, the desired start
 /// velocities might not be achieved.
 template <typename T>
-T Animatable(const char *id, T starting_value, T starting_velocity) {
+T Animatable(const char *id, const T& starting_value,
+             const T& starting_velocity) {
   return Animatable<T>(HashId(id), starting_value, starting_velocity);
 }
 
@@ -1027,7 +1028,8 @@ T Animatable(const char *id, T starting_value, T starting_velocity) {
 /// desired end velocities might not be achieved.
 /// @param[in] description A description of the curve's typical shape.
 template <typename T>
-void StartAnimation(HashedId id, T target_value, T target_velocity,
+void StartAnimation(HashedId id, const T& target_value,
+                    const T& target_velocity,
                     const AnimCurveDescription &description) {
   details::StartAnimation(
       id, details::FloatConverter<T>::ToFloatArray(target_value),
@@ -1048,7 +1050,8 @@ void StartAnimation(HashedId id, T target_value, T target_velocity,
 /// desired end velocities might not be achieved.
 /// @param[in] description A description of the curve's typical shape.
 template <typename T>
-void StartAnimation(const char *id, T target_value, T target_velocity,
+void StartAnimation(const char *id, const T& target_value,
+                    const T& target_velocity,
                     const AnimCurveDescription &description) {
   StartAnimation<T>(HashId(id), target_value, target_velocity, description);
 }

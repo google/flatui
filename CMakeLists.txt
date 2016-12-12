@@ -28,7 +28,14 @@ set(tmp_dir ${CMAKE_CURRENT_BINARY_DIR}/obj)
 # Call fplutil to get locations of dependencies and set common build settings.
 include("cmake/find_fplutil.cmake")
 include("${fplutil_dir}/buildutil/cmake_common.txt")
-set_common_build_variables()
+
+# Temporarily suppress these Visual Studio warnings.
+# TODO(hakuro): fix code so these warnings aren't generated.
+if(MSVC)
+  set(flatui_temporarily_suppressed_warnings
+      "/wd4245 /wd4267 /wd4244 /wd4800 /wd4456 /wd4305 /wd4804")
+endif()
+set_common_build_variables(${flatui_temporarily_suppressed_warnings})
 
 set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
     CACHE PATH "Directory containing the harfbuzz cmake project.")
@@ -135,6 +142,9 @@ if(use_pregenerated_headers)
 endif()
 include_directories(${dependencies_mathfu_dir}/include)
 include_directories(${dependencies_fplbase_dir}/include)
+if(WIN32)
+  include_directories(${dependencies_fplbase_dir}/external/include)
+endif()
 include_directories(${dependencies_motive_dir}/include)
 include_directories(${dependencies_fplutil_dir}/libfplutil/include)
 include_directories(${dependencies_flatbuffers_dir}/include)

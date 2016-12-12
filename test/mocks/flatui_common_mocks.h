@@ -31,8 +31,6 @@ class FlatUICommonMocks {
     return mocks;
   };
 
-  MOCK_METHOD2(SetHoverClickColor,
-               void(const mathfu::vec4&, const mathfu::vec4&));
   MOCK_METHOD3(TextButton, Event(const char*, float, const Margin&));
   MOCK_METHOD4(ImageButton, Event(const fplbase::Texture&, float, const Margin&,
                                   const char*));

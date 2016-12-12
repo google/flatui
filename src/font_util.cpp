@@ -62,7 +62,7 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
 // text.
 static std::string &StartHtmlLine(const char *prefix, std::string *out) {
   // Trim trailing whitespace.
-  while (std::isspace(out->back())) out->pop_back();
+  while (!out->empty() && std::isspace(out->back())) out->pop_back();
 
   // Append the new lines in `prefix`.
   if (!out->empty()) {

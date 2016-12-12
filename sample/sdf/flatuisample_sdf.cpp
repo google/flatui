@@ -53,7 +53,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   // Use a same font size all glyph to demonstrate SDF.
   const int32_t kMinGlyphSize = 36;
   const int32_t kMaxGlyphSize = 70;
-  fontman.SetSizeSelector([](const int32_t){ return kMinGlyphSize; });
+  fontman.SetSizeSelector([=](const int32_t) { return kMinGlyphSize; });
   auto tex_circle = assetman.LoadTexture("textures/white_circle.webp");
   auto tex_bar = assetman.LoadTexture("textures/gray_bar.webp");
   assetman.StartLoadingTextures();
