@@ -958,18 +958,46 @@ void StartAnimation(HashedId id, const float *target_values,
 /// @brief Returns the time remaining for an animation.
 ///
 /// @param[in] A HashedId that uniquely identifies an animation.
+/// @return Returns a double representing the time remaining.
 double AnimationTimeRemaining(HashedId id);
 
 /// @brief Returns the time remaining for an animation.
 ///
 /// @param[in] A C-string in UTF-8 format that uniquely identifies an animation.
+/// @return Returns a double representing the time remaining.
 inline double AnimationTimeRemaining(const char *id) {
   return AnimationTimeRemaining(HashId(id));
 }
 
-/// @return Returns a value of type T.
+/// @brief This function adds a sprite, which will be drawn and then forgotten
+/// after it is finished firing.
 ///
-/// @brief This function creates a new animation if it doesn't already exist
+/// A sprite would be a UI element that gets drawn onto the screen with a
+/// limited lifespan. For this usage, the sprite could be, for example,
+/// an image or text.
+/// This makes it useful for situations where the user would want a temporary
+/// animation. For example, in a game, a sprite could be points that appear
+/// and drift off screen when a user earns points for a turn.
+/// The returned SequenceId is so that the application can recalculate the hash
+/// assigned to a specific sprite using its id and sequence number.
+/// An example of how to pass in a lambda for the draw parameter can be found in
+/// the FlatUI animation demo.
+/// @param[in] group_id A C-string in UTF-8 format that uniquely identifies an
+///               animation type.
+/// @param[in] draw A function that tells the program how to draw the sprite
+///                 associated with id.
+///
+/// @return Returns the SequenceId assigned to the sprite associated with id.
+SequenceId AddSprite(const char *group_id,
+                     const std::function<bool(SequenceId seq)> &draw);
+
+/// @brief Draws all the sprites created with 'group_id' in AddSprite().
+///
+/// @param[in] group_id A C-string in UTF-8 format that uniquely identifies an
+///            animation type.
+void DrawSprites(const char *group_id);
+
+/// @brief This function creates a new Motivator if it doesn't already exist
 /// and returns the current value of it.
 ///
 /// @warning This function only works if you have passed in a MotiveEngine
@@ -983,6 +1011,8 @@ inline double AnimationTimeRemaining(const char *id) {
 /// would mean our curve would start flat while a large velocity would give our
 /// curve a steeper ease-in. If the curve is overdetermined, the desired start
 /// velocities might not be achieved.
+///
+/// @return Returns a value of type T.
 template <typename T>
 T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
   const float *motion = details::Animatable(
@@ -992,8 +1022,6 @@ T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
   return details::FloatConverter<T>::FromFloatArray(motion);
 }
 
-/// @return Returns a value of type T.
-///
 /// @brief This function creates a new animation if it doesn't already exist
 /// and returns the current value of it.
 ///
@@ -1009,6 +1037,8 @@ T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
 /// would mean our curve would start flat while a large velocity would give our
 /// curve a steeper ease-in. If the curve is overdetermined, the desired start
 /// velocities might not be achieved.
+///
+/// @return Returns a value of type T.
 template <typename T>
 T Animatable(const char *id, const T& starting_value,
              const T& starting_velocity) {

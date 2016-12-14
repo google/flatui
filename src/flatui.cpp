@@ -62,6 +62,21 @@ struct Anim {
   motive::MotivatorNf motivator;
 };
 
+struct Sprite {
+  Sprite() : sequence_number(0), called_last_frame(false), group_hash(0) {}
+  Sprite(const std::function<bool(SequenceId seq)> &draw,
+         SequenceId sequence_number, bool called_last_frame,
+         HashedId group_hash)
+      : draw(draw),
+        sequence_number(sequence_number),
+        called_last_frame(called_last_frame),
+        group_hash(group_hash) {}
+  std::function<bool(SequenceId seq)> draw;
+  SequenceId sequence_number;
+  bool called_last_frame;
+  HashedId group_hash;
+};
+
 Direction GetDirection(Layout layout) {
   return static_cast<Direction>(layout & ~(kDirHorizontal - 1));
 }
@@ -890,6 +905,15 @@ class InternalState : public LayoutManager {
         it = persistent_.animations.erase(it);
       }
     }
+    for (auto it = persistent_.sprites.begin();
+         it != persistent_.sprites.end();) {
+      if (!it->called_last_frame) {
+        it = persistent_.sprites.erase(it);
+      } else {
+        it->called_last_frame = false;
+        ++it;
+      }
+    }
   }
 
   // Return the internal animation state for the API call to
@@ -982,6 +1006,31 @@ class InternalState : public LayoutManager {
       return static_cast<double>(current->motivator.TargetTime());
     }
     return 0.0;
+  }
+
+  SequenceId AddSprite(const char *group_id,
+                       const std::function<bool(SequenceId seq)> &draw) {
+    assert(motive_engine_);
+    HashedId group_hash = HashId(group_id);
+    persistent_.sprites.push_back(
+        Sprite(draw, persistent_.sprite_sequence_number, false, group_hash));
+    return persistent_.sprite_sequence_number++;
+  }
+
+  void DrawSprites(const char *group_id) {
+    HashedId group_hash = HashId(group_id);
+    auto it = persistent_.sprites.begin();
+    while (it != persistent_.sprites.end()) {
+      if (it->group_hash == group_hash) {
+        bool done_drawing = it->draw(it->sequence_number);
+        if (done_drawing) {
+          it = persistent_.sprites.erase(it);
+          continue;
+        }
+        it->called_last_frame = true;
+      }
+      ++it;
+    }
   }
 
   // Set scroll speed of the scroll group.
@@ -1449,7 +1498,10 @@ class InternalState : public LayoutManager {
 
   // Intra-frame persistent state.
   static struct PersistentState {
-    PersistentState() : is_last_event_pointer_type(true), initialized(false) {
+    PersistentState()
+        : is_last_event_pointer_type(true),
+          initialized(false),
+          sprite_sequence_number(0) {
       // This is effectively a global, so no memory allocation or other
       // complex initialization here.
       for (int i = 0; i < InputSystem::kMaxSimultanuousPointers; i++) {
@@ -1488,6 +1540,12 @@ class InternalState : public LayoutManager {
 
     // HashMap for storing animations.
     std::unordered_map<HashedId, Anim> animations;
+
+    // Vector for storing sprites.
+    std::vector<Sprite> sprites;
+
+    // Variable to keep track of how many sprites have been added.
+    SequenceId sprite_sequence_number;
   } persistent_;
 
   // Disable copy constructor.
@@ -1741,5 +1799,12 @@ void StartAnimation(HashedId id, const float *target_values,
 double AnimationTimeRemaining(HashedId id) {
   return Gui()->AnimationTimeRemaining(id);
 }
+
+SequenceId AddSprite(const char *id,
+                     const std::function<bool(SequenceId seq)> &draw) {
+  return Gui()->AddSprite(id, draw);
+}
+
+void DrawSprites(const char *id) { Gui()->DrawSprites(id); }
 
 }  // namespace flatui
