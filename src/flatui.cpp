@@ -43,8 +43,22 @@ enum FontShaderType {
   kFontShaderTypeCount,
 };
 
+// Enum indicating the current state of an anim.
+// kNotCalledLastFrame: animation was not called last frame.
+// kAnimating: Animatable() has been called to read the animation values.
+// Animation should not be cleared this frame.
+// kHasTargetButNoStartingValues: Target values specified with StartAnimation()
+// but starting values must be specified with Animatable() before we enter the
+// kAnimatingState. As always, animation will be removed unless Animatable()
+// is called this frame.
+enum AnimLastFrameState {
+  kNotCalledLastFrame = 0,
+  kAnimating,
+  kHasTargetButNoStartingValues,
+};
+
 struct Anim {
-  bool called_last_frame;
+  AnimLastFrameState anim_state;
   motive::MotivatorNf motivator;
 };
 
@@ -56,6 +70,11 @@ Alignment GetAlignment(Layout layout) {
   return static_cast<Alignment>(layout & (kDirHorizontal - 1));
 }
 
+// Since the largest type we currently expose in the external API is
+// mathfu::vec4, our max dimensions is 4. If this changes, the code inside of
+// StartAnimation and Animatable should be adjusted to use std::vectors instead
+// of constant arrays.
+static const int kMaxAnimationDimensions = 4;
 static const float kScrollSpeedDragDefault = 2.0f;
 static const float kScrollSpeedWheelDefault = 16.0f;
 static const float kScrollSpeedGamepadDefault = 0.1f;
@@ -864,8 +883,8 @@ class InternalState : public LayoutManager {
   void Clean() {
     for (auto it = persistent_.animations.begin();
          it != persistent_.animations.end();) {
-      if (it->second.called_last_frame) {
-        it->second.called_last_frame = false;
+      if (it->second.anim_state == kAnimating) {
+        it->second.anim_state = kNotCalledLastFrame;
         ++it;
       } else {
         it = persistent_.animations.erase(it);
@@ -884,34 +903,75 @@ class InternalState : public LayoutManager {
     return it != persistent_.animations.end() ? &(it->second) : nullptr;
   }
 
+  Anim *CreateAnim(HashedId id, const float *starting_values,
+                   const float *starting_velocities, int dimensions) {
+    Anim *anim = &persistent_.animations[id];
+    anim->motivator.Initialize(
+        motive::EaseInEaseOutInit(starting_values, starting_velocities),
+        motive_engine_, dimensions);
+    return anim;
+  }
+
   // Create a new Motivator if it isn't found in our hashmap and initialize it
-  // with starting values. Return the current value of the motivator.
+  // with starting values.
+  // Return the current value of the motivator.
   const float *Animatable(HashedId id, const float *starting_values,
                           const float *starting_velocities, int dimensions) {
-    assert(motive_engine_);
+    assert(motive_engine_ && 0 <= dimensions &&
+           dimensions <= kMaxAnimationDimensions);
     Anim *current = FindAnim(id);
-    if (!current) {
-      current = &persistent_.animations[id];
-      current->motivator.Initialize(
-          motive::EaseInEaseOutInit(starting_values, starting_velocities),
-          motive_engine_, dimensions);
+
+    // If an anim is found but has the state kHasTargetButNoStartingValues,
+    // set the starting values and velocities while maintaining target values
+    // and velocities.
+    bool maintain_current_target =
+        current && current->anim_state == kHasTargetButNoStartingValues;
+    float target_values[kMaxAnimationDimensions];
+    float target_velocities[kMaxAnimationDimensions];
+    MotiveCurveShape target_shape;
+    if (maintain_current_target) {
+      current->motivator.TargetValues(target_values);
+      current->motivator.TargetVelocities(target_velocities);
+      target_shape = current->motivator.MotiveShape();
     }
-    current->called_last_frame = true;
+
+    if (!current) {
+      current =
+          CreateAnim(id, starting_values, starting_velocities, dimensions);
+    }
+
+    if (maintain_current_target) {
+      current->motivator.SetTargetWithShape(target_values, target_velocities,
+                                            target_shape);
+    }
+
+    current->anim_state = kAnimating;
     return current->motivator.Values();
   }
 
   // Set the target value and velocity to which the motivator animates.
   void StartAnimation(HashedId id, const float *target_values,
-                      const float *target_velocities,
+                      const float *target_velocities, const int dimensions,
                       const AnimCurveDescription &description) {
     Anim *current = FindAnim(id);
-    if (current) {
-      const MotiveCurveShape target(description.typical_delta_distance,
-                                    description.typical_total_time,
-                                    description.bias);
-      current->motivator.SetTargetWithShape(target_values, target_velocities,
-                                            target);
+    if (!current) {
+      // Our expected use case is only up to 4 dimensions. If you
+      // hit an issue with this assert, use a vector instead for starting
+      // values and velocities and pass in vector.data() to Initialize.
+      assert(0 <= dimensions && dimensions <= kMaxAnimationDimensions);
+      // Create a motivator just to store the target values and velocities. The
+      // start values and velocities will be set in Animatable().
+      current = CreateAnim(id, mathfu::kZeros4f.data_, mathfu::kZeros4f.data_,
+                           dimensions);
+      current->anim_state = kHasTargetButNoStartingValues;
     }
+
+    // Set it towards the target shape.
+    const MotiveCurveShape target(description.typical_delta_distance,
+                                  description.typical_total_time,
+                                  description.bias);
+    current->motivator.SetTargetWithShape(target_values, target_velocities,
+                                          target);
   }
 
   // Return the time remaining until the animation asssociated with id is
@@ -1444,7 +1504,8 @@ void Run(fplbase::AssetManager &assetman, FontManager &fontman,
   InternalState internal_state(assetman, fontman, input, motive_engine);
 
   // run through persistent_.animations, removing animation that has
-  // called_last_frame as false and set all "called_last_frame" to be false
+  // anim_state as kNotCalledLastFrame or KHasTargetButNoStartingValues and
+  // set all "anim_state" to be kNotCalledLastFrame
   state->Clean();
 
   // Run two passes, one for layout, one for rendering.
@@ -1668,9 +1729,10 @@ const float *Animatable(HashedId id, const float *starting_values,
 }
 
 void StartAnimation(HashedId id, const float *target_values,
-                    const float *target_velocities,
+                    const float *target_velocities, int dimensions,
                     const AnimCurveDescription &description) {
-  Gui()->StartAnimation(id, target_values, target_velocities, description);
+  Gui()->StartAnimation(id, target_values, target_velocities, dimensions,
+                        description);
 }
 
 }  // namespace details

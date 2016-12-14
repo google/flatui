@@ -950,7 +950,7 @@ const float *Animatable(HashedId id, const float *starting_values,
 // represented by a float pointer instead. The user will call the templated
 // version of StartAnimation().
 void StartAnimation(HashedId id, const float *target_values,
-                    const float *target_velocities,
+                    const float *target_velocities, int dimensions,
                     const AnimCurveDescription &description);
 
 }  // namespace details
@@ -1018,6 +1018,8 @@ T Animatable(const char *id, const T& starting_value,
 /// @brief This function sets the target value and velocity to which an
 /// animation, that is identified by id, animates.
 ///
+/// It also creates a new animation if it doesn't already exist.
+///
 /// @param[in] id A HashedId that uniquely identifies an animation.
 /// @param[in] target_value An array of length dimensions that contains
 /// the value we want our curve to end at.
@@ -1033,11 +1035,14 @@ void StartAnimation(HashedId id, const T& target_value,
                     const AnimCurveDescription &description) {
   details::StartAnimation(
       id, details::FloatConverter<T>::ToFloatArray(target_value),
-      details::FloatConverter<T>::ToFloatArray(target_velocity), description);
+      details::FloatConverter<T>::ToFloatArray(target_velocity),
+      details::FloatConverter<T>::Dimension(), description);
 }
 
 /// @brief This function sets the target value and velocity to which an
 /// animation, that is identified by id, animates.
+///
+/// It also creates a new animation if it doesn't already exist.
 ///
 /// @param[in] id A C-string in UTF-8 format that uniquely identifies an
 ///               animation.
