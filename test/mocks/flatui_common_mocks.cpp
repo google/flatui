@@ -16,11 +16,6 @@
 
 namespace flatui {
 
-void SetHoverClickColor(const mathfu::vec4 &hover_color,
-                        const mathfu::vec4 &click_color) {
-  FlatUICommonMocks::get_mocks().SetHoverClickColor(hover_color, click_color);
-}
-
 Event TextButton(const char *text, float size, const Margin &margin) {
   return FlatUICommonMocks::get_mocks().TextButton(text, size, margin);
 }

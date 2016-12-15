@@ -22,28 +22,39 @@
 #include "fplbase/shader.h"
 #include "fplbase/utilities.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
-#include "stb_image.h"
-
-// STB_image to resize PNG glyph.
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-// Disable warnings in STB_image_resize.
-#ifdef _MSC_VER
+// Disable warnings in external headers.
+#if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable : 4100)  // Disable 'unused reference' warning.
-#else
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif /* _MSC_VER */
+#pragma GCC diagnostic ignored "-Wunused-function"
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-function"
+#endif  // defined(_MSC_VER)
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+
+// STB_image to resize PNG glyph.
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+
+#include "stb_image.h"
 #include "stb_image_resize.h"
+
 // Pop warning status.
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #pragma warning(pop)
-#else
+#elif defined(__GNUC__)
 #pragma GCC diagnostic pop
-#endif
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#endif  // defined(_MSC_VER)
 
 namespace fplbase {
 
@@ -121,6 +132,8 @@ bool LoadFile(const char*, std::string*) { return false; }
 bool LoeadWithIncludes(const char*, std::string*, std::string*) {
   return false;
 }
+const void *MapFile(const char*, int32_t, int32_t*) { return nullptr; }
+void UnmapFile(const void*, int32_t) {}
 #ifdef __ANDROID__
 JNIEnv* AndroidGetJNIEnv() { return nullptr; }
 int32_t AndroidGetApiLevel() { return 0; }

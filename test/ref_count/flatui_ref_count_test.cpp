@@ -55,6 +55,7 @@ class FlatUIRefCountTest : public ::testing::Test {
     // Set the local directory to the assets folder for this sample.
     bool result = fplbase::ChangeToUpstreamDir("../", "assets");
     assert(result);
+    (void)result;
 
     // Open OpenType font.
     font_manager_->Open("fonts/NotoSansCJKjp-Bold.otf");
