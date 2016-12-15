@@ -38,7 +38,7 @@ LOCAL_EXPORT_C_INCLUDES := \
 LOCAL_C_INCLUDES := \
   $(LOCAL_EXPORT_C_INCLUDES) \
   $(DEPENDENCIES_FREETYPE_DIR)/include \
-  $(DEPENDENCIES_GUMBO_DIR)/src \
+  $(DEPENDENCIES_GUMBO_INCLUDE_DIR) \
   $(DEPENDENCIES_HARFBUZZ_DIR)/src \
   $(DEPENDENCIES_LIBUNIBREAK_DIR)/src \
   $(DEPENDENCIES_STB_DIR) \
@@ -98,6 +98,7 @@ $(call import-add-path,$(DEPENDENCIES_MATHFU_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_MOTIVE_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FPLBASE_DIR)/..)
 $(call import-add-path,$(DEPENDENCIES_FPLUTIL_DIR)/libfplutil/..)
+$(call import-add-path,$(DEPENDENCIES_FLATUI_DIR)/jni)
 
 $(call import-module,flatbuffers/android/jni)
 $(call import-module,mathfu/jni)

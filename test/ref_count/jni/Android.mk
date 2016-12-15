@@ -14,7 +14,7 @@
 
 LOCAL_PATH := $(call my-dir)/..
 
-FLATUI_DIR := $(LOCAL_PATH)/../../..
+FLATUI_DIR := $(LOCAL_PATH)/../..
 include $(FLATUI_DIR)/jni/android_config.mk
 
 include $(CLEAR_VARS)
@@ -27,7 +27,7 @@ LOCAL_C_INCLUDES := \
   $(FLATUI_DIR) \
   $(FLATUI_DIR)/include \
   $(FLATUI_DIR)/include/flatui \
-  $(FLATUI_DIR)/test/unit_tests \
+  $(FLATUI_DIR)/test \
   $(FLATUI_DIR)/external/include/harfbuzz \
   $(FLATUI_GENERATED_OUTPUT_DIR) \
   $(DEPENDENCIES_FPLBASE_DIR)/gen/include \
@@ -49,6 +49,8 @@ LOCAL_STATIC_LIBRARIES := \
   libgtest \
   libgmock \
   libflatui
+
+LOCAL_CFLAGS := $(FPL_CFLAGS)
 
 include $(BUILD_SHARED_LIBRARY)
 
