@@ -21,7 +21,7 @@ include $(FLATUI_DIR)/jni/android_config.mk
 FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
 FLATUI_RELATIVEPATH:=$(call realpath-portable,$(FLATUI_DIR))
 
-# realpath-portable from fplutil/buildutil/android_common.mk
+# realpath-portable from android_config.mk
 LOCAL_PATH:=$(call realpath-portable,$(DEPENDENCIES_GUMBO_DIR))
 
 ###########################
@@ -29,7 +29,7 @@ LOCAL_PATH:=$(call realpath-portable,$(DEPENDENCIES_GUMBO_DIR))
 # Gumbo build
 #
 ###########################
-ifeq ($(wildcard $(DEPENDENCIES_GUMBO_DIR)/src),)
+ifeq ($(wildcard DEPENDENCIES_GUMBO_DIR/src),)
   # Gumbo 0.9.0
   GUMBO_SRC_FILES := \
       attribute.c \
