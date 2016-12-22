@@ -959,7 +959,7 @@ class InternalState : public LayoutManager {
       target_shape = current->motivator.MotiveShape();
     }
 
-    if (!current) {
+    if (!current || maintain_current_target) {
       current =
           CreateAnim(id, starting_values, starting_velocities, dimensions);
     }
