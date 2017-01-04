@@ -289,6 +289,11 @@ enum Layout {
 /// @brief A sentinel value for group IDs.
 const char *const kDefaultGroupID = "__group_id__";
 
+/// @var kDefaultImageID
+///
+/// @brief A sentinel value for image IDs.
+const char *const kDefaultImageID = "__image_id__";
+
 /// @struct Margin
 ///
 /// @brief Specifies the margins for a group, in units of virtual
@@ -353,10 +358,12 @@ float GetScale();
 /// @param[in] texture A Texture corresponding to the image that should be
 /// rendered.
 /// @param[in] ysize A float containing the vertical size in virtual resolution.
+/// @param[in] id An id to uniquely identify the image.
 ///
 /// @note The x-size will be derived automatically based on the image
 /// dimensions.
-void Image(const fplbase::Texture &texture, float ysize);
+void Image(const fplbase::Texture &texture, float ysize,
+           const char *id = kDefaultImageID);
 
 /// @brief Render a label as a GUI element.
 ///

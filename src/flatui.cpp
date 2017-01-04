@@ -279,8 +279,8 @@ class InternalState : public LayoutManager {
   }
 
   // An image element.
-  void Image(const Texture &texture, float ysize) {
-    auto hash = HashPointer(&texture);
+  void Image(const Texture &texture, float ysize, const char *id) {
+    auto hash = HashId(id);
     if (layout_pass_) {
       auto virtual_image_size = vec2(
           texture.original_size().x * ysize / texture.original_size().y, ysize);
@@ -1595,7 +1595,9 @@ InternalState *Gui() {
   return state;
 }
 
-void Image(const Texture &texture, float size) { Gui()->Image(texture, size); }
+void Image(const Texture &texture, float size, const char *id) {
+  Gui()->Image(texture, size, id);
+}
 
 void Label(const char *text, float font_size) {
   auto size = vec2(0, font_size);
