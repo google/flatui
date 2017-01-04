@@ -970,10 +970,30 @@ double AnimationTimeRemaining(HashedId id);
 
 /// @brief Returns the time remaining for an animation.
 ///
-/// @param[in] A C-string in UTF-8 format that uniquely identifies an animation.
+/// @param[in] id A C-string in UTF-8 format that uniquely identifies
+/// an animation.
+///
 /// @return Returns a double representing the time remaining.
 inline double AnimationTimeRemaining(const char *id) {
   return AnimationTimeRemaining(HashId(id));
+}
+
+/// @brief This function returns the current number of sprites animating on
+/// screen.
+///
+/// @param[in] id A HashedId that identifies an animation type.
+///
+/// @returns Returns the size_t associated with the size of the sprites vector.
+int NumActiveSprites(HashedId id);
+
+/// @brief This function returns the current number of sprites animating on
+/// screen.
+///
+/// @param[in] id A C-string in UTF-8 format that identifies an animation type.
+///
+/// @returns Returns the size_t associated with the size of the sprites vector.
+inline int NumActiveSprites(const char *id) {
+  return NumActiveSprites(HashId(id));
 }
 
 /// @brief This function adds a sprite, which will be drawn and then forgotten

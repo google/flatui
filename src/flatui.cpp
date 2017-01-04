@@ -1008,6 +1008,17 @@ class InternalState : public LayoutManager {
     return 0.0;
   }
 
+  int NumActiveSprites(HashedId id) {
+    int num_active_sprites = 0;
+    for (auto it = persistent_.sprites.begin();
+         it != persistent_.sprites.end(); ++it) {
+      if (it->group_hash == id) {
+        num_active_sprites++;
+      }
+    }
+    return num_active_sprites;
+  }
+
   SequenceId AddSprite(const char *group_id,
                        const std::function<bool(SequenceId seq)> &draw) {
     assert(motive_engine_);
@@ -1801,6 +1812,8 @@ void StartAnimation(HashedId id, const float *target_values,
 double AnimationTimeRemaining(HashedId id) {
   return Gui()->AnimationTimeRemaining(id);
 }
+
+int NumActiveSprites(HashedId id) { return Gui()->NumActiveSprites(id);}
 
 SequenceId AddSprite(const char *id,
                      const std::function<bool(SequenceId seq)> &draw) {
