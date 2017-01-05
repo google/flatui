@@ -50,6 +50,22 @@ Event ImageButton(const Texture &texture, float size, const Margin &margin,
   return event;
 }
 
+Event ToggleImageButton(const fplbase::Texture &up_texture,
+                          const fplbase::Texture &down_texture,
+                          float size, const Margin &margin, const char *id) {
+  StartGroup(kLayoutVerticalLeft, size, id);
+  SetMargin(margin);
+  auto event = CheckEvent();
+  EventBackground(event);
+  if (event & kEventIsDown) {
+    Image(down_texture, size);
+  } else {
+    Image(up_texture, size);
+  }
+  EndGroup();
+  return event;
+}
+
 Event TextButton(const char *text, float size, const Margin &margin) {
   StartGroup(kLayoutVerticalLeft, size, text);
   SetMargin(margin);
