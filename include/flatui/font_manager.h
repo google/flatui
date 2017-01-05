@@ -25,6 +25,7 @@
 #include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/flatui_util.h"
 #include "flatui/internal/hb_complex_font.h"
+#include "flatui/internal/hyphenator.h"
 
 #if defined(__APPLE__) || defined(__ANDROID__)
 #define FLATUI_SYSTEM_FONT (1)
@@ -307,6 +308,8 @@ class FontBufferParameters {
   /// info.
   /// @param[in] ref_count A bool determining if the FontBuffer manages
   /// reference counts of the buffer and referencing glyph cache rows.
+  /// @param[in] enable_hyphenation A bool determining if the hyphenation is
+  /// enabled for the FontBuffer.
   /// @param[in] rtl_layout A bool determining if the FontBuffer is for RTL
   /// (right to left) layout.
   /// @param[in] kerning_scale A float value specifying a scale applied to the
@@ -320,7 +323,7 @@ class FontBufferParameters {
   FontBufferParameters(HashedId font_id, HashedId text_id, float font_size,
                        const mathfu::vec2i &size, TextAlignment text_alignment,
                        GlyphFlags glyph_flags, bool caret_info, bool ref_count,
-                       bool rtl_layout = false,
+                       bool enable_hyphenation = false, bool rtl_layout = false,
                        float kerning_scale = kKerningScaleDefault,
                        float line_height_scale = kLineHeightDefault,
                        HashedId cache_id = kNullHash) {
@@ -337,6 +340,7 @@ class FontBufferParameters {
     flags_.caret_info = caret_info;
     flags_.ref_count = ref_count;
     flags_.rtl_layout = rtl_layout;
+    flags_.enable_hyphenation = enable_hyphenation;
   }
 
   /// @brief The equal-to operator for comparing FontBufferParameters for
@@ -429,6 +433,9 @@ class FontBufferParameters {
   /// @return Returns a flag indicating if the buffer is for RTL layout.
   bool get_rtl_layout_flag() const { return flags_.rtl_layout; }
 
+  /// @return Returns a flag indicating if the hyphenation is enabled.
+  bool get_enable_hyphenation_flag() const { return flags_.enable_hyphenation; }
+
   /// Retrieve a line length of the text based on given parameters.
   /// a fixed line length (get_size.x) will be used if the text is justified
   /// or right aligned otherwise the line length will be determined by the text
@@ -479,6 +486,7 @@ class FontBufferParameters {
     bool ref_count : 1;
     bool caret_info : 1;
     bool rtl_layout : 1;
+    bool enable_hyphenation : 1;
     GlyphFlags glyph_flags : 2;
     TextAlignment text_alignement : 3;
   };
@@ -789,6 +797,25 @@ class FontManager {
     layout_direction_ = direction;
   }
 
+  /// @brief Set up hyphenation pattern path.
+  /// Since the hyphenation pattern is different per locale, current locale
+  /// needs to be set properly for the hyphnation to work.
+  ///
+  /// @param[in] hyb_path A file path to search the hyb (dictionary files
+  /// required for the hyphenation process. On Android,
+  /// "/system/usr/hyphen-data" is the default search path.
+  ///
+  void SetupHyphenationPatternPath(const char *hyb_path) {
+    if (hyb_path != nullptr) {
+      hyb_path_ = hyb_path;
+    }
+    if (!hyphenation_rule_.empty() && !hyb_path_.empty()) {
+      std::string pattern_file =
+          hyb_path_ + "/hyph-" + hyphenation_rule_ + ".hyb";
+      hyphenator_.Open(pattern_file.c_str());
+    }
+  }
+
   /// @return Returns the current layout direciton.
   TextLayoutDirection GetLayoutDirection() { return layout_direction_; }
 
@@ -846,7 +873,9 @@ class FontManager {
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
   int32_t LayoutText(const char *text, size_t length, int32_t max_width = 0,
-                     int32_t current_width = 0, int32_t *rewind = nullptr);
+                     int32_t current_width = 0, bool last_line = false,
+                     bool enable_hyphenation = false,
+                     int32_t *rewind = nullptr);
 
   // Helper function to add string information to the buffer.
   bool UpdateBuffer(const WordEnumerator &word_enum,
@@ -924,6 +953,10 @@ class FontManager {
 
   // Update language related settings.
   void SetLanguageSettings();
+
+  // Hyphenate given string and layout it.
+  int32_t Hyphenate(const char *text, size_t length, int32_t available_space,
+                    int32_t *rewind);
 
   // Apply HtmlFontSection settings while parsing HTML text.
   void SetFontProperties(const HtmlSection &font_section,
@@ -1043,6 +1076,11 @@ class FontManager {
   // Ellipsis settings.
   std::string ellipsis_;
   EllipsisMode ellipsis_mode_;
+
+  // Hyphenation settings.
+  std::string hyb_path_;
+  std::string hyphenation_rule_;
+  Hyphenator hyphenator_;
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;
@@ -1850,6 +1888,10 @@ struct ScriptInfo {
   /// @var script
   /// @brief ISO 15924 Script code.
   const char *script;
+
+  /// @var hyphenation
+  /// @brief Hyphenation rule.
+  const char *hyphenation;
 
   /// @var direction
   /// @brief Script layout direciton.

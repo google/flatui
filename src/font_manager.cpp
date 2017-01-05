@@ -28,6 +28,7 @@
 #include "fplbase/utilities.h"
 
 // libUnibreak header
+#include <unibreakdef.h>
 #include "linebreak.h"
 
 // STB_image to resize PNG glyph.
@@ -219,6 +220,10 @@ void FontManager::Initialize() {
   cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
   line_width_ = 0;
   ellipsis_mode_ = kEllipsisModeTruncateCharacter;
+
+#ifdef __ANDROID__
+  hyb_path_ = kAndroidDefaultHybPath;
+#endif  //__ANDROID__
 
   if (ft_ == nullptr) {
     ft_ = new FT_Library;
@@ -559,9 +564,13 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       // character etc.
 
       auto rewind = 0;
+      auto last_line =
+          size.y &&
+          total_height + static_cast<int32_t>(line_height) > size.y;
       auto word_width = static_cast<int32_t>(
           LayoutText(text + word_enum.GetCurrentWordIndex(),
                      word_enum.GetCurrentWordLength(), max_width, line_width_,
+                     last_line, parameters.get_enable_hyphenation_flag(),
                      &rewind) *
           scale);
       if (rewind) {
@@ -570,11 +579,11 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       }
 
       if (context->lastline_must_break() ||
-          ((line_width_ + word_width) / kFreeTypeUnit > size.x && size.x)) {
+          ((line_width_ + word_width) > max_width && size.x)) {
         auto new_pos = vec2(pos_start, pos.y + line_height);
         total_height += static_cast<int32_t>(line_height);
         first_character = context->lastline_must_break();
-        if (size.y && total_height > size.y && !caret_info) {
+        if (last_line && !caret_info) {
           // The text size exceeds given size.
           // Rewind the buffers and add an ellipsis if it's speficied.
           if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
@@ -591,12 +600,13 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         buffer->UpdateLine(parameters, layout_direction_, context);
         pos = new_pos;
 
-        if (word_width > max_width) {
+        if (word_width > max_width &&
+            !parameters.get_enable_hyphenation_flag()) {
           std::string s = std::string(&text[word_enum.GetCurrentWordIndex()],
                                       word_enum.GetCurrentWordLength());
           LogInfo(
               "A single word '%s' exceeded the given line width setting.\n"
-              "Currently multiline label doesn't support a hyphenation",
+              "Try enabling a hyphenation support.",
               s.c_str());
         }
         // Reset the line width.
@@ -1411,6 +1421,7 @@ bool FontManager::UpdatePass(bool start_subpass) {
 
 int32_t FontManager::LayoutText(const char *text, size_t length,
                                 int32_t max_width, int32_t current_width,
+                                bool last_line, bool enable_hyphenation,
                                 int32_t *rewind) {
   // Update language settings.
   SetLanguageSettings();
@@ -1429,6 +1440,7 @@ int32_t FontManager::LayoutText(const char *text, size_t length,
 
   // Retrieve a width of the string.
   float string_width = 0.0f;
+  auto available_space = max_width - current_width;
   for (uint32_t i = 0; i < glyph_count; ++i) {
     auto advance = static_cast<float>(glyph_pos[i].x_advance) * kerning_scale_;
     if (max_width && string_width + advance > max_width) {
@@ -1437,7 +1449,6 @@ int32_t FontManager::LayoutText(const char *text, size_t length,
 
       // Find a string length that fits to an avaialble space AND the available
       // space can have at least one letter.
-      auto available_space = max_width - current_width;
       while (string_width > available_space &&
              available_space >=
                  static_cast<float>(glyph_pos[0].x_advance) * kerning_scale_) {
@@ -1452,9 +1463,58 @@ int32_t FontManager::LayoutText(const char *text, size_t length,
       hb_buffer_set_length(harfbuzz_buf_, i);
       break;
     }
+
+    // Check hyphenation.
+    if (enable_hyphenation && !(last_line && ellipsis_.length()) &&
+        string_width + advance > available_space) {
+      return Hyphenate(text, length, available_space, rewind);
+    }
     string_width += advance;
   }
-  return static_cast<uint32_t>(string_width);
+  return static_cast<int32_t>(string_width);
+}
+
+int32_t FontManager::Hyphenate(const char *text, size_t length,
+                               int32_t available_space, int32_t *rewind) {
+  std::vector<uint8_t> result;
+  hyphenator_.Hyphenate(reinterpret_cast<const uint8_t *>(text), length,
+                        &result);
+
+  std::string hyphenating_str(text, length);
+  auto it = result.rbegin();
+  auto end = result.rend();
+  while (it != end) {
+    // Retrieve the last hyphenation point.
+    if (*it) {
+      // Generate text with a hyphen and layout it.
+      size_t hyphenation_point = result.size() - (it - result.rbegin()) - 1;
+      size_t idx = 0;
+      for (size_t i = 0; i < hyphenation_point; i++) {
+        ub_get_next_char_utf8(reinterpret_cast<const uint8_t *>(text), length,
+                              &idx);
+      }
+      *(hyphenating_str.begin() + idx) = '-';  // Using minus-hyphen here since
+                                               // hyphen ("‐") is not laid out
+                                               // correctly in some cases.
+
+      // Layout the text with a hyphen.
+      hb_buffer_clear_contents(harfbuzz_buf_);
+      auto width =
+          LayoutText(hyphenating_str.data(), idx + 1, 0, 0, false, rewind);
+
+      if (width < available_space) {
+        // Found a right hyphenation point.
+        *rewind = length - idx;
+        return width;
+      }
+    }
+    // Check with next hyphenation point.
+    it++;
+  }
+
+  // Didn't find any hyphenation point, restore buffer state and return.
+  hb_buffer_clear_contents(harfbuzz_buf_);
+  return LayoutText(text, length, 0, 0, false, rewind);
 }
 
 bool FontManager::UpdateMetrics(int32_t top, int32_t height,
@@ -1501,6 +1561,8 @@ void FontManager::SetLocale(const char *locale) {
   if (layout_info != nullptr) {
     SetLayoutDirection(layout_info->direction);
     SetScript(layout_info->script);
+    hyphenation_rule_ = layout_info->hyphenation;
+    SetupHyphenationPatternPath(nullptr);
   }
   locale_ = locale;
 

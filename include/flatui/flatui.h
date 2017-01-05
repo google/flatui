@@ -449,6 +449,10 @@ void SetTextOuterColor(const mathfu::vec4 &color, float size,
 /// Default value is 16.0f/255.0f.
 void EnableTextSDF(bool inner_sdf, bool outer_sdf, float threshold);
 
+/// @brief Enable/Disable the hyphenation in the text label.
+/// @param[in] enable A flag indicate hyphenation state.
+void EnableTextHyphenation(bool enable);
+
 /// @brief Set the Label's font.
 ///
 /// @param[in] font_name A C-string corresponding to the name of the font

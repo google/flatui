@@ -45,6 +45,8 @@ set(dependencies_freetype_cmake_dir "${CMAKE_MODULE_PATH}/freetype"
     CACHE PATH "Directory containing the freetype cmake project.")
 set(dependencies_libunibreak_cmake_dir "${CMAKE_MODULE_PATH}/libunibreak"
     CACHE PATH "Directory containing the libunibreak cmake project.")
+set(dependencies_hyphenation_patterns_cmake_dir "${CMAKE_MODULE_PATH}/hyphenation_patterns"
+    CACHE PATH "Directory containing the hyphenation pattern cmake project.")
 
 set(flatui_standalone_mode OFF)
 if("${CMAKE_CURRENT_LIST_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
@@ -75,7 +77,7 @@ set(mathfu_build_benchmarks OFF CACHE BOOL "")
 set(mathfu_build_tests OFF CACHE BOOL "")
 add_subdirectory(${dependencies_mathfu_dir} ${tmp_dir}/mathfu)
 
-# Include harfbuzz, gumbo, freetype, and libunibreak.
+# Include harfbuzz, gumbo, freetype, libunibreak, hyphenation patterns.
 if(NOT TARGET harfbuzz)
   set_compiler_flags_for_external_libraries()
   add_subdirectory("${dependencies_harfbuzz_cmake_dir}" ${tmp_dir}/harfbuzz)
@@ -96,6 +98,9 @@ if(NOT TARGET libunibreak)
   add_subdirectory("${dependencies_libunibreak_cmake_dir}"
     ${tmp_dir}/libunibreak)
   restore_compiler_flags()
+endif()
+if(NOT TARGET hyphenation_patterns)
+  add_subdirectory("${dependencies_hyphenation_patterns_cmake_dir}")
 endif()
 if(flatui_build_tests OR flatui_build_samples)
 # Add FPLbase
@@ -121,6 +126,7 @@ set(flatui_SRCS
     include/flatui/internal/flatui_util.h
     include/flatui/internal/flatui_layout.h
     include/flatui/internal/hb_complex_font.h
+    include/flatui/internal/hyphenator.h
     include/flatui/internal/micro_edit.h
     include/flatui/version.h
     src/font_manager.cpp
@@ -131,6 +137,7 @@ set(flatui_SRCS
     src/flatui_common.cpp
     src/glyph_cache.cpp
     src/hb_complex_font.cpp
+    src/hyphenator.cpp
     src/flatui_serialization.cpp
     src/script_table.cpp
     src/version.cpp)

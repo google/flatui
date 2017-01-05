@@ -129,6 +129,7 @@ class InternalState : public LayoutManager {
         text_kerning_scale_(kKerningScaleDefault),
         glyph_flags_(kGlyphFlagsNone),
         sdf_threshold_(kSDFThresholdDefault),
+        enable_hyphenation_(false),
         pointer_max_active_index_(kPointerIndexInvalid),
         gamepad_has_focus_element(false),
         default_focus_element_(kElementIndexInvalid),
@@ -335,6 +336,7 @@ class InternalState : public LayoutManager {
         fontman_.GetCurrentFont()->GetFontId(), HashId(ui_text->c_str()),
         static_cast<float>(size.y), physical_label_size, alignment,
         glyph_flags_, edit_status == kEditStatusInEdit, false,
+        enable_hyphenation_,
         fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
         text_kerning_scale_, text_line_height_scale_);
     auto buffer =
@@ -493,7 +495,7 @@ class InternalState : public LayoutManager {
     return FontBufferParameters(
         fontman_.GetCurrentFont()->GetFontId(), HashId(text),
         static_cast<float>(size.y), physical_label_size, alignment,
-        glyph_flags_, false, false,
+        glyph_flags_, false, false, enable_hyphenation_,
         fontman_.GetLayoutDirection() == kTextLayoutDirectionRTL,
         text_kerning_scale_, text_line_height_scale_, hash_id);
   }
@@ -1396,6 +1398,11 @@ class InternalState : public LayoutManager {
     sdf_threshold_ = threshold;
   }
 
+  // Enable/Disable hyphenation.
+  void EnableTextHyphenation(bool enable) {
+    enable_hyphenation_ = enable;
+  }
+
   void SetTextOuterColor(const mathfu::vec4 &color, float size,
                          const mathfu::vec2 &offset) {
     // Outer SDF need to be enabled to use the feature.
@@ -1483,6 +1490,8 @@ class InternalState : public LayoutManager {
   GlyphFlags glyph_flags_;
   // Threshold value for SDF rendering.
   float sdf_threshold_;
+
+  bool enable_hyphenation_;
 
   int pointer_max_active_index_;
   const Button *pointer_buttons_[InputSystem::kMaxSimultanuousPointers];
@@ -1682,6 +1691,10 @@ void RenderTextureNinePatch(const Texture &tex, const vec4 &patch_info,
 
 void EnableTextSDF(bool inner_sdf, bool outer_sdf, float threshold) {
   Gui()->EnableTextSDF(inner_sdf, outer_sdf, threshold);
+}
+
+void EnableTextHyphenation(bool enable) {
+  Gui()->EnableTextHyphenation(enable);
 }
 
 void SetTextOuterColor(const mathfu::vec4 &color, float size,
