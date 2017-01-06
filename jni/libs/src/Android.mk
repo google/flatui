@@ -58,6 +58,7 @@ LOCAL_SRC_FILES := \
   src/font_util.cpp \
   src/glyph_cache.cpp \
   src/hb_complex_font.cpp \
+  src/hyphenator.cpp \
   src/micro_edit.cpp \
   src/script_table.cpp \
   src/version.cpp
