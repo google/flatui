@@ -942,7 +942,7 @@ class InternalState : public LayoutManager {
   // with starting values.
   // Return the current value of the motivator.
   const float *Animatable(HashedId id, const float *starting_values,
-                          const float *starting_velocities, int dimensions) {
+                          int dimensions) {
     assert(motive_engine_ && 0 <= dimensions &&
            dimensions <= kMaxAnimationDimensions);
     Anim *current = FindAnim(id);
@@ -963,7 +963,7 @@ class InternalState : public LayoutManager {
 
     if (!current || maintain_current_target) {
       current =
-          CreateAnim(id, starting_values, starting_velocities, dimensions);
+          CreateAnim(id, starting_values, mathfu::kZeros4f.data_, dimensions);
     }
 
     if (maintain_current_target) {
@@ -1807,9 +1807,8 @@ const FlatUIVersion *GetFlatUIVersion() { return Gui()->GetFlatUIVersion(); }
 namespace details {
 
 const float *Animatable(HashedId id, const float *starting_values,
-                        const float *starting_velocities, int dimensions) {
-  return Gui()->Animatable(id, starting_values, starting_velocities,
-                           dimensions);
+                        int dimensions) {
+  return Gui()->Animatable(id, starting_values, dimensions);
 }
 
 void StartAnimation(HashedId id, const float *target_values,

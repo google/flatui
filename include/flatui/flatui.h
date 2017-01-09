@@ -955,7 +955,7 @@ class FloatConverter<mathfu::Vector<float, d>> {
 // variables represented by float pointers instead. The User will call
 // the templated version of Animatable().
 const float *Animatable(HashedId id, const float *starting_values,
-                        const float *starting_velocities, int dimensions);
+                        int dimensions);
 
 // Called by Animation() with its templated variable
 // represented by a float pointer instead. The user will call the templated
@@ -1037,18 +1037,12 @@ void DrawSprites(const char *group_id);
 /// @param[in] id A HashedId that uniquely identifies an animation.
 /// @param[in] starting_value An array of length dimensions that contains
 /// the value we want our curve to begin at.
-/// @param[in] starting_velocity An array of length dimensions that
-/// contains the velocity we want our curve to begin with. A velocity of 0.0f
-/// would mean our curve would start flat while a large velocity would give our
-/// curve a steeper ease-in. If the curve is overdetermined, the desired start
-/// velocities might not be achieved.
 ///
 /// @return Returns a value of type T.
 template <typename T>
-T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
+T Animatable(HashedId id, const T &starting_value) {
   const float *motion = details::Animatable(
       id, details::FloatConverter<T>::ToFloatArray(starting_value),
-      details::FloatConverter<T>::ToFloatArray(starting_velocity),
       details::FloatConverter<T>::Dimension());
   return details::FloatConverter<T>::FromFloatArray(motion);
 }
@@ -1063,17 +1057,11 @@ T Animatable(HashedId id, const T& starting_value, const T& starting_velocity) {
 ///               animation.
 /// @param[in] starting_value An array of length dimensions that contains
 /// the value we want our curve to begin at.
-/// @param[in] starting_velocity An array of length dimensions that
-/// contains the velocity we want our curve to begin with. A velocity of 0.0f
-/// would mean our curve would start flat while a large velocity would give our
-/// curve a steeper ease-in. If the curve is overdetermined, the desired start
-/// velocities might not be achieved.
 ///
 /// @return Returns a value of type T.
 template <typename T>
-T Animatable(const char *id, const T& starting_value,
-             const T& starting_velocity) {
-  return Animatable<T>(HashId(id), starting_value, starting_velocity);
+T Animatable(const char *id, const T &starting_value) {
+  return Animatable<T>(HashId(id), starting_value);
 }
 
 /// @brief This function sets the target value and velocity to which an

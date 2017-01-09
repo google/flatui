@@ -107,8 +107,8 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
                                  vec4(255.0f, 228.0f, 196.0f, 0.5f));
 
       // Create the button and check for input event.
-      bg = flatui::Animatable<vec4>(
-          "color_fading", kBackgroundColors[color_idx], mathfu::kZeros4f);
+      bg = flatui::Animatable<vec4>("color_fading",
+                                    kBackgroundColors[color_idx]);
 
       if (TextButton("background", 50, Margin(10)) & flatui::kEventWentUp) {
         color_idx = (color_idx + 1) % FPL_ARRAYSIZE(kBackgroundColors);
