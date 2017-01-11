@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(advanced)
-add_subdirectory(animation)
-add_subdirectory(basic)
-add_subdirectory(corgui)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
-add_subdirectory(text_html_label)
-add_subdirectory(text_layout)
-add_subdirectory(text_color_emoji)
+project(corgui)
+
+add_executable(corgui corgui.cpp)
+add_dependencies(corgui fplbase flatui)
+mathfu_configure_flags(corgui)
+target_link_libraries(corgui fplbase flatui)
+
+
+# FlatUI postprocess
+flatui_post_process(corgui "sample")

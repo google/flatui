@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,15 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 2.8.12)
 
-add_subdirectory(advanced)
-add_subdirectory(animation)
-add_subdirectory(basic)
-add_subdirectory(corgui)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
-add_subdirectory(text_html_label)
-add_subdirectory(text_layout)
-add_subdirectory(text_color_emoji)
+APP_PLATFORM := android-15
+APP_ABI:=armeabi armeabi-v7a mips x86 x86_64
+APP_STL := c++_static
+APP_MODULES := main
+
+APP_CPPFLAGS += -std=c++11 -Wno-literal-suffix
+
+
