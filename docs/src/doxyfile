@@ -756,6 +756,7 @@ INPUT                  = "index.md" \
                          "programmers_guide/api_reference.md" \
                          "../../include/flatui/flatui.h" \
                          "../../include/flatui/flatui_common.h" \
+                         "../../include/flatui/font_buffer.h" \
                          "../../include/flatui/font_manager.h" \
                          "../../readme.md"
 

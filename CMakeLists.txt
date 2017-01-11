@@ -119,6 +119,7 @@ endif()
 set(flatui_SRCS
     include/flatui/flatui.h
     include/flatui/flatui_common.h
+    include/flatui/font_buffer.h
     include/flatui/font_manager.h
     include/flatui/font_util.h
     include/flatui/internal/distance_computer.h
@@ -129,6 +130,7 @@ set(flatui_SRCS
     include/flatui/internal/hyphenator.h
     include/flatui/internal/micro_edit.h
     include/flatui/version.h
+    src/font_buffer.cpp
     src/font_manager.cpp
     src/font_systemfont.cpp
     src/font_util.cpp

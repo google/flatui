@@ -53,6 +53,7 @@ LOCAL_SRC_FILES := \
   src/flatui.cpp \
   src/flatui_common.cpp \
   src/flatui_serialization.cpp \
+  src/font_buffer.cpp \
   src/font_manager.cpp \
   src/font_systemfont.cpp \
   src/font_util.cpp \

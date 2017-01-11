@@ -310,7 +310,6 @@ std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
   for (size_t i = 0; i < slices.size(); ++i) {
     if (slices.at(i).get_underline()) {
       // Generate underline strips.
-      const int32_t kVerticesPerGlyph = 4;
       auto regions = slices.at(i).get_underline_info();
       for (size_t i = 0; i < regions.size(); ++i) {
         auto info = regions[i];
