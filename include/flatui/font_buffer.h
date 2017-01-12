@@ -583,31 +583,6 @@ class FontMetrics {
   int32_t external_leading_;
 };
 
-/// @class FontTexture
-///
-/// @brief This class is the actual Texture for fonts.
-class FontTexture : public fplbase::Texture {
- public:
-  /// @brief The default constructor for a FontTexture.
-  FontTexture()
-      : fplbase::Texture(nullptr, fplbase::kFormatLuminance,
-                         fplbase::kTextureFlagsClampToEdge) {}
-
-  /// @brief The destructor for FontTexture.
-  ~FontTexture() {}
-
-  /// @return Returns a const reference to the FontMetrics that specifies
-  /// the metrics parameters for the FontTexture.
-  const FontMetrics &metrics() const { return metrics_; }
-
-  /// @brief Sets the FontMetrics that specifies the metrics parameters for
-  /// the FontTexture.
-  void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
-
- private:
-  FontMetrics metrics_;
-};
-
 /// @struct FontVertex
 ///
 /// @brief This struct holds all the font vertex data.

@@ -199,20 +199,6 @@ class FontManager {
   /// it returns false.
   bool SelectFont(const FontFamily family_names[], int32_t count);
 
-  /// @brief Retrieve a texture with the given text.
-  ///
-  /// @note This API doesn't use the glyph cache, instead it writes the string
-  /// image directly to the returned texture. The user can use this API when a
-  /// font texture is used for a long time, such as a string image used in game
-  /// HUD.
-  ///
-  /// @param[in] text A C-string in UTF-8 format with the text for the texture.
-  /// @param[in] length The length of the text string.
-  /// @param[in] ysize The height of the texture.
-  ///
-  /// @return Returns a pointer to the FontTexture.
-  FontTexture *GetTexture(const char *text, uint32_t length, float ysize);
-
   /// @brief Retrieve a vertex buffer for a font rendering using glyph cache.
   ///
   /// @param[in] text A C-string in UTF-8 format with the text for the
@@ -441,13 +427,6 @@ class FontManager {
   // to use the class.
   static void Terminate();
 
-  // Expand a texture image buffer when the font metrics is changed.
-  // Returns true if the image buffer was reallocated.
-  static bool ExpandBuffer(int32_t width, int32_t height,
-                           const FontMetrics &original_metrics,
-                           const FontMetrics &new_metrics,
-                           std::unique_ptr<uint8_t[]> *image);
-
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
   int32_t LayoutText(const char *text, size_t length, int32_t max_width = 0,
@@ -600,12 +579,6 @@ class FontManager {
 
   // Pointer to active font face instance.
   HbFont *current_font_;
-
-  // Texture cache for a rendered string image.
-  // Using the FontBufferParameters as keys.
-  // The map is used for GetTexture() API.
-  std::unordered_map<FontBufferParameters, std::unique_ptr<FontTexture>,
-                     FontBufferParameters> map_textures_;
 
   // Cache for a texture atlas + vertex array rendering.
   // Using the FontBufferParameters as keys.
