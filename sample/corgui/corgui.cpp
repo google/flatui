@@ -83,13 +83,14 @@ static const float kYPointsSizeStart = 20.0f;
 static const int kEvolutionPoint = 100;
 static const int kClickScore = 10;
 static const char kCorguiTitleBanner[] = "CorgUI";
-static const char points[] = "points_ascending";
-static const char flash_id[] = "text_flashing";
-static const char size_id[] = "label_size_changing";
-static const char curve_id[] = "text_curving";
-static const char text_color_id[] = "text_color_changing";
-static const char score_color_id[] = "score_color_changing";
-static const char score_id[] = "score_size_changing";
+static const char kPointsId[] = "points_ascending";
+static const char kFlashId[] = "text_flashing";
+static const char kSizeId[] = "label_size_changing";
+static const char kCurveId[] = "text_curving";
+static const char kTextColorId[] = "text_color_changing";
+static const char kScoreColorId[] = "score_color_changing";
+static const char kScoreId[] = "score_size_changing";
+static const char kLoadingString[] = "Loading CorgUI";
 static const vec4 kTextColors[] = {
     vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(1.0f, 0.65f, 0.8f, 1.0f),
     vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
@@ -189,8 +190,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     corgi_textures[i] = assetman.LoadTexture(kCorgiTextureNames[i]);
   }
   assetman.StartLoadingTextures();
-  while (!assetman.TryFinalize()) {
-  }
 
   while (!(input.exit_requested() ||
            input.GetButton(fplbase::FPLK_AC_BACK).went_down())) {
@@ -210,6 +209,16 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       // size of the smallest dimension (Y in landscape mode).
       SetVirtualResolution(kYVirtualResolution);
 
+      // Display loading screen until assets have loaded.
+      if (!assetman.TryFinalize()) {
+        StartGroup(flatui::kLayoutHorizontalCenter);
+        PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+                      mathfu::kZeros2f);
+        flatui::Label(kLoadingString, kLargeLabelSize);
+        EndGroup();
+        return;
+      }
+
       flatui::RenderTexture(*corgi_textures[kCorgiTextureBackground],
                             mathfu::kZeros2i, renderer.window_size());
 
@@ -222,7 +231,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
       // Set the text color of this group.
       curr_game.score_text_color =
-          flatui::Animatable<vec4>(score_color_id, kWhiteColor);
+          flatui::Animatable<vec4>(kScoreColorId, kWhiteColor);
       flatui::SetTextColor(curr_game.score_text_color);
 
       // Set the colors of the button.
@@ -243,7 +252,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                     vec2(-400.0f, -200.0f));
       // Animate the score label size.
       curr_game.score_label_size =
-          flatui::Animatable<float>(score_id, kDefaultLabelSize);
+          flatui::Animatable<float>(kScoreId, kDefaultLabelSize);
       flatui::Label(curr_game_score.c_str(),
                     std::max(kDefaultLabelSize, curr_game.score_label_size));
       EndGroup();
@@ -278,16 +287,16 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             kLabelSizeIncrement *
             (kLargeLabelSize - curr_game.score_label_target);
 
-        flatui::StartAnimation<float>(score_id, curr_game.score_label_target,
+        flatui::StartAnimation<float>(kScoreId, curr_game.score_label_target,
                                       0.0f, kScoreSizeCurveDescription);
 
         // Add points and heart sprites. Both will grow and float upwards
         // until offscreen. The points will fade in color until transparent.
         SequenceId seq = flatui::AddSprite(
-            points, [&corgi_textures, &curr_game](SequenceId seq) -> bool {
+            kPointsId, [&corgi_textures, &curr_game](SequenceId seq) -> bool {
               // Create a hash for this specific sprite.
               const HashedId curr_sprite_hash =
-                  flatui::HashedSequenceId(points, seq);
+                  flatui::HashedSequenceId(kPointsId, seq);
 
               // Set up the animatable.
               const vec2 sprite_position = flatui::Animatable<vec2>(
@@ -295,13 +304,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
               // Change the text size.
               const HashedId label_size_sprite_hash =
-                  flatui::HashedSequenceId(size_id, seq);
+                  flatui::HashedSequenceId(kSizeId, seq);
               const float label_size = flatui::Animatable<float>(
                   label_size_sprite_hash, kYPointsSizeStart);
 
               // Change the text color.
               const HashedId text_color_sprite_hash =
-                  flatui::HashedSequenceId(text_color_id, seq);
+                  flatui::HashedSequenceId(kTextColorId, seq);
               const vec4 text_color =
                   flatui::Animatable<vec4>(text_color_sprite_hash, kWhiteColor);
 
@@ -327,19 +336,19 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             });
         // Find and start points sprite animation.
         const HashedId points_sprite_hash =
-            flatui::HashedSequenceId(points, seq);
+            flatui::HashedSequenceId(kPointsId, seq);
         flatui::StartAnimation<vec2>(points_sprite_hash, kPointsPositionTarget,
                                      mathfu::kZeros2f, kSpriteCurveDescription);
 
         // Find and start the size sprite animations.
         const HashedId size_sprite_hash =
-            flatui::HashedSequenceId(size_id, seq);
+            flatui::HashedSequenceId(kSizeId, seq);
         flatui::StartAnimation<float>(size_sprite_hash, kYPointsSizeTarget,
                                       0.0f, kSpriteCurveDescription);
 
         // Find and start text color sprite animations.
         const HashedId text_color_sprite_hash =
-            flatui::HashedSequenceId(text_color_id, seq);
+            flatui::HashedSequenceId(kTextColorId, seq);
         flatui::StartAnimation<vec4>(text_color_sprite_hash, kTransparent,
                                      mathfu::kZeros4f, kColorCurveDescription);
 
@@ -351,30 +360,30 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               FPL_ARRAYSIZE(kTextColors);
           // Animate the score colors.
           flatui::StartAnimation<vec4>(
-              score_color_id, kTextColors[curr_game.score_text_color_target],
+              kScoreColorId, kTextColors[curr_game.score_text_color_target],
               mathfu::kZeros4f, kPointsColorCurveDescription);
         }
       }
       // Draw any sprites that may have been added.
-      flatui::DrawSprites(points);
-      flatui::DrawSprites(flash_id);
-      flatui::DrawSprites(size_id);
-      flatui::DrawSprites(curve_id);
+      flatui::DrawSprites(kPointsId);
+      flatui::DrawSprites(kFlashId);
+      flatui::DrawSprites(kSizeId);
+      flatui::DrawSprites(kCurveId);
 
       // Animate the score being changed.
-      if (flatui::AnimationTimeRemaining(score_id) <= 0) {
-        flatui::StartAnimation<float>(score_id, kDefaultLabelSize, 0.0f,
+      if (flatui::AnimationTimeRemaining(kScoreId) <= 0) {
+        flatui::StartAnimation<float>(kScoreId, kDefaultLabelSize, 0.0f,
                                       kPointSizeCurveDescription);
         curr_game.score_label_target = kDefaultLabelSize;
       }
 
-      if (flatui::AnimationTimeRemaining(score_color_id) <= 0 &&
+      if (flatui::AnimationTimeRemaining(kScoreColorId) <= 0 &&
           curr_game.score_text_color_target != 0) {
         curr_game.score_text_color_target =
             (curr_game.score_text_color_target + 1) %
             FPL_ARRAYSIZE(kTextColors);
         flatui::StartAnimation<vec4>(
-            score_color_id, kTextColors[curr_game.score_text_color_target],
+            kScoreColorId, kTextColors[curr_game.score_text_color_target],
             mathfu::kZeros4f, kPointsColorCurveDescription);
       }
     });
