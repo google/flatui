@@ -32,6 +32,7 @@ using fplbase::Mesh;
 using fplbase::Shader;
 using fplbase::Texture;
 using motive::MotiveCurveShape;
+using motive::MotivatorType;
 
 namespace flatui {
 
@@ -43,22 +44,24 @@ enum FontShaderType {
   kFontShaderTypeCount,
 };
 
-// Enum indicating the current state of an anim.
-// kNotCalledLastFrame: animation was not called last frame.
-// kAnimating: Animatable() has been called to read the animation values.
-// Animation should not be cleared this frame.
-// kHasTargetButNoStartingValues: Target values specified with StartAnimation()
-// but starting values must be specified with Animatable() before we enter the
-// kAnimatingState. As always, animation will be removed unless Animatable()
-// is called this frame.
-enum AnimLastFrameState {
-  kNotCalledLastFrame = 0,
-  kAnimating,
-  kHasTargetButNoStartingValues,
-};
+// Since the largest type we currently expose in the external API is
+// mathfu::vec4, our max dimensions is 4. If this changes, the code inside of
+// StartAnimation and Animatable should be adjusted to use std::vectors instead
+// of constant arrays.
+static const int kMaxAnimationDimensions = 4;
+static const float kScrollSpeedDragDefault = 2.0f;
+static const float kScrollSpeedWheelDefault = 16.0f;
+static const float kScrollSpeedGamepadDefault = 0.1f;
+static const int32_t kDragStartThresholdDefault = 8;
+static const int32_t kPointerIndexInvalid = -1;
+static const int32_t kElementIndexInvalid = -1;
+static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
+#if !defined(NDEBUG)
+static const uint32_t kDefaultGroupHashedId = HashId(kDefaultGroupID);
+#endif
 
 struct Anim {
-  AnimLastFrameState anim_state;
+  bool called_last_frame;
   motive::MotivatorNf motivator;
 };
 
@@ -77,6 +80,33 @@ struct Sprite {
   HashedId group_hash;
 };
 
+// When StartAnimation() is called before Animatable() has been called,
+// we store the call parameters in a PendingTarget until the end of the frame.
+// If Animatable() is called later that frame, we use the stored PendingTarget
+// to call StartAnimation() then, to kick off the motion.
+struct PendingTarget {
+  PendingTarget() : dimensions(0) {}
+  PendingTarget(const float *target_values_param,
+                const float *target_velocities_param, int dimensions,
+                const AnimCurveDescription &description)
+      : dimensions(dimensions), description(description) {
+    // Our expected use case is only up to 4 dimensions. If you
+    // hit an issue with this assert, use a vector instead for starting
+    // values and velocities and pass in vector.data() to Initialize.
+    assert(0 <= dimensions && dimensions <= kMaxAnimationDimensions);
+    memcpy(target_values, target_values_param,
+           sizeof(target_values[0]) * dimensions);
+    memcpy(target_velocities, target_velocities_param,
+           sizeof(target_velocities[0]) * dimensions);
+  }
+
+  // These are exact copies of the parameters passed into StartAnimation().
+  float target_values[kMaxAnimationDimensions];
+  float target_velocities[kMaxAnimationDimensions];
+  int dimensions;
+  AnimCurveDescription description;
+};
+
 Direction GetDirection(Layout layout) {
   return static_cast<Direction>(layout & ~(kDirHorizontal - 1));
 }
@@ -84,22 +114,6 @@ Direction GetDirection(Layout layout) {
 Alignment GetAlignment(Layout layout) {
   return static_cast<Alignment>(layout & (kDirHorizontal - 1));
 }
-
-// Since the largest type we currently expose in the external API is
-// mathfu::vec4, our max dimensions is 4. If this changes, the code inside of
-// StartAnimation and Animatable should be adjusted to use std::vectors instead
-// of constant arrays.
-static const int kMaxAnimationDimensions = 4;
-static const float kScrollSpeedDragDefault = 2.0f;
-static const float kScrollSpeedWheelDefault = 16.0f;
-static const float kScrollSpeedGamepadDefault = 0.1f;
-static const int32_t kDragStartThresholdDefault = 8;
-static const int32_t kPointerIndexInvalid = -1;
-static const int32_t kElementIndexInvalid = -1;
-static const vec2i kDragStartPoisitionInvalid = vec2i(-1, -1);
-#if !defined(NDEBUG)
-static const uint32_t kDefaultGroupHashedId = HashId(kDefaultGroupID);
-#endif
 
 // This holds transient state used while a GUI is being laid out / rendered.
 // It is intentionally hidden from the interface.
@@ -202,8 +216,9 @@ class InternalState : public LayoutManager {
     fontman_.StartLayoutPass();
 
     if (!persistent_.initialized) {
-      motive::SplineInit::Register();
+      motive::ConstInit::Register();
       motive::EaseInEaseOutInit::Register();
+      motive::SpringInit::Register();
       persistent_.initialized = true;
     }
   }
@@ -899,8 +914,8 @@ class InternalState : public LayoutManager {
   void Clean() {
     for (auto it = persistent_.animations.begin();
          it != persistent_.animations.end();) {
-      if (it->second.anim_state == kAnimating) {
-        it->second.anim_state = kNotCalledLastFrame;
+      if (it->second.called_last_frame) {
+        it->second.called_last_frame = false;
         ++it;
       } else {
         it = persistent_.animations.erase(it);
@@ -908,13 +923,14 @@ class InternalState : public LayoutManager {
     }
     for (auto it = persistent_.sprites.begin();
          it != persistent_.sprites.end();) {
-      if (!it->called_last_frame) {
-        it = persistent_.sprites.erase(it);
-      } else {
+      if (it->called_last_frame) {
         it->called_last_frame = false;
         ++it;
+      } else {
+        it = persistent_.sprites.erase(it);
       }
     }
+    persistent_.pending_targets.clear();
   }
 
   // Return the internal animation state for the API call to
@@ -932,9 +948,55 @@ class InternalState : public LayoutManager {
                    const float *starting_velocities, int dimensions) {
     Anim *anim = &persistent_.animations[id];
     anim->motivator.Initialize(
-        motive::EaseInEaseOutInit(starting_values, starting_velocities),
-        motive_engine_, dimensions);
+        motive::ConstInit(starting_values, starting_velocities), motive_engine_,
+        dimensions);
     return anim;
+  }
+
+  // Returns the Motive animation algorithm used to animate `type`.
+  static motive::MotivatorType MotivatorTypeFromAnimType(AnimType type) {
+    static motive::MotivatorType kMotivatorTypeFromAnimType[] = {
+        motive::EaseInEaseOutInit::kType,  // kAnimEaseInEaseOut
+        motive::SpringInit::kType,         // kAnimSpring
+    };
+    static_assert(FPL_ARRAYSIZE(kMotivatorTypeFromAnimType) == kAnimTypeCount,
+                  "Need to update kMotivatorTypeFromAnimType");
+    assert(0 <= type && type < kAnimTypeCount);
+    return kMotivatorTypeFromAnimType[type];
+  }
+
+  // Ensure the Motivator's type matches its animation algorithm.
+  //
+  // When Animatable() is first called, it uses the 'const' Motivator type,
+  // since it's not moving at all. This has to be changed to the proper
+  // Motivator type (e.g. 'ease-in ease-out' or 'spring') when StartAnimation()
+  // is called.
+  //
+  // Also, it's possible to start animating with one kind of motion
+  // (e.g. ease-in ease-out) but later request a different kind of animation
+  // (e.g. spring).
+  void MatchAnimType(AnimType type, Anim *anim) {
+    // Do nothing if Motivator is already the correct type.
+    const MotivatorType motivator_type = MotivatorTypeFromAnimType(type);
+    if (motivator_type == anim->motivator.Type()) return;
+
+    // Use the current state when reinitializing the Motivator, so it starts
+    // from is current values and velocities.
+    const motive::MotiveDimension dimensions = anim->motivator.Dimensions();
+    float current_values[kMaxAnimationDimensions];
+    float current_velocities[kMaxAnimationDimensions];
+    memcpy(current_values, anim->motivator.Values(),
+           sizeof(current_values[0]) * dimensions);
+    anim->motivator.Velocities(current_velocities);
+
+    // Currently all Inits are essentially copies of SimpleInit, so we just
+    // use SimpleInit for initializing (instead of EaseInEaseOutInit or
+    // SpringInit).
+    assert(motivator_type == motive::EaseInEaseOutInit::kType ||
+           motivator_type == motive::SpringInit::kType);
+    const motive::SimpleInit init(motivator_type, current_values,
+                                  current_velocities);
+    anim->motivator.Initialize(init, motive_engine_, dimensions);
   }
 
   // Create a new Motivator if it isn't found in our hashmap and initialize it
@@ -942,35 +1004,28 @@ class InternalState : public LayoutManager {
   // Return the current value of the motivator.
   const float *Animatable(HashedId id, const float *starting_values,
                           int dimensions) {
-    assert(motive_engine_ && 0 <= dimensions &&
-           dimensions <= kMaxAnimationDimensions);
+    assert(motive_engine_ != nullptr);
+
+    // Get or create an entry in persistent storage for this animation.
     Anim *current = FindAnim(id);
-
-    // If an anim is found but has the state kHasTargetButNoStartingValues,
-    // set the starting values and velocities while maintaining target values
-    // and velocities.
-    bool maintain_current_target =
-        current && current->anim_state == kHasTargetButNoStartingValues;
-    float target_values[kMaxAnimationDimensions];
-    float target_velocities[kMaxAnimationDimensions];
-    MotiveCurveShape target_shape;
-    if (maintain_current_target) {
-      current->motivator.TargetValues(target_values);
-      current->motivator.TargetVelocities(target_velocities);
-      target_shape = current->motivator.MotiveShape();
-    }
-
-    if (!current || maintain_current_target) {
+    if (!current) {
       current =
           CreateAnim(id, starting_values, mathfu::kZeros4f.data_, dimensions);
+
+      // Apply the pending target if StartAnimation() was called before this
+      // call to Animatable().
+      auto &targets = persistent_.pending_targets;
+      auto pending_target = targets.find(id);
+      if (pending_target != targets.end()) {
+        const PendingTarget &target = pending_target->second;
+        StartAnimation(pending_target->first, target.target_values,
+                       target.target_velocities, target.dimensions,
+                       target.description);
+        targets.erase(pending_target);
+      }
     }
 
-    if (maintain_current_target) {
-      current->motivator.SetTargetWithShape(target_values, target_velocities,
-                                            target_shape);
-    }
-
-    current->anim_state = kAnimating;
+    current->called_last_frame = true;
     return current->motivator.Values();
   }
 
@@ -980,23 +1035,24 @@ class InternalState : public LayoutManager {
                       const AnimCurveDescription &description) {
     Anim *current = FindAnim(id);
     if (!current) {
-      // Our expected use case is only up to 4 dimensions. If you
-      // hit an issue with this assert, use a vector instead for starting
-      // values and velocities and pass in vector.data() to Initialize.
-      assert(0 <= dimensions && dimensions <= kMaxAnimationDimensions);
-      // Create a motivator just to store the target values and velocities. The
-      // start values and velocities will be set in Animatable().
-      current = CreateAnim(id, mathfu::kZeros4f.data_, mathfu::kZeros4f.data_,
-                           dimensions);
-      current->anim_state = kHasTargetButNoStartingValues;
+      // Create a PendingTarget, since StartAnimation() was called before
+      // Animatable(). If Animatable() is not called this frame, this
+      // PendingTarget will be forgotten.
+      persistent_.pending_targets[id] = PendingTarget(
+          target_values, target_velocities, dimensions, description);
+      return;
     }
+    assert(current->motivator.Dimensions() == dimensions);
 
-    // Set it towards the target shape.
-    const MotiveCurveShape target(description.typical_delta_distance,
-                                  description.typical_total_time,
-                                  description.bias);
+    // Reinitialize Motivator if it's of the wrong type.
+    MatchAnimType(description.type, current);
+
+    // Animate the Motivator to the target, following the requested shape.
+    const MotiveCurveShape target_shape(description.typical_delta_distance,
+                                        description.typical_total_time,
+                                        description.bias);
     current->motivator.SetTargetWithShape(target_values, target_velocities,
-                                          target);
+                                          target_shape);
   }
 
   // Return the time remaining until the animation asssociated with id is
@@ -1559,6 +1615,9 @@ class InternalState : public LayoutManager {
 
     // HashMap for storing animations.
     std::unordered_map<HashedId, Anim> animations;
+
+    // HashMap for storing animations.
+    std::unordered_map<HashedId, PendingTarget> pending_targets;
 
     // Vector for storing sprites.
     std::vector<Sprite> sprites;

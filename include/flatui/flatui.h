@@ -37,6 +37,72 @@ class MotiveEngine;
 
 namespace flatui {
 
+/// @enum AnimType
+///
+/// @brief Anim type describes the algorithm used to animate a UI element.
+///
+/// All algorithms maintain the current value and velocity, so any animation
+/// can be smoothly interrupted by another animation, even if they are of
+/// different types.
+///
+/// **Enumerations**:
+///
+/// * `kAnimEaseInEaseOut` (`0`) - Smoothly curve towards the target value
+///                                (i.e. ease-in) and smoothly stop at the
+///                                target value (i.e. ease-out).
+///                                The smoothness of the in and out is
+///                                determined by the bias in
+///                                AnimCurveDescription.
+///         |
+///  target +                                                  *********
+///         |                                           *******
+///         |                                       ****
+///         |                                   ****
+///         |                                ***
+///         |                             ***
+///         |                           **
+///         |                        ***
+///         |                      **
+///         |                    **
+///         |                  **
+///         | bias 0.15      **
+///         |              **
+///         |             *
+///         |           **
+///         |         **
+///         |        *
+///         |      **
+///         |   ***
+///   start +***
+///
+/// * `kAnimSpring` (`1`) - Oscillate about the target value, with each
+///                         peak having amplitude of the previous peak * bias.
+///                         So, if bias < 1, the amplitude dampens down and
+///                         eventually the curve reaches the target.
+///                         If bias > 1, the amplitude grows with each
+///                         oscillation. If bias = 1, then the amplitude
+///                         remains the same for every oscillation.
+///                         Note that true spring motion follows a sine curve,
+///                         but a sine curve does not move aggressively enough
+///                         for convincing motion, so internally we follow a
+///                         quadratic curve instead.
+///         |
+///   start +--___
+///         |     --_
+///         |        \_ bias 0.5
+///         |          \
+///         |           \
+///         |            \           _--_
+///  target +-------------+---------+----+__+-----> x
+///         |              \_     _/
+///         |                -___-
+///
+enum AnimType {
+  kAnimEaseInEaseOut,
+  kAnimSpring,
+  kAnimTypeCount,
+};
+
 // Maximum dimension of mathfu::Vector.
 static const int kMaxDimensions = 4;
 // Multiplier to convert a second to MotiveTime.
@@ -45,18 +111,38 @@ static const int kSecondsToMotiveTime = 10000;
 /// @brief Describes a curve's typical shape.
 struct AnimCurveDescription {
   AnimCurveDescription()
-      : typical_delta_distance(0.0f), typical_total_time(0.0f), bias(0.0f) {}
-  AnimCurveDescription(float typical_delta_distance, float typical_total_time,
-                       float bias)
-      : typical_delta_distance(typical_delta_distance),
+      : type(kAnimTypeCount),
+        typical_delta_distance(0.0f),
+        typical_total_time(0.0f),
+        bias(0.0f) {}
+  AnimCurveDescription(AnimType type, float typical_delta_distance,
+                       float typical_total_time, float bias)
+      : type(type),
+        typical_delta_distance(typical_delta_distance),
         typical_total_time(typical_total_time),
         bias(bias) {}
-  /// The distance between start and end values.
+
+  /// The overall shape of the motion curve.
+  /// This value determines the meaning of the variables below.
+  AnimType type;
+
+  /// The amount the animated value would change in a common or worst-case
+  /// situation. Used together with typical_total_time below to describe the
+  /// "typical" curve.
+  ///
+  /// The "typical" curve allows you to parameterize the motion in an intuitive
+  /// way. You provide the distance and time required to travel a common or
+  /// worst-case situation, and the curve's mathematical parameters are
+  /// calculated from that situation. This is much easier, for example, than
+  /// specifying the second derivatives explicitly.
   float typical_delta_distance;
 
-  /// The typical time it takes to go the typical distance.
+  /// The time required for the value to travel typical_delta_distance, assuming
+  /// it started at a velocity of zero. See typical_delta_distance for further
+  /// details on the "typical" curve.
   float typical_total_time;
 
+  /// When type is kAnimEaseInEaseOut:
   /// Determines how much the curve should ease-in and how much it should
   /// ease-out. Should be a value from 0.0 to 1.0.
   /// Examples of potential bias values and what they would represent:
@@ -67,6 +153,13 @@ struct AnimCurveDescription {
   /// 0.7: ease-out more slowly and ease-in more quickly (i.e. more
   /// reponsive).
   /// 1.0: ease-out but no ease in (a.k.a. "fly-in").
+  ///
+  /// When type is kAnimSpring:
+  /// Determines how much the amplitude is dampened every oscillation.
+  /// Some examples,
+  /// 0.5: each peak is half the amplitude of the previous peak.
+  /// 1.0: each peak has the same amplitude. Oscillates forever.
+  /// 1.2: each peak is 20% larger than the previous peak. Grows forever.
   float bias;
 };
 

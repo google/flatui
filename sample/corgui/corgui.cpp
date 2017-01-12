@@ -23,6 +23,7 @@
 #include "motive/init.h"
 
 using flatui::AnimCurveDescription;
+using flatui::kAnimEaseInEaseOut;
 using flatui::EndGroup;
 using flatui::HashedId;
 using flatui::Margin;
@@ -53,13 +54,17 @@ enum CorgiTexture {
 // These curves describe the motion of our animations.
 // See the comment above kCurveDescriptionin in flatuianim.cpp for an
 // in-depth description.
-static const AnimCurveDescription kColorCurveDescription(1.0f, 9000.0f, 0.8f);
-static const AnimCurveDescription kPointsColorCurveDescription(1.0f, 2000.0f,
-                                                               0.5f);
-static const AnimCurveDescription kSpriteCurveDescription(10.0f, 2000.0f, 0.5f);
-static const AnimCurveDescription kScoreSizeCurveDescription(10.0f, 2000.0f,
+static const AnimCurveDescription kColorCurveDescription(kAnimEaseInEaseOut,
+                                                         1.0f, 9000.0f, 0.8f);
+static const AnimCurveDescription kPointsColorCurveDescription(
+    kAnimEaseInEaseOut, 1.0f, 2000.0f, 0.5f);
+static const AnimCurveDescription kSpriteCurveDescription(kAnimEaseInEaseOut,
+                                                          10.0f, 2000.0f, 0.5f);
+static const AnimCurveDescription kScoreSizeCurveDescription(kAnimEaseInEaseOut,
+                                                             10.0f, 2000.0f,
                                                              0.5f);
-static const AnimCurveDescription kPointSizeCurveDescription(10.0f, 2000.0f,
+static const AnimCurveDescription kPointSizeCurveDescription(kAnimEaseInEaseOut,
+                                                             10.0f, 2000.0f,
                                                              0.5f);
 
 // Constant variables to be used.
