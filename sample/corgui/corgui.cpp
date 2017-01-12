@@ -71,10 +71,9 @@ static const vec2 kPointsPositionTarget = vec2(100.0f, -890.0f);
 static const vec2 kPointsPositionStart = vec2(0.0f, -60.0f);
 static const float kYVirtualResolution = 1080.0f;
 static const float kCorgiBodySize = 900.0f;
-static const float kCorgiHeadSize = 350.0f;
-static const float kCorgiHornSize = 430.0f;
+static const float kCorgiHornSize = 400.0f;
 static const float kCorgiHeadBottomMargin = 10.0f;
-static const float kCorgiHornBottomMargin = 100.0f;
+static const float kCorgiHornBottomMargin = 110.0f;
 static const float kDefaultLabelSize = 50.0f;
 static const float kLargeLabelSize = 140.0f;
 static const float kLabelSizeIncrement = 0.3f;
@@ -137,11 +136,16 @@ static CorgiTexture CorgiHeadDownTextureIndex(const CorgiGameState &curr_game) {
 
 static CorgiTexture CorgiBodyTextureIndex(const CorgiGameState &curr_game) {
   return curr_game.score >= kEvolutionPoint * 2 ? kCorgiTextureWingedBody
-                                                  : kCorgiTextureCorgiBody;
+                                                : kCorgiTextureCorgiBody;
 }
 
-static int CorgiHeadSize(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint ? kCorgiHornSize : kCorgiHeadSize;
+static float CorgiHeadSize(const CorgiGameState &curr_game,
+                           const fplbase::Texture **corgi_textures) {
+  return curr_game.score >= kEvolutionPoint
+             ? kCorgiHornSize
+             : kCorgiHornSize *
+                   corgi_textures[kCorgiTextureNeutralHead]->size()[1] /
+                   corgi_textures[kCorgiTextureNeutralHornHead]->size()[1];
 }
 
 static float CorgiBottomMarginSize(const CorgiGameState &curr_game) {
@@ -256,7 +260,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       CorgiTexture head_down_texture = CorgiHeadDownTextureIndex(curr_game);
       auto corgi_button = ToggleImageButton(
           *corgi_textures[head_up_texture], *corgi_textures[head_down_texture],
-          CorgiHeadSize(curr_game),
+          CorgiHeadSize(curr_game, corgi_textures),
           Margin(0.0f, 0.0f, 100.0f, CorgiBottomMarginSize(curr_game)),
           "corgi_head");
       EndGroup();
