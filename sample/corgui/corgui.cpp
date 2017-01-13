@@ -196,10 +196,13 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   }
   assetman.StartLoadingTextures();
 
-  while (!(input.exit_requested() ||
-           input.GetButton(fplbase::FPLK_AC_BACK).went_down())) {
+  while (!(input.exit_requested())) {
     // Advance to the next frame to update our screen.
     input.AdvanceFrame(&renderer.window_size());
+    // If the back button has been hit on Android, exit the app.
+    if (input.GetButton(fplbase::FPLK_AC_BACK).went_down()) {
+      break;
+    }
     renderer.AdvanceFrame(input.minimized(), input.Time());
     motive_engine.AdvanceFrame(static_cast<MotiveTime>(
         input.DeltaTime() * flatui::kSecondsToMotiveTime));
@@ -393,6 +396,5 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       }
     });
   }
-
   return 0;
 }
