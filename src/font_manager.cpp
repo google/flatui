@@ -1388,7 +1388,8 @@ void FontManager::SetLocale(const char *locale) {
   if (layout_info != nullptr) {
     SetLayoutDirection(layout_info->direction);
     SetScript(layout_info->script);
-    hyphenation_rule_ = layout_info->hyphenation;
+    hyphenation_rule_ =
+        layout_info->hyphenation ? layout_info->hyphenation : "";
     SetupHyphenationPatternPath(nullptr);
   }
   locale_ = locale;
