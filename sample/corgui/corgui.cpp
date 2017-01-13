@@ -110,7 +110,7 @@ static const char *kCorgiTextureNames[] = {
     "textures/corgi_wings.webp",         // kCorgiTextureWingedBody
     "textures/heart_icon.webp",          // kCorgiTextureHeartIcon
 };
-static const char kFontPath[] = "fonts/NovaRound.ttf";
+static const char kFontPath[] = "fonts/LuckiestGuy.ttf";
 static_assert(FPL_ARRAYSIZE(kCorgiTextureNames) == kCorgiTextureCount,
               "kCorgiTextureNames not consistent with CorgiTexture enum");
 
