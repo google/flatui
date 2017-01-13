@@ -701,19 +701,19 @@ class FontShader {
   }
 
   void set_position_offset(const mathfu::vec3 &vec) {
-    assert(pos_offset_ >= 0);
+    assert(fplbase::ValidUniformHandle(pos_offset_));
     shader_->SetUniform(pos_offset_, vec);
   }
   void set_color(const mathfu::vec4 &vec) {
-    assert(color_ >= 0);
+    assert(fplbase::ValidUniformHandle(color_));
     shader_->SetUniform(color_, vec);
   }
   void set_clipping(const mathfu::vec4 &vec) {
-    assert(clipping_ >= 0);
+    assert(fplbase::ValidUniformHandle(clipping_));
     shader_->SetUniform(clipping_, vec);
   }
   void set_threshold(float f) {
-    assert(threshold_ >= 0);
+    assert(fplbase::ValidUniformHandle(threshold_));
     shader_->SetUniform(threshold_, &f, 1);
   }
 

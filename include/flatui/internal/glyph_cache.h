@@ -552,7 +552,7 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
     auto slices = get_num_slices();
     for (auto i = 0; i < slices; ++i) {
       auto rect = get_dirty_rect(i);
-      if (!textures_[i].id()) {
+      if (!fplbase::ValidTextureHandle(textures_[i].id())) {
         // Give a texture size but don't have to clear the texture here.
         textures_[i].LoadFromMemory(nullptr, get_size(), get_texture_format());
       }

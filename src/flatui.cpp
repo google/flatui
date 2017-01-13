@@ -584,7 +584,7 @@ class InternalState : public LayoutManager {
         }
       }
 
-      if (current_shader->color_handle() >= 0) {
+      if (fplbase::ValidUniformHandle(current_shader->color_handle())) {
         if (slices.at(i).get_color() != kDefaultColor) {
           // Use attributed color.
           auto c = slices.at(i).get_color();
