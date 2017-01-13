@@ -57,7 +57,7 @@ enum CorgiTexture {
 static const AnimCurveDescription kColorCurveDescription(kAnimEaseInEaseOut,
                                                          1.0f, 9000.0f, 0.8f);
 static const AnimCurveDescription kPointsColorCurveDescription(
-    kAnimEaseInEaseOut, 1.0f, 2000.0f, 0.5f);
+    kAnimEaseInEaseOut, 1.0f, 4000.0f, 0.5f);
 static const AnimCurveDescription kSpriteCurveDescription(kAnimEaseInEaseOut,
                                                           10.0f, 2000.0f, 0.5f);
 static const AnimCurveDescription kScoreSizeCurveDescription(kAnimEaseInEaseOut,
@@ -74,6 +74,7 @@ static const vec4 kGreyColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
 static const vec4 kTransparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 static const vec2 kPointsPositionTarget = vec2(100.0f, -890.0f);
 static const vec2 kPointsPositionStart = vec2(0.0f, -60.0f);
+static const vec2 kScoreLabelOffset = vec2(10.0f);
 static const float kYVirtualResolution = 1080.0f;
 static const float kCorgiBodySize = 600.0f;
 static const float kCorgiHornSize = 400.0f;
@@ -98,7 +99,7 @@ static const char kScoreColorId[] = "score_color_changing";
 static const char kScoreId[] = "score_size_changing";
 static const char kLoadingString[] = "Loading CorgUI";
 static const vec4 kTextColors[] = {
-    vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(1.0f, 0.65f, 0.8f, 1.0f),
+    vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(0.87f, 0.52f, 0.54f, 1.0f),
     vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
 };
 static const char *kCorgiTextureNames[] = {
@@ -265,8 +266,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       // Once the clicking has stopped, the label will shrink
       // back down to its original size.
       StartGroup(flatui::kLayoutHorizontalTop);
-      PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
-                    vec2(-400.0f, -200.0f));
+      PositionGroup(flatui::kAlignLeft, flatui::kAlignTop, kScoreLabelOffset);
       // Animate the score label size.
       curr_game.score_label_size =
           flatui::Animatable<float>(kScoreId, kDefaultLabelSize);
