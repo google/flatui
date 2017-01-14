@@ -31,7 +31,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fplbase::AssetManager assetman(renderer);
 
   // Set the local directory to the assets for this test.
-  bool result = fplbase::ChangeToUpstreamDir(argv[0], "sample/assets");
+  bool result = fplbase::ChangeToUpstreamDir(argv[0], "assets");
   assert(result);
   (void)result;
 

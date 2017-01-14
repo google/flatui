@@ -227,7 +227,7 @@ function(flatui_post_process target folder_name)
   # and flatui/${folder_name}/assets into
   # bin/assets.
   set(flatui_assets_dir
-      "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${folder_name}/assets")
+      "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
   add_custom_command(
       TARGET ${target} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory
