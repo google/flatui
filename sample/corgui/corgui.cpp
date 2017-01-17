@@ -81,9 +81,11 @@ static const float kSpriteYStartPosition = -60.0f;
 static const float kYVirtualResolution = 1080.0f;
 static const float kCorgiBodySize = 600.0f;
 static const float kCorgiHornSize = 400.0f;
-static const float kCorgiHeadBottomOffset = -275.0f;
+static const float kCorgiHeadBottomOffset = -20.0f;
+static const float kCorgiHeadBottomMargin = 275.0f;
+static const float kCorgiHornBottomMargin = 300.0f;
 static const float kCorgiHeadLeftOffset = -50.0f;
-static const float kCorgiHornBottomOffset = -300.0f;
+static const float kCorgiHornBottomOffset = -25.0f;
 static const float kDefaultLabelSize = 50.0f;
 static const float kLargeLabelSize = 140.0f;
 static const float kLabelSizeIncrement = 0.3f;
@@ -174,10 +176,19 @@ static float CorgiBottomOffsetSize(const CorgiGameState &curr_game) {
                                             : kCorgiHeadBottomOffset;
 }
 
-// TODO(laijess): remove this function once new texture for corgi winged
-// body is ready.
+static float CorgiBottomMarginSize(const CorgiGameState &curr_game) {
+  return curr_game.score >= kEvolutionPoint ? kCorgiHornBottomMargin
+                                            : kCorgiHeadBottomMargin;
+}
+
+// TODO(laijess): remove the two functions below once new texture for corgi
+// winged body is ready.
 static float CorgiBodySize(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint * 2 ? 1000.0f : kCorgiBodySize;
+  return curr_game.score >= kEvolutionPoint * 2 ? 1070.0f : kCorgiBodySize;
+}
+
+static float CorgiBodyTopMargin(const CorgiGameState &curr_game) {
+  return curr_game.score >= kEvolutionPoint * 2 ? 55.0f : 0.0f;
 }
 
 static const std::string CalculateStringFromInt(int int_to_change) {
@@ -288,7 +299,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       // Create groups for the corgi button.
       StartGroup(flatui::kLayoutOverlay);
       PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
-                    mathfu::kZeros2f);
+                    vec2(0.0f, CorgiBodyTopMargin(curr_game)));
       flatui::Image(*corgi_textures[CorgiBodyTextureIndex(curr_game)],
                     CorgiBodySize(curr_game));
       EndGroup();
@@ -299,9 +310,17 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
           vec2(kCorgiHeadLeftOffset, CorgiBottomOffsetSize(curr_game)));
       CorgiTexture head_up_texture = CorgiHeadUpTextureIndex(curr_game);
       CorgiTexture head_down_texture = CorgiHeadDownTextureIndex(curr_game);
+      // Give the button a bottom margin so that parts of its body will
+      // also be clickable. The offset is needed to keep the head in the correct
+      // position while only making the corgi's body and not the area below
+      // it clickable.
       auto corgi_button = ToggleImageButton(
           *corgi_textures[head_up_texture], *corgi_textures[head_down_texture],
-          CorgiHeadSize(curr_game, corgi_textures), Margin(0.0f), "corgi_head");
+          CorgiHeadSize(curr_game, corgi_textures),
+          Margin(0.0f, 0.0f, 0.0f,
+                 CorgiBottomMarginSize(curr_game) +
+                     CorgiBottomOffsetSize(curr_game)),
+          "corgi_head");
       EndGroup();
 
       // Check to see if the button has been clicked and respond.
