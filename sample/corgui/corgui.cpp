@@ -262,6 +262,10 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       flatui::RenderTexture(*corgi_textures[kCorgiTextureBackground],
                             mathfu::kZeros2i, renderer.window_size());
 
+      // Start outer group.
+      StartGroup(flatui::kLayoutOverlay);
+      PositionGroup(flatui::kAlignLeft, flatui::kAlignTop, mathfu::kZeros2f);
+
       // Start our root group.
       StartGroup(flatui::kLayoutHorizontalBottom);
 
@@ -453,6 +457,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             kScoreColorId, kTextColors[curr_game.score_text_color_target],
             mathfu::kZeros4f, kPointsColorCurveDescription);
       }
+      EndGroup();
     });
   }
   return 0;
