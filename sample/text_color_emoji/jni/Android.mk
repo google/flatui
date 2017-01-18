@@ -18,7 +18,7 @@ FLATUI_DIR := $(LOCAL_PATH)/../..
 include $(FLATUI_DIR)/jni/android_config.mk
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := main
+LOCAL_MODULE := text_color_emoji
 LOCAL_ARM_MODE := arm
 LOCAL_STATIC_LIBRARIES := fplbase flatui
 LOCAL_SRC_FILES := flatuisample_text_color_emoji.cpp

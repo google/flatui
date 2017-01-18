@@ -15,7 +15,7 @@
 APP_PLATFORM := android-15
 APP_ABI:=armeabi armeabi-v7a mips x86 x86_64
 APP_STL:=c++_static
-APP_MODULES := main
+APP_MODULES := sample_3d
 
 APP_CPPFLAGS += -std=c++11 -Wno-literal-suffix
 
