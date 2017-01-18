@@ -557,9 +557,8 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
         textures_[i].LoadFromMemory(nullptr, get_size(), get_texture_format());
       }
       if (rect.z - rect.x > 0 && rect.w - rect.y > 0) {
-        textures_[i].Set(0);
-        fplbase::Texture::UpdateTexture(
-            get_texture_format(), 0, rect.y, get_size().x, rect.w - rect.y,
+        textures_[i].UpdateTexture(
+            0, get_texture_format(), 0, rect.y, get_size().x, rect.w - rect.y,
             get(i) + get_element_size() * get_size().x * rect.y);
       }
     }
