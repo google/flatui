@@ -75,9 +75,9 @@ static const vec2i kWindowSize = vec2i(1080, 1920);
 static const vec4 kWhiteColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 static const vec4 kGreyColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
 static const vec4 kTransparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-static const vec2 kScoreLabelOffset = vec2(10.0f);
-static const float kSpriteYTargetPosition = -890.0f;
-static const float kSpriteYStartPosition = -60.0f;
+static const vec2 kScoreLabelOffset = vec2(0.0f, 30.0f);
+static const float kSpriteYTargetPosition = -1100.0f;
+static const float kSpriteYStartPosition = 350.0f;
 static const float kYVirtualResolution = 1080.0f;
 static const float kCorgiBodySize = 600.0f;
 static const float kCorgiHornSize = 400.0f;
@@ -86,12 +86,14 @@ static const float kCorgiHeadBottomMargin = 275.0f;
 static const float kCorgiHornBottomMargin = 300.0f;
 static const float kCorgiHeadLeftOffset = -50.0f;
 static const float kCorgiHornBottomOffset = -25.0f;
-static const float kDefaultLabelSize = 50.0f;
-static const float kLargeLabelSize = 140.0f;
+static const float kDefaultLabelSize = 150.0f;
+static const float kLargeLabelSize = 300.0f;
+static const float kLoadingLabelSize = 100.0f;
 static const float kLabelSizeIncrement = 0.3f;
 static const float kDefaultIconSize = 60.0f;
 static const float kYPointsSizeTarget = 150.0f;
 static const float kYPointsSizeStart = 20.0f;
+static const float kCorgiLift = -160.0f;
 static const int kEvolutionPoint = 100;
 static const int kClickScore = 10;
 static const char kCorguiTitleBanner[] = "CorgUI";
@@ -254,7 +256,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
         StartGroup(flatui::kLayoutHorizontalCenter);
         PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
                       mathfu::kZeros2f);
-        flatui::Label(kLoadingString, kLargeLabelSize);
+        flatui::Label(kLoadingString, kLoadingLabelSize);
         EndGroup();
         return;
       }
@@ -280,38 +282,19 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
       // Set the colors of the button.
       flatui::SetHoverClickColor(mathfu::kZeros4f, mathfu::kZeros4f);
-      EndGroup();
-
-      // Create a score label to display the current score.
-      // When the button is clicked, this label will grow
-      // larger. It will grow in size about thirty percent of
-      // kLargeLabelSize subtracted by either the current size
-      // target or the current size, whichever is larger.
-      // With this, it will grow larger with each consecutive,
-      // continued click.
-      // Once the clicking has stopped, the label will shrink
-      // back down to its original size.
-      StartGroup(flatui::kLayoutHorizontalTop);
-      PositionGroup(flatui::kAlignLeft, flatui::kAlignTop, kScoreLabelOffset);
-      // Animate the score label size.
-      curr_game.score_label_size =
-          flatui::Animatable<float>(kScoreId, kDefaultLabelSize);
-      flatui::Label(curr_game_score.c_str(),
-                    std::max(kDefaultLabelSize, curr_game.score_label_size));
-      EndGroup();
 
       // Create groups for the corgi button.
       StartGroup(flatui::kLayoutOverlay);
       PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
-                    vec2(0.0f, CorgiBodyTopMargin(curr_game)));
+                    vec2(0.0f, CorgiBodyTopMargin(curr_game) + kCorgiLift));
       flatui::Image(*corgi_textures[CorgiBodyTextureIndex(curr_game)],
                     CorgiBodySize(curr_game));
       EndGroup();
       // Create group for the head and offset it so it's above the body.
       StartGroup(flatui::kLayoutOverlay);
-      PositionGroup(
-          flatui::kAlignCenter, flatui::kAlignBottom,
-          vec2(kCorgiHeadLeftOffset, CorgiBottomOffsetSize(curr_game)));
+      PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
+                    vec2(kCorgiHeadLeftOffset,
+                         CorgiBottomOffsetSize(curr_game) + kCorgiLift));
       CorgiTexture head_up_texture = CorgiHeadUpTextureIndex(curr_game);
       CorgiTexture head_down_texture = CorgiHeadDownTextureIndex(curr_game);
       // Give the button a bottom margin so that parts of its body will
@@ -440,6 +423,30 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       flatui::DrawSprites(kFlashId);
       flatui::DrawSprites(kSizeId);
       flatui::DrawSprites(kCurveId);
+
+      // Create a score label to display the current score.
+      // When the button is clicked, this label will grow
+      // larger. It will grow in size about thirty percent of
+      // kLargeLabelSize subtracted by either the current size
+      // target or the current size, whichever is larger.
+      // With this, it will grow larger with each consecutive,
+      // continued click.
+      // Once the clicking has stopped, the label will shrink
+      // back down to its original size.
+      // Set the text color of the score.
+      curr_game.score_text_color =
+          flatui::Animatable<vec4>(kScoreColorId, kWhiteColor);
+      flatui::SetTextColor(curr_game.score_text_color);
+
+      StartGroup(flatui::kLayoutHorizontalTop);
+      PositionGroup(flatui::kAlignCenter, flatui::kAlignTop, kScoreLabelOffset);
+      flatui::SetTextColor(curr_game.score_text_color);
+      // Animate the score label size.
+      curr_game.score_label_size =
+          flatui::Animatable<float>(kScoreId, kDefaultLabelSize);
+      flatui::Label(curr_game_score.c_str(),
+                    std::max(kDefaultLabelSize, curr_game.score_label_size));
+      EndGroup();
 
       // Animate the score being changed.
       if (flatui::AnimationTimeRemaining(kScoreId) <= 0) {
