@@ -268,18 +268,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       StartGroup(flatui::kLayoutOverlay);
       PositionGroup(flatui::kAlignLeft, flatui::kAlignTop, mathfu::kZeros2f);
 
-      // Start our root group.
-      StartGroup(flatui::kLayoutHorizontalBottom);
-
-      // Position group in the center of the screen.
-      PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
-                    mathfu::kZeros2f);
-
-      // Set the text color of this group.
-      curr_game.score_text_color =
-          flatui::Animatable<vec4>(kScoreColorId, kWhiteColor);
-      flatui::SetTextColor(curr_game.score_text_color);
-
       // Set the colors of the button.
       flatui::SetHoverClickColor(mathfu::kZeros4f, mathfu::kZeros4f);
 
