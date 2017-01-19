@@ -56,7 +56,7 @@ enum CorgiTexture {
 // See the comment above kCurveDescriptionin in flatuianim.cpp for an
 // in-depth description.
 static const AnimCurveDescription kColorCurveDescription(kAnimEaseInEaseOut,
-                                                         1.0f, 9000.0f, 0.8f);
+                                                         1.0f, 15000.0f, 0.8f);
 static const AnimCurveDescription kPointsColorCurveDescription(
     kAnimEaseInEaseOut, 1.0f, 4000.0f, 0.5f);
 static const AnimCurveDescription kSpriteCurveDescription(kAnimEaseInEaseOut,
@@ -73,8 +73,9 @@ static const AnimCurveDescription kSpringCurveDescription(kAnimSpring, 20.0f,
 // Constant variables to be used.
 static const vec2i kWindowSize = vec2i(1080, 1920);
 static const vec4 kWhiteColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+static const vec4 kPinkColor = vec4(1.0f, 0.47f, 0.56f, 1.0f);
 static const vec4 kGreyColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
-static const vec4 kTransparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+static const vec4 kTransparent = vec4(1.0f, 0.47f, 0.56f, 0.0f);
 static const vec2 kScoreLabelOffset = vec2(0.0f, 30.0f);
 static const float kSpriteYTargetPosition = -1100.0f;
 static const float kSpriteYStartPosition = 175.0f;
@@ -339,7 +340,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               const HashedId text_color_sprite_hash =
                   flatui::HashedSequenceId(kTextColorId, seq);
               const vec4 text_color =
-                  flatui::Animatable<vec4>(text_color_sprite_hash, kWhiteColor);
+                  flatui::Animatable<vec4>(text_color_sprite_hash, kPinkColor);
 
               // Start the sprite's group.
               StartGroup(flatui::kLayoutVerticalCenter, 0,
