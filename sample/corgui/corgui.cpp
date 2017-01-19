@@ -61,9 +61,10 @@ static const AnimCurveDescription kPointsColorCurveDescription(
     kAnimEaseInEaseOut, 1.0f, 4000.0f, 0.5f);
 static const AnimCurveDescription kSpriteCurveDescription(kAnimEaseInEaseOut,
                                                           10.0f, 2000.0f, 0.5f);
-static const AnimCurveDescription kScoreSizeCurveDescription(kAnimEaseInEaseOut,
-                                                             10.0f, 2000.0f,
-                                                             0.5f);
+static const AnimCurveDescription kScoreSizeGrowCurveDescription(
+    kAnimEaseInEaseOut, 10.0f, 2000.0f, 0.1f);
+static const AnimCurveDescription kScoreSizeShrinkCurveDescription(
+    kAnimEaseInEaseOut, 10.0f, 2000.0f, 0.5f);
 static const AnimCurveDescription kPointSizeCurveDescription(kAnimEaseInEaseOut,
                                                              10.0f, 2000.0f,
                                                              0.5f);
@@ -317,7 +318,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             (kLargeLabelSize - curr_game.score_label_target);
 
         flatui::StartAnimation<float>(kScoreId, curr_game.score_label_target,
-                                      0.0f, kScoreSizeCurveDescription);
+                                      0.0f, kScoreSizeGrowCurveDescription);
 
         // Add points and heart sprites. Both will grow and float upwards
         // until offscreen. The points will fade in color until transparent.
@@ -439,9 +440,9 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
       // Animate the score being changed.
       if (flatui::AnimationTimeRemaining(kScoreId) <= 0) {
-        flatui::StartAnimation<float>(kScoreId, kDefaultLabelSize, 0.0f,
-                                      kPointSizeCurveDescription);
         curr_game.score_label_target = kDefaultLabelSize;
+        flatui::StartAnimation<float>(kScoreId, curr_game.score_label_target,
+                                      0.0f, kScoreSizeShrinkCurveDescription);
       }
 
       if (flatui::AnimationTimeRemaining(kScoreColorId) <= 0 &&
