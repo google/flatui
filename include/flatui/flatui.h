@@ -86,6 +86,7 @@ namespace flatui {
 ///                         but a sine curve does not move aggressively enough
 ///                         for convincing motion, so internally we follow a
 ///                         quadratic curve instead.
+/*
 ///         |
 ///   start +--___
 ///         |     --_
@@ -96,7 +97,7 @@ namespace flatui {
 ///  target +-------------+---------+----+__+-----> x
 ///         |              \_     _/
 ///         |                -___-
-///
+*/
 enum AnimType {
   kAnimEaseInEaseOut,
   kAnimSpring,
