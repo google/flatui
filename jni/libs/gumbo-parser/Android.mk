@@ -29,7 +29,7 @@ LOCAL_PATH:=$(call realpath-portable,$(DEPENDENCIES_GUMBO_DIR))
 # Gumbo build
 #
 ###########################
-ifeq ($(wildcard DEPENDENCIES_GUMBO_DIR/src),)
+ifeq ($(wildcard $(DEPENDENCIES_GUMBO_DIR)/src),)
   # Gumbo 0.9.0
   GUMBO_SRC_FILES := \
       attribute.c \
