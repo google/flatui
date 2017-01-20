@@ -61,12 +61,14 @@ static const AnimCurveDescription kPointsColorCurveDescription(
     kAnimEaseInEaseOut, 1.0f, 4000.0f, 0.5f);
 static const AnimCurveDescription kSpriteCurveDescription(kAnimEaseInEaseOut,
                                                           10.0f, 2000.0f, 0.5f);
-static const AnimCurveDescription kScoreSizeGrowCurveDescription(
-    kAnimEaseInEaseOut, 10.0f, 2000.0f, 0.1f);
-static const AnimCurveDescription kScoreSizeShrinkCurveDescription(
-    kAnimEaseInEaseOut, 10.0f, 2000.0f, 0.5f);
+static const AnimCurveDescription kScoreSizeCurveDescription(kAnimEaseInEaseOut,
+                                                             10.0f, 2000.0f,
+                                                             0.5f);
 static const AnimCurveDescription kPointSizeCurveDescription(kAnimEaseInEaseOut,
                                                              10.0f, 2000.0f,
+                                                             0.5f);
+static const AnimCurveDescription kHeartSizeCurveDescription(kAnimEaseInEaseOut,
+                                                             10.0f, 6000.0f,
                                                              0.5f);
 static const AnimCurveDescription kSpringCurveDescription(kAnimSpring, 20.0f,
                                                           2000.0f, 0.5f);
@@ -93,6 +95,7 @@ static const float kLargeLabelSize = 300.0f;
 static const float kLoadingLabelSize = 100.0f;
 static const float kLabelSizeIncrement = 0.3f;
 static const float kDefaultIconSize = 60.0f;
+static const float kLargeIconSize = 160.0f;
 static const float kYPointsSizeTarget = 150.0f;
 static const float kYPointsSizeStart = 20.0f;
 static const float kCorgiLift = -160.0f;
@@ -102,6 +105,7 @@ static const char kCorguiTitleBanner[] = "CorgUI";
 static const char kSpriteYPosId[] = "sprites_ascending";
 static const char kFlashId[] = "text_flashing";
 static const char kSizeId[] = "label_size_changing";
+static const char kHeartSizeId[] = "heart_size_changing";
 static const char kCurveId[] = "text_curving";
 static const char kTextColorId[] = "text_color_changing";
 static const char kScoreColorId[] = "score_color_changing";
@@ -318,7 +322,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             (kLargeLabelSize - curr_game.score_label_target);
 
         flatui::StartAnimation<float>(kScoreId, curr_game.score_label_target,
-                                      0.0f, kScoreSizeGrowCurveDescription);
+                                      0.0f, kScoreSizeCurveDescription);
 
         // Add points and heart sprites. Both will grow and float upwards
         // until offscreen. The points will fade in color until transparent.
@@ -343,6 +347,12 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               const vec4 text_color =
                   flatui::Animatable<vec4>(text_color_sprite_hash, kPinkColor);
 
+              // Change the heart size.
+              const HashedId heart_size_sprite_hash =
+                  flatui::HashedSequenceId(kHeartSizeId, seq);
+              const float heart_size = flatui::Animatable<float>(
+                  heart_size_sprite_hash, kDefaultIconSize);
+
               // Start the sprite's group.
               StartGroup(flatui::kLayoutVerticalCenter, 0,
                          CalculateStringFromInt(seq).c_str());
@@ -360,14 +370,15 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               flatui::Label(CalculateStringFromInt(kClickScore).c_str(),
                             label_size);
               flatui::Image(*corgi_textures[kCorgiTextureHeartIcon],
-                            kDefaultIconSize);
+                            heart_size);
               EndGroup();
 
               const bool no_time_remaining =
                   flatui::AnimationTimeRemaining(y_position_sprite_hash) <= 0 &&
                   flatui::AnimationTimeRemaining(label_size_sprite_hash) <= 0 &&
                   flatui::AnimationTimeRemaining(text_color_sprite_hash) <= 0 &&
-                  flatui::AnimationTimeRemaining(spring_sprite_hash) <= 0;
+                  flatui::AnimationTimeRemaining(spring_sprite_hash) <= 0 &&
+                  flatui::AnimationTimeRemaining(heart_size_sprite_hash) <= 0;
               return no_time_remaining;
             });
         // Find and start position sprite animation.
@@ -389,6 +400,10 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             flatui::HashedSequenceId(kSizeId, seq);
         flatui::StartAnimation<float>(size_sprite_hash, kYPointsSizeTarget,
                                       0.0f, kSpriteCurveDescription);
+        const HashedId heart_size_sprite_hash =
+            flatui::HashedSequenceId(kHeartSizeId, seq);
+        flatui::StartAnimation<float>(heart_size_sprite_hash, kLargeIconSize,
+                                      0.0f, kHeartSizeCurveDescription);
 
         // Find and start text color sprite animations.
         const HashedId text_color_sprite_hash =
@@ -440,9 +455,9 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
       // Animate the score being changed.
       if (flatui::AnimationTimeRemaining(kScoreId) <= 0) {
+        flatui::StartAnimation<float>(kScoreId, kDefaultLabelSize, 0.0f,
+                                      kPointSizeCurveDescription);
         curr_game.score_label_target = kDefaultLabelSize;
-        flatui::StartAnimation<float>(kScoreId, curr_game.score_label_target,
-                                      0.0f, kScoreSizeShrinkCurveDescription);
       }
 
       if (flatui::AnimationTimeRemaining(kScoreColorId) <= 0 &&
