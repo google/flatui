@@ -75,22 +75,29 @@ static const AnimCurveDescription kSpringCurveDescription(kAnimSpring, 20.0f,
                                                           2000.0f, 0.5f);
 
 // Constant variables to be used.
+// Note, the kCorgiScale variable is used to scale all the separate corgi
+// assets so that they look correct together on screen. The corgi asset
+// related constants have already been set to look proportional/correctly
+// offset. To change the overall size of the corgi, modify kCorgiScale.
+// If the size is changed on the corgi, the sprites' start positions
+// may have to be edited manually.
+static const float kCorgiScale = 4.0f / 3.0f;
 static const vec2i kWindowSize = vec2i(1080, 1920);
 static const vec4 kWhiteColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 static const vec4 kPinkColor = vec4(1.0f, 0.47f, 0.56f, 1.0f);
 static const vec4 kGreyColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
 static const vec4 kTransparent = vec4(1.0f, 0.47f, 0.56f, 0.0f);
 static const vec2 kScoreLabelOffset = vec2(0.0f, 30.0f);
-static const vec2 kCorgiHornOffset = vec2(-60.0f, -700.0f);
-static const vec2 kCorgiShadowOffset = vec2(15.0f, 70.0f);
+static const vec2 kCorgiHornOffset = vec2(-60.0f, -700.0f) * kCorgiScale;
+static const vec2 kCorgiShadowOffset = vec2(12.0f, 70.0f) * kCorgiScale;
 static const float kSpriteYTargetPosition = -1100.0f;
-static const float kSpriteYStartPosition = 175.0f;
+static const float kSpriteYStartPosition = 0.0f;
 static const float kYVirtualResolution = 1080.0f;
-static const float kCorgiBodySize = 600.0f;
-static const float kCorgiHeadSize = 400.0f;
-static const float kCorgiHeadBottomOffset = -20.0f;
-static const float kCorgiHeadBottomMargin = 275.0f;
-static const float kCorgiHeadLeftOffset = -50.0f;
+static const float kCorgiBodySize = 600.0f * kCorgiScale;
+static const float kCorgiHeadSize = 400.0f * kCorgiScale;
+static const float kCorgiHeadBottomOffset = -20.0f * kCorgiScale;
+static const float kCorgiHeadBottomMargin = 275.0f * kCorgiScale;
+static const float kCorgiHeadLeftOffset = -50.0f * kCorgiScale;
 static const float kDefaultLabelSize = 150.0f;
 static const float kLargeLabelSize = 300.0f;
 static const float kLoadingLabelSize = 100.0f;
@@ -99,9 +106,10 @@ static const float kDefaultIconSize = 60.0f;
 static const float kLargeIconSize = 160.0f;
 static const float kYPointsSizeTarget = 150.0f;
 static const float kYPointsSizeStart = 20.0f;
-static const float kCorgiLift = -160.0f;
-static const float kCorgiHornSize = 275.0f;
-static const float kCorgiShadowSize = 650.0f;
+static const float kCorgiLift = -160.0f * kCorgiScale;
+static const float kCorgiHornSize = 275.0f * kCorgiScale;
+static const float kCorgiShadowSize = 650.0f * kCorgiScale;
+static const float kCorgiWingSize = 850.0f * kCorgiScale;
 static const int kEvolutionPoint = 100;
 static const int kClickScore = 10;
 static const char kCorguiTitleBanner[] = "CorgUI";
@@ -248,7 +256,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
         StartGroup(flatui::kLayoutOverlay);
         PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
                       vec2(-30.0f, -165.0f));
-        flatui::Image(*corgi_textures[kCorgiTextureWings], 850.0f);
+        flatui::Image(*corgi_textures[kCorgiTextureWings], kCorgiWingSize);
         EndGroup();
       }
       StartGroup(flatui::kLayoutOverlay);
