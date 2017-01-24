@@ -120,7 +120,7 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");  // Open OpenType font.
 
   // Wait for everything to finish loading...
-  while (assetman.TryFinalize() == false) {
+  while (!assetman.TryFinalize()) {
     renderer.AdvanceFrame(input.minimized(), input.Time());
   }
 

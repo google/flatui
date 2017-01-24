@@ -56,7 +56,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   // shaders/textured.glslv & .glslf
 
   // Wait for everything to finish loading...
-  while (assetman.TryFinalize() == false) {
+  while (!assetman.TryFinalize()) {
     renderer.AdvanceFrame(input.minimized(), input.Time());
   }
 
