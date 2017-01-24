@@ -459,6 +459,15 @@ float GetScale();
 void Image(const fplbase::Texture &texture, float ysize,
            const char *id = kDefaultImageID);
 
+/// @brief Set the Images's tint.
+///
+/// @param[in] color The RGBA values that get multiplied into the image RGBAs.
+/// a value of mathfu::kOnes4f draws the image without change.
+///
+/// @note By animating the alpha component, images can be faded out. Or, you can
+/// apply a particular hue to an image using the RGB components.
+void SetImageColor(const mathfu::vec4 &color);
+
 /// @brief Render a label as a GUI element.
 ///
 /// @param[in] text A C-string in UTF-8 format to be displayed as the label.

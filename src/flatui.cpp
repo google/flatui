@@ -204,6 +204,7 @@ class InternalState : public LayoutManager {
     font_shaders_[kFontShaderTypeColor][1].set(
         matman_.LoadShader("shaders/font_clipping_color"));
 
+    image_color_ = mathfu::kOnes4f;
     text_color_ = mathfu::kOnes4f;
 
     scroll_speed_drag_ = kScrollSpeedDragDefault;
@@ -309,7 +310,7 @@ class InternalState : public LayoutManager {
       auto element = NextElement(hash);
       if (element) {
         texture.Set(0);
-        RenderQuad(image_shader_, mathfu::kOnes4f, Position(*element),
+        RenderQuad(image_shader_, image_color_, Position(*element),
                    element->size);
         Advance(element->size);
       }
@@ -1467,6 +1468,9 @@ class InternalState : public LayoutManager {
     text_outer_color_offset = offset;
   }
 
+  // Set Image's color tint.
+  void SetImageColor(const vec4 &color) { image_color_ = color; }
+
   // Set Label's text color.
   void SetTextColor(const vec4 &color) { text_color_ = color; }
 
@@ -1531,6 +1535,7 @@ class InternalState : public LayoutManager {
   bool clip_inside_;
 
   // Widget properties.
+  mathfu::vec4 image_color_;
   mathfu::vec4 text_color_;
   // Text's outer color setting
   mathfu::vec4 text_outer_color_;
@@ -1676,6 +1681,11 @@ InternalState *Gui() {
 void Image(const Texture &texture, float size, const char *id) {
   Gui()->Image(texture, size, id);
 }
+
+void SetImageColor(const mathfu::vec4 &color) {
+  Gui()->SetImageColor(color);
+}
+
 
 void Label(const char *text, float font_size) {
   auto size = vec2(0, font_size);

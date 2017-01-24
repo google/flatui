@@ -22,6 +22,7 @@
 #include "motive/engine.h"
 #include "motive/init.h"
 
+using flatui::kAlignCenter;
 using flatui::AnimCurveDescription;
 using flatui::EndGroup;
 using flatui::Margin;
@@ -34,14 +35,18 @@ using mathfu::vec3;
 using mathfu::vec4;
 using mathfu::kZeros2f;
 using mathfu::kZeros4f;
+using mathfu::kOnes4f;
 using motive::MotiveEngine;
 using motive::MotiveTime;
 using motive::Range;
 
 static const vec4 kBackgroundColors[] = {
-    vec4(0.5f, 0.5f, 0.5f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f),
-    vec4(0.0f, 0.0f, 1.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
+    vec4(0.596f, 0.137f, 0.584f, 1.0f), // 982395
+    vec4(1.0f,   0.635f, 0.0f,   1.0f), // ffa200
+    vec4(0.0f,   0.627f, 0.243f, 1.0f), // 00a03e
+    vec4(0.141f, 0.659f, 0.675f, 1.0f), // 24a8ac
 };
+
 // Create curve's typical shape with a typical delta distance of 1.0f,
 // a typical total time of 7000.0f, and a bias of 0.5f.
 // For this sample, we want a gradual transition from one background color to
@@ -66,9 +71,17 @@ static const AnimCurveDescription kSpringCurve(flatui::kAnimSpring, 300.0f,
                                                2000.0f, 0.4f);
 static const AnimCurveDescription kEaseCurve(flatui::kAnimEaseInEaseOut, 300.0f,
                                              6000.0f, 0.2f);
+static const AnimCurveDescription kImageCurve(flatui::kAnimEaseInEaseOut, 1.0f,
+                                              4000.0f, 0.0f);
 static const float kMovementX = 300.0f;
-static const float kEaseY = 100.0f;
-static const float kSpringY = 200.0f;
+static const float kImageY = -325.0f;
+static const float kButtonY = -50.0f;
+static const float kEaseY = 150.0f;
+static const float kSpringY = 250.0f;
+static const float kImageSize = 250.0f;
+static const float kButtonTextSize = 200.0f;
+static const float kAnimatedTextSize = 100.0f;
+static const vec4 kZeroAlphaRgba(1.0f, 1.0f, 1.0f, 0.0f);
 
 extern "C" int FPL_main(int /*argc*/, char** argv) {
   MotiveEngine motive_engine;
@@ -88,9 +101,16 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
 
   fplbase::AssetManager assetman(renderer);
 
+  // Load textures.
+  auto fade_texture = assetman.LoadTexture("textures/star_icon.webp");
+  assetman.StartLoadingTextures();
+  while (!assetman.TryFinalize()) {
+    renderer.AdvanceFrame(input.minimized(), input.Time());
+  }
+
+  // Load font.
   flatui::FontManager fontman;
-  // Open OpenType font.
-  fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
+  fontman.Open("fonts/LuckiestGuy.ttf");
 
   vec4 bg = kZeros4f;
   float movement_sign = 1.0f;
@@ -113,33 +133,39 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
       SetVirtualResolution(1000);
 
       // Start our root group and position in the center of the screen.
-      StartGroup(flatui::kLayoutVerticalCenter, 100.0f);
-      PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter, kZeros2f);
+      StartGroup(flatui::kLayoutVerticalCenter);
+      PositionGroup(kAlignCenter, kAlignCenter, kZeros2f);
 
       // Allow the background color to be animated.
       bg = flatui::Animatable<vec4>("color_fading",
                                     kBackgroundColors[color_idx]);
 
+      // Draw star image, that has animated alpha.
+      StartGroup(flatui::kLayoutHorizontalCenter);
+      PositionGroup(kAlignCenter, kAlignCenter, vec2(kMovementX, kImageY));
+      flatui::SetImageColor(flatui::Animatable("image_color", kOnes4f));
+      flatui::Image(*fade_texture, kImageSize);
+      EndGroup();
+
       // Create the button and check for input event.
       StartGroup(flatui::kLayoutHorizontalCenter);
-      flatui::ColorBackground(vec4(225.0f, 128.0f, 0.0f, 0.1f));
-      flatui::SetHoverClickColor(vec4(255.0f, 0.0f, 255.0f, 0.8f),
-                                 vec4(255.0f, 228.0f, 196.0f, 0.5f));
-      const auto button_event = TextButton("Animate!", 100, Margin(10));
+      PositionGroup(kAlignCenter, kAlignCenter, vec2(0.0f, kButtonY));
+      const auto button_event = TextButton("Animate!", kButtonTextSize,
+                                           Margin(10));
       EndGroup();
 
       // Draw "Ease" test, that will be animated with ease-in ease-out motion.
       StartGroup(flatui::kLayoutHorizontalCenter);
-      PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+      PositionGroup(kAlignCenter, kAlignCenter,
                     vec2(flatui::Animatable("ease_x", kMovementX), kEaseY));
-      flatui::Label("Ease", 50.0f);
+      flatui::Label("Ease", kAnimatedTextSize);
       EndGroup();
 
       // Draw "Spring" test, that will be animated with spring motion.
       StartGroup(flatui::kLayoutHorizontalCenter);
-      PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+      PositionGroup(kAlignCenter, kAlignCenter,
                     vec2(flatui::Animatable("spring_x", kMovementX), kSpringY));
-      flatui::Label("Spring", 50.0f);
+      flatui::Label("Spring", kAnimatedTextSize);
       EndGroup();
 
       // On button click start animating all variables.
@@ -154,6 +180,10 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
                                       0.0f, kEaseCurve);
         flatui::StartAnimation<float>("spring_x", movement_sign * kMovementX,
                                       0.0f, kSpringCurve);
+
+        vec4 target_color = movement_sign <= 0.0f ? kZeroAlphaRgba : kOnes4f;
+        flatui::StartAnimation<vec4>("image_color", target_color, kZeros4f,
+                                     kImageCurve);
       }
 
       // End root group.
