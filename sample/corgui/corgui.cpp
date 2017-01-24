@@ -44,11 +44,11 @@ enum CorgiTexture {
   kCorgiTextureBackground,
   kCorgiTextureHappyHead,
   kCorgiTextureNeutralHead,
-  kCorgiTextureHappyHornHead,
-  kCorgiTextureNeutralHornHead,
+  kCorgiTextureHorn,
   kCorgiTextureCorgiBody,
-  kCorgiTextureWingedBody,
+  kCorgiTextureWings,
   kCorgiTextureHeartIcon,
+  kCorgiTextureShadow,
   kCorgiTextureCount,
 };
 
@@ -81,16 +81,16 @@ static const vec4 kPinkColor = vec4(1.0f, 0.47f, 0.56f, 1.0f);
 static const vec4 kGreyColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
 static const vec4 kTransparent = vec4(1.0f, 0.47f, 0.56f, 0.0f);
 static const vec2 kScoreLabelOffset = vec2(0.0f, 30.0f);
+static const vec2 kCorgiHornOffset = vec2(-60.0f, -700.0f);
+static const vec2 kCorgiShadowOffset = vec2(15.0f, 70.0f);
 static const float kSpriteYTargetPosition = -1100.0f;
 static const float kSpriteYStartPosition = 175.0f;
 static const float kYVirtualResolution = 1080.0f;
 static const float kCorgiBodySize = 600.0f;
-static const float kCorgiHornSize = 400.0f;
+static const float kCorgiHeadSize = 400.0f;
 static const float kCorgiHeadBottomOffset = -20.0f;
 static const float kCorgiHeadBottomMargin = 275.0f;
-static const float kCorgiHornBottomMargin = 300.0f;
 static const float kCorgiHeadLeftOffset = -50.0f;
-static const float kCorgiHornBottomOffset = -25.0f;
 static const float kDefaultLabelSize = 150.0f;
 static const float kLargeLabelSize = 300.0f;
 static const float kLoadingLabelSize = 100.0f;
@@ -100,6 +100,8 @@ static const float kLargeIconSize = 160.0f;
 static const float kYPointsSizeTarget = 150.0f;
 static const float kYPointsSizeStart = 20.0f;
 static const float kCorgiLift = -160.0f;
+static const float kCorgiHornSize = 275.0f;
+static const float kCorgiShadowSize = 650.0f;
 static const int kEvolutionPoint = 100;
 static const int kClickScore = 10;
 static const char kCorguiTitleBanner[] = "CorgUI";
@@ -118,14 +120,14 @@ static const vec4 kTextColors[] = {
     vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
 };
 static const char *kCorgiTextureNames[] = {
-    "textures/corgi_bg.webp",            // kCorgiTextureBackground
-    "textures/corgi_happy.webp",         // kCorgiTextureHappyHead
-    "textures/corgi_neutral.webp",       // kCorgiTextureNeutralHead
-    "textures/corgi_happy_horn.webp",    // kCorgiTextureHappyHornHead
-    "textures/corgi_neutral_horn.webp",  // kCorgiTextureNeutralHornHead
-    "textures/corgi_body.webp",          // kCorgiTextureCorgiBody
-    "textures/corgi_wings.webp",         // kCorgiTextureWingedBody
-    "textures/heart_icon.webp",          // kCorgiTextureHeartIcon
+    "textures/corgi_bg.webp",       // kCorgiTextureBackground
+    "textures/corgi_happy.webp",    // kCorgiTextureHappyHead
+    "textures/corgi_neutral.webp",  // kCorgiTextureNeutralHead
+    "textures/corgi_horn.webp",     // kCorgiTextureHorn
+    "textures/corgi_body.webp",     // kCorgiTextureCorgiBody
+    "textures/corgi_wings.webp",    // kCorgiTextureWings
+    "textures/heart_icon.webp",     // kCorgiTextureHeartIcon
+    "textures/corgi_shadow.webp",   // kCorgiTextureShadow
 };
 static const float kSpriteXStartPositions[] = {
     30.0f, 140.0f, 60.0f, 100.0f, 80.0f,
@@ -152,53 +154,6 @@ struct CorgiGameState {
   float movement_sign;
   vec4 score_text_color;
 };
-
-// Helper functions to choose what textures and sizes to use.
-static CorgiTexture CorgiHeadUpTextureIndex(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint ? kCorgiTextureNeutralHornHead
-                                            : kCorgiTextureNeutralHead;
-}
-
-static CorgiTexture CorgiHeadDownTextureIndex(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint ? kCorgiTextureHappyHornHead
-                                            : kCorgiTextureHappyHead;
-}
-
-static CorgiTexture CorgiBodyTextureIndex(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint * 2 ? kCorgiTextureWingedBody
-                                                : kCorgiTextureCorgiBody;
-}
-
-static float CorgiHeadSize(const CorgiGameState &curr_game,
-                           const fplbase::Texture **corgi_textures) {
-  // TODO(laijess): remove the + 100.0f once new texture for corgi horn
-  // head is ready.
-  return curr_game.score >= kEvolutionPoint
-             ? kCorgiHornSize + 100.0f
-             : kCorgiHornSize *
-                   corgi_textures[kCorgiTextureNeutralHead]->size()[1] /
-                   corgi_textures[kCorgiTextureNeutralHornHead]->size()[1];
-}
-
-static float CorgiBottomOffsetSize(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint ? kCorgiHornBottomOffset
-                                            : kCorgiHeadBottomOffset;
-}
-
-static float CorgiBottomMarginSize(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint ? kCorgiHornBottomMargin
-                                            : kCorgiHeadBottomMargin;
-}
-
-// TODO(laijess): remove the two functions below once new texture for corgi
-// winged body is ready.
-static float CorgiBodySize(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint * 2 ? 1070.0f : kCorgiBodySize;
-}
-
-static float CorgiBodyTopMargin(const CorgiGameState &curr_game) {
-  return curr_game.score >= kEvolutionPoint * 2 ? 55.0f : 0.0f;
-}
 
 static const std::string CalculateStringFromInt(int int_to_change) {
   std::stringstream ss;
@@ -279,31 +234,53 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       flatui::SetHoverClickColor(mathfu::kZeros4f, mathfu::kZeros4f);
 
       // Create groups for the corgi button.
+      // Draw corgi's shadow.
       StartGroup(flatui::kLayoutOverlay);
       PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
-                    vec2(0.0f, CorgiBodyTopMargin(curr_game) + kCorgiLift));
-      flatui::Image(*corgi_textures[CorgiBodyTextureIndex(curr_game)],
-                    CorgiBodySize(curr_game));
+                    kCorgiShadowOffset);
+      flatui::Image(*corgi_textures[kCorgiTextureShadow], kCorgiShadowSize);
       EndGroup();
+
+      // Draw the corgi's wings if it has evolved twice.
+      // The wing evolution point is being marked as three times
+      // our kEvolutionPoint.
+      if (curr_game.score >= kEvolutionPoint * 3.0f) {
+        StartGroup(flatui::kLayoutOverlay);
+        PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
+                      vec2(-30.0f, -165.0f));
+        flatui::Image(*corgi_textures[kCorgiTextureWings], 850.0f);
+        EndGroup();
+      }
+      StartGroup(flatui::kLayoutOverlay);
+      PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
+                    vec2(0.0f, kCorgiLift));
+      flatui::Image(*corgi_textures[kCorgiTextureCorgiBody], kCorgiBodySize);
+      EndGroup();
+
       // Create group for the head and offset it so it's above the body.
       StartGroup(flatui::kLayoutOverlay);
-      PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
-                    vec2(kCorgiHeadLeftOffset,
-                         CorgiBottomOffsetSize(curr_game) + kCorgiLift));
-      CorgiTexture head_up_texture = CorgiHeadUpTextureIndex(curr_game);
-      CorgiTexture head_down_texture = CorgiHeadDownTextureIndex(curr_game);
+      PositionGroup(
+          flatui::kAlignCenter, flatui::kAlignBottom,
+          vec2(kCorgiHeadLeftOffset, kCorgiHeadBottomOffset + kCorgiLift));
       // Give the button a bottom margin so that parts of its body will
       // also be clickable. The offset is needed to keep the head in the correct
       // position while only making the corgi's body and not the area below
       // it clickable.
       auto corgi_button = ToggleImageButton(
-          *corgi_textures[head_up_texture], *corgi_textures[head_down_texture],
-          CorgiHeadSize(curr_game, corgi_textures),
+          *corgi_textures[kCorgiTextureNeutralHead],
+          *corgi_textures[kCorgiTextureHappyHead], kCorgiHeadSize,
           Margin(0.0f, 0.0f, 0.0f,
-                 CorgiBottomMarginSize(curr_game) +
-                     CorgiBottomOffsetSize(curr_game)),
+                 kCorgiHeadBottomMargin + kCorgiHeadBottomOffset),
           "corgi_head");
       EndGroup();
+      // Draw the corgi's horn if it has evolved once.
+      if (curr_game.score >= kEvolutionPoint) {
+        StartGroup(flatui::kLayoutOverlay);
+        PositionGroup(flatui::kAlignCenter, flatui::kAlignBottom,
+                      kCorgiHornOffset);
+        flatui::Image(*corgi_textures[kCorgiTextureHorn], kCorgiHornSize);
+        EndGroup();
+      }
 
       // Check to see if the button has been clicked and respond.
       if (corgi_button & flatui::kEventWentUp) {
@@ -321,7 +298,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
         curr_game.score_label_target +=
             kLabelSizeIncrement *
             (kLargeLabelSize - curr_game.score_label_target);
-
         flatui::StartAnimation<float>(kScoreId, curr_game.score_label_target,
                                       0.0f, kScoreSizeGrowCurveDescription);
 
