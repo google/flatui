@@ -32,9 +32,6 @@ endif()
 
 # Set some variables describing the gtest file locations.
 set(gtest_incdir ${dependencies_gtest_dir}/include)
-if(EXISTS "${dependencies_gtest_dir}/../../third_party")
-  set(gtest_hack_incdir "${dependencies_gtest_dir}/../..")
-endif()
 set(gtest_libdir ${dependencies_gtest_dir})
 set(gmock_incdir ${dependencies_gmock_dir}/include)
 
@@ -46,11 +43,11 @@ string(REPLACE "-Wshadow" "" cxx_default "${cxx_default}")
 string(REPLACE "-Wextra" "" cxx_default "${cxx_default}")
 
 include_directories(${gtest_incdir}
-                    ${gtest_hack_incdir}
                     ${gmock_incdir}
                     ${CMAKE_CURRENT_LIST_DIR}
                     ${dependencies_flatui_dir}
                     ${dependencies_fplutil_dir}/libfplutil/include)
+fpl_absolute_include_dir(${dependencies_gtest_dir})
 
 # Common libraries for tests.
 if(NOT MSVC)

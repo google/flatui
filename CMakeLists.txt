@@ -25,6 +25,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 # Temporary files (like object files) created while compiling projects.
 set(tmp_dir ${CMAKE_CURRENT_BINARY_DIR}/obj)
 
+# Generated asset files (like hyphenation patterns) created here.
+set(flatui_assets_dir "${CMAKE_BINARY_DIR}/assets")
+
 # Call fplutil to get locations of dependencies and set common build settings.
 include("cmake/find_fplutil.cmake")
 include("${fplutil_dir}/buildutil/cmake_common.txt")
@@ -161,7 +164,7 @@ include_directories(${dependencies_flatbuffers_dir}/include)
 # Generate source files for all FlatBuffers schema files under the schemas
 # directory.
 set(FLATUI_FLATBUFFERS_GENERATED_INCLUDES_DIR
-    ${CMAKE_CURRENT_SOURCE_DIR}${CMAKE_FILES_DIRECTORY}/include)
+    ${CMAKE_CURRENT_BINARY_DIR}/include)
 file(GLOB_RECURSE FLATUI_FLATBUFFERS_SCHEMAS
                   ${CMAKE_CURRENT_LIST_DIR}/schemas/*.fbs)
 build_flatbuffers("${FLATUI_FLATBUFFERS_SCHEMAS}"
@@ -200,8 +203,11 @@ endif()
 include_directories(${dependencies_libunibreak_distr_dir}/src)
 
 # Include generated FlatBuffer files.
+get_property(FPLBASE_FLATBUFFERS_GENERATED_INCLUDES_DIR
+             TARGET fplbase_generated_includes
+             PROPERTY GENERATED_INCLUDES_DIR)
 include_directories(${FLATUI_FLATBUFFERS_GENERATED_INCLUDES_DIR})
-include_directories(${dependencies_fplbase_dir}${CMAKE_FILES_DIRECTORY}/include)
+include_directories(${FPLBASE_FLATBUFFERS_GENERATED_INCLUDES_DIR})
 
 if(flatui_DEBUG)
   # if we want to define this, it needs to be only in debug builds
@@ -226,8 +232,6 @@ function(flatui_post_process target folder_name)
   # Copy flatui resource files from flatui/assets
   # and flatui/${folder_name}/assets into
   # bin/assets.
-  set(flatui_assets_dir
-      "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets")
   add_custom_command(
       TARGET ${target} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory

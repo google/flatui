@@ -51,8 +51,12 @@ set (PATTERN_FILES_SRC
 )
 
 set(hyb_dir ${dependencies_hyb_distr_dir}/)
-set(hyb_destination_dir ${PROJECT_SOURCE_DIR}/assets/hyphen-data/)
+set(hyb_destination_dir ${flatui_assets_dir}/hyphen-data/)
 set(hyb_script_name "mk_hyb_file.py")
+
+# Create destination directory, since script does not.
+execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory
+                    ${hyb_destination_dir})
 
 # Convert patten files into hyb binary.
 set (python_cmd "python")
