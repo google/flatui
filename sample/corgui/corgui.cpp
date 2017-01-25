@@ -172,9 +172,10 @@ static const std::string CalculateStringFromInt(int int_to_change) {
 extern "C" int FPL_main(int /*argc*/, char **argv) {
   MotiveEngine motive_engine;
 
-  // Set up the renderer.
+  // Set up the renderer not to use hardware scaler if we are on Android.
   fplbase::Renderer renderer;
-  renderer.Initialize(kWindowSize, kCorguiTitleBanner);
+  renderer.Initialize(kWindowSize, kCorguiTitleBanner,
+                      fplbase::kWindowModeWindowedNative);
 
   // Set up the input system.
   fplbase::InputSystem input;
