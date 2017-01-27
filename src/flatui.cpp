@@ -1092,7 +1092,7 @@ class InternalState : public LayoutManager {
     while (it != persistent_.sprites.end()) {
       if (it->group_hash == group_hash) {
         bool done_drawing = it->draw(it->sequence_number);
-        if (done_drawing) {
+        if (done_drawing && !layout_pass_) {
           it = persistent_.sprites.erase(it);
           continue;
         }
