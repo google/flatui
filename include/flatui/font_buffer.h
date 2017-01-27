@@ -328,7 +328,7 @@ class FontBufferParameters {
   /// @brief The compare operator for FontBufferParameters.
   bool operator()(const FontBufferParameters &lhs,
                   const FontBufferParameters &rhs) const {
-    if (lhs.cache_id_ != kNullHash) {
+    if (lhs.cache_id_ != kNullHash && rhs.cache_id_ != kNullHash) {
       return lhs.cache_id_ < rhs.cache_id_;
     }
     return std::tie(lhs.font_id_, lhs.text_id_, lhs.font_size_,
