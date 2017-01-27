@@ -472,9 +472,11 @@ void SetImageColor(const mathfu::vec4 &color);
 ///
 /// @param[in] text A C-string in UTF-8 format to be displayed as the label.
 /// @param[in] ysize A float containing the vertical size in virtual resolution.
+/// @param[in] label_id A HashedId that defaults to null. If it is null, the
+/// text will be hashed and used as label_id.
 ///
 /// @note The x-size will be derived automatically based on the text length.
-void Label(const char *text, float ysize);
+void Label(const char *text, float ysize, HashedId label_id = kNullHash);
 
 /// @brief Render a multi-line version of a label as a GUI element.
 ///
@@ -483,7 +485,10 @@ void Label(const char *text, float ysize);
 /// @param[in] size The max size of the label in virtual resolution. A `0` for
 /// `size.y` indicates no height restriction. The API renders the whole text in
 /// the label in this case.
-void Label(const char *text, float ysize, const mathfu::vec2 &size);
+/// @param[in] label_id A HashedId that defaults to null. If it is null, the
+/// text will be hashed and used as label_id.
+void Label(const char *text, float ysize, const mathfu::vec2 &size,
+           HashedId label_id = kNullHash);
 
 /// @brief Render a multi-line label with a text alignment.
 ///
@@ -493,8 +498,10 @@ void Label(const char *text, float ysize, const mathfu::vec2 &size);
 /// @param[in] size The max size of the label in virtual resolution. A `0` for
 /// `size.y` indicates no height restriction. The API renders the whole text in
 /// the label in this case.
+/// @param[in] label_id A HashedId that defaults to null. If it is null, the
+/// text will be hashed and used as label_id.
 void Label(const char *text, float ysize, const mathfu::vec2 &label_size,
-           TextAlignment alignment);
+           TextAlignment alignment, HashedId label_id = kNullHash);
 
 /// @brief Render simple HTML text.
 ///

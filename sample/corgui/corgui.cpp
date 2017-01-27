@@ -436,7 +436,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
       curr_game.score_label_size =
           flatui::Animatable<float>(kScoreId, kDefaultLabelSize);
       flatui::Label(curr_game_score.c_str(),
-                    std::max(kDefaultLabelSize, curr_game.score_label_size));
+                    std::max(kDefaultLabelSize, curr_game.score_label_size),
+                    flatui::HashId("curr_game_score"));
       EndGroup();
 
       // Animate the score being changed.

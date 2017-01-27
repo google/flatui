@@ -517,7 +517,7 @@ class InternalState : public LayoutManager {
   }
 
   void Label(const char *text, float ysize, const vec2 &label_size,
-             TextAlignment alignment) {
+             TextAlignment alignment, HashedId label_id = kNullHash) {
     auto parameter = CalculateLabelFontBufferParameters(text, ysize, label_size,
                                                         alignment, kNullHash);
 
@@ -525,7 +525,7 @@ class InternalState : public LayoutManager {
     renderer_.set_color(text_color_);
     auto buffer = fontman_.GetBuffer(text, strlen(text), parameter);
     assert(buffer);
-    Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()));
+    Label(*buffer, parameter, vec4i(vec2i(0, 0), buffer->get_size()), label_id);
   }
 
   void HtmlLabel(const char *html, float ysize, const mathfu::vec2 &label_size,
@@ -635,9 +635,9 @@ class InternalState : public LayoutManager {
   }
 
   vec2i Label(const FontBuffer &buffer, const FontBufferParameters &parameter,
-              const vec4i &window) {
+              const vec4i &window, HashedId label_id = kNullHash) {
     vec2i pos = mathfu::kZeros2i;
-    auto hash = parameter.get_text_id();
+    auto hash = label_id == kNullHash ? parameter.get_text_id() : label_id;
     if (layout_pass_) {
       auto size = window.zw();
       NewElement(size, hash);
@@ -1686,19 +1686,19 @@ void SetImageColor(const mathfu::vec4 &color) {
   Gui()->SetImageColor(color);
 }
 
-
-void Label(const char *text, float font_size) {
+void Label(const char *text, float font_size, HashedId label_id) {
   auto size = vec2(0, font_size);
-  Gui()->Label(text, font_size, size, kTextAlignmentLeft);
-}
-
-void Label(const char *text, float font_size, const vec2 &size) {
-  Gui()->Label(text, font_size, size, kTextAlignmentLeft);
+  Gui()->Label(text, font_size, size, kTextAlignmentLeft, label_id);
 }
 
 void Label(const char *text, float font_size, const vec2 &size,
-           TextAlignment alignment) {
-  Gui()->Label(text, font_size, size, alignment);
+           HashedId label_id) {
+  Gui()->Label(text, font_size, size, kTextAlignmentLeft, label_id);
+}
+
+void Label(const char *text, float font_size, const vec2 &size,
+           TextAlignment alignment, HashedId label_id) {
+  Gui()->Label(text, font_size, size, alignment, label_id);
 }
 
 void HtmlLabel(const char *html, float ysize, const mathfu::vec2 &label_size,
