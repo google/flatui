@@ -49,6 +49,7 @@ enum CorgiTexture {
   kCorgiTextureWings,
   kCorgiTextureHeartIcon,
   kCorgiTextureShadow,
+  kCorgiTextureClouds,
   kCorgiTextureCount,
 };
 
@@ -73,6 +74,8 @@ static const AnimCurveDescription kHeartSizeCurveDescription(kAnimEaseInEaseOut,
                                                              0.5f);
 static const AnimCurveDescription kSpringCurveDescription(kAnimSpring, 20.0f,
                                                           2000.0f, 0.5f);
+static const AnimCurveDescription kCloudCurveDescription(kAnimSpring, 100.0f,
+                                                         40000.0f, 1.0f);
 
 // Constant variables to be used.
 // Note, the kCorgiScale variable is used to scale all the separate corgi
@@ -82,7 +85,7 @@ static const AnimCurveDescription kSpringCurveDescription(kAnimSpring, 20.0f,
 // If the size is changed on the corgi, the sprites' start positions
 // may have to be edited manually.
 static const float kCorgiScale = 4.0f / 3.0f;
-static const vec2i kWindowSize = vec2i(1080, 1920);
+static const vec2i kWindowSize = vec2i(500, 1920);
 static const vec4 kWhiteColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 static const vec4 kPinkColor = vec4(1.0f, 0.47f, 0.56f, 1.0f);
 static const vec4 kGreyColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
@@ -110,8 +113,14 @@ static const float kCorgiLift = -160.0f * kCorgiScale;
 static const float kCorgiHornSize = 275.0f * kCorgiScale;
 static const float kCorgiShadowSize = 650.0f * kCorgiScale;
 static const float kCorgiWingSize = 850.0f * kCorgiScale;
+static const float kCloudSize = 900.0f;
+static const float kCloudCenterPosition = 10.0f;
+static const float kCloudEndXPosition = 700.0f;
+static const float kCloudYPosition = -500.0f;
+static const float kCloudOffset = 900.0f;
 static const int kEvolutionPoint = 100;
 static const int kClickScore = 10;
+static const int kNumClouds = 3;
 static const char kCorguiTitleBanner[] = "CorgUI";
 static const char kSpriteYPosId[] = "sprites_ascending";
 static const char kFlashId[] = "text_flashing";
@@ -123,19 +132,21 @@ static const char kScoreColorId[] = "score_color_changing";
 static const char kScoreId[] = "score_size_changing";
 static const char kLoadingString[] = "Loading CorgUI";
 static const char kSpringId[] = "spring_x";
+static const char kScrollId[] = "scroll_cloud";
 static const vec4 kTextColors[] = {
     vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(0.87f, 0.52f, 0.54f, 1.0f),
     vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
 };
 static const char *kCorgiTextureNames[] = {
-    "textures/corgi_bg.webp",       // kCorgiTextureBackground
-    "textures/corgi_happy.webp",    // kCorgiTextureHappyHead
-    "textures/corgi_neutral.webp",  // kCorgiTextureNeutralHead
-    "textures/corgi_horn.webp",     // kCorgiTextureHorn
-    "textures/corgi_body.webp",     // kCorgiTextureCorgiBody
-    "textures/corgi_wings.webp",    // kCorgiTextureWings
-    "textures/heart_icon.webp",     // kCorgiTextureHeartIcon
-    "textures/corgi_shadow.webp",   // kCorgiTextureShadow
+    "textures/corgi_bg.webp",          // kCorgiTextureBackground
+    "textures/corgi_happy.webp",       // kCorgiTextureHappyHead
+    "textures/corgi_neutral.webp",     // kCorgiTextureNeutralHead
+    "textures/corgi_horn.webp",        // kCorgiTextureHorn
+    "textures/corgi_body.webp",        // kCorgiTextureCorgiBody
+    "textures/corgi_wings.webp",       // kCorgiTextureWings
+    "textures/heart_icon.webp",        // kCorgiTextureHeartIcon
+    "textures/corgi_shadow.webp",      // kCorgiTextureShadow
+    "textures/scrolling_clouds.webp",  // kCorgiTextureClouds
 };
 static const float kSpriteXStartPositions[] = {
     30.0f, 140.0f, 60.0f, 100.0f, 80.0f,
@@ -153,7 +164,8 @@ struct CorgiGameState {
         score_label_size(kDefaultLabelSize),
         score_label_target(kDefaultLabelSize),
         movement_sign(-1.0f),
-        score_text_color(kWhiteColor) {}
+        score_text_color(kWhiteColor),
+        start_cloud(false) {}
   int score_text_color_target;
   int sprite_start;
   int score;
@@ -161,6 +173,7 @@ struct CorgiGameState {
   float score_label_target;
   float movement_sign;
   vec4 score_text_color;
+  bool start_cloud;
 };
 
 static const std::string CalculateStringFromInt(int int_to_change) {
@@ -409,6 +422,24 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
               mathfu::kZeros4f, kPointsColorCurveDescription);
         }
       }
+
+      // Draw a stream of kNumClouds clouds.
+      const float sprite_position =
+          flatui::Animatable<float>(kScrollId, kCloudEndXPosition);
+      for (int i = 0; i < kNumClouds; ++i) {
+        flatui::StartGroup(flatui::kLayoutHorizontalTop);
+        PositionGroup(flatui::kAlignCenter, flatui::kAlignCenter,
+                      vec2((sprite_position - i * kCloudSize) + kCloudOffset,
+                           kCloudYPosition));
+        flatui::Image(*corgi_textures[kCorgiTextureClouds], kCloudSize);
+        flatui::EndGroup();
+      }
+      // Start the cloud scrolling if not started yet.
+      if (!curr_game.start_cloud) {
+        curr_game.start_cloud = true;
+        flatui::StartAnimation<float>(kScrollId, -kCloudCenterPosition, 0.0f,
+                                      kCloudCurveDescription);
+      }
       // Draw any sprites that may have been added.
       flatui::DrawSprites(kSpriteYPosId);
       flatui::DrawSprites(kFlashId);
@@ -456,6 +487,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
             kScoreColorId, kTextColors[curr_game.score_text_color_target],
             mathfu::kZeros4f, kPointsColorCurveDescription);
       }
+
       EndGroup();
     });
   }
