@@ -98,10 +98,9 @@ void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
   mathfu::vec2 scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
   mathfu::vec2 scaled_size = mathfu::vec2(entry.get_size()) * scale;
-  float scaled_base_line = base_line * scale;
 
   auto x = rounded_pos.x + scaled_offset.x;
-  auto y = rounded_pos.y + scaled_base_line - scaled_offset.y;
+  auto y = rounded_pos.y + base_line - scaled_offset.y;
   auto uv = entry.get_uv();
   vertices_.push_back(FontVertex(x, y, 0.0f, uv.x, uv.y));
   vertices_.push_back(FontVertex(x, y + scaled_size.y, 0.0f, uv.x, uv.w));
