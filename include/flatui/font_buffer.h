@@ -852,7 +852,9 @@ class FontBuffer {
         revision_(0),
         ref_count_(0),
         has_ellipsis_(false),
-        valid_(true) {}
+        valid_(true) {
+    line_start_indices_.push_back(0);
+  }
 
   /// @brief The constructor for FontBuffer with a given buffer size.
   ///

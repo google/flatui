@@ -146,6 +146,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
   if (context->lastline_must_break()) {
     justify = false;
   }
+  auto glyph_count = vertices_.size() / kVerticesPerCodePoint;
+  auto line_start_index = std::min(line_start_indices_.back(),
+                                   static_cast<uint32_t>(glyph_count));
 
   // Do nothing when the width of the text rect is not specified.
   if ((justify || align != kTextAlignmentLeft) && parameters.get_size().x) {
@@ -160,10 +163,10 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     auto line_width = 0;
     if (!vertices_.empty()) {
       const int32_t kEndPosOffset = 2;
-      auto it_start = vertices_.begin() +
-                      line_start_indices_.back() * kVerticesPerCodePoint;
+      auto it_start =
+          vertices_.begin() + line_start_index * kVerticesPerCodePoint;
       auto it_end =
-          vertices_.begin() + (glyph_info_.size() - 1) * kVerticesPerCodePoint;
+          vertices_.begin() + (glyph_count - 1) * kVerticesPerCodePoint;
       if (layout_direction == kTextLayoutDirectionLTR) {
         auto start_pos = it_start->position_.data[0];
         auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
@@ -202,8 +205,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
     // Update each glyph's position.
     auto boundary_index = 0;
-    for (auto idx = line_start_indices_.back(); idx < glyph_info_.size();
-         ++idx) {
+    for (auto idx = line_start_index; idx < glyph_count; ++idx) {
       if (justify && idx >= word_boundary[boundary_index]) {
         boundary_index++;
         offset += boundary_offset_change;
@@ -233,7 +235,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     if (attr_history.back()->first.get_underline()) {
       auto index = attr_history.back()->second;
       slices_[index]
-          .WrapUnderline((get_vertices().size() - 1) / kVerticesPerGlyph);
+          .WrapUnderline(static_cast<int32_t>((get_vertices().size() - 1)) /
+                         kVerticesPerGlyph);
     }
   }
 
