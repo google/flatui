@@ -93,7 +93,7 @@ const char *const kDefaultLanguage = "en";
 /// SelectFont() API
 /// Currently the system font is supported on iOS/macOS and Android only.
 const char *const kSystemFont = ".SystemFont";
-const HashedId kSystemFontId = HashId(kSystemFont);
+static const HashedId kSystemFontId = HashId(kSystemFont);
 #endif  // FLATUI_SYSTEM_FONT
 
 /// @class FontManager

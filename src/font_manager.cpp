@@ -178,11 +178,6 @@ class WordEnumerator {
 };
 
 FontManager::FontManager() {
-#if defined(FLATUI_SYSTEM_FONT)
-  // Suppress unused warning.
-  (void)kSystemFontId;
-#endif  // FLATUI_SYSTEM_FONT
-
   // Initialize variables and libraries.
   Initialize();
 
