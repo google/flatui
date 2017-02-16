@@ -17,7 +17,9 @@
 #include <cctype>
 #include <sstream>
 
+#if defined(FLATUI_HAS_GUMBO)
 #include <gumbo.h>
+#endif  // defined(FLATUI_HAS_GUMBO)
 
 #include "flatui.h"
 #include "font_manager.h"
@@ -58,6 +60,7 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
   return *out;
 }
 
+#if defined(FLATUI_HAS_GUMBO)
 // Remove trailing whitespace. Then add a `prefix` if there is any preceeding
 // text.
 static std::string &StartHtmlLine(const char *prefix, std::string *out) {
@@ -255,8 +258,10 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
       break;
   }
 }
+#endif  // defined(FLATUI_HAS_GUMBO)
 
 bool ParseHtml(const char *html, std::vector<HtmlSection> *s) {
+#if defined(FLATUI_HAS_GUMBO)
   // Ensure there is an HtmlSection that can be appended to.
   assert(s->empty());
   s->push_back(HtmlSection());
@@ -272,6 +277,11 @@ bool ParseHtml(const char *html, std::vector<HtmlSection> *s) {
     s->pop_back();
   }
   return true;
+#else
+  (void)html;
+  (void)s;
+  return false;
+#endif  // defined(FLATUI_HAS_GUMBO)
 }
 
 static size_t NumUnderlineVertices(const FontBuffer &buffer) {

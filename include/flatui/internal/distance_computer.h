@@ -112,6 +112,9 @@ class Grid {
   std::unique_ptr<std::vector<T>> p_;
 };
 
+// Represents a large distance during computation.
+static const float kLargeDistance = 1e6;
+
 /// @cond FLATUI_INTERNAL
 //
 // The DistanceComputer class implements the main functions to compute signed
@@ -400,9 +403,6 @@ class DistanceComputer {
             ApproximateDistanceToEdge(value, gradients_.Get(pixel));
     return length + dist;
   }
-
-  // Represents a large distance during computation.
-  const float kLargeDistance = 1e6;
 
   // The original monochrome image data, as floats (0 - 1).
   const Grid<T>* image_;

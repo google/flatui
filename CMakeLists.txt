@@ -70,6 +70,12 @@ option(flatui_build_tests "Build tests for this project."
 # Option to use pregenerated headers on Linux.
 option(use_pregenerated_headers "Use pregenerated headers for Harfbuzz." OFF)
 
+# HTML support only available with C99 compilers, since Gumbo is written in C99.
+# Visual Studio acquired C99 support in version 2013.
+if (NOT MSVC OR MSVC_VERSION GREATER 1700) # Visual Studio 2013 or later
+  set(flatui_has_gumbo ON)
+endif()
+
 # Use pregenerated headers on Windows & OSX.
 if(WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(use_pregenerated_headers ON)
@@ -86,7 +92,7 @@ if(NOT TARGET harfbuzz)
   add_subdirectory("${dependencies_harfbuzz_cmake_dir}" ${tmp_dir}/harfbuzz)
   restore_compiler_flags()
 endif()
-if(NOT TARGET gumbo)
+if(NOT TARGET gumbo AND flatui_has_gumbo)
   set_compiler_flags_for_external_libraries()
   add_subdirectory("${dependencies_gumbo_cmake_dir}" ${tmp_dir}/gumbo-parser)
   restore_compiler_flags()
@@ -214,6 +220,10 @@ if(flatui_DEBUG)
   #add_definitions(-D_DEBUG)
 endif()
 
+if(flatui_has_gumbo)
+  add_definitions(-DFLATUI_HAS_GUMBO)
+endif()
+
 # Executable target.
 add_library(flatui ${flatui_SRCS})
 
@@ -222,7 +232,10 @@ add_dependencies(flatui flatui_generated_includes)
 add_dependencies(flatui fplbase_generated_includes)
 
 # Dependencies to libraries.
-target_link_libraries(flatui fplbase gumbo libfreetype libharfbuzz libunibreak motive)
+target_link_libraries(flatui fplbase libfreetype libharfbuzz libunibreak motive)
+if(flatui_has_gumbo)
+  target_link_libraries(flatui gumbo)
+endif()
 
 # Additional flags for the target.
 mathfu_configure_flags(flatui)

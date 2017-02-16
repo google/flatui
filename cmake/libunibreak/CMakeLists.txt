@@ -31,5 +31,6 @@ set(libunibreak_SRCS
     ${libunibreak_dir}/src/unibreakdef.c
     ${libunibreak_dir}/src/wordbreak.c)
 
+set_compiler_flags_for_external_libraries()
 add_library(libunibreak ${libunibreak_SRCS})
-
+restore_compiler_flags()

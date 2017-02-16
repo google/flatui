@@ -71,7 +71,7 @@ static int read_eof(void *user) {
   return stream->size == stream->pos;
 }
 
-static stbi_io_callbacks callbacks{read_data, read_skip, read_eof};
+static stbi_io_callbacks callbacks = {read_data, read_skip, read_eof};
 
 // libPng comatible functions over stb_image.
 png_structp png_create_read_struct(png_const_charp /*user_png_ver*/,

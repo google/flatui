@@ -638,19 +638,27 @@ const ScriptInfo FontManager::script_table_[] = {
 const char *FontManager::language_table_[] = {"de", "en", "es", "fr",
                                               "ja", "ko", "ru", "zh"};
 
+// The lambda version of bsearch is not supported in VS2010, so write
+// this old-school.
+inline int CompareKeys(const void *key, const void *elem) {
+  return strcmp(static_cast<const char *>(key),
+                *static_cast<const char *const *>(elem));
+}
+
 bool FontManager::IsLanguageSupported(const char *language) {
   if (language == nullptr) {
     return false;
   }
   // Perform binary search.
   auto p = bsearch(language, language_table_, FPL_ARRAYSIZE(language_table_),
-                   sizeof(const char *),
-                   [](const void * key, const void * elem)->int {
-    return strcmp(reinterpret_cast<const char *>(key),
-                  *static_cast<const char *const *>(elem));
-  });
+                   sizeof(const char *), CompareKeys);
 
   return p != nullptr;
+}
+
+inline int CompareKeyAndInfo(const void *key, const void *elem) {
+  auto info = static_cast<const ScriptInfo *>(elem);
+  return strcmp(static_cast<const char *>(key), info->locale);
 }
 
 const ScriptInfo *FontManager::FindLocale(const char *locale) {
@@ -659,12 +667,9 @@ const ScriptInfo *FontManager::FindLocale(const char *locale) {
   }
 
   // Perform binary search.
-  return reinterpret_cast<const ScriptInfo *>(
+  return static_cast<const ScriptInfo *>(
       bsearch(locale, script_table_, FPL_ARRAYSIZE(script_table_),
-              sizeof(ScriptInfo), [](const void * key, const void * elem)->int {
-        auto info = reinterpret_cast<const ScriptInfo *>(elem);
-        return strcmp(reinterpret_cast<const char *>(key), info->locale);
-      }));
+              sizeof(ScriptInfo), CompareKeyAndInfo));
 }
 
 }  // namespace flatui

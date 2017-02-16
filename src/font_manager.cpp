@@ -210,7 +210,7 @@ void FontManager::Initialize() {
   current_font_ = nullptr;
   version_ = &FontVersion();
   SetLocale(kDefaultLanguage);
-  cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::Mode::kModeNonRecursive);
+  cache_mutex_ = new fplutil::Mutex(fplutil::Mutex::kModeNonRecursive);
   line_width_ = 0;
   ellipsis_mode_ = kEllipsisModeTruncateCharacter;
 
@@ -317,7 +317,11 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
 
   // Convert HTML into subsections that have the same formatting.
   std::vector<HtmlSection> html_sections;
-  ParseHtml(html, &html_sections);
+  const bool parsed = ParseHtml(html, &html_sections);
+  if (!parsed) {
+    fplbase::LogError("Failed to parse HTML.");
+    return nullptr;
+  }
 
   // Otherwise create new buffer.
   FontBufferContext ctx;

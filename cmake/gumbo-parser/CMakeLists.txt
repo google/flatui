@@ -17,8 +17,6 @@ project(gumbo)
 
 set(gumbo_dir ${dependencies_gumbo_distr_dir})
 
-# Include gumbo header files.
-
 # Gumbo source files.
 set(gumbo_0_10_1_SRCS
     ${gumbo_dir}/src/attribute.c

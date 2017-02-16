@@ -18,6 +18,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <tuple>
 #include <unordered_map>
 
 #include "flatui_util.h"
@@ -541,8 +542,9 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
   // Pre allocate texture structure.
   void AllocateTextureInfo() {
     for (auto i = 0; i < max_slices_; ++i) {
-      textures_.emplace_back(nullptr, get_texture_format(),
-                             fplbase::kTextureFlagsClampToEdge);
+      textures_.push_back(
+          fplbase::Texture(nullptr, get_texture_format(),
+                           fplbase::kTextureFlagsClampToEdge));
     }
   }
 

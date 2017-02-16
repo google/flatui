@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "precompiled.h"
-#include <chrono>
 #include <flatbuffers/flatbuffers.h>
 
 // FreeType2 headers.

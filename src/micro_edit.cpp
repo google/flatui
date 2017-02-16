@@ -361,7 +361,7 @@ void MicroEdit::PickRow(const vec2i &pointer_position,
 int32_t MicroEdit::PickColumn(const vec2i &pointer_position,
                               std::vector<vec2i>::const_iterator start_it,
                               std::vector<vec2i>::const_iterator end_it) {
-  auto compare = [this](const vec2i &lhs, const vec2i &rhs) {
+  auto compare = [this](const vec2i &lhs, const vec2i &rhs) -> bool {
     if (direction_ == kTextLayoutDirectionRTL) {
       return lhs.x > rhs.x;
     } else {
