@@ -383,4 +383,15 @@ void GlyphCacheRow::InvalidateReferencingBuffers() {
   }
 }
 
+void GlyphCacheRow::ReleaseReferencesFromFontBuffers() {
+  auto begin = ref_.begin();
+  auto end = ref_.end();
+  while (begin != end) {
+    auto buffer = *begin;
+    buffer->ReleaseCacheRowReference();
+    begin++;
+  }
+  ref_.clear();
+}
+
 }  // namespace flatui

@@ -1140,6 +1140,7 @@ class FontBuffer {
       row->Release(this);
       begin++;
     }
+    referencing_row_.clear();
   }
 
   // Font metrics information.

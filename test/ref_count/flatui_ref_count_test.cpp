@@ -138,7 +138,7 @@ TEST_F(FlatUIRefCountTest, TestUniqueInstance) {
 
   // Test no cached behavior.
   const char string2[] = "!";
-  const int32_t num = 8;
+  const int32_t num = 64;
   flatui::FontBuffer *buffers[num];
   std::set<flatui::FontBuffer *> buffer_set;
   flatui::HashedId id = flatui::kNullHash;
@@ -168,6 +168,9 @@ TEST_F(FlatUIRefCountTest, TestUniqueInstance) {
     }
   }
   LogInfo("%d/%d buffers are invalid", invalid, num);
+
+  // Flush fontmanager.
+  font_manager_->FlushAndUpdate();
 
   for (int32_t i = 0; i < num; ++i) {
     font_manager_->ReleaseBuffer(buffers[i]);

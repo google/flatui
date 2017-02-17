@@ -337,6 +337,9 @@ class GlyphCacheRow {
   // becomes invalid.
   void InvalidateReferencingBuffers();
 
+  // Release a reference to the row from existing FontBuffers.
+  void ReleaseReferencesFromFontBuffers();
+
  private:
   // Last used counter value of the entry. The value is used to determine
   // if the entry can be evicted from the cache.
@@ -570,6 +573,14 @@ class GlyphCacheBuffer : public GlyphCacheBufferBase {
   bool PurgeCache(int32_t req_height);
 
   void Reset() {
+    // Release reference from FontBuffers to GlyphCacheRows.
+    auto begin = list_row_.begin();
+    auto end = list_row_.end();
+    while (begin != end) {
+      begin->ReleaseReferencesFromFontBuffers();
+      begin++;
+    }
+
     buffers_.clear();
     lru_row_.clear();
     list_row_.clear();
