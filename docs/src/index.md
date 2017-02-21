@@ -89,7 +89,7 @@ upon so download the source using:
   [Android]: http://www.android.com
   [Build Configurations]: @ref flatui_build_config
   [Linux]: http://en.m.wikipedia.org/wiki/Linux
-  [FlatUI Google Group]: http://group.google.com/group/flatuilib
+  [FlatUI Google Group]: http://groups.google.com/group/flatuilib
   [FlatUI Issues Tracker]: http://github.com/google/flatui/issues
   [FlatUI]: @ref flatui_overview
   [OS X]: http://www.apple.com/osx/
