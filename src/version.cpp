@@ -17,7 +17,7 @@
 namespace flatui {
 
 #define FLATUI_VERSION_MAJOR 1
-#define FLATUI_VERSION_MINOR 0
+#define FLATUI_VERSION_MINOR 1
 #define FLATUI_VERSION_REVISION 0
 
 // Turn X into a string literal.

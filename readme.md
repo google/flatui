@@ -1,4 +1,4 @@
-FlatUI Version 1.0.0    {#flatui_readme}
+FlatUI Version 1.1.0    {#flatui_readme}
 ====================
 
 # Welcome to FlatUI!
