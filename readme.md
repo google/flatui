@@ -40,7 +40,7 @@ you would leave it in.
 
   [FlatUI Google Group]: http://groups.google.com/group/flatuilib
   [FlatUI Issues Tracker]: http://github.com/google/flatui/issues
-  [stackoverflow.com]: http://www.stackoverflow.com
+  [stackoverflow.com]: http://stackoverflow.com/search?q=flatui
   [landing page]: http://google.github.io/flatui
   [FPLBase]: https://github.com/google/fplbase
   [HUDs]: https://en.wikipedia.org/wiki/Head-up_display

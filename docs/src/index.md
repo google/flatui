@@ -94,7 +94,7 @@ upon so download the source using:
   [FlatUI]: @ref flatui_overview
   [OS X]: http://www.apple.com/osx/
   [Windows]: http://windows.microsoft.com/
-  [stackoverflow.com]: http://www.stackoverflow.com
+  [stackoverflow.com]: http://stackoverflow.com/search?q=flatui
   [FreeType]: http://www.freetype.org/
   [HarfBuzz]: http://www.freedesktop.org/wiki/Software/HarfBuzz/
   [Libunibreak]: http://vimgadgets.sourceforge.net/libunibreak/
