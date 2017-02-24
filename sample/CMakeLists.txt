@@ -13,12 +13,13 @@
 # limitations under the License.
 cmake_minimum_required(VERSION 2.8.12)
 
-project(flatuisample)
-
-add_executable(flatuisample flatuisample.cpp)
-add_dependencies(flatuisample fplbase flatui)
-mathfu_configure_flags(flatuisample)
-target_link_libraries(flatuisample fplbase flatui)
-
-# FlatUI postprocess
-flatui_post_process(flatuisample "sample")
+add_subdirectory(advanced)
+add_subdirectory(animation)
+add_subdirectory(basic)
+add_subdirectory(corgui)
+add_subdirectory(sample_3d)
+add_subdirectory(serialization)
+add_subdirectory(sdf)
+add_subdirectory(text_html_label)
+add_subdirectory(text_layout)
+add_subdirectory(text_color_emoji)

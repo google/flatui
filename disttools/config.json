@@ -44,6 +44,15 @@
       "push": 0
     },
     {
+      "name": "gumbo-parser",
+      "url": "https://github.com/google/gumbo-parser",
+      "branch": "master",
+      "revision": "aa91b27b02c0c80c482e24348a457ed7c3c088e0",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
       "name": "harfbuzz",
       "url": "http://github.com/behdad/harfbuzz.git",
       "branch": "master",
@@ -53,10 +62,28 @@
       "push": 0
     },
     {
+      "name": "hyphenation-patterns",
+      "url": "https://android.googlesource.com/platform/external/hyphenation-patterns",
+      "branch": "master",
+      "revision": "dedeff64279b77bafff72b6d866efc93e829b4ab",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
       "name": "libunibreak",
       "url": "https://github.com/adah1972/libunibreak.git",
       "branch": "master",
       "revision": "0e8e32dcd0d8f9d2744026bef591b16af1ddd0ff",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
+      "name": "stb",
+      "url": "https://github.com/nothings/stb.git",
+      "branch": "master",
+      "revision": "c9ead07188b342350530e92e14542222c3ad9abe",
       "is_library": 1,
       "third_party": 1,
       "push": 0

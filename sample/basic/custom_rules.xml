@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2015 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<project name="setup_flatui_app">
+  <!--Get the location of flatui by running ndk-build print_dependency.-->
+  <condition property="ndkbuild_exe" value="ndk-build.cmd" else="ndk-build">
+    <os family="windows"/>
+  </condition>
+  <exec executable="${ndkbuild_exe}" outputproperty="flatui_path">
+    <arg value="print_dependency"/>
+    <arg value="DEP_DIR=FLATUI"/>
+    <arg value="NDK_NO_INFO=1"/>
+  </exec>
+  <!--Include common build rules from flatui.-->
+  <include file="${flatui_path}/jni/custom_rules.xml" as="flatui"/>
+
+  <target name="copy-sample-assets"
+          description="Copy sample assets into the assets directory.">
+    <copy todir="assets">
+      <fileset dir="../assets/"/>
+    </copy>
+  </target>
+
+  <target name="-pre-build" depends="flatui.setup-flatui,
+                                     copy-sample-assets"/>
+</project>

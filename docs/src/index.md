@@ -63,6 +63,7 @@ following libraries (included in the download / submodules):
      * [OpenGL][] (desktop/ES).
      * [FlatBuffers][] for serialization.
      * [WebP][] for image loading.
+     * [STB][] for image loading.
    * [FPLUtil][] (only for build).
    * [googletest][] (only for unit tests).
 
@@ -88,12 +89,12 @@ upon so download the source using:
   [Android]: http://www.android.com
   [Build Configurations]: @ref flatui_build_config
   [Linux]: http://en.m.wikipedia.org/wiki/Linux
-  [FlatUI Google Group]: http://group.google.com/group/flatuilib
+  [FlatUI Google Group]: http://groups.google.com/group/flatuilib
   [FlatUI Issues Tracker]: http://github.com/google/flatui/issues
   [FlatUI]: @ref flatui_overview
   [OS X]: http://www.apple.com/osx/
   [Windows]: http://windows.microsoft.com/
-  [stackoverflow.com]: http://www.stackoverflow.com
+  [stackoverflow.com]: http://stackoverflow.com/search?q=flatui
   [FreeType]: http://www.freetype.org/
   [HarfBuzz]: http://www.freedesktop.org/wiki/Software/HarfBuzz/
   [Libunibreak]: http://vimgadgets.sourceforge.net/libunibreak/
@@ -102,6 +103,7 @@ upon so download the source using:
   [FPLUtil]: https://google.github.io/fplutil/
   [FPLBase]: https://google.github.io/fplbase/
   [SDL]: https://www.libsdl.org/
+  [STB]: https://github.com/nothings/stb
   [OpenGL]: https://www.opengl.org/
   [WebP]: https://developers.google.com/speed/webp/?hl=en
   [googletest]: https://code.google.com/p/googletest/

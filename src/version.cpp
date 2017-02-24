@@ -16,8 +16,8 @@
 
 namespace flatui {
 
-#define FLATUI_VERSION_MAJOR 0
-#define FLATUI_VERSION_MINOR 9
+#define FLATUI_VERSION_MAJOR 1
+#define FLATUI_VERSION_MINOR 1
 #define FLATUI_VERSION_REVISION 0
 
 // Turn X into a string literal.
@@ -35,12 +35,17 @@ namespace flatui {
 /// to measure popularity. You are free to remove it (of course) but we would
 /// appreciate if you left it in.
 ///
-static const FlatUiVersion kVersion = {
+static const FlatUIVersion kMainVersion = {
     FLATUI_VERSION_MAJOR, FLATUI_VERSION_MINOR, FLATUI_VERSION_REVISION,
-    "FlatUi Library " FLATUI_STRING(FLATUI_VERSION_MAJOR) "."
-    FLATUI_STRING(FLATUI_VERSION_MINOR) "."
-    FLATUI_STRING(FLATUI_VERSION_REVISION)};
+    "FlatUI Library " FLATUI_STRING(FLATUI_VERSION_MAJOR) "." FLATUI_STRING(
+        FLATUI_VERSION_MINOR) "." FLATUI_STRING(FLATUI_VERSION_REVISION)};
 
-const FlatUiVersion& Version() { return kVersion; }
+static const FlatUIVersion kFontVersion = {
+    FLATUI_VERSION_MAJOR, FLATUI_VERSION_MINOR, FLATUI_VERSION_REVISION,
+    "FlatUI FontManager " FLATUI_STRING(FLATUI_VERSION_MAJOR) "." FLATUI_STRING(
+        FLATUI_VERSION_MINOR) "." FLATUI_STRING(FLATUI_VERSION_REVISION)};
+
+const FlatUIVersion& MainVersion() { return kMainVersion; }
+const FlatUIVersion& FontVersion() { return kFontVersion; }
 
 }  // namespace flatui

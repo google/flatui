@@ -12,10 +12,12 @@
 *.suo
 *.sdf
 
+apks/*
 bin/
 obj/
 docs/html/
-libs/
+libs/*
+gen/
 
 Makefile
 CMakeFiles/
@@ -26,6 +28,13 @@ CMakeLists.txt.user
 
 libflatui.a
 
+sample/*/assets/
+sample/*/build.xml
+sample/*/libs/
+sample/*/local.properties
+sample/*/proguard-project.txt
+sample/*/project.properties
+sample/*/src_java/
 sample/CMakeScripts/
 sample/CMakeFiles/
 sample/bin/
@@ -42,6 +51,15 @@ sample/assets/fonts/
 sample/assets/shaders/
 sample/flatuisample.dir/
 
+sample_3d/assets/
+sample_3d/gen/
+sample_3d/apks/
+sample_3d/build.xml
+sample_3d/local.properties
+sample_3d/proguard-project.txt
+sample_3d/project.properties
+sample_3d/src_java/
+
 test/CMakeFiles/
 test/apks/
 test/assets/fonts/
@@ -55,3 +73,10 @@ test/proguard-project.txt
 test/project.properties
 test/src_java/
 test/flatuitest.dir/
+test/unit_tests/*/assets/
+test/unit_tests/*/build.xml
+test/unit_tests/*/libs/
+test/unit_tests/*/local.properties
+test/unit_tests/*/proguard-project.txt
+test/unit_tests/*/project.properties
+test/unit_tests/*/src_java/

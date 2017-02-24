@@ -17,7 +17,7 @@
 
 namespace flatui {
 
-struct FlatUiVersion {
+struct FlatUIVersion {
   // Version number, updated only on major releases.
   unsigned char major;
 
@@ -31,7 +31,8 @@ struct FlatUiVersion {
   const char* text;
 };
 
-const FlatUiVersion& Version();
+const FlatUIVersion& MainVersion();
+const FlatUIVersion& FontVersion();
 
 }  // namespace flatui
 

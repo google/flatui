@@ -17,10 +17,8 @@ uniform sampler2D texture_unit_0;
 uniform lowp vec4 color;
 void main()
 {
-  lowp vec4 texture_color = texture2D(texture_unit_0, vTexCoord);
-
   // Font texture is a 1 channel luminance texture.
   // Copying luminance value to alphachannel for blending.
-  texture_color = vec4(color.rgb, color.a * texture_color.r);
-  gl_FragColor = texture_color;
+  gl_FragColor = vec4(color.rgb, color.a *
+    texture2D(texture_unit_0, vTexCoord).r);
 }

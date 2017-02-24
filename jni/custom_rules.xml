@@ -22,6 +22,7 @@ limitations under the License.
   <exec executable="${ndkbuild_exe}" outputproperty="fplbase_path">
     <arg value="print_dependency"/>
     <arg value="DEP_DIR=FPLBASE"/>
+    <arg value="NDK_NO_INFO=1"/>
   </exec>
   <include file="${fplbase_path}/jni/custom_rules.xml" as="fplbase"/>
 
@@ -30,6 +31,7 @@ limitations under the License.
     <exec executable="${ndkbuild_exe}" outputproperty="flatui_path">
       <arg value="print_dependency"/>
       <arg value="DEP_DIR=FLATUI"/>
+      <arg value="NDK_NO_INFO=1"/>
     </exec>
   </target>
 

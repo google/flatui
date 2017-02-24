@@ -1,0 +1,161 @@
+// Copyright 2016 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+include "common.fbs";
+
+namespace flatui_data;
+
+enum Alignment:byte {
+  None = 0,
+  TopOrLeft = 1,  // kAlignTop or kAlignLeft (depending on the axis).
+  Center = 2,
+  BottomOrRight = 3  // kAlignBottom or kAlignRight (depending on the axis).
+}
+
+enum Direction:byte {
+  None = 0,
+  Horizontal = 4,
+  Vertical = 8,
+  Overlay = 12
+}
+
+enum Layout:byte {
+  None = 0,
+  HorizontalTop = 5,
+  HorizontalCenter = 6,
+  HorizontalBottom = 7,
+  VerticalLeft = 9,
+  VerticalCenter = 10,
+  VerticalRight = 11,
+  Overlay = 14
+}
+
+enum ButtonProperty:byte {
+  Disabled = 1,
+  ImageLeft = 2,
+  ImageRight = 4
+}
+
+enum Event:byte {
+  None = 0,
+  WentUp = 1,
+  WentDown = 2,
+  IsDown = 4,
+  StartDrag = 8,
+  EndDrag = 16,
+  IsDragging = 32,
+  Hover = 64
+}
+
+// Margin is only used as a sub-table for a FlatUIElement.
+table Margin {
+  id:string (required);
+  size_left:float;  // Used for all four sizes if it is the only size
+                    // specified. If only two sizes are specified, it
+                    // is used as the `x` size.
+  size_top:float = -1;  // Used as `y` size, if only two sizes are specified.
+  size_right:float = -1;
+  size_bottom:float = -1;
+}
+
+// List of the core, supported FlatUI widgets.
+//
+// Note: The core library reserves all elements from 2,000,000,000
+// to INT_MAX (2147483647).
+enum Type:int {
+  ReservedDefaultTypes = 2000000000,
+  InvalidType,
+  CheckBox, // texture, texture_secondary, text, size
+  Edit,  // ysize, size_2f
+  Group,  // layout, (spacing), (horizontal), (vertical), (offset),
+          // (is_modal_group), (elements)
+  Image, // texture, ysize
+  ImageButton,  // texture, size, (margin)
+  Label,  // text, ysize, (size_2f)
+  ScrollBar,  // texture_background, texture_foreground, size, bar_size,
+  SetVirtualResolution,  // `virtual_resolution`
+  Slider,  // texture, texture_secondary, size_2f, bar_size,
+  TextButton,  // (texture), (texture_margin), text, size, margin, (property)
+}
+
+// A helper enum to identify the type of data stored in an `AttributeField`.
+enum AttributeType:ubyte {
+  InvalidType = 0,
+  Alignment,
+  Bool,
+  ButtonProperty,
+  Element,
+  Int,
+  Float,
+  Layout,
+  Margin,
+  String,
+  Vec2,
+  Vec2i,
+  Vec4
+}
+
+// A helper table to allow custom widgets to define parameters external to
+// those explicitly defined in `FlatUIElement` as being used for core widgets.
+//
+// If this table cannot be purposed for your own custom widget, then you should
+// fork this schema file and adapt a copy to your needs.
+table AttributeFields {
+  alignment_attribute:Alignment;
+  bool_attribute:bool;
+  button_property_attribute:ButtonProperty = Disabled;
+  element_attribute:FlatUIElement;
+  int_attribute:int;
+  float_attribute:float;
+  layout_attribute:Layout;
+  margin_attribute:Margin;
+  string_attribute:string;
+  type:AttributeType;
+  vec2_attribute:fplbase.Vec2;
+  vec2i_attribute:fplbase.Vec2i;
+  vec4_attribute:fplbase.Vec4;
+}
+
+// Group containing a relative minimum set of parameters.
+table FlatUIElement {
+  attributes:[AttributeFields]; // Used to allow additional, custom parameters.
+  bar_size:float = -1;  // `bar_size` is also used for `bar_height` parameter.
+  elements:[FlatUIElement];
+  horizontal:Alignment;
+  id:string (required);
+  is_modal_group:bool = false;
+  layout:Layout;
+  margin:Margin;
+  offset:fplbase.Vec2;
+  property:ButtonProperty = Disabled;
+  size:float = -1;
+  size_2f:fplbase.Vec2;
+  spacing:float;
+  text:string;  // `text` is also used for the `label` parameter in FlatUI.
+  texture:string;  // String name of the texture.
+  texture_secondary:string;  // String name of the secondary texture.
+  texture_margin:Margin;
+  type:uint = "flatui_data.Type.InvalidType";  // Typically an Enum value.
+  vertical:Alignment;
+  virtual_resolution:float = -1;
+  ysize:float = -1.0;
+}
+
+table FlatUI {
+  elements:[FlatUIElement];
+}
+
+root_type FlatUI;
+file_identifier "FLUI";
+file_extension "flatui";

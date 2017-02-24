@@ -16,27 +16,32 @@
 #define FONT_MANAGER_H
 
 #include <set>
-
-/// @cond FLATUI_INTERNAL
-// Use libunibreak for a line breaking
-#if !defined(FLATUI_USE_LIBUNIBREAK)
-// For now, it's automatically turned on.
-#define FLATUI_USE_LIBUNIBREAK 1
-#endif  // !defined(FLATUI_USE_LIBUNIBREAK)
-
+#include <sstream>
 #include "fplbase/renderer.h"
+#include "fplutil/mutex.h"
+#include "flatui/font_buffer.h"
+#include "flatui/font_util.h"
+#include "flatui/version.h"
+#include "flatui/internal/distance_computer.h"
 #include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/flatui_util.h"
+#include "flatui/internal/hb_complex_font.h"
+#include "flatui/internal/hyphenator.h"
 
-// Forward decls for FreeType & Harfbuzz
+#if defined(__APPLE__) || defined(__ANDROID__)
+#define FLATUI_SYSTEM_FONT (1)
+#endif  // defined(__APPLE__) || defined(__ANDROID__)
+
+// Forward decls for FreeType.
 typedef struct FT_LibraryRec_ *FT_Library;
-typedef struct FT_FaceRec_ *FT_Face;
 typedef struct FT_GlyphSlotRec_ *FT_GlyphSlot;
-struct hb_font_t;
-struct hb_buffer_t;
-struct hb_glyph_info_t;
+typedef unsigned long FT_ULong;
+
+// Forward decls for Harfbuzz.
+typedef const struct hb_language_impl_t *hb_language_t;
 /// @endcond
 
+/// @brief Namespace for FlatUI library.
 namespace flatui {
 
 /// @file
@@ -45,26 +50,24 @@ namespace flatui {
 
 /// @cond FLATUI_INTERNAL
 // Forward decl.
+class FaceData;
 class FontTexture;
 class FontBuffer;
+class FontBufferContext;
 class FontMetrics;
 class WordEnumerator;
-class FaceData;
 struct ScriptInfo;
 /// @endcond
 
-/// @var kFreeTypeUnit
+/// @var kVerticesPerGlyph/kIndicesPerGlyph
 ///
-/// @brief Constant to convert FreeType unit to pixel unit.
-///
-/// In FreeType & Harfbuzz, the position value unit is 1/64 px whereas
-/// configurable in FlatUI. The constant is used to convert FreeType unit
-/// to px.
-const int32_t kFreeTypeUnit = 64;
+/// @brief The number of vertices/indices per a glyph entry.
+const int32_t kVerticesPerGlyph = 4;
+const int32_t kIndicesPerGlyph = 6;
 
 /// @var kGlyphCacheWidth
 ///
-/// @brief The Default size of the glyph cache width.
+/// @brief The default size of the glyph cache width.
 const int32_t kGlyphCacheWidth = 1024;
 
 /// @var kGlyphCacheHeight
@@ -72,116 +75,26 @@ const int32_t kGlyphCacheWidth = 1024;
 /// @brief The default size of the glyph cache height.
 const int32_t kGlyphCacheHeight = 1024;
 
-/// @var kLineHeightDefault
+/// @var kGlyphCacheMaxSlices
 ///
-/// @brief Default value for a line height factor.
-///
-/// The line height is derived as the factor * a font height.
-/// To change the line height, use `SetLineHeight()` API.
-const float kLineHeightDefault = 1.2f;
-
-/// @var kCaretPositionInvalid
-///
-/// @brief A sentinel value representing an invalid caret position.
-const mathfu::vec2i kCaretPositionInvalid = mathfu::vec2i(-1, -1);
+/// @brief The default size of the max glyph cache slices. The number of cache
+/// slices grows up to the value.
+const int32_t kGlyphCacheMaxSlices = 4;
 
 /// @var kDefaultLanguage
 ///
 /// @brief The default language used for a line break.
 const char *const kDefaultLanguage = "en";
 
-/// @enum TextLayoutDirection
+#ifdef FLATUI_SYSTEM_FONT
+/// @var kSystemFont
 ///
-/// @brief Specify how to layout texts.
-/// Default value is TextLayoutDirectionLTR.
-///
-enum TextLayoutDirection {
-  TextLayoutDirectionLTR = 0,
-  TextLayoutDirectionRTL = 1,
-  TextLayoutDirectionTTB = 2,
-};
-
-/// @class FontBufferParameters
-///
-/// @brief This class that includes font buffer parameters. It is used as a key
-/// in the unordered_map to look up FontBuffer.
-class FontBufferParameters {
- public:
-  /// @brief The default constructor for an empty FontBufferParameters.
-  FontBufferParameters()
-      : font_id_(kNullHash),
-        text_id_(kNullHash),
-        font_size_(0),
-        size_(mathfu::kZeros2i),
-        caret_info_(false) {}
-
-  /// @brief Constructor for a FontBufferParameters.
-  ///
-  /// @param[in] font_id The HashedId for the font.
-  /// @param[in] text_id The HashedID for the text.
-  /// @param[in] font_size A float representing the size of the font.
-  /// @param[in] size The size of the FontBuffer.
-  /// @param[in] caret_info A bool determining if the font buffer contains caret
-  /// info.
-  FontBufferParameters(const HashedId font_id, const HashedId text_id,
-                       float font_size, const mathfu::vec2i &size,
-                       bool caret_info) {
-    font_id_ = font_id;
-    text_id_ = text_id;
-    font_size_ = font_size;
-    size_ = size;
-    caret_info_ = caret_info;
-  }
-
-  /// @brief The equal-to operator for comparing FontBufferParameters for
-  /// equality.
-  ///
-  /// @param[in] other The other FontBufferParameters to check against for
-  /// equality.
-  ///
-  /// @return Returns `true` if the two FontBufferParameters are equal.
-  /// Otherwise it returns `false`.
-  bool operator==(const FontBufferParameters &other) const {
-    return (font_id_ == other.font_id_ && text_id_ == other.text_id_ &&
-            font_size_ == other.font_size_ && size_.x() == other.size_.x() &&
-            size_.y() == other.size_.y() && caret_info_ == other.caret_info_);
-  }
-
-  /// @brief The hash function for FontBufferParameters.
-  ///
-  /// @param[in] key A FontBufferParameters to use as the key for
-  /// hashing.
-  ///
-  /// @return Returns a `size_t` of the hash of the FontBufferParameters.
-  size_t operator()(const FontBufferParameters &key) const {
-    // Note that font_id_ and text_id_ are already hashed values.
-    size_t value = (font_id_ ^ (text_id_ << 1)) >> 1;
-    value = value ^ (std::hash<float>()(key.font_size_) << 1) >> 1;
-    value = value ^ (std::hash<bool>()(key.caret_info_) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.size_.x()) << 1) >> 1;
-    value = value ^ (std::hash<int32_t>()(key.size_.y()) << 1) >> 1;
-    return value;
-  }
-
-  /// @return Returns a hash value of the text.
-  HashedId get_text_id() const { return text_id_; }
-
-  /// @return Returns the size value.
-  const mathfu::vec2i &get_size() const { return size_; }
-
-  /// @return Returns the font size.
-  float get_font_size() const { return font_size_; }
-
-  /// @return Returns a flag to indicate if the buffer has caret info.
-  bool get_caret_info_flag() const { return caret_info_; }
-
- private:
-  HashedId font_id_;
-  HashedId text_id_;
-  float font_size_;
-  mathfu::vec2i size_;
-  bool caret_info_;
-};
+/// @brief A constant to spefify loading a system font. Used with OpenFont() and
+/// SelectFont() API
+/// Currently the system font is supported on iOS/macOS and Android only.
+const char *const kSystemFont = ".SystemFont";
+static const HashedId kSystemFontId = HashId(kSystemFont);
+#endif  // FLATUI_SYSTEM_FONT
 
 /// @class FontManager
 ///
@@ -203,8 +116,11 @@ class FontManager {
   /// @note The given size is rounded up to nearest power of 2 internally to be
   /// used as an OpenGL texture sizes.
   ///
-  /// @param[in] cache_size The size of the cache, in pixels.
-  FontManager(const mathfu::vec2i &cache_size);
+  /// @param[in] cache_size The size of the cache, in pixels as x & y values.
+  /// @param[in] max_slices The maximum number of cache slices. When a glyph
+  /// slice gets full with glyph entries, the cache allocates another slices for
+  /// more cache spaces up to the value.
+  FontManager(const mathfu::vec2i &cache_size, int32_t max_slices);
 
   /// @brief The destructor for FontManager.
   ~FontManager();
@@ -215,11 +131,20 @@ class FontManager {
   ///
   /// @param[in] font_name A C-string in UTF-8 format representing
   /// the name of the font.
-  ///
   /// @return Returns `false` when failing to open font, such as
   /// a file open error, an invalid file format etc. Returns `true`
   /// if the font is opened successfully.
   bool Open(const char *font_name);
+
+  /// @brief Open a font face, TTF, OT font by FontFamily structure.
+  /// Use this version of API when opening a font with a family name, with a
+  /// font collection index etc.
+  ///
+  /// @param[in] family A FontFamily structure indicating font parameters.
+  /// @return Returns `false` when failing to open font, such as
+  /// a file open error, an invalid file format etc. Returns `true`
+  /// if the font is opened successfully.
+  bool Open(const FontFamily &family);
 
   /// @brief Discard a font face that has been opened via `Open()`.
   ///
@@ -229,6 +154,15 @@ class FontManager {
   /// @return Returns `true` if the font was closed successfully. Otherwise
   /// it returns `false`.
   bool Close(const char *font_name);
+
+  /// @brief Discard a font face that has been opened via `Open()`.
+  /// Use this version of API when closeing a font opened with FontFamily.
+  ///
+  /// @param[in] family A FontFamily structure indicating font parameters.
+  ///
+  /// @return Returns `true` if the font was closed successfully. Otherwise
+  /// it returns `false`.
+  bool Close(const FontFamily &family);
 
   /// @brief Select the current font face. The font face will be used by a glyph
   /// rendering.
@@ -242,20 +176,28 @@ class FontManager {
   /// returns false.
   bool SelectFont(const char *font_name);
 
-  /// @brief Retrieve a texture with the given text.
+  /// @brief Select the current font face with a FontFamily.
+  bool SelectFont(const FontFamily &family);
+
+  /// @brief Select the current font faces with a fallback priority.
   ///
-  /// @note This API doesn't use the glyph cache, instead it writes the string
-  /// image directly to the returned texture. The user can use this API when a
-  /// font texture is used for a long time, such as a string image used in game
-  /// HUD.
+  /// @param[in] font_names An array of C-string corresponding to the name of
+  /// the font. Font names in the array are stored in a priority order.
+  /// @param[in] count A count of font names in the array.
   ///
-  /// @param[in] text A C-string in UTF-8 format with the text for the texture.
-  /// @param[in] length The length of the text string.
-  /// @param[in] ysize The height of the texture.
+  /// @return Returns `true` if the fonts were selected successfully. Otherwise
+  /// it returns false.
+  bool SelectFont(const char *font_names[], int32_t count);
+
+  /// @brief Select the current font faces with a fallback priority.
   ///
-  /// @return Returns a pointer to the FontTexture.
-  FontTexture *GetTexture(const char *text, const uint32_t length,
-                          const float ysize);
+  /// @param[in] family_names An array of FontFamily structure that holds font
+  /// family information.
+  /// @param[in] count A count of font family in the array.
+  ///
+  /// @return Returns `true` if the fonts were selected successfully. Otherwise
+  /// it returns false.
+  bool SelectFont(const FontFamily family_names[], int32_t count);
 
   /// @brief Retrieve a vertex buffer for a font rendering using glyph cache.
   ///
@@ -268,13 +210,45 @@ class FontManager {
   /// @return Returns `nullptr` if the string does not fit in the glyph cache.
   ///  When this happens, caller may flush the glyph cache with
   /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
-  FontBuffer *GetBuffer(const char *text, const size_t length,
+  FontBuffer *GetBuffer(const char *text, size_t length,
                         const FontBufferParameters &parameters);
 
-  /// @brief Set the renderer to be used to create texture instances.
+  /// @brief Retrieve a vertex buffer for basic HTML rendering.
   ///
-  /// @param[in] renderer The Renderer to set for creating textures.
-  void SetRenderer(fplbase::Renderer &renderer);
+  /// @param[in] html A C-string in UTF-8 format with the HTML to be rendered.
+  /// Note that we support only a limited subset of HTML at the moment,
+  /// including anchors, paragraphs, and breaks.
+  /// @param[in] parameters The FontBufferParameters specifying the parameters
+  /// for the FontBuffer.
+  ///
+  /// @note call get_links() on the returned FontBuffer to receive information
+  /// on where the anchor links are located, and the linked-to addresses.
+  ///
+  /// @return Returns `nullptr` if the HTML does not fit in the glyph cache.
+  ///  When this happens, caller may flush the glyph cache with
+  /// `FlushAndUpdate()` call and re-try the `GetBuffer()` call.
+  FontBuffer *GetHtmlBuffer(const char *html,
+                            const FontBufferParameters &parameters);
+
+  /// @brief Release the FonBuffer instance.
+  /// If the FontBuffer is a reference counting buffer, the API decrements the
+  /// reference count of the buffer and when it reaches 0, the buffer becomes
+  /// invalid.
+  /// If the buffer is non-reference counting buffer, the buffer is invalidated
+  /// immediately and all references to the FontBuffer with same parameters
+  /// become invalid. It is not a problem for those non-reference counting
+  /// buffers because they are expected to create/fetch a buffer each render
+  /// cycle.
+  void ReleaseBuffer(FontBuffer *buffer);
+
+  /// @brief Optionally flush the glyph cache and update existing FontBuffer's
+  /// UV information.
+  /// The API doesn't change a reference count of buffers.
+  /// Note that current implementation references font instances and it is the
+  /// caller's responsibility not to close font files in use.
+  ///
+  /// @param[in] flush_cache set true to flush existing glyph cache contents.
+  void RemapBuffers(bool flush_cache);
 
   /// @return Returns `true` if a font has been loaded. Otherwise it returns
   /// `false`.
@@ -300,20 +274,46 @@ class FontManager {
   /// @brief Flush the existing glyph cache contents and start new layout pass.
   ///
   /// Call this API while in a layout pass when the glyph cache is fragmented.
-  void FlushAndUpdate() { UpdatePass(true); }
+  // Returns false if the API failed to acquire a mutex when it's running in
+  // multithreaded mode. In that case, make sure the caller invokes the API
+  // repeatedly.
+  bool FlushAndUpdate() { return UpdatePass(true); }
 
   /// @brief Flush the existing FontBuffer in the cache.
   ///
   /// Call this API when FontBuffers are not used anymore.
-  void FlushLayout() { map_buffers_.clear(); }
+  void FlushLayout() {
+    for (auto it = map_buffers_.begin(); it != map_buffers_.end(); it++) {
+      // Erase only non-ref-counted buffers.
+      if (!it->first.get_ref_count_flag()) {
+        map_buffers_.erase(it);
+      }
+    }
+  }
 
   /// @brief Indicates a start of new render pass.
   ///
   /// Call the API each time the user starts a render pass.
-  void StartRenderPass() { UpdatePass(false); }
+  // Returns false if the API failed to acquire a mutex when it's running in
+  // multithreaded mode. In that case, make sure the caller invokes the API
+  // repeatedly.
+  bool StartRenderPass() { return UpdatePass(false); }
 
   /// @return Returns font atlas texture.
-  fplbase::Texture *GetAtlasTexture() { return atlas_texture_.get(); }
+  ///
+  /// @param[in] slice an index indicating an atlas texture.
+  /// An index with kGlyphFormatsColor indicates that the slice is a multi
+  /// channel buffer for color glyphs.
+  fplbase::Texture *GetAtlasTexture(int32_t slice) {
+    // Note: We don't need to lock cache_mutex_ because we're just returning
+    //       a GL texture in an array. No need to lock the GL thread.
+    if (!(slice & kGlyphFormatsColor)) {
+      return glyph_cache_->get_monochrome_buffer()->get_texture(slice);
+    } else {
+      return glyph_cache_->get_color_buffer()->get_texture(slice &
+                                                           ~kGlyphFormatsColor);
+    }
+  }
 
   /// @brief The user can supply a size selector function to adjust glyph sizes
   /// when storing a glyph cache entry. By doing that, multiple strings with
@@ -353,29 +353,67 @@ class FontManager {
   ///            TextLayoutDirectionLTR & TextLayoutDirectionRTL are supported.
   ///
   void SetLayoutDirection(const TextLayoutDirection direction) {
-    if (direction == TextLayoutDirectionTTB) {
+    if (direction == kTextLayoutDirectionTTB) {
       fplbase::LogError("TextLayoutDirectionTTB is not supported yet.");
       return;
     }
 
-    // Flush layout cache if we switch a directin.
-    if (direction != layout_direction_) {
-      FlushLayout();
-    }
     layout_direction_ = direction;
+  }
+
+  /// @brief Set up hyphenation pattern path.
+  /// Since the hyphenation pattern is different per locale, current locale
+  /// needs to be set properly for the hyphnation to work.
+  ///
+  /// @param[in] hyb_path A file path to search the hyb (dictionary files
+  /// required for the hyphenation process. On Android,
+  /// "/system/usr/hyphen-data" is the default search path.
+  ///
+  void SetupHyphenationPatternPath(const char *hyb_path) {
+    if (hyb_path != nullptr) {
+      hyb_path_ = hyb_path;
+    }
+    if (!hyphenation_rule_.empty() && !hyb_path_.empty()) {
+      std::string pattern_file =
+          hyb_path_ + "/hyph-" + hyphenation_rule_ + ".hyb";
+      hyphenator_.Open(pattern_file.c_str());
+    }
   }
 
   /// @return Returns the current layout direciton.
   TextLayoutDirection GetLayoutDirection() { return layout_direction_; }
 
-  /// @brief Set a line height for a multi-line text.
-  ///
-  /// @param[in] line_height A float representing the line height for a
-  /// multi-line text.
-  void SetLineHeight(const float line_height) { line_height_ = line_height; }
+  /// @return Returns the current font.
+  HbFont *GetCurrentFont() { return current_font_; }
 
-  /// @return Returns the current font face.
-  FaceData *GetCurrentFace() { return current_face_; }
+  /// @brief Enable an use of color glyphs in supporting OTF/TTF font.
+  /// The API will initialize internal glyph cache for color glyphs.
+  void EnableColorGlyph();
+
+  /// @brief Set an ellipsis string used in label/edit widgets.
+  ///
+  /// @param[in] ellipsis A C-string specifying characters used as an ellipsis.
+  /// Can be multiple characters, typically '...'. When a string in a widget
+  /// doesn't fit to the given size, the string is truncated to fit the ellipsis
+  /// string appended at the end.
+  /// @param[in] mode A flag controlling appending behavior of the ellipsis.
+  /// Default is kEllipsisModeTruncateCharacter.
+  ///
+  /// Note: FontManager doesn't support dynamic change of the ellipsis string
+  /// in current version. FontBuffer contents that has been created are not
+  /// updated when the ellipsis string is changed.
+  void SetTextEllipsis(const char *ellipsis,
+                       EllipsisMode mode = kEllipsisModeTruncateCharacter) {
+    ellipsis_ = ellipsis;
+    ellipsis_mode_ = mode;
+  }
+
+  /// @brief Check a status of the font buffer.
+  /// @param[in] font_buffer font buffer to check.
+  ///
+  /// @return Returns a status of the FontBuffer if it's ready to use with
+  /// current texture atlas contents.
+  FontBufferStatus GetFontBufferStatus(const FontBuffer &font_buffer) const;
 
  private:
   // Pass indicating rendering pass.
@@ -389,21 +427,34 @@ class FontManager {
   // to use the class.
   static void Terminate();
 
-  // Expand a texture image buffer when the font metrics is changed.
-  // Returns true if the image buffer was reallocated.
-  static bool ExpandBuffer(const int32_t width, const int32_t height,
-                           const FontMetrics &original_metrics,
-                           const FontMetrics &new_metrics,
-                           std::unique_ptr<uint8_t[]> *image);
-
   // Layout text and update harfbuzz_buf_.
   // Returns the width of the text layout in pixels.
-  uint32_t LayoutText(const char *text, const size_t length);
+  int32_t LayoutText(const char *text, size_t length, int32_t max_width = 0,
+                     int32_t current_width = 0, bool last_line = false,
+                     bool enable_hyphenation = false,
+                     int32_t *rewind = nullptr);
+
+  // Helper function to add string information to the buffer.
+  bool UpdateBuffer(const WordEnumerator &word_enum,
+                    const FontBufferParameters &parameters, int32_t base_line,
+                    FontBuffer *buffer, FontBufferContext *context,
+                    mathfu::vec2 *pos, FontMetrics *metrics);
+
+  // Helper function to remove entries from the buffer for specified width.
+  void RemoveEntries(const FontBufferParameters &parameters,
+                     uint32_t required_width, FontBuffer *buffer,
+                     FontBufferContext *context, mathfu::vec2 *pos);
+
+  // Helper function to append ellipsis to the buffer.
+  bool AppendEllipsis(const WordEnumerator &word_enum,
+                      const FontBufferParameters &parameters, int32_t base_line,
+                      FontBuffer *buffer, FontBufferContext *context,
+                      mathfu::vec2 *pos, FontMetrics *metrics);
 
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
   // Returns true if the size of metrics has been changed.
-  bool UpdateMetrics(const FT_GlyphSlot glyph,
+  bool UpdateMetrics(int32_t top, int32_t height,
                      const FontMetrics &current_metrics,
                      FontMetrics *new_metrics);
 
@@ -415,8 +466,8 @@ class FontManager {
   // - The glyph doesn't fit into the cache (even after trying to evict some
   // glyphs in cache based on LRU rule).
   // (e.g. Requested glyph size too large or the cache is highly fragmented.)
-  const GlyphCacheEntry *GetCachedEntry(const uint32_t code_point,
-                                        const int32_t y_size);
+  const GlyphCacheEntry *GetCachedEntry(uint32_t code_point, uint32_t y_size,
+                                        GlyphFlags flags);
 
   // Update font manager, check glyph cache if the texture atlas needs to be
   // updated.
@@ -424,14 +475,17 @@ class FontManager {
   // the API uploads the current atlas texture, flushes cache and starts
   // a sub layout pass. Use the feature when the cache is full and needs to
   // flushed during a rendering pass.
-  void UpdatePass(const bool start_subpass);
+  // Returns false if the API failed to acquire a mutex when it's running in
+  // multithreaded mode. In that case, make sure the caller invokes the API
+  // repeatedly.
+  bool UpdatePass(bool start_subpass);
 
   // Update UV value in the FontBuffer.
   // Returns nullptr if one of UV values couldn't be updated.
-  FontBuffer *UpdateUV(const int32_t ysize, FontBuffer *buffer);
+  FontBuffer *UpdateUV(GlyphFlags flags, FontBuffer *buffer);
 
   // Convert requested glyph size using SizeSelector if it's set.
-  int32_t ConvertSize(const int32_t size);
+  int32_t ConvertSize(int32_t size);
 
   // Retrieve a caret count in a specific glyph from linebreak and halfbuzz
   // glyph information.
@@ -441,11 +495,29 @@ class FontManager {
 
   // Create FontBuffer with requested parameters.
   // The function may return nullptr if the glyph cache is full.
-  FontBuffer *CreateBuffer(const char *text, const uint32_t length,
-                           const FontBufferParameters &parameters);
+  FontBuffer *CreateBuffer(const char *text, uint32_t length,
+                           const FontBufferParameters &parameters,
+                           mathfu::vec2 *text_pos = nullptr);
+
+  // Check if the requested buffer already exist in the cache.
+  FontBuffer *FindBuffer(const FontBufferParameters &parameters);
+
+  // Fill in the FontBuffer with the given text.
+  FontBuffer *FillBuffer(const char *text, uint32_t length,
+                         const FontBufferParameters &parameters,
+                         FontBuffer *buffer, FontBufferContext *context,
+                         mathfu::vec2 *text_pos = nullptr);
 
   // Update language related settings.
   void SetLanguageSettings();
+
+  // Hyphenate given string and layout it.
+  int32_t Hyphenate(const char *text, size_t length, int32_t available_space,
+                    int32_t *rewind);
+
+  // Apply HtmlFontSection settings while parsing HTML text.
+  void SetFontProperties(const HtmlSection &font_section,
+                         FontBufferParameters *param, FontBufferContext *ctx);
 
   // Look up a supported locale.
   // Returns nullptr if the API doesn't find the specified locale.
@@ -454,8 +526,47 @@ class FontManager {
   // Check if speficied language is supported in the font manager engine.
   bool IsLanguageSupported(const char *language);
 
-  // Renderer instance.
-  fplbase::Renderer *renderer_;
+  /// @brief Set a line height for a multi-line text.
+  ///
+  /// @param[in] line_height A float representing the line height for a
+  /// multi-line text.
+  void SetLineHeightScale(float line_height_scale) {
+    line_height_scale_ = line_height_scale;
+  }
+
+  /// @brief Set a kerning scale value.
+  ///
+  /// @param[in] kerning_scale A float representing the kerning scale value
+  /// applied to the kerning values retrieved from Harfbuzz used in the text
+  /// rendering.
+  void SetKerningScale(float kerning_scale) { kerning_scale_ = kerning_scale; }
+
+  /// @brief  Retrieve the system's font fallback list and all fonts in the
+  /// list.
+  /// The implementation is platform specific.
+  /// @return true if the system font is successfully opened.
+  bool OpenSystemFont();
+
+  /// @brief  Helper function to check font coverage.
+  /// @param[in] face FreeType face to check font coverage.
+  /// @param[out] font_coverage A set updated for the coverage map of the face.
+  /// @return true if the specified font has a new glyph entry.
+  bool UpdateFontCoverage(FT_Face face, std::set<FT_ULong> *font_coverage);
+
+/// @brief Platform specific implementation of a system font access.
+#ifdef __APPLE__
+  bool OpenSystemFontApple();
+  bool CloseSystemFontApple();
+#endif  // __APPLE__
+#ifdef __ANDROID__
+  bool OpenSystemFontAndroid();
+  bool CloseSystemFontAndroid();
+  void ReorderSystemFonts(std::vector<FontFamily> *font_list) const;
+#endif  // __ANDROID__
+
+  /// @brief  Close all fonts in the system's font fallback list opened by
+  /// OpenSystemFont().
+  bool CloseSystemFont();
 
   // flag indicating if a font file has loaded.
   bool face_initialized_;
@@ -463,20 +574,17 @@ class FontManager {
   // Map that keeps opened face data instances.
   std::unordered_map<std::string, std::unique_ptr<FaceData>> map_faces_;
 
-  // Pointer for current face.
-  FaceData *current_face_;
+  // Used to cache font instances. Refers to memory owned by map_faces_.
+  HbFontCache font_cache_;
 
-  // Texture cache for a rendered string image.
-  // Using the FontBufferParameters as keys.
-  // The map is used for GetTexture() API.
-  std::unordered_map<FontBufferParameters, std::unique_ptr<FontTexture>,
-                     FontBufferParameters> map_textures_;
+  // Pointer to active font face instance.
+  HbFont *current_font_;
 
   // Cache for a texture atlas + vertex array rendering.
   // Using the FontBufferParameters as keys.
   // The map is used for GetBuffer() API.
-  std::unordered_map<FontBufferParameters, std::unique_ptr<FontBuffer>,
-                     FontBufferParameters> map_buffers_;
+  std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
+           FontBufferParameters> map_buffers_;
 
   // Singleton instance of Freetype library.
   static FT_Library *ft_;
@@ -485,13 +593,12 @@ class FontManager {
   static hb_buffer_t *harfbuzz_buf_;
 
   // Unique pointer to a glyph cache.
-  std::unique_ptr<GlyphCache<uint8_t>> glyph_cache_;
+  std::unique_ptr<GlyphCache> glyph_cache_;
 
   // Current atlas texture's contents revision.
-  uint32_t current_atlas_revision_;
-
-  // Unique pointer to a font atlas texture.
-  std::unique_ptr<fplbase::Texture> atlas_texture_;
+  int32_t current_atlas_revision_;
+  // A revision that the atlas texture is flushed last time.
+  int32_t atlas_last_flush_revision_;
 
   // Current pass counter.
   // Current implementation only supports up to 2 passes in a rendering cycle.
@@ -508,435 +615,42 @@ class FontManager {
   TextLayoutDirection layout_direction_;
   static const ScriptInfo script_table_[];
   static const char *language_table_[];
+  hb_language_t hb_language_;
 
   // Line height for a multi line text.
-  float line_height_;
+  float line_height_scale_;
+  float kerning_scale_;
+
+  // Current line width. Needs to be persistent while appending buffers.
+  int32_t line_width_;
+
+  // Ellipsis settings.
+  std::string ellipsis_;
+  EllipsisMode ellipsis_mode_;
+
+  // Hyphenation settings.
+  std::string hyb_path_;
+  std::string hyphenation_rule_;
+  Hyphenator hyphenator_;
 
   // Line break info buffer used in libunibreak.
   std::vector<char> wordbreak_info_;
-};
 
-/// @class FontMetrics
-///
-/// @brief This class has additional properties for font metrics.
-//
-/// For details of font metrics, refer http://support.microsoft.com/kb/32667
-/// In this class, ascender and descender values are retrieved from FreeType
-/// font property.
-///
-/// And internal/external leading values are updated based on rendering glyph
-/// information. When rendering a string, the leading values tracks max (min for
-/// internal leading) value in the string.
-class FontMetrics {
- public:
-  /// The default constructor for FontMetrics.
-  FontMetrics()
-      : base_line_(0),
-        internal_leading_(0),
-        ascender_(0),
-        descender_(0),
-        external_leading_(0) {}
+  // A buffer includes font face index of the current font's faces.
+  std::vector<int32_t> fontface_index_;
 
-  /// The constructor with initialization parameters for FontMetrics.
-  FontMetrics(const int32_t base_line, const int32_t internal_leading,
-              const int32_t ascender, const int32_t descender,
-              const int32_t external_leading)
-      : base_line_(base_line),
-        internal_leading_(internal_leading),
-        ascender_(ascender),
-        descender_(descender),
-        external_leading_(external_leading) {
-    assert(internal_leading >= 0);
-    assert(ascender >= 0);
-    assert(descender <= 0);
-    assert(external_leading <= 0);
-  }
+  // An instance of signed distance field generator.
+  // To avoid redundant initializations, the FontManager holds an instnce of the
+  // class.
+  DistanceComputer<uint8_t> sdf_computer_;
 
-  /// The destructor for FontMetrics.
-  ~FontMetrics() {}
+  // Mutex guarding glyph cache's buffer access.
+  fplutil::Mutex *cache_mutex_;
 
-  /// @return Returns the baseline value as an int32_t.
-  int32_t base_line() const { return base_line_; }
+  // A font fallback list retrieved from the current system.
+  std::vector<FontFamily> system_fallback_list_;
 
-  /// @brief set the baseline value.
-  ///
-  /// @param[in] base_line An int32_t to set as the baseline value.
-  void set_base_line(const int32_t base_line) { base_line_ = base_line; }
-
-  /// @return Returns the internal leading parameter as an int32_t.
-  int32_t internal_leading() const { return internal_leading_; }
-
-  /// @brief Set the internal leading parameter value.
-  ///
-  /// @param[in] internal_leading An int32_t to set as the internal
-  /// leading value.
-  void set_internal_leading(const int32_t internal_leading) {
-    assert(internal_leading >= 0);
-    internal_leading_ = internal_leading;
-  }
-
-  /// @return Returns the ascender value as an int32_t.
-  int32_t ascender() const { return ascender_; }
-
-  /// @brief Set the ascender value.
-  ///
-  /// @param[in] ascender An int32_t to set as the ascender value.
-  void set_ascender(const int32_t ascender) {
-    assert(ascender >= 0);
-    ascender_ = ascender;
-  }
-
-  /// @return Returns the descender value as an int32_t.
-  int32_t descender() const { return descender_; }
-
-  /// @brief Set the descender value.
-  ///
-  /// @param[in] descender An int32_t to set as the descender value.
-  void set_descender(const int32_t descender) {
-    assert(descender <= 0);
-    descender_ = descender;
-  }
-
-  /// @return Returns the external leading parameter value as an int32_t.
-  int32_t external_leading() const { return external_leading_; }
-
-  /// @brief Set the external leading parameter value.
-  ///
-  /// @param[in] external_leading An int32_t to set as the external
-  /// leading value.
-  void set_external_leading(const int32_t external_leading) {
-    assert(external_leading <= 0);
-    external_leading_ = external_leading;
-  }
-
-  /// @return Returns the total height of the glyph.
-  int32_t total() const {
-    return internal_leading_ + ascender_ - descender_ - external_leading_;
-  }
-
- private:
-  // Baseline: Baseline of the glpyhs.
-  // When rendering multiple glyphs in the same horizontal group,
-  // baselines need be aligned.
-  // Most of glyphs fit within the area of ascender + descender.
-  // However some glyphs may render in internal/external leading area.
-  // (e.g. Å, underlines)
-  int32_t base_line_;
-
-  // Internal leading: Positive value that describes the space above the
-  // ascender.
-  int32_t internal_leading_;
-
-  // Ascender: Positive value that describes the size of the ascender above
-  // the baseline.
-  int32_t ascender_;
-
-  // Descender: Negative value that describes the size of the descender below
-  // the baseline.
-  int32_t descender_;
-
-  // External leading : Negative value that describes the space below
-  // the descender.
-  int32_t external_leading_;
-};
-
-/// @class FontTexture
-///
-/// @brief This class is the actual Texture for fonts.
-class FontTexture : public fplbase::Texture {
- public:
-  /// @brief The default constructor for a FontTexture.
-  FontTexture() : fplbase::Texture(nullptr, fplbase::kFormatLuminance, false) {}
-
-  /// @brief The destructor for FontTexture.
-  ~FontTexture() {}
-
-  /// @return Returns a const reference to the FontMetrics that specifies
-  /// the metrics parameters for the FontTexture.
-  const FontMetrics &metrics() const { return metrics_; }
-
-  /// @brief Sets the FontMetrics that specifies the metrics parameters for
-  /// the FontTexture.
-  void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
-
- private:
-  FontMetrics metrics_;
-};
-
-/// @struct FontVertex
-///
-/// @brief This struct holds all the font vertex data.
-struct FontVertex {
-  /// @brief The constructor for a FontVertex.
-  ///
-  /// @param[in] x A float representing the `x` position of the vertex.
-  /// @param[in] y A float representing the `y` position of the vertex.
-  /// @param[in] z A float representing the `z` position of the vertex.
-  /// @param[in] u A float representing the `u` value in the UV mapping.
-  /// @param[in] v A float representing the `v` value in the UV mapping.
-  FontVertex(const float x, const float y, const float z, const float u,
-             const float v) {
-    position_.data[0] = x;
-    position_.data[1] = y;
-    position_.data[2] = z;
-    uv_.data[0] = u;
-    uv_.data[1] = v;
-  }
-
-  /// @cond FONT_MANAGER_INTERNAL
-  mathfu::vec3_packed position_;
-  mathfu::vec2_packed uv_;
-  /// @endcond
-};
-
-/// @class FontBuffer
-///
-/// @brief this is used with the texture atlas rendering.
-class FontBuffer {
- public:
-  /// @var kIndiciesPerCodePoint
-  ///
-  /// @brief The number of indices per code point.
-  static const int32_t kIndiciesPerCodePoint = 6;
-
-  /// @var kVerticesPerCodePoint
-  ///
-  /// @brief The number of vertices per code point.
-  static const int32_t kVerticesPerCodePoint = 4;
-
-  /// @brief The default constructor for a FontBuffer.
-  FontBuffer() : revision_(0) {}
-
-  /// @brief The constructor for FontBuffer with a given buffer size.
-  ///
-  /// @param[in] size A size of the FontBuffer in a number of glyphs.
-  /// @param[in] caret_info Indicates if the FontBuffer also maintains a caret
-  /// position buffer.
-  ///
-  /// @note Caret position does not match to glpyh position 1 to 1, because a
-  /// glyph can have multiple caret positions (e.g. Single 'ff' glyph can have 2
-  /// caret positions).
-  ///
-  /// Since it has a strong relationship to rendering positions, we store the
-  /// caret position information in the FontBuffer.
-  FontBuffer(uint32_t size, bool caret_info) : revision_(0) {
-    indices_.reserve(size * kIndiciesPerCodePoint);
-    vertices_.reserve(size * kVerticesPerCodePoint);
-    code_points_.reserve(size);
-    if (caret_info) {
-      caret_positions_.reserve(size + 1);
-    }
-  }
-
-  /// The destructor for FontBuffer.
-  ~FontBuffer() {}
-
-  /// @return Returns the FontMetrics metrics parameters for the font
-  /// texture.
-  const FontMetrics &metrics() const { return metrics_; }
-
-  /// @brief Sets the FontMetrics metrics parameters for the font
-  /// texture.
-  ///
-  /// @param[in] metrics The FontMetrics to set for the font texture.
-  void set_metrics(const FontMetrics &metrics) { metrics_ = metrics; }
-
-  /// @return Returns the indices array as a std::vector<uint16_t>.
-  std::vector<uint16_t> *get_indices() { return &indices_; }
-
-  /// @return Returns the indices array as a const std::vector<uint16_t>.
-  const std::vector<uint16_t> *get_indices() const { return &indices_; }
-
-  /// @return Returns the vertices array as a std::vector<FontVertex>.
-  std::vector<FontVertex> *get_vertices() { return &vertices_; }
-
-  /// @return Returns the vertices array as a const std::vector<FontVertex>.
-  const std::vector<FontVertex> *get_vertices() const { return &vertices_; }
-
-  /// @return Returns the array of code points as a std::vector<uint32_t>.
-  std::vector<uint32_t> *get_code_points() { return &code_points_; }
-
-  /// @return Returns the array of code points as a const std::vector<uint32_t>.
-  const std::vector<uint32_t> *get_code_points() const { return &code_points_; }
-
-  /// @return Returns the size of the string as a const vec2i reference.
-  const mathfu::vec2i &get_size() const { return size_; }
-
-  /// @brief Set the size of the string.
-  ///
-  /// @param[in] size A const vec2i reference to the size of the string.
-  void set_size(const mathfu::vec2i &size) { size_ = size; }
-
-  /// @return Returns the glyph cache revision counter as a uint32_t.
-  ///
-  /// @note Each time a contents of the glyph cache is updated, the revision of
-  /// the cache is updated.
-  ///
-  /// If the cache revision and the buffer revision is different, the
-  /// font_manager try to re-construct the buffer.
-  uint32_t get_revision() const { return revision_; }
-
-  /// @brief Sets the glyph cache revision counter.
-  ///
-  /// @param[in] revision The uint32_t containing the new counter to set.
-  ///
-  /// @note Each time a contents of the glyph cache is updated, the revision of
-  /// the cache is updated.
-  ///
-  /// If the cache revision and the buffer revision is different, the
-  /// font_manager try to re-construct the buffer.
-  void set_revision(const uint32_t revision) { revision_ = revision; }
-
-  /// @return Returns the pass counter as an int32_t.
-  ///
-  /// @note In the render pass, this value is used if the user of the class
-  /// needs to call `StartRenderPass()` to upload the atlas texture.
-  int32_t get_pass() const { return pass_; }
-
-  /// @return Returns the psas counter as an int32_t.
-  ///
-  /// @note In the render pass, this value is used if the user of the class
-  /// needs to call `StartRenderPass()` to upload the atlas texture.
-  void set_pass(const int32_t pass) { pass_ = pass; }
-
-  /// @brief Adds 4 vertices to be used for a glyph rendering to the
-  /// vertex array.
-  ///
-  /// @param[in] pos A vec2 containing the `x` and `y` position of the first,
-  /// unscaled vertex.
-  /// @param[in] base_line A const int32_t representing the baseline for the
-  /// vertices.
-  /// @param[in] scale A float used to scale the size and offset.
-  /// @param[in] entry A const GlyphCacheEntry reference whose offset and size
-  /// are used in the scaling.
-  void AddVertices(const mathfu::vec2 &pos, const int32_t base_line,
-                   const float scale, const GlyphCacheEntry &entry);
-
-  /// @brief Add the given caret position to the buffer.
-  ///
-  /// @param[in] x The `x` position of the caret.
-  /// @param[in] y The `y` position of the caret.
-  void AddCaretPosition(int32_t x, int32_t y);
-  ///
-  /// @param[in] pos The position of the caret.
-  void AddCaretPosition(const mathfu::vec2 &pos);
-
-  /// @brief Update UV information of a glyph entry.
-  ///
-  /// @param[in] index The index of the glyph entry that should be updated.
-  /// @param[in] uv The `uv` vec4 should include the top-left corner of UV value
-  /// as `x` and `y`, and the bottom-right of UV value as the `w` and `z`
-  /// components of the vector.
-  void UpdateUV(const int32_t index, const mathfu::vec4 &uv);
-
-  /// @brief Verifies that the sizes of the arrays used in the buffer are
-  /// correct.
-  ///
-  /// @warning Asserts if the array sizes are incorrect.
-  ///
-  /// @return Returns `true`.
-  bool Verify() {
-    assert(vertices_.size() == code_points_.size() * kVerticesPerCodePoint);
-    assert(indices_.size() == code_points_.size() * kIndiciesPerCodePoint);
-    return true;
-  }
-
-  /// @brief Retrieve a caret positions with a given index.
-  ///
-  /// @param[in] index The index of the caret position.
-  ///
-  /// @return Returns a vec2i containing the caret position. Otherwise it
-  /// returns `kCaretPositionInvalid` if the buffer does not contain
-  /// caret information at the given index, or if the index is out of range.
-  mathfu::vec2i GetCaretPosition(size_t index) const {
-    if (!caret_positions_.capacity() || index > caret_positions_.size())
-      return kCaretPositionInvalid;
-    return caret_positions_[index];
-  }
-
-  /// @return Returns a const reference to the caret positions buffer.
-  const std::vector<mathfu::vec2i> &GetCaretPositions() const {
-    return caret_positions_;
-  }
-
-  /// @return Returns `true` if the FontBuffer contains any caret positions.
-  /// If the caret positions array has 0 elements, it will return `false`.
-  bool HasCaretPositions() const { return caret_positions_.capacity() != 0; }
-
- private:
-  // Font metrics information.
-  FontMetrics metrics_;
-
-  // Arrays for font indices, vertices and code points.
-  // They are hold as a separate vector because OpenGL draw call needs them to
-  // be a separate array.
-
-  // Indices of the font buffer.
-  std::vector<uint16_t> indices_;
-
-  // Vertices data of the font buffer.
-  std::vector<FontVertex> vertices_;
-
-  // Code points used in the buffer. This array is used to fetch and update UV
-  // entries when the glyph cache is flushed.
-  std::vector<uint32_t> code_points_;
-
-  // Caret positions in the buffer. We need to track them differently than a
-  // vertices information because we support ligatures so that single glyph
-  // can include multiple caret positions.
-  std::vector<mathfu::vec2i> caret_positions_;
-
-  // Size of the string in pixels.
-  mathfu::vec2i size_;
-
-  // Revision of the FontBuffer corresponding glyph cache revision.
-  // Caller needs to check the revision value if glyph texture has referencing
-  // entries by checking the revision.
-  uint32_t revision_;
-
-  // Pass id. Each pass should have it's own texture atlas contents.
-  int32_t pass_;
-};
-
-/// @class FaceData
-///
-/// @brief The font face instance data opened via the `Open()` API.
-///
-/// It keeps a font file data, FreeType fontface instance, and harfbuzz font
-/// information.
-class FaceData {
- public:
-  /// @brief The default constructor for FaceData.
-  FaceData() : face_(nullptr), harfbuzz_font_(nullptr), font_id_(kNullHash) {}
-
-  /// @brief The destructor for FaceData.
-  ///
-  /// @note This calls the `Close()` function.
-  ~FaceData() { Close(); }
-
-  /// @brief Close the fontface.
-  void Close();
-
-  /// @var face_
-  ///
-  /// @brief freetype's fontface instance.
-  FT_Face face_;
-
-  /// @var harfbuzz_font_
-  ///
-  /// @brief harfbuzz's font information instance.
-  hb_font_t *harfbuzz_font_;
-
-  /// @var font_data_
-  ///
-  /// @brief Opened font file data.
-  ///
-  /// The file needs to be kept open until FreeType finishes using the file.
-  std::string font_data_;
-
-  /// @var font_id_
-  /// @brief Hashed value of the font face.
-  HashedId font_id_;
+  const FlatUIVersion *version_;
 };
 
 /// @struct ScriptInfo
@@ -954,9 +668,66 @@ struct ScriptInfo {
   /// @var script
   /// @brief ISO 15924 Script code.
   const char *script;
+
+  /// @var hyphenation
+  /// @brief Hyphenation rule.
+  const char *hyphenation;
+
   /// @var direction
   /// @brief Script layout direciton.
   TextLayoutDirection direction;
+};
+/// @}
+
+/// @class FontShader
+///
+/// @brief Helper class to handle shaders for a font rendering.
+/// The class keeps a reference to a shader, and a location of uniforms with a
+/// fixed names.
+/// A caller is responsive not to call set_* APIs that specified shader doesn't
+/// support.
+class FontShader {
+ public:
+  void set(fplbase::Shader *shader) {
+    assert(shader);
+    shader_ = shader;
+    pos_offset_ = shader->FindUniform("pos_offset");
+    color_ = shader->FindUniform("color");
+    clipping_ = shader->FindUniform("clipping");
+    threshold_ = shader->FindUniform("threshold");
+  }
+  void set_renderer(const fplbase::Renderer &renderer) {
+    shader_->Set(renderer);
+  }
+
+  void set_position_offset(const mathfu::vec3 &vec) {
+    assert(fplbase::ValidUniformHandle(pos_offset_));
+    shader_->SetUniform(pos_offset_, vec);
+  }
+  void set_color(const mathfu::vec4 &vec) {
+    assert(fplbase::ValidUniformHandle(color_));
+    shader_->SetUniform(color_, vec);
+  }
+  void set_clipping(const mathfu::vec4 &vec) {
+    assert(fplbase::ValidUniformHandle(clipping_));
+    shader_->SetUniform(clipping_, vec);
+  }
+  void set_threshold(float f) {
+    assert(fplbase::ValidUniformHandle(threshold_));
+    shader_->SetUniform(threshold_, &f, 1);
+  }
+
+  fplbase::UniformHandle clipping_handle() { return clipping_; }
+  fplbase::UniformHandle color_handle() { return color_; }
+  fplbase::UniformHandle position_offset_handle() { return pos_offset_; }
+  fplbase::UniformHandle threshold_handle() { return threshold_; }
+
+ private:
+  fplbase::Shader *shader_;
+  fplbase::UniformHandle pos_offset_;
+  fplbase::UniformHandle color_;
+  fplbase::UniformHandle clipping_;
+  fplbase::UniformHandle threshold_;
 };
 /// @}
 

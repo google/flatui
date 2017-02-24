@@ -119,6 +119,19 @@ Event TextButton(const char *text, float size, const Margin &margin);
 Event ImageButton(const fplbase::Texture &texture, float size,
                   const Margin &margin, const char *id);
 
+/// @brief A button showing a different image when clicked or not.
+///
+/// @param[in] up_texture The Texture of the image to display if not clicked.
+/// @param[in] down_texture The Texture of the image to display if clicked.
+/// @param[in] size A float indicating the vertical height.
+/// @param[in] margin A Margin around the `texture`.
+/// @param[in] id A C-string to uniquely identify the button.
+///
+/// @return Returns the Event type for the button.
+Event ToggleImageButton(const fplbase::Texture &up_texture,
+                          const fplbase::Texture &down_texture, float size,
+                  const Margin &margin, const char *id);
+
 /// @brief A simple button showing clickable text with an image shown beside it.
 ///
 /// @note Uses the colors that are set via `SetHoverClickColor`.

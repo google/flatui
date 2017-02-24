@@ -16,10 +16,9 @@ varying mediump vec4 vTexCoord;
 uniform mediump vec4 clipping;
 uniform sampler2D texture_unit_0;
 uniform lowp vec4 color;
+
 void main()
 {
-  lowp vec4 texture_color = texture2D(texture_unit_0, vTexCoord.xy);
-
   // Discard the fragment if it's out of a clipping rect.
   mediump vec2 pos = vTexCoord.zw;
   if (any(lessThan(pos.xy, clipping.xy)) ||
@@ -29,6 +28,6 @@ void main()
 
   // Font texture is a 1 channel luminance texture.
   // Copying luminance value to alphachannel for blending.
-  texture_color = vec4(color.rgb, color.a * texture_color.r);
-  gl_FragColor = texture_color;
+  gl_FragColor = vec4(color.rgb, color.a *
+    texture2D(texture_unit_0, vTexCoord.xy).r);
 }

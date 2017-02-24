@@ -19,6 +19,7 @@ FLATUI_RELATIVE_DIR:=../../..
 FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
 include $(FLATUI_DIR)/jni/android_config.mk
 FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
+FLATUI_RELATIVEPATH:=$(call realpath-portable,$(FLATUI_DIR))
 
 # realpath-portable from android_config.mk
 LOCAL_PATH:=$(call realpath-portable,$(DEPENDENCIES_FREETYPE_DIR))
@@ -49,7 +50,8 @@ FREETYPE_SRC_FILES = \
     src/truetype/truetype.c \
     src/cff/cff.c \
     src/psnames/psnames.c \
-    src/pshinter/pshinter.c
+    src/pshinter/pshinter.c \
+    $(FLATUI_RELATIVEPATH)/src/libpng_to_stbimage/pngshim.cpp
 
 #############################################################
 #   build the harfbuzz shared library
@@ -58,10 +60,16 @@ include $(CLEAR_VARS)
 
 LOCAL_ARM_MODE := arm
 LOCAL_SRC_FILES := $(FREETYPE_SRC_FILES)
-LOCAL_C_INCLUDES += $(DEPENDENCIES_FREETYPE_DIR)/include
+LOCAL_C_INCLUDES += $(DEPENDENCIES_FREETYPE_DIR)/include\
+  $(DEPENDENCIES_HARFBUZZ_DIR)/src\
+  $(FLATUI_ABSPATH)/external/include/harfbuzz\
+  $(FLATUI_ABSPATH)/src/libpng_to_stbimage\
+  $(DEPENDENCIES_STB_DIR)
 LOCAL_CFLAGS += \
   -DFT2_BUILD_LIBRARY \
-  -DFT_CONFIG_MODULES_H=\"$(FLATUI_ABSPATH)/cmake/freetype/ftmodule.h\"
+  -DFT_CONFIG_MODULES_H=\"$(FLATUI_ABSPATH)/cmake/freetype/ftmodule.h\"\
+  -DFT_CONFIG_OPTION_USE_PNG \
+  -DFT_CONFIG_OPTION_USE_HARFBUZZ
 LOCAL_MODULE := libfreetype
 LOCAL_MODULE_FILENAME := libfreetype
 

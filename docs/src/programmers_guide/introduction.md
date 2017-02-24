@@ -104,7 +104,6 @@ you'd like to use, and pass it the renderer you created above, e.g.
 
 ~~~{.cpp}
 fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
-fontman.SetRenderer(renderer);
 ~~~
 
 Now you're ready to use FlatUI. You pass the above as arguments to `Run`:

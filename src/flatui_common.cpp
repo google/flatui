@@ -50,6 +50,22 @@ Event ImageButton(const Texture &texture, float size, const Margin &margin,
   return event;
 }
 
+Event ToggleImageButton(const fplbase::Texture &up_texture,
+                          const fplbase::Texture &down_texture,
+                          float size, const Margin &margin, const char *id) {
+  StartGroup(kLayoutVerticalLeft, size, id);
+  SetMargin(margin);
+  auto event = CheckEvent();
+  EventBackground(event);
+  if (event & kEventIsDown) {
+    Image(down_texture, size);
+  } else {
+    Image(up_texture, size);
+  }
+  EndGroup();
+  return event;
+}
+
 Event TextButton(const char *text, float size, const Margin &margin) {
   StartGroup(kLayoutVerticalLeft, size, text);
   SetMargin(margin);
@@ -114,25 +130,24 @@ Event CheckBox(const Texture &texture_checked, const Texture &texture_unchecked,
 Event Slider(const Texture &tex_bar, const Texture &tex_knob, const vec2 &size,
              float bar_height, const char *id, float *slider_value) {
   StartGroup(kLayoutHorizontalBottom, 0, id);
-  StartSlider(kDirHorizontal, size.y() * 0.5f, slider_value);
+  StartSlider(kDirHorizontal, size.y * 0.5f, slider_value);
   auto event = CheckEvent();
   // Show focus area when controled by a gamepad.
-  if (!IsLastEventPointerType())
-    EventBackground(event);
+  if (!IsLastEventPointerType()) EventBackground(event);
   CustomElement(size, id, [&tex_knob, &tex_bar, bar_height, slider_value](
                               const vec2i &pos, const vec2i &size) {
     // Render the slider.
     auto bar_pos = pos;
     auto bar_size = size;
-    bar_pos += vec2i(size.y() / 2,
-                     static_cast<int>(size.y() * (1.0 - bar_height) / 2.0f));
-    bar_size = vec2i(std::max(bar_size.x() - size.y(), 0),
-                     static_cast<int>(bar_size.y() * bar_height));
+    bar_pos +=
+        vec2i(size.y / 2, static_cast<int>(size.y * (1.0 - bar_height) / 2.0f));
+    bar_size = vec2i(std::max(bar_size.x - size.y, 0),
+                     static_cast<int>(bar_size.y * bar_height));
 
     auto knob_pos = pos;
-    vec2i knob_sizes(size.y(), size.y());
-    knob_pos.x() += static_cast<int>(*slider_value *
-                                     static_cast<float>(size.x() - size.y()));
+    vec2i knob_sizes(size.y, size.y);
+    knob_pos.x +=
+        static_cast<int>(*slider_value * static_cast<float>(size.x - size.y));
     RenderTextureNinePatch(tex_bar, vec4(0.5f, 0.5f, 0.5f, 0.5f), bar_pos,
                            bar_size);
     RenderTexture(tex_knob, knob_pos, knob_sizes);
@@ -148,7 +163,7 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
   StartGroup(kLayoutHorizontalBottom, 0, id);
   Direction direction;
   int32_t dimension;
-  if (size.y() < size.x()) {
+  if (size.y < size.x) {
     direction = kDirHorizontal;
     dimension = 0;
   } else {
@@ -160,18 +175,16 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
 
   auto event = CheckEvent();
   // Show focus area when controled by a gamepad.
-  if (!IsLastEventPointerType())
-    EventBackground(event);
+  if (!IsLastEventPointerType()) EventBackground(event);
   CustomElement(size, id, [&tex_foreground, &tex_background, bar_size,
                            scroll_value, dimension, margin](
                               const vec2i &pos, const vec2i &render_size) {
     // Set up the bar position and size.
     auto bar_render_pos = pos;
-    bar_render_pos[dimension] +=
-        static_cast<int>(*scroll_value * (render_size[dimension] -
-                                          margin * 2.0f * GetScale()));
+    bar_render_pos[dimension] += static_cast<int>(
+        *scroll_value * (render_size[dimension] - margin * 2.0f * GetScale()));
 
-    vec2i bar_render_size(render_size.x(), render_size.y());
+    vec2i bar_render_size(render_size.x, render_size.y);
     bar_render_size[dimension] =
         static_cast<int>(bar_render_size[dimension] * bar_size);
 

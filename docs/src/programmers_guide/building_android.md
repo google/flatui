@@ -74,17 +74,19 @@ By default, code is generated for devices that support the `armeabi-v7a`,
 includes code for all ABIs. To do so, override APP\_ABI on ndk-build's command
 line.
 
+Using `fplutil`:
+~~~{.sh}
+cd flatui
+./dependencies/fplutil/bin/build_all_android.py
+  --apk_keypk8 <pk8 file> --apk_keypem <pem file> -S
+
+~~~
+
 Using `ndk-build`:
 
 ~~~{.sh}
     cd flatui
-    ndk-build APP_ABI=all
-~~~
-
-Using `fplutil`:
-~~~{.sh}
-    cd flatui
-    ./dependencies/fplutil/bin/build_all_android.py -f APP_ABI=all
+    ndk-build -j20
 ~~~
 
 <br>

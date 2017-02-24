@@ -1,4 +1,4 @@
-FlatUI Version 0.9.0    {#flatui_readme}
+FlatUI Version 1.1.0    {#flatui_readme}
 ====================
 
 # Welcome to FlatUI!
@@ -27,6 +27,8 @@ upon so download the source using:
    git clone --recursive https://github.com/google/flatui.git
 ~~~
 
+**Changes**: Please see [the release notes](./release_notes.md) for a list of changes.
+
 For applications on Google Play that integrate this tool, usage is tracked.
 This tracking is done automatically using the embedded version string
 (FlatUiVersion), and helps us continue to optimize it. Aside from
@@ -36,9 +38,9 @@ is useful and if we should continue to invest in it. Since this is open
 source, you are free to remove the version string but we would appreciate if
 you would leave it in.
 
-  [FlatUI Google Group]: http://group.google.com/group/flatuilib
+  [FlatUI Google Group]: http://groups.google.com/group/flatuilib
   [FlatUI Issues Tracker]: http://github.com/google/flatui/issues
-  [stackoverflow.com]: http://www.stackoverflow.com
+  [stackoverflow.com]: http://stackoverflow.com/search?q=flatui
   [landing page]: http://google.github.io/flatui
   [FPLBase]: https://github.com/google/fplbase
   [HUDs]: https://en.wikipedia.org/wiki/Head-up_display

@@ -42,9 +42,7 @@ enum EditorMode {
 // them accordingly.
 class MicroEdit {
  public:
-  MicroEdit() {
-    Reset();
-  }
+  MicroEdit() { Reset(); }
 
   // Initialize an edit session with a given string.
   void Initialize(std::string *text, EditorMode mode);
@@ -54,7 +52,8 @@ class MicroEdit {
   // In FlatUI, the library will call this function in the render pass.
   // Since SDL can generates multiple input events at a time, we accepts events
   // as a vector.
-  bool HandleInputEvents(const std::vector<fplbase::TextInputEvent> *events);
+  EditStatus HandleInputEvents(
+      const std::vector<fplbase::TextInputEvent> *events);
 
   // Get a caret position in current text.
   int32_t GetCaretPosition();
@@ -81,7 +80,6 @@ class MicroEdit {
   // "en", "de", "es", "fr", "ru", "zh", "ja", "ko"
   void SetLanguage(const std::string &language) { language_ = language; }
 
-
   // Set a layout direction in the editor.
   // This setting affects forward/backward direction of a cursor control.
   void SetDirection(const TextLayoutDirection direction) {
@@ -100,8 +98,8 @@ class MicroEdit {
 
   // Set a window size of the editor in UI in pixels.
   void SetWindowSize(const mathfu::vec2i &size) {
-    window_.z() = size.x();
-    window_.w() = size.y();
+    window_.z = size.x;
+    window_.w = size.y;
   }
 
   // Pick a caret position from the pointer position.
@@ -132,7 +130,7 @@ class MicroEdit {
     expected_caret_x_position_ = kCaretPosInvalid;
     single_line_ = true;
     language_ = kDefaultLanguage;
-    direction_ = TextLayoutDirectionLTR;
+    direction_ = kTextLayoutDirectionLTR;
   }
 
   // Helper to count a number of characters in a text.
