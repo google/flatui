@@ -62,6 +62,15 @@
       "push": 0
     },
     {
+      "name": "hyphenation-patterns",
+      "url": "https://android.googlesource.com/platform/external/hyphenation-patterns",
+      "branch": "master",
+      "revision": "dedeff64279b77bafff72b6d866efc93e829b4ab",
+      "is_library": 1,
+      "third_party": 1,
+      "push": 0
+    },
+    {
       "name": "libunibreak",
       "url": "https://github.com/adah1972/libunibreak.git",
       "branch": "master",
