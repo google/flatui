@@ -166,7 +166,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li class="current"><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -189,11 +188,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="#index_h"><span>h</span></a></li>
       <li><a href="#index_i"><span>i</span></a></li>
       <li><a href="#index_k"><span>k</span></a></li>
+      <li><a href="#index_l"><span>l</span></a></li>
       <li><a href="#index_m"><span>m</span></a></li>
       <li><a href="#index_o"><span>o</span></a></li>
+      <li><a href="#index_r"><span>r</span></a></li>
       <li><a href="#index_s"><span>s</span></a></li>
       <li><a href="#index_t"><span>t</span></a></li>
-      <li><a href="#index_u"><span>u</span></a></li>
       <li><a href="#index_v"><span>v</span></a></li>
       <li class="current"><a href="#index_~"><span>~</span></a></li>
     </ul>
@@ -218,7 +218,7 @@ $(document).ready(function(){initNavTree('functions.html','');});
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -231,12 +231,6 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <div class="textblock">Here is a list of all documented class members with links to the class documentation for each member:</div>
 
 <h3><a class="anchor" id="index_a"></a>- a -</h3><ul>
-<li>AddCaretPosition()
-: <a class="el" href="classflatui_1_1_font_buffer.html#abe2f01aa6f5e547f1d1baf549ee3b72a">flatui::FontBuffer</a>
-</li>
-<li>AddVertices()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a678c5e0905ac034d3eb8b05aaf96beb5">flatui::FontBuffer</a>
-</li>
 <li>ascender()
 : <a class="el" href="classflatui_1_1_font_metrics.html#a0e759052f89935125c00ae15a4db6021">flatui::FontMetrics</a>
 </li>
@@ -247,6 +241,9 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>base_line()
 : <a class="el" href="classflatui_1_1_font_metrics.html#a116463ff5f4e5444dbcdd9faae9148d6">flatui::FontMetrics</a>
 </li>
+<li>bias
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a559f89526827ce94579aaf1bcda34326">flatui::AnimCurveDescription</a>
+</li>
 <li>borders
 : <a class="el" href="structflatui_1_1_margin.html#afcf389a729c9cf066b994aeef47e6185">flatui::Margin</a>
 </li>
@@ -254,9 +251,14 @@ $(document).ready(function(){initNavTree('functions.html','');});
 
 
 <h3><a class="anchor" id="index_c"></a>- c -</h3><ul>
+<li>CalculateBounds()
+: <a class="el" href="classflatui_1_1_font_buffer.html#a06de72cd6a573b03029978d2efa79053">flatui::FontBuffer</a>
+</li>
+<li>Clear()
+: <a class="el" href="classflatui_1_1_font_buffer_context.html#ad4fe8f12efab8235825636b09880c1ad">flatui::FontBufferContext</a>
+</li>
 <li>Close()
-: <a class="el" href="classflatui_1_1_face_data.html#ad414585afa413d448127f7b4e866153f">flatui::FaceData</a>
-, <a class="el" href="classflatui_1_1_font_manager.html#ad1d3b70e58b50012cc8ac72aaf3ec6c0">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#ad1d3b70e58b50012cc8ac72aaf3ec6c0">flatui::FontManager</a>
 </li>
 </ul>
 
@@ -265,10 +267,19 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>descender()
 : <a class="el" href="classflatui_1_1_font_metrics.html#a36b9e10469f3ba3962820f4702471272">flatui::FontMetrics</a>
 </li>
+<li>direction
+: <a class="el" href="structflatui_1_1_script_info.html#a7d3728fc8000531015f063d2cdbfadf0">flatui::ScriptInfo</a>
+</li>
 </ul>
 
 
 <h3><a class="anchor" id="index_e"></a>- e -</h3><ul>
+<li>EnableColorGlyph()
+: <a class="el" href="classflatui_1_1_font_manager.html#af2c0d6408db4f829a4acf8cfd3a6c816">flatui::FontManager</a>
+</li>
+<li>end_glyph_index
+: <a class="el" href="structflatui_1_1_link_info.html#a3ab24518cc2ed527f8d81d386bee1ab0">flatui::LinkInfo</a>
+</li>
 <li>external_leading()
 : <a class="el" href="classflatui_1_1_font_metrics.html#ad3c406f9e2daa86a58b7fc3f2397546c">flatui::FontMetrics</a>
 </li>
@@ -276,26 +287,17 @@ $(document).ready(function(){initNavTree('functions.html','');});
 
 
 <h3><a class="anchor" id="index_f"></a>- f -</h3><ul>
-<li>face_
-: <a class="el" href="classflatui_1_1_face_data.html#ade3e42678254a8bf54bb0b6dbf103811">flatui::FaceData</a>
-</li>
-<li>FaceData()
-: <a class="el" href="classflatui_1_1_face_data.html#aee3aeada9bdc4b178edcac0e7ad6bc95">flatui::FaceData</a>
-</li>
 <li>FlushAndUpdate()
-: <a class="el" href="classflatui_1_1_font_manager.html#afadac88790de17d1d8eadd0de0008e45">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#a2c61998fc15ba9a53d3b77b33816aa78">flatui::FontManager</a>
 </li>
 <li>FlushLayout()
 : <a class="el" href="classflatui_1_1_font_manager.html#a98f4b613205bdf288782980d694ac076">flatui::FontManager</a>
 </li>
-<li>font_data_
-: <a class="el" href="classflatui_1_1_face_data.html#a21ba0865432178a7e72c6d3e143b9427">flatui::FaceData</a>
-</li>
-<li>font_id_
-: <a class="el" href="classflatui_1_1_face_data.html#ac5c843517b9e9c63c7069aeb23982626">flatui::FaceData</a>
-</li>
 <li>FontBuffer()
-: <a class="el" href="classflatui_1_1_font_buffer.html#aa3c9f7cd8bb5e25ae30f1004e08c705b">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer.html#ab8b2dbc750bd13d177e1b6d4495fae14">flatui::FontBuffer</a>
+</li>
+<li>FontBufferAttributes()
+: <a class="el" href="classflatui_1_1_font_buffer_attributes.html#a4aa73a2bb3b98964a2d647e1f8242836">flatui::FontBufferAttributes</a>
 </li>
 <li>FontBufferParameters()
 : <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a2dbe969a5a6153f713dc5b6852d21485">flatui::FontBufferParameters</a>
@@ -304,54 +306,108 @@ $(document).ready(function(){initNavTree('functions.html','');});
 : <a class="el" href="classflatui_1_1_font_manager.html#aa10c892f33183e25f7c60ea2b144cf10">flatui::FontManager</a>
 </li>
 <li>FontManager()
-: <a class="el" href="classflatui_1_1_font_manager.html#aee887778409cae4e20de27294c3818b9">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#a89ea325d3f596eaf835c329cff95f62f">flatui::FontManager</a>
 </li>
 <li>FontMetrics()
-: <a class="el" href="classflatui_1_1_font_metrics.html#a9443bcc51021e2500ae2794387781481">flatui::FontMetrics</a>
-</li>
-<li>FontTexture()
-: <a class="el" href="classflatui_1_1_font_texture.html#ad8ec93fcf68b9dab12ef5e44362968a5">flatui::FontTexture</a>
+: <a class="el" href="classflatui_1_1_font_metrics.html#a12837b3057f6f253e1931c9a5627aa50">flatui::FontMetrics</a>
 </li>
 <li>FontVertex()
-: <a class="el" href="structflatui_1_1_font_vertex.html#ab00e4db1d36ecc997820c2ef781cda1d">flatui::FontVertex</a>
+: <a class="el" href="structflatui_1_1_font_vertex.html#a7ae21984fc8412929b85803b2cdbd443">flatui::FontVertex</a>
 </li>
 </ul>
 
 
 <h3><a class="anchor" id="index_g"></a>- g -</h3><ul>
+<li>get_cache_id()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a6335e225ffb0331e60d5e93d56ef13c4">flatui::FontBufferParameters</a>
+</li>
 <li>get_caret_info_flag()
 : <a class="el" href="classflatui_1_1_font_buffer_parameters.html#ab83b91de87cb41faa3c7e539f2dfb54f">flatui::FontBufferParameters</a>
 </li>
-<li>get_code_points()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a2bfe071af41e0a30b8dcdacb1d4b7cb7">flatui::FontBuffer</a>
+<li>get_enable_hyphenation_flag()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a3a0625ef77834836f31842ec2c10aaf5">flatui::FontBufferParameters</a>
+</li>
+<li>get_font_id()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a36338be736338f08b7f1ed69206cbc4e">flatui::FontBufferParameters</a>
 </li>
 <li>get_font_size()
 : <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a03a0a8aa273495ed3dc857ee26dd32c1">flatui::FontBufferParameters</a>
 </li>
+<li>get_glyph_count()
+: <a class="el" href="classflatui_1_1_font_buffer.html#a03a82423fae9cdcbac3822555c90bd37">flatui::FontBuffer</a>
+</li>
+<li>get_glyph_flags()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a28a4ff58f18ba0747851a83bcdd830eb">flatui::FontBufferParameters</a>
+</li>
+<li>get_glyph_info()
+: <a class="el" href="classflatui_1_1_font_buffer.html#a21c158966a7507bb6c63acc777d478b1">flatui::FontBuffer</a>
+</li>
+<li>get_index()
+: <a class="el" href="classflatui_1_1_font_family.html#a52216bd3024febb15e09d654a81284bf">flatui::FontFamily</a>
+</li>
 <li>get_indices()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a9ef024e064f17b8f803bde378cdfef25">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer.html#a123770eed82140ba6957fdc46cb81ef0">flatui::FontBuffer</a>
+</li>
+<li>get_kerning_scale()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a7fb7d91581b64651879681a6d6e213a4">flatui::FontBufferParameters</a>
+</li>
+<li>get_language()
+: <a class="el" href="classflatui_1_1_font_family.html#af8e6a42eb8bc7f41160fa3b8583567be">flatui::FontFamily</a>
+</li>
+<li>get_line_height_scale()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a7d7bc9d165156bd1bbf78394159f742d">flatui::FontBufferParameters</a>
+</li>
+<li>get_line_length()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a040d6e985fc66ab54116265cd77390e0">flatui::FontBufferParameters</a>
+</li>
+<li>get_links()
+: <a class="el" href="classflatui_1_1_font_buffer.html#a79e1770ede9436adac00b183aae16482">flatui::FontBuffer</a>
+</li>
+<li>get_multi_line_setting()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#ae5658ceff52c643fc8d76333ab798550">flatui::FontBufferParameters</a>
+</li>
+<li>get_name()
+: <a class="el" href="classflatui_1_1_font_family.html#ae5af639c1227d7583eba15bf09c70d8e">flatui::FontFamily</a>
+</li>
+<li>get_original_name()
+: <a class="el" href="classflatui_1_1_font_family.html#ac0e4f40e8a25617ae17a5aeb7c2653b6">flatui::FontFamily</a>
 </li>
 <li>get_pass()
 : <a class="el" href="classflatui_1_1_font_buffer.html#a8a5faaa6317b923d1c1251f3b567cf25">flatui::FontBuffer</a>
 </li>
+<li>get_ref_count()
+: <a class="el" href="classflatui_1_1_font_buffer.html#ae2d84f835f7bcc5fcfafd6d5321d416b">flatui::FontBuffer</a>
+</li>
+<li>get_ref_count_flag()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#ae9c93148a1d32f12b1f8fcf2b900aa00">flatui::FontBufferParameters</a>
+</li>
 <li>get_revision()
-: <a class="el" href="classflatui_1_1_font_buffer.html#ac7a2ba236a66d613f6cc7f0fa99924b5">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer.html#a1cc8fe701e8fee72f94c277f2fe1645b">flatui::FontBuffer</a>
+</li>
+<li>get_rtl_layout_flag()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#adc56d134b82eda3114c91cde6ba688cb">flatui::FontBufferParameters</a>
 </li>
 <li>get_size()
-: <a class="el" href="classflatui_1_1_font_buffer.html#ad3fb31c94969d126fcd763b90fd0b46c">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer.html#afcd61c39b80a05fca1fdbe449e767e58">flatui::FontBuffer</a>
 , <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a6745c12c825b8f1f8cf97ce1a65ff0fd">flatui::FontBufferParameters</a>
+</li>
+<li>get_slices()
+: <a class="el" href="classflatui_1_1_font_buffer.html#a58f1eab302da3f4899d9f9e2fe9e8585">flatui::FontBuffer</a>
+</li>
+<li>get_text_alignment()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#ae40d61b7d1128788f238b34efcb69756">flatui::FontBufferParameters</a>
 </li>
 <li>get_text_id()
 : <a class="el" href="classflatui_1_1_font_buffer_parameters.html#adef5351b236634f93eaac0db10f9cbdc">flatui::FontBufferParameters</a>
 </li>
 <li>get_vertices()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a0ecc725cadf9517e987bd5676dc40833">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer.html#a83be8d59a67f82a96445f2454a08cb47">flatui::FontBuffer</a>
 </li>
 <li>GetAtlasTexture()
-: <a class="el" href="classflatui_1_1_font_manager.html#a21c3508d5dc2376270f25f6401ae8e73">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#aabea57cf8d0ab671f2f6b24f0bd917db">flatui::FontManager</a>
 </li>
 <li>GetBuffer()
-: <a class="el" href="classflatui_1_1_font_manager.html#a2951b88e63131015a293ad14bc3fb499">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#a71d6c48ad178034e6974444fcf609b23">flatui::FontManager</a>
 </li>
 <li>GetCaretPosition()
 : <a class="el" href="classflatui_1_1_font_buffer.html#ac74ed8ae0e7c4f00039aee1877895178">flatui::FontBuffer</a>
@@ -359,24 +415,33 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>GetCaretPositions()
 : <a class="el" href="classflatui_1_1_font_buffer.html#a8d59631cbbbfc19813475a3ed25ee82b">flatui::FontBuffer</a>
 </li>
-<li>GetCurrentFace()
-: <a class="el" href="classflatui_1_1_font_manager.html#a377b34aab888b67d7db38a958a06a18e">flatui::FontManager</a>
+<li>GetCurrentFont()
+: <a class="el" href="classflatui_1_1_font_manager.html#a92d8cbb8fac26a3c02d2b19cb0f3a59e">flatui::FontManager</a>
+</li>
+<li>GetFontBufferStatus()
+: <a class="el" href="classflatui_1_1_font_manager.html#a8b04dc6be4c50fd8a4f8210d1e0995da">flatui::FontManager</a>
+</li>
+<li>GetHtmlBuffer()
+: <a class="el" href="classflatui_1_1_font_manager.html#a5494e42c4ba868fbd44ad83fe45fb9ef">flatui::FontManager</a>
 </li>
 <li>GetLanguage()
-: <a class="el" href="classflatui_1_1_font_manager.html#a09edc1dadbb56e70636826e411c2664a">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#a5878a63d2f7573d6f86c205aa18a1347">flatui::FontManager</a>
 </li>
-<li>GetTexture()
-: <a class="el" href="classflatui_1_1_font_manager.html#a47026365b261a09f86746a3fe669a465">flatui::FontManager</a>
+<li>GetLayoutDirection()
+: <a class="el" href="classflatui_1_1_font_manager.html#a1e7f48e20bf6dceb32acbeca6a6260b0">flatui::FontManager</a>
 </li>
 </ul>
 
 
 <h3><a class="anchor" id="index_h"></a>- h -</h3><ul>
-<li>harfbuzz_font_
-: <a class="el" href="classflatui_1_1_face_data.html#a3206ae3db8c8d5028f7808cb20101992">flatui::FaceData</a>
-</li>
 <li>HasCaretPositions()
 : <a class="el" href="classflatui_1_1_font_buffer.html#a963d7c90671411f7a9b4096065d2dce9">flatui::FontBuffer</a>
+</li>
+<li>HasEllipsis()
+: <a class="el" href="classflatui_1_1_font_buffer.html#ae0aa648b2cbbe7e0ec0350d7480dde8b">flatui::FontBuffer</a>
+</li>
+<li>hyphenation
+: <a class="el" href="structflatui_1_1_script_info.html#aae26d6764dac79e4c283fbec06cdcca7">flatui::ScriptInfo</a>
 </li>
 </ul>
 
@@ -384,6 +449,12 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <h3><a class="anchor" id="index_i"></a>- i -</h3><ul>
 <li>internal_leading()
 : <a class="el" href="classflatui_1_1_font_metrics.html#a4555d93c81b682230446e641b5cffba5">flatui::FontMetrics</a>
+</li>
+<li>is_family_name()
+: <a class="el" href="classflatui_1_1_font_family.html#ae9c961603a0b133c3f88b1934eb0f4a1">flatui::FontFamily</a>
+</li>
+<li>is_font_collection()
+: <a class="el" href="classflatui_1_1_font_family.html#a8d2952bd411e4dfd9830ec95795a39e8">flatui::FontFamily</a>
 </li>
 </ul>
 
@@ -398,13 +469,25 @@ $(document).ready(function(){initNavTree('functions.html','');});
 </ul>
 
 
+<h3><a class="anchor" id="index_l"></a>- l -</h3><ul>
+<li>link
+: <a class="el" href="structflatui_1_1_link_info.html#a501babf796c9c369f200ef28b40e0aa4">flatui::LinkInfo</a>
+</li>
+<li>locale
+: <a class="el" href="structflatui_1_1_script_info.html#ae3fd273e3a92760e4ba958b514f60dda">flatui::ScriptInfo</a>
+</li>
+<li>LookUpAttribute()
+: <a class="el" href="classflatui_1_1_font_buffer_context.html#a1db6e336701f56f72296f54863572116">flatui::FontBufferContext</a>
+</li>
+</ul>
+
+
 <h3><a class="anchor" id="index_m"></a>- m -</h3><ul>
 <li>Margin()
 : <a class="el" href="structflatui_1_1_margin.html#a9aced5f8d2173b5d8f734637efe022ed">flatui::Margin</a>
 </li>
 <li>metrics()
 : <a class="el" href="classflatui_1_1_font_buffer.html#a856ca8a8affa95fcaf13f4fb825999a3">flatui::FontBuffer</a>
-, <a class="el" href="classflatui_1_1_font_texture.html#ad19bf03fbb68efdc0396df4f2ab42e3a">flatui::FontTexture</a>
 </li>
 </ul>
 
@@ -414,63 +497,83 @@ $(document).ready(function(){initNavTree('functions.html','');});
 : <a class="el" href="classflatui_1_1_font_manager.html#a9d22f9d78497756d39cb9e224fd66c4d">flatui::FontManager</a>
 </li>
 <li>operator()()
-: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a4d25883dfe3f9bf4c78c459cce241cc5">flatui::FontBufferParameters</a>
+: <a class="el" href="classflatui_1_1_font_buffer_attributes.html#a77c92ab4aa374c6cfa96968ba3c01a81">flatui::FontBufferAttributes</a>
+, <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a60129bd0c653355723df685a7886a04c">flatui::FontBufferParameters</a>
 </li>
 <li>operator==()
-: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a90f7172b9c9d98c576381b983f2888e6">flatui::FontBufferParameters</a>
+: <a class="el" href="classflatui_1_1_font_buffer_attributes.html#af368945b68eee639593501f3e39ea2b1">flatui::FontBufferAttributes</a>
+, <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a90f7172b9c9d98c576381b983f2888e6">flatui::FontBufferParameters</a>
+</li>
+</ul>
+
+
+<h3><a class="anchor" id="index_r"></a>- r -</h3><ul>
+<li>ReleaseBuffer()
+: <a class="el" href="classflatui_1_1_font_manager.html#a4f346201a700eca25deb98ca06e3acb7">flatui::FontManager</a>
+</li>
+<li>RemapBuffers()
+: <a class="el" href="classflatui_1_1_font_manager.html#ac5f64541b548eea53494fce509cca8d7">flatui::FontManager</a>
 </li>
 </ul>
 
 
 <h3><a class="anchor" id="index_s"></a>- s -</h3><ul>
+<li>script
+: <a class="el" href="structflatui_1_1_script_info.html#a526530c90f2d453779dd040cf80a885f">flatui::ScriptInfo</a>
+</li>
 <li>SelectFont()
 : <a class="el" href="classflatui_1_1_font_manager.html#af3bdd4c8ae15a43cec0319ed37b7d028">flatui::FontManager</a>
 </li>
 <li>set_ascender()
-: <a class="el" href="classflatui_1_1_font_metrics.html#aafae7a6e575f519134165e1f852e5e40">flatui::FontMetrics</a>
+: <a class="el" href="classflatui_1_1_font_metrics.html#aeeb2ef1ecd43cff3a370289fa3ff4556">flatui::FontMetrics</a>
 </li>
 <li>set_base_line()
-: <a class="el" href="classflatui_1_1_font_metrics.html#a582d256b06faa404bcbc1c3adcdeb286">flatui::FontMetrics</a>
+: <a class="el" href="classflatui_1_1_font_metrics.html#a39d439d4313360da940df1fe92a2d8dc">flatui::FontMetrics</a>
 </li>
 <li>set_descender()
-: <a class="el" href="classflatui_1_1_font_metrics.html#af6532bbffee632a57e3973b838ef00f9">flatui::FontMetrics</a>
+: <a class="el" href="classflatui_1_1_font_metrics.html#aa63608bf74d572a223bfeda86c45af3a">flatui::FontMetrics</a>
 </li>
 <li>set_external_leading()
-: <a class="el" href="classflatui_1_1_font_metrics.html#abfcdc7014bade03cacc150289a0f8962">flatui::FontMetrics</a>
+: <a class="el" href="classflatui_1_1_font_metrics.html#a30b2f59a6bed7125f7540edc01a27f7b">flatui::FontMetrics</a>
+</li>
+<li>set_font_size()
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#a4f22a8b05e08512f2a22eeeb272fe3ff">flatui::FontBufferParameters</a>
 </li>
 <li>set_internal_leading()
-: <a class="el" href="classflatui_1_1_font_metrics.html#ac93d786795d93887c4fdf8301c9187be">flatui::FontMetrics</a>
-</li>
-<li>set_metrics()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a665da2eecd6c377f293fe35c597b185b">flatui::FontBuffer</a>
-, <a class="el" href="classflatui_1_1_font_texture.html#a2c3b6cfc131a0538637fc910a898c3da">flatui::FontTexture</a>
-</li>
-<li>set_pass()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a1d6d8ae685dfa6c6f8bb97ccefc5bb30">flatui::FontBuffer</a>
-</li>
-<li>set_revision()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a66bdb57ac5a373b307dfdebcd3d229ca">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_metrics.html#a4745e846d49e16d46d790fc6c25cf5bf">flatui::FontMetrics</a>
 </li>
 <li>set_size()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a751f470e787f61eb4c677a86ca767051">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer_parameters.html#aa2ea73c19873e677277735f16156563b">flatui::FontBufferParameters</a>
 </li>
-<li>SetLanguage()
-: <a class="el" href="classflatui_1_1_font_manager.html#a2f570a0a5ff5e06e5744480f87930676">flatui::FontManager</a>
+<li>SetAttribute()
+: <a class="el" href="classflatui_1_1_font_buffer_context.html#a69aa94554b8a623f1f2ad4d807f8b603">flatui::FontBufferContext</a>
 </li>
-<li>SetLineHeight()
-: <a class="el" href="classflatui_1_1_font_manager.html#af2ca7e47e4bf2124451703b23d931e93">flatui::FontManager</a>
+<li>SetLayoutDirection()
+: <a class="el" href="classflatui_1_1_font_manager.html#a97a1a65d0347b9ab3d269ff395dd187e">flatui::FontManager</a>
 </li>
-<li>SetRenderer()
-: <a class="el" href="classflatui_1_1_font_manager.html#af23610c369b5e6a5ebbd2bfdcc4b71dd">flatui::FontManager</a>
+<li>SetLocale()
+: <a class="el" href="classflatui_1_1_font_manager.html#a14f21dd20745d442df737acf42c36a21">flatui::FontManager</a>
+</li>
+<li>SetScript()
+: <a class="el" href="classflatui_1_1_font_manager.html#ac818a352701c9eafcf78f895112ada63">flatui::FontManager</a>
 </li>
 <li>SetSizeSelector()
 : <a class="el" href="classflatui_1_1_font_manager.html#a819ce858c45d19fbb9c1947a72773ae0">flatui::FontManager</a>
+</li>
+<li>SetTextEllipsis()
+: <a class="el" href="classflatui_1_1_font_manager.html#a673a5e573447246c2947c6eff15385e5">flatui::FontManager</a>
+</li>
+<li>SetupHyphenationPatternPath()
+: <a class="el" href="classflatui_1_1_font_manager.html#aee69ce059d79dc587b659f4d9904ff3e">flatui::FontManager</a>
+</li>
+<li>start_glyph_index
+: <a class="el" href="structflatui_1_1_link_info.html#a02add824dd5d416853dcb411cb7a521e">flatui::LinkInfo</a>
 </li>
 <li>StartLayoutPass()
 : <a class="el" href="classflatui_1_1_font_manager.html#ab80ba2cddef45c7eb974b1bf338d3942">flatui::FontManager</a>
 </li>
 <li>StartRenderPass()
-: <a class="el" href="classflatui_1_1_font_manager.html#a5bb92a77af361bd705d097eef9ae5e86">flatui::FontManager</a>
+: <a class="el" href="classflatui_1_1_font_manager.html#a287dc7a394a0e2d0b9a08b2535a55b0b">flatui::FontManager</a>
 </li>
 </ul>
 
@@ -479,27 +582,26 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>total()
 : <a class="el" href="classflatui_1_1_font_metrics.html#ac807bc12846c23c0fc393353bcfaeeda">flatui::FontMetrics</a>
 </li>
-</ul>
-
-
-<h3><a class="anchor" id="index_u"></a>- u -</h3><ul>
-<li>UpdateUV()
-: <a class="el" href="classflatui_1_1_font_buffer.html#a5ac7d52265eb1f406ba132b13b911e0b">flatui::FontBuffer</a>
+<li>type
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a6a297b1cad95d7cb5867ebf952ace71d">flatui::AnimCurveDescription</a>
+</li>
+<li>typical_delta_distance
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a32edbae370f79bc3fb734d300a693fc6">flatui::AnimCurveDescription</a>
+</li>
+<li>typical_total_time
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a2756694728e5a3eb291d0ceacc2e3685">flatui::AnimCurveDescription</a>
 </li>
 </ul>
 
 
 <h3><a class="anchor" id="index_v"></a>- v -</h3><ul>
 <li>Verify()
-: <a class="el" href="classflatui_1_1_font_buffer.html#acdf2bff3e53434e116470e2e3e70d0b2">flatui::FontBuffer</a>
+: <a class="el" href="classflatui_1_1_font_buffer.html#a4dc2b5b4b2fda85d23365f0cad7b364d">flatui::FontBuffer</a>
 </li>
 </ul>
 
 
 <h3><a class="anchor" id="index_~"></a>- ~ -</h3><ul>
-<li>~FaceData()
-: <a class="el" href="classflatui_1_1_face_data.html#abd428388b36d44d4fe954110fd8b6720">flatui::FaceData</a>
-</li>
 <li>~FontBuffer()
 : <a class="el" href="classflatui_1_1_font_buffer.html#a646bdd7953a53606318bbce8932ade0c">flatui::FontBuffer</a>
 </li>
@@ -508,9 +610,6 @@ $(document).ready(function(){initNavTree('functions.html','');});
 </li>
 <li>~FontMetrics()
 : <a class="el" href="classflatui_1_1_font_metrics.html#a4eb2b35079e9e2805dd817f20378d8bb">flatui::FontMetrics</a>
-</li>
-<li>~FontTexture()
-: <a class="el" href="classflatui_1_1_font_texture.html#a4d5c0426ab333ff5f79aba1d3eaa30b9">flatui::FontTexture</a>
 </li>
 </ul>
 </div><!-- contents -->

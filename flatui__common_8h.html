@@ -187,7 +187,7 @@ $(document).ready(function(){initNavTree('flatui__common_8h.html','');});
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -198,6 +198,7 @@ $(document).ready(function(){initNavTree('flatui__common_8h.html','');});
 
 <div class="header">
   <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -208,6 +209,12 @@ $(document).ready(function(){initNavTree('flatui__common_8h.html','');});
 </div>
 <p><a href="flatui__common_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespaceflatui"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html">flatui</a></td></tr>
+<tr class="memdesc:namespaceflatui"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for FlatUI library. <br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:ga486c09268fef9c8a6668dff013237750"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">flatui::ButtonProperty</a> { <b>kButtonPropertyDisabled</b> = 1, 
@@ -222,9 +229,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga14decb7dda4ad1175f2fe4cf2a9679bd"><td class="memItemLeft" align="right" valign="top">ButtonProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga14decb7dda4ad1175f2fe4cf2a9679bd">flatui::operator|</a> (ButtonProperty a, ButtonProperty b)</td></tr>
 <tr class="memdesc:ga14decb7dda4ad1175f2fe4cf2a9679bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bitwise OR operator for ButtonProperties.  <a href="group__flatui__common__widgets.html#ga14decb7dda4ad1175f2fe4cf2a9679bd">More...</a><br/></td></tr>
 <tr class="separator:ga14decb7dda4ad1175f2fe4cf2a9679bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4479a7e65dd621dbeb92852f1fa103be"><td class="memItemLeft" align="right" valign="top">ButtonProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga4479a7e65dd621dbeb92852f1fa103be">flatui::operator|=</a> (ButtonProperty a, ButtonProperty b)</td></tr>
-<tr class="memdesc:ga4479a7e65dd621dbeb92852f1fa103be"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bitwise OR assignment operator for ButtonProperties.  <a href="group__flatui__common__widgets.html#ga4479a7e65dd621dbeb92852f1fa103be">More...</a><br/></td></tr>
-<tr class="separator:ga4479a7e65dd621dbeb92852f1fa103be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad023aac012f311b4161ccfa727dde1dd"><td class="memItemLeft" align="right" valign="top">ButtonProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gad023aac012f311b4161ccfa727dde1dd">flatui::operator|=</a> (ButtonProperty &amp;a, const ButtonProperty &amp;b)</td></tr>
+<tr class="memdesc:gad023aac012f311b4161ccfa727dde1dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bitwise OR assignment operator for ButtonProperties.  <a href="group__flatui__common__widgets.html#gad023aac012f311b4161ccfa727dde1dd">More...</a><br/></td></tr>
+<tr class="separator:gad023aac012f311b4161ccfa727dde1dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaab3bbd5a005039ae9da2f8aa66123ace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gaab3bbd5a005039ae9da2f8aa66123ace">flatui::SetHoverClickColor</a> (const mathfu::vec4 &amp;hover_color, const mathfu::vec4 &amp;click_color)</td></tr>
 <tr class="memdesc:gaab3bbd5a005039ae9da2f8aa66123ace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Some of the widgets provide user feedback by rendering a transparent background color to signal that the user is hovering over or clicking/touching/interacting with the widget.  <a href="group__flatui__common__widgets.html#gaab3bbd5a005039ae9da2f8aa66123ace">More...</a><br/></td></tr>
 <tr class="separator:gaab3bbd5a005039ae9da2f8aa66123ace"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -234,6 +241,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gae9483420ce33b362fa8311462f23d9cc"><td class="memItemLeft" align="right" valign="top">Event&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gae9483420ce33b362fa8311462f23d9cc">flatui::ImageButton</a> (const fplbase::Texture &amp;texture, float size, const Margin &amp;margin, const char *id)</td></tr>
 <tr class="memdesc:gae9483420ce33b362fa8311462f23d9cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple button showing a clickable image.  <a href="group__flatui__common__widgets.html#gae9483420ce33b362fa8311462f23d9cc">More...</a><br/></td></tr>
 <tr class="separator:gae9483420ce33b362fa8311462f23d9cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga11f17825a7b163f3f664f80d4d94d238"><td class="memItemLeft" align="right" valign="top">Event&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga11f17825a7b163f3f664f80d4d94d238">flatui::ToggleImageButton</a> (const fplbase::Texture &amp;up_texture, const fplbase::Texture &amp;down_texture, float size, const Margin &amp;margin, const char *id)</td></tr>
+<tr class="memdesc:ga11f17825a7b163f3f664f80d4d94d238"><td class="mdescLeft">&#160;</td><td class="mdescRight">A button showing a different image when clicked or not.  <a href="group__flatui__common__widgets.html#ga11f17825a7b163f3f664f80d4d94d238">More...</a><br/></td></tr>
+<tr class="separator:ga11f17825a7b163f3f664f80d4d94d238"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga657f786916c6d517932d1ce0fcd99e93"><td class="memItemLeft" align="right" valign="top">Event&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga657f786916c6d517932d1ce0fcd99e93">flatui::TextButton</a> (const fplbase::Texture &amp;texture, const Margin &amp;texture_margin, const char *text, float size, const Margin &amp;margin, const ButtonProperty property)</td></tr>
 <tr class="memdesc:ga657f786916c6d517932d1ce0fcd99e93"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple button showing clickable text with an image shown beside it.  <a href="group__flatui__common__widgets.html#ga657f786916c6d517932d1ce0fcd99e93">More...</a><br/></td></tr>
 <tr class="separator:ga657f786916c6d517932d1ce0fcd99e93"><td class="memSeparator" colspan="2">&#160;</td></tr>

@@ -166,7 +166,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -190,7 +189,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_buffer_parameters
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -201,6 +200,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_buffer_parameters
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classflatui_1_1_font_buffer_parameters-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -211,7 +211,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_buffer_parameters
 <p>This class that includes font buffer parameters. It is used as a key in the unordered_map to look up <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  
  <a href="classflatui_1_1_font_buffer_parameters.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="font__manager_8h_source.html">font_manager.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="font__buffer_8h_source.html">font_buffer.h</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class that includes font buffer parameters. It is used as a key in the unordered_map to look up <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. </p>
 </div><table class="memberdecls">
@@ -221,26 +221,60 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a2dbe969a5a6153f713dc5b6852d21485">FontBufferParameters</a> ()</td></tr>
 <tr class="memdesc:a2dbe969a5a6153f713dc5b6852d21485"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default constructor for an empty <a class="el" href="classflatui_1_1_font_buffer_parameters.html" title="This class that includes font buffer parameters. It is used as a key in the unordered_map to look up ...">FontBufferParameters</a>. <br/></td></tr>
 <tr class="separator:a2dbe969a5a6153f713dc5b6852d21485"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab34cf9663f21fbd3e2051fe291f30e91"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#ab34cf9663f21fbd3e2051fe291f30e91">FontBufferParameters</a> (const HashedId font_id, const HashedId text_id, float font_size, const mathfu::vec2i &amp;size, bool caret_info)</td></tr>
-<tr class="memdesc:ab34cf9663f21fbd3e2051fe291f30e91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor for a <a class="el" href="classflatui_1_1_font_buffer_parameters.html" title="This class that includes font buffer parameters. It is used as a key in the unordered_map to look up ...">FontBufferParameters</a>.  <a href="#ab34cf9663f21fbd3e2051fe291f30e91">More...</a><br/></td></tr>
-<tr class="separator:ab34cf9663f21fbd3e2051fe291f30e91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af561b14b65d7d4172c35a8f53895abbb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#af561b14b65d7d4172c35a8f53895abbb">FontBufferParameters</a> (HashedId font_id, HashedId text_id, float font_size, const mathfu::vec2i &amp;size, <a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a> text_alignment, GlyphFlags glyph_flags, bool caret_info, bool ref_count, bool enable_hyphenation=false, bool rtl_layout=false, float kerning_scale=<a class="el" href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">kKerningScaleDefault</a>, float line_height_scale=<a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">kLineHeightDefault</a>, HashedId cache_id=kNullHash)</td></tr>
+<tr class="memdesc:af561b14b65d7d4172c35a8f53895abbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor for a <a class="el" href="classflatui_1_1_font_buffer_parameters.html" title="This class that includes font buffer parameters. It is used as a key in the unordered_map to look up ...">FontBufferParameters</a>.  <a href="#af561b14b65d7d4172c35a8f53895abbb">More...</a><br/></td></tr>
+<tr class="separator:af561b14b65d7d4172c35a8f53895abbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90f7172b9c9d98c576381b983f2888e6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a90f7172b9c9d98c576381b983f2888e6">operator==</a> (const <a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a> &amp;other) const </td></tr>
 <tr class="memdesc:a90f7172b9c9d98c576381b983f2888e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The equal-to operator for comparing <a class="el" href="classflatui_1_1_font_buffer_parameters.html" title="This class that includes font buffer parameters. It is used as a key in the unordered_map to look up ...">FontBufferParameters</a> for equality.  <a href="#a90f7172b9c9d98c576381b983f2888e6">More...</a><br/></td></tr>
 <tr class="separator:a90f7172b9c9d98c576381b983f2888e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d25883dfe3f9bf4c78c459cce241cc5"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a4d25883dfe3f9bf4c78c459cce241cc5">operator()</a> (const <a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a> &amp;key) const </td></tr>
 <tr class="memdesc:a4d25883dfe3f9bf4c78c459cce241cc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The hash function for <a class="el" href="classflatui_1_1_font_buffer_parameters.html" title="This class that includes font buffer parameters. It is used as a key in the unordered_map to look up ...">FontBufferParameters</a>.  <a href="#a4d25883dfe3f9bf4c78c459cce241cc5">More...</a><br/></td></tr>
 <tr class="separator:a4d25883dfe3f9bf4c78c459cce241cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60129bd0c653355723df685a7886a04c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a60129bd0c653355723df685a7886a04c"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a60129bd0c653355723df685a7886a04c">operator()</a> (const <a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a> &amp;lhs, const <a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a> &amp;rhs) const </td></tr>
+<tr class="memdesc:a60129bd0c653355723df685a7886a04c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The compare operator for <a class="el" href="classflatui_1_1_font_buffer_parameters.html" title="This class that includes font buffer parameters. It is used as a key in the unordered_map to look up ...">FontBufferParameters</a>. <br/></td></tr>
+<tr class="separator:a60129bd0c653355723df685a7886a04c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36338be736338f08b7f1ed69206cbc4e"><td class="memItemLeft" align="right" valign="top">HashedId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a36338be736338f08b7f1ed69206cbc4e">get_font_id</a> () const </td></tr>
+<tr class="separator:a36338be736338f08b7f1ed69206cbc4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adef5351b236634f93eaac0db10f9cbdc"><td class="memItemLeft" align="right" valign="top">HashedId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#adef5351b236634f93eaac0db10f9cbdc">get_text_id</a> () const </td></tr>
 <tr class="separator:adef5351b236634f93eaac0db10f9cbdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6335e225ffb0331e60d5e93d56ef13c4"><td class="memItemLeft" align="right" valign="top">HashedId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a6335e225ffb0331e60d5e93d56ef13c4">get_cache_id</a> () const </td></tr>
+<tr class="separator:a6335e225ffb0331e60d5e93d56ef13c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6745c12c825b8f1f8cf97ce1a65ff0fd"><td class="memItemLeft" align="right" valign="top">const mathfu::vec2i &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a6745c12c825b8f1f8cf97ce1a65ff0fd">get_size</a> () const </td></tr>
 <tr class="separator:a6745c12c825b8f1f8cf97ce1a65ff0fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03a0a8aa273495ed3dc857ee26dd32c1"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a03a0a8aa273495ed3dc857ee26dd32c1">get_font_size</a> () const </td></tr>
 <tr class="separator:a03a0a8aa273495ed3dc857ee26dd32c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae40d61b7d1128788f238b34efcb69756"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#ae40d61b7d1128788f238b34efcb69756">get_text_alignment</a> () const </td></tr>
+<tr class="separator:ae40d61b7d1128788f238b34efcb69756"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fb7d91581b64651879681a6d6e213a4"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a7fb7d91581b64651879681a6d6e213a4">get_kerning_scale</a> () const </td></tr>
+<tr class="separator:a7fb7d91581b64651879681a6d6e213a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d7bc9d165156bd1bbf78394159f742d"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a7d7bc9d165156bd1bbf78394159f742d">get_line_height_scale</a> () const </td></tr>
+<tr class="separator:a7d7bc9d165156bd1bbf78394159f742d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28a4ff58f18ba0747851a83bcdd830eb"><td class="memItemLeft" align="right" valign="top">GlyphFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a28a4ff58f18ba0747851a83bcdd830eb">get_glyph_flags</a> () const </td></tr>
+<tr class="separator:a28a4ff58f18ba0747851a83bcdd830eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab83b91de87cb41faa3c7e539f2dfb54f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#ab83b91de87cb41faa3c7e539f2dfb54f">get_caret_info_flag</a> () const </td></tr>
 <tr class="separator:ab83b91de87cb41faa3c7e539f2dfb54f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9c93148a1d32f12b1f8fcf2b900aa00"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#ae9c93148a1d32f12b1f8fcf2b900aa00">get_ref_count_flag</a> () const </td></tr>
+<tr class="separator:ae9c93148a1d32f12b1f8fcf2b900aa00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc56d134b82eda3114c91cde6ba688cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#adc56d134b82eda3114c91cde6ba688cb">get_rtl_layout_flag</a> () const </td></tr>
+<tr class="separator:adc56d134b82eda3114c91cde6ba688cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a0625ef77834836f31842ec2c10aaf5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a3a0625ef77834836f31842ec2c10aaf5">get_enable_hyphenation_flag</a> () const </td></tr>
+<tr class="separator:a3a0625ef77834836f31842ec2c10aaf5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a040d6e985fc66ab54116265cd77390e0"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a040d6e985fc66ab54116265cd77390e0">get_line_length</a> () const </td></tr>
+<tr class="separator:a040d6e985fc66ab54116265cd77390e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5658ceff52c643fc8d76333ab798550"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#ae5658ceff52c643fc8d76333ab798550">get_multi_line_setting</a> () const </td></tr>
+<tr class="separator:ae5658ceff52c643fc8d76333ab798550"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f22a8b05e08512f2a22eeeb272fe3ff"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4f22a8b05e08512f2a22eeeb272fe3ff"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#a4f22a8b05e08512f2a22eeeb272fe3ff">set_font_size</a> (float size)</td></tr>
+<tr class="memdesc:a4f22a8b05e08512f2a22eeeb272fe3ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set font size. <br/></td></tr>
+<tr class="separator:a4f22a8b05e08512f2a22eeeb272fe3ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2ea73c19873e677277735f16156563b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa2ea73c19873e677277735f16156563b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html#aa2ea73c19873e677277735f16156563b">set_size</a> (mathfu::vec2i &amp;size)</td></tr>
+<tr class="memdesc:aa2ea73c19873e677277735f16156563b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the size value. <br/></td></tr>
+<tr class="separator:aa2ea73c19873e677277735f16156563b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="ab34cf9663f21fbd3e2051fe291f30e91"></a>
+<a class="anchor" id="af561b14b65d7d4172c35a8f53895abbb"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -250,13 +284,13 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">flatui::FontBufferParameters::FontBufferParameters </td>
           <td>(</td>
-          <td class="paramtype">const HashedId&#160;</td>
+          <td class="paramtype">HashedId&#160;</td>
           <td class="paramname"><em>font_id</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const HashedId&#160;</td>
+          <td class="paramtype">HashedId&#160;</td>
           <td class="paramname"><em>text_id</em>, </td>
         </tr>
         <tr>
@@ -274,8 +308,56 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a>&#160;</td>
+          <td class="paramname"><em>text_alignment</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">GlyphFlags&#160;</td>
+          <td class="paramname"><em>glyph_flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>caret_info</em>&#160;</td>
+          <td class="paramname"><em>caret_info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>ref_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable_hyphenation</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>rtl_layout</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>kerning_scale</em> = <code><a class="el" href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">kKerningScaleDefault</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>line_height_scale</em> = <code><a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">kLineHeightDefault</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">HashedId&#160;</td>
+          <td class="paramname"><em>cache_id</em> = <code>kNullHash</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -296,8 +378,18 @@ Public Member Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">font_id</td><td>The HashedId for the font. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">text_id</td><td>The HashedID for the text. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">font_size</td><td>A float representing the size of the font. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The size of the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">caret_info</td><td>A bool determining if the font buffer contains caret info. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The requested size of the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> in pixels. The created <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> size can be smaller than requested size as the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> size is calcuated by the layout and rendering result. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">text_alignment</td><td>A horizontal alignment of multi line buffer. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">kerning_scale</td><td>Value indicating kerning scale. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">line_height_scale</td><td>Value indicating line height scale. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">glyph_flags</td><td>A flag determing SDF generation for the font. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">caret_info</td><td>A bool determining if the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> contains caret info. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ref_count</td><td>A bool determining if the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> manages reference counts of the buffer and referencing glyph cache rows. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">enable_hyphenation</td><td>A bool determining if the hyphenation is enabled for the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rtl_layout</td><td>A bool determining if the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> is for RTL (right to left) layout. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">kerning_scale</td><td>A float value specifying a scale applied to the kerning value between glyphs. Default value is kKerningScaleDefault(1.0). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">line_height_scale</td><td>A float value specifying a scale applied to the line height for each line break. Default value is kLineHeightDefault(1.0). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">cache_id</td><td>An extra ID to distinguish cache entry. For instance, tweak the ID to have multiple <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> instances with the same set of parameters. </td></tr>
   </table>
   </dd>
 </dl>
@@ -305,6 +397,30 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a6335e225ffb0331e60d5e93d56ef13c4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HashedId flatui::FontBufferParameters::get_cache_id </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a cache id value. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ab83b91de87cb41faa3c7e539f2dfb54f"></a>
 <div class="memitem">
 <div class="memproto">
@@ -325,7 +441,55 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Returns a flag to indicate if the buffer has caret info. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a flag indicating if the buffer has caret info. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a3a0625ef77834836f31842ec2c10aaf5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool flatui::FontBufferParameters::get_enable_hyphenation_flag </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a flag indicating if the hyphenation is enabled. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a36338be736338f08b7f1ed69206cbc4e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HashedId flatui::FontBufferParameters::get_font_id </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a font hash id. </dd></dl>
 
 </div>
 </div>
@@ -353,6 +517,175 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a28a4ff58f18ba0747851a83bcdd830eb"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">GlyphFlags flatui::FontBufferParameters::get_glyph_flags </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a glyph setting info. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a7fb7d91581b64651879681a6d6e213a4"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float flatui::FontBufferParameters::get_kerning_scale </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns the kerning scale. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a7d7bc9d165156bd1bbf78394159f742d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float flatui::FontBufferParameters::get_line_height_scale </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns the line height scale. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a040d6e985fc66ab54116265cd77390e0"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t flatui::FontBufferParameters::get_line_length </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Retrieve a line length of the text based on given parameters. a fixed line length (get_size.x) will be used if the text is justified or right aligned otherwise the line length will be determined by the text layout phase. </p>
+<dl class="section return"><dt>Returns</dt><dd>Returns the expected line width. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae5658ceff52c643fc8d76333ab798550"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool flatui::FontBufferParameters::get_multi_line_setting </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns the multi line setting. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae9c93148a1d32f12b1f8fcf2b900aa00"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool flatui::FontBufferParameters::get_ref_count_flag </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a flag indicating if the buffer manages reference counts. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="adc56d134b82eda3114c91cde6ba688cb"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool flatui::FontBufferParameters::get_rtl_layout_flag </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a flag indicating if the buffer is for RTL layout. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a6745c12c825b8f1f8cf97ce1a65ff0fd"></a>
 <div class="memitem">
 <div class="memproto">
@@ -374,6 +707,30 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <dl class="section return"><dt>Returns</dt><dd>Returns the size value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ae40d61b7d1128788f238b34efcb69756"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a> flatui::FontBufferParameters::get_text_alignment </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns a text alignment info. </dd></dl>
 
 </div>
 </div>
@@ -468,7 +825,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li><a class="el" href="font__manager_8h_source.html">font_manager.h</a></li>
+<li><a class="el" href="font__buffer_8h_source.html">font_buffer.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

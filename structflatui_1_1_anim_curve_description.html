@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.6"/>
-<title>FlatUI: flatui::FaceData Class Reference</title>
+<title>FlatUI: flatui::AnimCurveDescription Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -166,7 +166,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -182,7 +181,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-$(document).ready(function(){initNavTree('classflatui_1_1_face_data.html','');});
+$(document).ready(function(){initNavTree('structflatui_1_1_anim_curve_description.html','');});
 </script>
 <div id="doc-content">
 <!-- window showing the filter options -->
@@ -190,7 +189,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_face_data.html','');})
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -203,97 +202,93 @@ $(document).ready(function(){initNavTree('classflatui_1_1_face_data.html','');})
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="classflatui_1_1_face_data-members.html">List of all members</a>  </div>
+<a href="structflatui_1_1_anim_curve_description-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">flatui::FaceData Class Reference<div class="ingroups"><a class="el" href="group__flatui__font__manager.html">Font Manager</a></div></div>  </div>
+<div class="title">flatui::AnimCurveDescription Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>The font face instance data opened via the <code>Open()</code> API.  
- <a href="classflatui_1_1_face_data.html#details">More...</a></p>
+<p>Describes a curve's typical shape.  
+ <a href="structflatui_1_1_anim_curve_description.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="font__manager_8h_source.html">font_manager.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="flatui_8h_source.html">flatui.h</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The font face instance data opened via the <code>Open()</code> API. </p>
-<p>It keeps a font file data, FreeType fontface instance, and harfbuzz font information. </p>
+<div class="textblock"><p>Describes a curve's typical shape. </p>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aee3aeada9bdc4b178edcac0e7ad6bc95"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aee3aeada9bdc4b178edcac0e7ad6bc95"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#aee3aeada9bdc4b178edcac0e7ad6bc95">FaceData</a> ()</td></tr>
-<tr class="memdesc:aee3aeada9bdc4b178edcac0e7ad6bc95"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default constructor for <a class="el" href="classflatui_1_1_face_data.html" title="The font face instance data opened via the Open() API. ">FaceData</a>. <br/></td></tr>
-<tr class="separator:aee3aeada9bdc4b178edcac0e7ad6bc95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd428388b36d44d4fe954110fd8b6720"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#abd428388b36d44d4fe954110fd8b6720">~FaceData</a> ()</td></tr>
-<tr class="memdesc:abd428388b36d44d4fe954110fd8b6720"><td class="mdescLeft">&#160;</td><td class="mdescRight">The destructor for <a class="el" href="classflatui_1_1_face_data.html" title="The font face instance data opened via the Open() API. ">FaceData</a>.  <a href="#abd428388b36d44d4fe954110fd8b6720">More...</a><br/></td></tr>
-<tr class="separator:abd428388b36d44d4fe954110fd8b6720"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad414585afa413d448127f7b4e866153f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad414585afa413d448127f7b4e866153f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#ad414585afa413d448127f7b4e866153f">Close</a> ()</td></tr>
-<tr class="memdesc:ad414585afa413d448127f7b4e866153f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close the fontface. <br/></td></tr>
-<tr class="separator:ad414585afa413d448127f7b4e866153f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cf4693ebc5fb52e77f925de6b1d2b50"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1cf4693ebc5fb52e77f925de6b1d2b50"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AnimCurveDescription</b> (<a class="el" href="namespaceflatui.html#a6c1acd0799998415d35a82e3ad64e0e1">AnimType</a> <a class="el" href="structflatui_1_1_anim_curve_description.html#a6a297b1cad95d7cb5867ebf952ace71d">type</a>, float <a class="el" href="structflatui_1_1_anim_curve_description.html#a32edbae370f79bc3fb734d300a693fc6">typical_delta_distance</a>, float <a class="el" href="structflatui_1_1_anim_curve_description.html#a2756694728e5a3eb291d0ceacc2e3685">typical_total_time</a>, float <a class="el" href="structflatui_1_1_anim_curve_description.html#a559f89526827ce94579aaf1bcda34326">bias</a>)</td></tr>
+<tr class="separator:a1cf4693ebc5fb52e77f925de6b1d2b50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ade3e42678254a8bf54bb0b6dbf103811"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ade3e42678254a8bf54bb0b6dbf103811"></a>
-FT_Face&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#ade3e42678254a8bf54bb0b6dbf103811">face_</a></td></tr>
-<tr class="memdesc:ade3e42678254a8bf54bb0b6dbf103811"><td class="mdescLeft">&#160;</td><td class="mdescRight">freetype's fontface instance. <br/></td></tr>
-<tr class="separator:ade3e42678254a8bf54bb0b6dbf103811"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3206ae3db8c8d5028f7808cb20101992"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3206ae3db8c8d5028f7808cb20101992"></a>
-hb_font_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#a3206ae3db8c8d5028f7808cb20101992">harfbuzz_font_</a></td></tr>
-<tr class="memdesc:a3206ae3db8c8d5028f7808cb20101992"><td class="mdescLeft">&#160;</td><td class="mdescRight">harfbuzz's font information instance. <br/></td></tr>
-<tr class="separator:a3206ae3db8c8d5028f7808cb20101992"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21ba0865432178a7e72c6d3e143b9427"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#a21ba0865432178a7e72c6d3e143b9427">font_data_</a></td></tr>
-<tr class="memdesc:a21ba0865432178a7e72c6d3e143b9427"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opened font file data.  <a href="#a21ba0865432178a7e72c6d3e143b9427">More...</a><br/></td></tr>
-<tr class="separator:a21ba0865432178a7e72c6d3e143b9427"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac5c843517b9e9c63c7069aeb23982626"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac5c843517b9e9c63c7069aeb23982626"></a>
-HashedId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html#ac5c843517b9e9c63c7069aeb23982626">font_id_</a></td></tr>
-<tr class="memdesc:ac5c843517b9e9c63c7069aeb23982626"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hashed value of the font face. <br/></td></tr>
-<tr class="separator:ac5c843517b9e9c63c7069aeb23982626"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a297b1cad95d7cb5867ebf952ace71d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceflatui.html#a6c1acd0799998415d35a82e3ad64e0e1">AnimType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_anim_curve_description.html#a6a297b1cad95d7cb5867ebf952ace71d">type</a></td></tr>
+<tr class="separator:a6a297b1cad95d7cb5867ebf952ace71d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32edbae370f79bc3fb734d300a693fc6"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_anim_curve_description.html#a32edbae370f79bc3fb734d300a693fc6">typical_delta_distance</a></td></tr>
+<tr class="separator:a32edbae370f79bc3fb734d300a693fc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2756694728e5a3eb291d0ceacc2e3685"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_anim_curve_description.html#a2756694728e5a3eb291d0ceacc2e3685">typical_total_time</a></td></tr>
+<tr class="separator:a2756694728e5a3eb291d0ceacc2e3685"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a559f89526827ce94579aaf1bcda34326"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_anim_curve_description.html#a559f89526827ce94579aaf1bcda34326">bias</a></td></tr>
+<tr class="separator:a559f89526827ce94579aaf1bcda34326"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="abd428388b36d44d4fe954110fd8b6720"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">flatui::FaceData::~FaceData </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The destructor for <a class="el" href="classflatui_1_1_face_data.html" title="The font face instance data opened via the Open() API. ">FaceData</a>. </p>
-<dl class="section note"><dt>Note</dt><dd>This calls the <code><a class="el" href="classflatui_1_1_face_data.html#ad414585afa413d448127f7b4e866153f" title="Close the fontface. ">Close()</a></code> function. </dd></dl>
-
-</div>
-</div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a class="anchor" id="a21ba0865432178a7e72c6d3e143b9427"></a>
+<a class="anchor" id="a559f89526827ce94579aaf1bcda34326"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">flatui::FaceData::font_data_</td>
+          <td class="memname">float flatui::AnimCurveDescription::bias</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Opened font file data. </p>
-<p>The file needs to be kept open until FreeType finishes using the file. </p>
+<p>When type is kAnimEaseInEaseOut: Determines how much the curve should ease-in and how much it should ease-out. Should be a value from 0.0 to 1.0. Examples of potential bias values and what they would represent: 0.0: ease-in but no ease out (a.k.a. "fly-out"). 0.3: ease-in more slowly and ease-out more quickly (i.e. less responsive). 0.5: symmetrical curve: equal ease-in and ease-out. 0.7: ease-out more slowly and ease-in more quickly (i.e. more reponsive). 1.0: ease-out but no ease in (a.k.a. "fly-in").</p>
+<p>When type is kAnimSpring: Determines how much the amplitude is dampened every oscillation. Some examples, 0.5: each peak is half the amplitude of the previous peak. 1.0: each peak has the same amplitude. Oscillates forever. 1.2: each peak is 20% larger than the previous peak. Grows forever. </p>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
-<li><a class="el" href="font__manager_8h_source.html">font_manager.h</a></li>
+<a class="anchor" id="a6a297b1cad95d7cb5867ebf952ace71d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceflatui.html#a6c1acd0799998415d35a82e3ad64e0e1">AnimType</a> flatui::AnimCurveDescription::type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The overall shape of the motion curve. This value determines the meaning of the variables below. </p>
+
+</div>
+</div>
+<a class="anchor" id="a32edbae370f79bc3fb734d300a693fc6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float flatui::AnimCurveDescription::typical_delta_distance</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The amount the animated value would change in a common or worst-case situation. Used together with typical_total_time below to describe the "typical" curve.</p>
+<p>The "typical" curve allows you to parameterize the motion in an intuitive way. You provide the distance and time required to travel a common or worst-case situation, and the curve's mathematical parameters are calculated from that situation. This is much easier, for example, than specifying the second derivatives explicitly. </p>
+
+</div>
+</div>
+<a class="anchor" id="a2756694728e5a3eb291d0ceacc2e3685"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float flatui::AnimCurveDescription::typical_total_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The time required for the value to travel typical_delta_distance, assuming it started at a velocity of zero. See typical_delta_distance for further details on the "typical" curve. </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
+<li><a class="el" href="flatui_8h_source.html">flatui.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -166,7 +166,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -190,7 +189,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_metrics.html','')
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -211,7 +210,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_metrics.html','')
 <p>This class has additional properties for font metrics.  
  <a href="classflatui_1_1_font_metrics.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="font__manager_8h_source.html">font_manager.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="font__buffer_8h_source.html">font_buffer.h</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This class has additional properties for font metrics. </p>
 <p>For details of font metrics, refer <a href="http://support.microsoft.com/kb/32667">http://support.microsoft.com/kb/32667</a> In this class, ascender and descender values are retrieved from FreeType font property.</p>
@@ -223,39 +222,39 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a12837b3057f6f253e1931c9a5627aa50">FontMetrics</a> ()</td></tr>
 <tr class="memdesc:a12837b3057f6f253e1931c9a5627aa50"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default constructor for <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a>. <br/></td></tr>
 <tr class="separator:a12837b3057f6f253e1931c9a5627aa50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9443bcc51021e2500ae2794387781481"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9443bcc51021e2500ae2794387781481"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a9443bcc51021e2500ae2794387781481">FontMetrics</a> (const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a116463ff5f4e5444dbcdd9faae9148d6">base_line</a>, const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a4555d93c81b682230446e641b5cffba5">internal_leading</a>, const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a0e759052f89935125c00ae15a4db6021">ascender</a>, const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a36b9e10469f3ba3962820f4702471272">descender</a>, const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#ad3c406f9e2daa86a58b7fc3f2397546c">external_leading</a>)</td></tr>
-<tr class="memdesc:a9443bcc51021e2500ae2794387781481"><td class="mdescLeft">&#160;</td><td class="mdescRight">The constructor with initialization parameters for <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a>. <br/></td></tr>
-<tr class="separator:a9443bcc51021e2500ae2794387781481"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5881e6363d1db242ae669771cc5320a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af5881e6363d1db242ae669771cc5320a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#af5881e6363d1db242ae669771cc5320a">FontMetrics</a> (int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a116463ff5f4e5444dbcdd9faae9148d6">base_line</a>, int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a4555d93c81b682230446e641b5cffba5">internal_leading</a>, int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a0e759052f89935125c00ae15a4db6021">ascender</a>, int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a36b9e10469f3ba3962820f4702471272">descender</a>, int32_t <a class="el" href="classflatui_1_1_font_metrics.html#ad3c406f9e2daa86a58b7fc3f2397546c">external_leading</a>)</td></tr>
+<tr class="memdesc:af5881e6363d1db242ae669771cc5320a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The constructor with initialization parameters for <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a>. <br/></td></tr>
+<tr class="separator:af5881e6363d1db242ae669771cc5320a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4eb2b35079e9e2805dd817f20378d8bb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4eb2b35079e9e2805dd817f20378d8bb"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a4eb2b35079e9e2805dd817f20378d8bb">~FontMetrics</a> ()</td></tr>
 <tr class="memdesc:a4eb2b35079e9e2805dd817f20378d8bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The destructor for <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a>. <br/></td></tr>
 <tr class="separator:a4eb2b35079e9e2805dd817f20378d8bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a116463ff5f4e5444dbcdd9faae9148d6"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a116463ff5f4e5444dbcdd9faae9148d6">base_line</a> () const </td></tr>
 <tr class="separator:a116463ff5f4e5444dbcdd9faae9148d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a582d256b06faa404bcbc1c3adcdeb286"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a582d256b06faa404bcbc1c3adcdeb286">set_base_line</a> (const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a116463ff5f4e5444dbcdd9faae9148d6">base_line</a>)</td></tr>
-<tr class="memdesc:a582d256b06faa404bcbc1c3adcdeb286"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the baseline value.  <a href="#a582d256b06faa404bcbc1c3adcdeb286">More...</a><br/></td></tr>
-<tr class="separator:a582d256b06faa404bcbc1c3adcdeb286"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39d439d4313360da940df1fe92a2d8dc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a39d439d4313360da940df1fe92a2d8dc">set_base_line</a> (int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a116463ff5f4e5444dbcdd9faae9148d6">base_line</a>)</td></tr>
+<tr class="memdesc:a39d439d4313360da940df1fe92a2d8dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">set the baseline value.  <a href="#a39d439d4313360da940df1fe92a2d8dc">More...</a><br/></td></tr>
+<tr class="separator:a39d439d4313360da940df1fe92a2d8dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4555d93c81b682230446e641b5cffba5"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a4555d93c81b682230446e641b5cffba5">internal_leading</a> () const </td></tr>
 <tr class="separator:a4555d93c81b682230446e641b5cffba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac93d786795d93887c4fdf8301c9187be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#ac93d786795d93887c4fdf8301c9187be">set_internal_leading</a> (const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a4555d93c81b682230446e641b5cffba5">internal_leading</a>)</td></tr>
-<tr class="memdesc:ac93d786795d93887c4fdf8301c9187be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the internal leading parameter value.  <a href="#ac93d786795d93887c4fdf8301c9187be">More...</a><br/></td></tr>
-<tr class="separator:ac93d786795d93887c4fdf8301c9187be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4745e846d49e16d46d790fc6c25cf5bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a4745e846d49e16d46d790fc6c25cf5bf">set_internal_leading</a> (int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a4555d93c81b682230446e641b5cffba5">internal_leading</a>)</td></tr>
+<tr class="memdesc:a4745e846d49e16d46d790fc6c25cf5bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the internal leading parameter value.  <a href="#a4745e846d49e16d46d790fc6c25cf5bf">More...</a><br/></td></tr>
+<tr class="separator:a4745e846d49e16d46d790fc6c25cf5bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e759052f89935125c00ae15a4db6021"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a0e759052f89935125c00ae15a4db6021">ascender</a> () const </td></tr>
 <tr class="separator:a0e759052f89935125c00ae15a4db6021"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafae7a6e575f519134165e1f852e5e40"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#aafae7a6e575f519134165e1f852e5e40">set_ascender</a> (const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a0e759052f89935125c00ae15a4db6021">ascender</a>)</td></tr>
-<tr class="memdesc:aafae7a6e575f519134165e1f852e5e40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the ascender value.  <a href="#aafae7a6e575f519134165e1f852e5e40">More...</a><br/></td></tr>
-<tr class="separator:aafae7a6e575f519134165e1f852e5e40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeeb2ef1ecd43cff3a370289fa3ff4556"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#aeeb2ef1ecd43cff3a370289fa3ff4556">set_ascender</a> (int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a0e759052f89935125c00ae15a4db6021">ascender</a>)</td></tr>
+<tr class="memdesc:aeeb2ef1ecd43cff3a370289fa3ff4556"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the ascender value.  <a href="#aeeb2ef1ecd43cff3a370289fa3ff4556">More...</a><br/></td></tr>
+<tr class="separator:aeeb2ef1ecd43cff3a370289fa3ff4556"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36b9e10469f3ba3962820f4702471272"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a36b9e10469f3ba3962820f4702471272">descender</a> () const </td></tr>
 <tr class="separator:a36b9e10469f3ba3962820f4702471272"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6532bbffee632a57e3973b838ef00f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#af6532bbffee632a57e3973b838ef00f9">set_descender</a> (const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a36b9e10469f3ba3962820f4702471272">descender</a>)</td></tr>
-<tr class="memdesc:af6532bbffee632a57e3973b838ef00f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the descender value.  <a href="#af6532bbffee632a57e3973b838ef00f9">More...</a><br/></td></tr>
-<tr class="separator:af6532bbffee632a57e3973b838ef00f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa63608bf74d572a223bfeda86c45af3a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#aa63608bf74d572a223bfeda86c45af3a">set_descender</a> (int32_t <a class="el" href="classflatui_1_1_font_metrics.html#a36b9e10469f3ba3962820f4702471272">descender</a>)</td></tr>
+<tr class="memdesc:aa63608bf74d572a223bfeda86c45af3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the descender value.  <a href="#aa63608bf74d572a223bfeda86c45af3a">More...</a><br/></td></tr>
+<tr class="separator:aa63608bf74d572a223bfeda86c45af3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3c406f9e2daa86a58b7fc3f2397546c"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#ad3c406f9e2daa86a58b7fc3f2397546c">external_leading</a> () const </td></tr>
 <tr class="separator:ad3c406f9e2daa86a58b7fc3f2397546c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfcdc7014bade03cacc150289a0f8962"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#abfcdc7014bade03cacc150289a0f8962">set_external_leading</a> (const int32_t <a class="el" href="classflatui_1_1_font_metrics.html#ad3c406f9e2daa86a58b7fc3f2397546c">external_leading</a>)</td></tr>
-<tr class="memdesc:abfcdc7014bade03cacc150289a0f8962"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the external leading parameter value.  <a href="#abfcdc7014bade03cacc150289a0f8962">More...</a><br/></td></tr>
-<tr class="separator:abfcdc7014bade03cacc150289a0f8962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30b2f59a6bed7125f7540edc01a27f7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#a30b2f59a6bed7125f7540edc01a27f7b">set_external_leading</a> (int32_t <a class="el" href="classflatui_1_1_font_metrics.html#ad3c406f9e2daa86a58b7fc3f2397546c">external_leading</a>)</td></tr>
+<tr class="memdesc:a30b2f59a6bed7125f7540edc01a27f7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the external leading parameter value.  <a href="#a30b2f59a6bed7125f7540edc01a27f7b">More...</a><br/></td></tr>
+<tr class="separator:a30b2f59a6bed7125f7540edc01a27f7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac807bc12846c23c0fc393353bcfaeeda"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html#ac807bc12846c23c0fc393353bcfaeeda">total</a> () const </td></tr>
 <tr class="separator:ac807bc12846c23c0fc393353bcfaeeda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -380,7 +379,7 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="aafae7a6e575f519134165e1f852e5e40"></a>
+<a class="anchor" id="aeeb2ef1ecd43cff3a370289fa3ff4556"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -390,7 +389,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void flatui::FontMetrics::set_ascender </td>
           <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
+          <td class="paramtype">int32_t&#160;</td>
           <td class="paramname"><em>ascender</em></td><td>)</td>
           <td></td>
         </tr>
@@ -412,7 +411,7 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a582d256b06faa404bcbc1c3adcdeb286"></a>
+<a class="anchor" id="a39d439d4313360da940df1fe92a2d8dc"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -422,7 +421,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void flatui::FontMetrics::set_base_line </td>
           <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
+          <td class="paramtype">int32_t&#160;</td>
           <td class="paramname"><em>base_line</em></td><td>)</td>
           <td></td>
         </tr>
@@ -444,7 +443,7 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="af6532bbffee632a57e3973b838ef00f9"></a>
+<a class="anchor" id="aa63608bf74d572a223bfeda86c45af3a"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -454,7 +453,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void flatui::FontMetrics::set_descender </td>
           <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
+          <td class="paramtype">int32_t&#160;</td>
           <td class="paramname"><em>descender</em></td><td>)</td>
           <td></td>
         </tr>
@@ -476,7 +475,7 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="abfcdc7014bade03cacc150289a0f8962"></a>
+<a class="anchor" id="a30b2f59a6bed7125f7540edc01a27f7b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -486,7 +485,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void flatui::FontMetrics::set_external_leading </td>
           <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
+          <td class="paramtype">int32_t&#160;</td>
           <td class="paramname"><em>external_leading</em></td><td>)</td>
           <td></td>
         </tr>
@@ -508,7 +507,7 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ac93d786795d93887c4fdf8301c9187be"></a>
+<a class="anchor" id="a4745e846d49e16d46d790fc6c25cf5bf"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -518,7 +517,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">void flatui::FontMetrics::set_internal_leading </td>
           <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
+          <td class="paramtype">int32_t&#160;</td>
           <td class="paramname"><em>internal_leading</em></td><td>)</td>
           <td></td>
         </tr>
@@ -565,7 +564,7 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li><a class="el" href="font__manager_8h_source.html">font_manager.h</a></li>
+<li><a class="el" href="font__buffer_8h_source.html">font_buffer.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

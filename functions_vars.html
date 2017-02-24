@@ -166,7 +166,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li class="current"><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -197,7 +196,7 @@ $(document).ready(function(){initNavTree('functions_vars.html','');});
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -208,26 +207,47 @@ $(document).ready(function(){initNavTree('functions_vars.html','');});
 
 <div class="contents">
 &#160;<ul>
+<li>bias
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a559f89526827ce94579aaf1bcda34326">flatui::AnimCurveDescription</a>
+</li>
 <li>borders
 : <a class="el" href="structflatui_1_1_margin.html#afcf389a729c9cf066b994aeef47e6185">flatui::Margin</a>
 </li>
-<li>face_
-: <a class="el" href="classflatui_1_1_face_data.html#ade3e42678254a8bf54bb0b6dbf103811">flatui::FaceData</a>
+<li>direction
+: <a class="el" href="structflatui_1_1_script_info.html#a7d3728fc8000531015f063d2cdbfadf0">flatui::ScriptInfo</a>
 </li>
-<li>font_data_
-: <a class="el" href="classflatui_1_1_face_data.html#a21ba0865432178a7e72c6d3e143b9427">flatui::FaceData</a>
+<li>end_glyph_index
+: <a class="el" href="structflatui_1_1_link_info.html#a3ab24518cc2ed527f8d81d386bee1ab0">flatui::LinkInfo</a>
 </li>
-<li>font_id_
-: <a class="el" href="classflatui_1_1_face_data.html#ac5c843517b9e9c63c7069aeb23982626">flatui::FaceData</a>
-</li>
-<li>harfbuzz_font_
-: <a class="el" href="classflatui_1_1_face_data.html#a3206ae3db8c8d5028f7808cb20101992">flatui::FaceData</a>
+<li>hyphenation
+: <a class="el" href="structflatui_1_1_script_info.html#aae26d6764dac79e4c283fbec06cdcca7">flatui::ScriptInfo</a>
 </li>
 <li>kIndiciesPerCodePoint
 : <a class="el" href="classflatui_1_1_font_buffer.html#a9384ae4696cc896a4d3f17798ddea5d5">flatui::FontBuffer</a>
 </li>
 <li>kVerticesPerCodePoint
 : <a class="el" href="classflatui_1_1_font_buffer.html#ad0dcc8b3f9298778ecaab73bc0f1557f">flatui::FontBuffer</a>
+</li>
+<li>link
+: <a class="el" href="structflatui_1_1_link_info.html#a501babf796c9c369f200ef28b40e0aa4">flatui::LinkInfo</a>
+</li>
+<li>locale
+: <a class="el" href="structflatui_1_1_script_info.html#ae3fd273e3a92760e4ba958b514f60dda">flatui::ScriptInfo</a>
+</li>
+<li>script
+: <a class="el" href="structflatui_1_1_script_info.html#a526530c90f2d453779dd040cf80a885f">flatui::ScriptInfo</a>
+</li>
+<li>start_glyph_index
+: <a class="el" href="structflatui_1_1_link_info.html#a02add824dd5d416853dcb411cb7a521e">flatui::LinkInfo</a>
+</li>
+<li>type
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a6a297b1cad95d7cb5867ebf952ace71d">flatui::AnimCurveDescription</a>
+</li>
+<li>typical_delta_distance
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a32edbae370f79bc3fb734d300a693fc6">flatui::AnimCurveDescription</a>
+</li>
+<li>typical_total_time
+: <a class="el" href="structflatui_1_1_anim_curve_description.html#a2756694728e5a3eb291d0ceacc2e3685">flatui::AnimCurveDescription</a>
 </li>
 </ul>
 </div><!-- contents -->

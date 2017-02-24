@@ -1,0 +1,320 @@
+<!-- HTML header for doxygen 1.8.6-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>FlatUI: font_buffer.h File Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
+<link href="style.css" rel="stylesheet" type="text/css"/>
+<script>
+  /**
+   * Check if the browser rendering this page is being run on an Android device.
+   * It checks if the string 'android' is found in the browser's `userAgent`.
+   * @return {boolean} This returns `true` if the browser's `userAgent` contains
+   * the string 'android' (indicating that the browser is on an Android device).
+   * Otherwise, it returns `false`.
+   */
+  function isAndroidDevice() {
+    if (navigator && navigator.userAgent) {
+      return navigator.userAgent.toLowerCase().indexOf('android') != -1;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Check if an HTML `class` attribute is in the browser-specific format.
+   * @param {string} An HTML `class` attribute in the format 'browser-{device}'.
+   * @return {boolean} Returns `true` if `browserClass` was in the valid format,
+   * prefixed with 'browser-'. Otherwise, it returns false.
+   */
+  function isBrowserSpecificClassName(browserClass) {
+    if (browserClass && browserClass.substring(0, 8) == 'browser-' &&
+        browserClass.length > 8) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Get all the HTML Elements with browser-specific `class` attributes.
+   * @return {array} Returns an array of all the HTML Elements with a `class`
+   * attribute that is prefixed with `browser-`.
+   */
+  function getAllBrowserSpecificElements() {
+    if (document) {
+      var htmlElements = document.getElementsByTagName("*");
+      var browserSpecificElements = [];
+      for (var i = 0; i < htmlElements.length; i++) {
+        if (isBrowserSpecificClassName(htmlElements[i].className)) {
+          browserSpecificElements.push(htmlElements[i]);
+        }
+      }
+      return browserSpecificElements;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Given a browser-specific HTML `class` attribute, extract the device name.
+   * @param {string} browserClass The string name of an HTML `class` attribute,
+   * in the format `browser-{device}`.
+   * @return {string} Returns a string containing only the device portion of
+   * the class name. If the input was invalid, then it returns `null`.
+   */
+  function extractDeviceFromBrowserClass(browserClass) {
+    if (isBrowserSpecificClassName(browserClass)) {
+      return browserClass.substring(8);
+    }
+    else {
+      return null;
+    }
+  }
+  /**
+   * Hide device specific elements that do not apply to the current device.
+   */
+  function handleDeviceSpecificLoading() {
+    var browserSpecificElements = getAllBrowserSpecificElements();
+    for (var i = 0; i < browserSpecificElements.length; i++) {
+      var device = extractDeviceFromBrowserClass(browserSpecificElements[i].className);
+      if (device && !isAndroidDevice() && device == 'android') {
+        browserSpecificElements[i].innerHTML = '';
+      } else if(device && isAndroidDevice() && device == 'desktop') {
+        browserSpecificElements[i].innerHTML = '';
+      }
+    }
+  }
+  $(document).ready(handleDeviceSpecificLoading);
+</script>
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">FlatUI
+   </div>
+   <div style="font-size:12px;">
+	 An open source project by
+     <a href="https://developers.google.com/games/#Tools">FPL</a>.
+  </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="usergroup0.html"><span>Programmer's&#160;Guide</span></a></li>
+      <li class="current"><a href="flatui_api_reference.html"><span>API&#160;reference</span></a></li>
+      <li><a href="flatui_readme.html"><span>Readme</span></a></li>
+      <li><a href="contributing.html"><span>Contributing</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="modules.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li class="current"><a href="files.html"><span>File&#160;List</span></a></li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('font__buffer_8h.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#var-members">Variables</a>  </div>
+  <div class="headertitle">
+<div class="title">font_buffer.h File Reference</div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &quot;flatui/internal/flatui_util.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/glyph_cache.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/hb_complex_font.h&quot;</code><br/>
+</div>
+<p><a href="font__buffer_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html">flatui::FontFamily</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class holding font family information. The class provides various ways to support fonts such as a font collection (multiple fonts in a file), referencing a font by a famly name etc.  <a href="classflatui_1_1_font_family.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html">flatui::FontBufferParameters</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class that includes font buffer parameters. It is used as a key in the unordered_map to look up <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_parameters.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_link_info.html">flatui::LinkInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTML link href, and the location of the link text in <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="structflatui_1_1_link_info.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html">flatui::FontMetrics</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class has additional properties for font metrics.  <a href="classflatui_1_1_font_metrics.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_font_vertex.html">flatui::FontVertex</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds all the font vertex data.  <a href="structflatui_1_1_font_vertex.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_attributes.html">flatui::FontBufferAttributes</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A structure holding attribute information of texts in a <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_attributes.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_font_buffer_attributes_1_1_underline_info.html">flatui::FontBufferAttributes::UnderlineInfo</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_context.html">flatui::FontBufferContext</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Temporary buffers used while generating <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. Word boundary information. This information is used only with a typography layout with a justification.  <a href="classflatui_1_1_font_buffer_context.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_glyph_info.html">flatui::GlyphInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds the glyph information that is used when re-creating a <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="structflatui_1_1_glyph_info.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html">flatui::FontBuffer</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">this is used with the texture atlas rendering.  <a href="classflatui_1_1_font_buffer.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespaceflatui"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html">flatui</a></td></tr>
+<tr class="memdesc:namespaceflatui"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for FlatUI library. <br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:gac917b4ce41623ec727a3b9aeebc19462"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gac917b4ce41623ec727a3b9aeebc19462">flatui::TextLayoutDirection</a> { <b>kTextLayoutDirectionLTR</b> = 0, 
+<b>kTextLayoutDirectionRTL</b> = 1, 
+<b>kTextLayoutDirectionTTB</b> = 2
+ }</td></tr>
+<tr class="memdesc:gac917b4ce41623ec727a3b9aeebc19462"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify how to layout texts. Default value is TextLayoutDirectionLTR. <br/></td></tr>
+<tr class="separator:gac917b4ce41623ec727a3b9aeebc19462"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga924b469e70eacc27f42a1363c703ede7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">flatui::TextAlignment</a> { <br/>
+&#160;&#160;<b>kTextAlignmentLeft</b> = 0, 
+<b>kTextAlignmentRight</b> = 1, 
+<b>kTextAlignmentCenter</b> = 2, 
+<b>kTextAlignmentJustify</b> = 4, 
+<br/>
+&#160;&#160;<b>kTextAlignmentLeftJustify</b> = kTextAlignmentJustify, 
+<b>kTextAlignmentRightJustify</b> = kTextAlignmentJustify | kTextAlignmentRight, 
+<b>kTextAlignmentCenterJustify</b> = kTextAlignmentJustify | kTextAlignmentCenter
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga924b469e70eacc27f42a1363c703ede7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alignment of the text.  <a href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">More...</a><br/></td></tr>
+<tr class="separator:ga924b469e70eacc27f42a1363c703ede7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">flatui::FontBufferStatus</a> { <b>kFontBufferStatusReady</b> = 0, 
+<b>kFontBufferStatusNeedReconstruct</b> = 1, 
+<b>kFontBufferStatusNeedCacheUpdate</b> = 2
+ }</td></tr>
+<tr class="memdesc:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">A status of FontBuffer correspoinding current glyph cache contents. <b>Enumerations</b>:  <a href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">More...</a><br/></td></tr>
+<tr class="separator:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga694c19988411ba5dce25bda0aff0c30e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">flatui::EllipsisMode</a> { <b>kEllipsisModeTruncateCharacter</b> = 0, 
+<b>kEllipsisModeTruncateWord</b> = 1
+ }</td></tr>
+<tr class="memdesc:ga694c19988411ba5dce25bda0aff0c30e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A flag controlling appending behavior of the ellipsis. <b>Enumerations</b>:  <a href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">More...</a><br/></td></tr>
+<tr class="separator:ga694c19988411ba5dce25bda0aff0c30e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memItemLeft" align="right" valign="top">const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">flatui::kFreeTypeUnit</a> = 64</td></tr>
+<tr class="memdesc:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constant to convert FreeType unit to pixel unit.  <a href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">More...</a><br/></td></tr>
+<tr class="separator:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga38db0db0ced93dbf3b778543814decd6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">flatui::kLineHeightDefault</a> = 1.2f</td></tr>
+<tr class="memdesc:ga38db0db0ced93dbf3b778543814decd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a line height factor.  <a href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">More...</a><br/></td></tr>
+<tr class="separator:ga38db0db0ced93dbf3b778543814decd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga93d39ed88c789305b56b1057b12cfed6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">flatui::kKerningScaleDefault</a> = 1.0f</td></tr>
+<tr class="memdesc:ga93d39ed88c789305b56b1057b12cfed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a kerning scale factor.  <a href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">More...</a><br/></td></tr>
+<tr class="separator:ga93d39ed88c789305b56b1057b12cfed6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad729960a0369eddb7cebac775a32af27"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad729960a0369eddb7cebac775a32af27"></a>
+const mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gad729960a0369eddb7cebac775a32af27">flatui::kCaretPositionInvalid</a> = mathfu::vec2i(-1, -1)</td></tr>
+<tr class="memdesc:gad729960a0369eddb7cebac775a32af27"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value representing an invalid caret position. <br/></td></tr>
+<tr class="separator:gad729960a0369eddb7cebac775a32af27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49bdcb88786f0d41c6223e88029fdc40"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49bdcb88786f0d41c6223e88029fdc40"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kIndexInvalid</b> = -1</td></tr>
+<tr class="separator:ga49bdcb88786f0d41c6223e88029fdc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga59fcb8dd61c60350000a0a80a9d08516"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga59fcb8dd61c60350000a0a80a9d08516"></a>
+const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kDefaultColor</b> = 0xffffffff</td></tr>
+<tr class="separator:ga59fcb8dd61c60350000a0a80a9d08516"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-49880327-7', 'google.github.io');
+ga('send', 'pageview');
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+var classflatui_1_1_font_buffer_context =
+[
+    [ "attribute_map_it", "classflatui_1_1_font_buffer_context.html#a75e4ff8e96e09a2d4b22dc70dd614c4f", null ],
+    [ "FontBufferContext", "classflatui_1_1_font_buffer_context.html#a3d8dee7381c51daf04eca6bf1843361e", null ],
+    [ "appending_buffer", "classflatui_1_1_font_buffer_context.html#a921f4869f66eae4b7092c9df3589429e", null ],
+    [ "attribute_history", "classflatui_1_1_font_buffer_context.html#a178b0eff48e904546d22d72ac7be9d55", null ],
+    [ "Clear", "classflatui_1_1_font_buffer_context.html#ad4fe8f12efab8235825636b09880c1ad", null ],
+    [ "current_font_size", "classflatui_1_1_font_buffer_context.html#a6e867480dae567de5ad7cb6b0d6129dd", null ],
+    [ "lastline_must_break", "classflatui_1_1_font_buffer_context.html#a77b15b0c1eed4587d574716c8c257acd", null ],
+    [ "line_start_caret_index", "classflatui_1_1_font_buffer_context.html#ac53e61488d6fb4f247f950998161edcc", null ],
+    [ "LookUpAttribute", "classflatui_1_1_font_buffer_context.html#a1db6e336701f56f72296f54863572116", null ],
+    [ "original_base_line", "classflatui_1_1_font_buffer_context.html#a2b087f6618ca21f0bad0bd9fca63ba53", null ],
+    [ "original_font", "classflatui_1_1_font_buffer_context.html#ae9491603de69bfa4454ca5b1677915ad", null ],
+    [ "original_font_size", "classflatui_1_1_font_buffer_context.html#a694e9cd9024ade39b0bf75e8b7a9796d", null ],
+    [ "set_appending_buffer", "classflatui_1_1_font_buffer_context.html#a54f1acf7694e4fc9ca7ea96ebdef279d", null ],
+    [ "set_current_font_size", "classflatui_1_1_font_buffer_context.html#a66a0d00bd74089c76e7299a913d1c8b2", null ],
+    [ "set_lastline_must_break", "classflatui_1_1_font_buffer_context.html#a7964ddece51884762c18b64885c08619", null ],
+    [ "set_line_start_caret_index", "classflatui_1_1_font_buffer_context.html#afb7be8256a62918fdee95a4765d5a4ad", null ],
+    [ "set_original_base_line", "classflatui_1_1_font_buffer_context.html#aaab194ce9cb74503f17f816509a171f6", null ],
+    [ "set_original_font", "classflatui_1_1_font_buffer_context.html#aa79215127d34bf51f99fa8aaf0a45f8a", null ],
+    [ "set_original_font_size", "classflatui_1_1_font_buffer_context.html#a22430049ba30b1b1b659b402a315a764", null ],
+    [ "SetAttribute", "classflatui_1_1_font_buffer_context.html#a69aa94554b8a623f1f2ad4d807f8b603", null ],
+    [ "word_boundary", "classflatui_1_1_font_buffer_context.html#adfc490dafe92c0fe61ecd04dea4d7cc7", null ],
+    [ "word_boundary_caret", "classflatui_1_1_font_buffer_context.html#aecd7dc2bf265d5602093cfc88228bf24", null ]
+];

@@ -175,7 +175,7 @@ $(document).ready(function(){initNavTree('group__flatui__font__manager.html','')
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -187,6 +187,7 @@ $(document).ready(function(){initNavTree('group__flatui__font__manager.html','')
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">Font Manager</div>  </div>
@@ -200,53 +201,191 @@ $(document).ready(function(){initNavTree('group__flatui__font__manager.html','')
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html">flatui::FontFamily</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class holding font family information. The class provides various ways to support fonts such as a font collection (multiple fonts in a file), referencing a font by a famly name etc.  <a href="classflatui_1_1_font_family.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html">flatui::FontBufferParameters</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class that includes font buffer parameters. It is used as a key in the unordered_map to look up <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_parameters.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_manager.html">flatui::FontManager</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classflatui_1_1_font_manager.html" title="FontManager manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering a...">FontManager</a> manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering and layout back end.  <a href="classflatui_1_1_font_manager.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_link_info.html">flatui::LinkInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTML link href, and the location of the link text in <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="structflatui_1_1_link_info.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html">flatui::FontMetrics</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class has additional properties for font metrics.  <a href="classflatui_1_1_font_metrics.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_texture.html">flatui::FontTexture</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class is the actual Texture for fonts.  <a href="classflatui_1_1_font_texture.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_font_vertex.html">flatui::FontVertex</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds all the font vertex data.  <a href="structflatui_1_1_font_vertex.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_attributes.html">flatui::FontBufferAttributes</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A structure holding attribute information of texts in a <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_attributes.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_context.html">flatui::FontBufferContext</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Temporary buffers used while generating <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. Word boundary information. This information is used only with a typography layout with a justification.  <a href="classflatui_1_1_font_buffer_context.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_glyph_info.html">flatui::GlyphInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds the glyph information that is used when re-creating a <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="structflatui_1_1_glyph_info.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html">flatui::FontBuffer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">this is used with the texture atlas rendering.  <a href="classflatui_1_1_font_buffer.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html">flatui::FaceData</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The font face instance data opened via the <code>Open()</code> API.  <a href="classflatui_1_1_face_data.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_manager.html">flatui::FontManager</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classflatui_1_1_font_manager.html" title="FontManager manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering a...">FontManager</a> manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering and layout back end.  <a href="classflatui_1_1_font_manager.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_script_info.html">flatui::ScriptInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds the script information used for a text layout.  <a href="structflatui_1_1_script_info.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:gac917b4ce41623ec727a3b9aeebc19462"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gac917b4ce41623ec727a3b9aeebc19462">flatui::TextLayoutDirection</a> { <b>kTextLayoutDirectionLTR</b> = 0, 
+<b>kTextLayoutDirectionRTL</b> = 1, 
+<b>kTextLayoutDirectionTTB</b> = 2
+ }</td></tr>
+<tr class="memdesc:gac917b4ce41623ec727a3b9aeebc19462"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify how to layout texts. Default value is TextLayoutDirectionLTR. <br/></td></tr>
+<tr class="separator:gac917b4ce41623ec727a3b9aeebc19462"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga924b469e70eacc27f42a1363c703ede7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">flatui::TextAlignment</a> { <br/>
+&#160;&#160;<b>kTextAlignmentLeft</b> = 0, 
+<b>kTextAlignmentRight</b> = 1, 
+<b>kTextAlignmentCenter</b> = 2, 
+<b>kTextAlignmentJustify</b> = 4, 
+<br/>
+&#160;&#160;<b>kTextAlignmentLeftJustify</b> = kTextAlignmentJustify, 
+<b>kTextAlignmentRightJustify</b> = kTextAlignmentJustify | kTextAlignmentRight, 
+<b>kTextAlignmentCenterJustify</b> = kTextAlignmentJustify | kTextAlignmentCenter
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga924b469e70eacc27f42a1363c703ede7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alignment of the text.  <a href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">More...</a><br/></td></tr>
+<tr class="separator:ga924b469e70eacc27f42a1363c703ede7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">flatui::FontBufferStatus</a> { <b>kFontBufferStatusReady</b> = 0, 
+<b>kFontBufferStatusNeedReconstruct</b> = 1, 
+<b>kFontBufferStatusNeedCacheUpdate</b> = 2
+ }</td></tr>
+<tr class="memdesc:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">A status of FontBuffer correspoinding current glyph cache contents. <b>Enumerations</b>:  <a href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">More...</a><br/></td></tr>
+<tr class="separator:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga694c19988411ba5dce25bda0aff0c30e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">flatui::EllipsisMode</a> { <b>kEllipsisModeTruncateCharacter</b> = 0, 
+<b>kEllipsisModeTruncateWord</b> = 1
+ }</td></tr>
+<tr class="memdesc:ga694c19988411ba5dce25bda0aff0c30e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A flag controlling appending behavior of the ellipsis. <b>Enumerations</b>:  <a href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">More...</a><br/></td></tr>
+<tr class="separator:ga694c19988411ba5dce25bda0aff0c30e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memItemLeft" align="right" valign="top">const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">flatui::kFreeTypeUnit</a> = 64</td></tr>
 <tr class="memdesc:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constant to convert FreeType unit to pixel unit.  <a href="#ga11d86d947722eed34b6d29fc8d07f3a4">More...</a><br/></td></tr>
 <tr class="separator:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga38db0db0ced93dbf3b778543814decd6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">flatui::kLineHeightDefault</a> = 1.2f</td></tr>
+<tr class="memdesc:ga38db0db0ced93dbf3b778543814decd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a line height factor.  <a href="#ga38db0db0ced93dbf3b778543814decd6">More...</a><br/></td></tr>
+<tr class="separator:ga38db0db0ced93dbf3b778543814decd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga93d39ed88c789305b56b1057b12cfed6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">flatui::kKerningScaleDefault</a> = 1.0f</td></tr>
+<tr class="memdesc:ga93d39ed88c789305b56b1057b12cfed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a kerning scale factor.  <a href="#ga93d39ed88c789305b56b1057b12cfed6">More...</a><br/></td></tr>
+<tr class="separator:ga93d39ed88c789305b56b1057b12cfed6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad729960a0369eddb7cebac775a32af27"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad729960a0369eddb7cebac775a32af27"></a>
+const mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gad729960a0369eddb7cebac775a32af27">flatui::kCaretPositionInvalid</a> = mathfu::vec2i(-1, -1)</td></tr>
+<tr class="memdesc:gad729960a0369eddb7cebac775a32af27"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value representing an invalid caret position. <br/></td></tr>
+<tr class="separator:gad729960a0369eddb7cebac775a32af27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49bdcb88786f0d41c6223e88029fdc40"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49bdcb88786f0d41c6223e88029fdc40"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kIndexInvalid</b> = -1</td></tr>
+<tr class="separator:ga49bdcb88786f0d41c6223e88029fdc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga59fcb8dd61c60350000a0a80a9d08516"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga59fcb8dd61c60350000a0a80a9d08516"></a>
+const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kDefaultColor</b> = 0xffffffff</td></tr>
+<tr class="separator:ga59fcb8dd61c60350000a0a80a9d08516"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga07c98e09fae6f43fd7320cb57dd58656"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga07c98e09fae6f43fd7320cb57dd58656"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kVerticesPerGlyph</b> = 4</td></tr>
+<tr class="separator:ga07c98e09fae6f43fd7320cb57dd58656"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49b7e60575c7d68e90940199997b6074"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49b7e60575c7d68e90940199997b6074"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga49b7e60575c7d68e90940199997b6074">flatui::kIndicesPerGlyph</a> = 6</td></tr>
+<tr class="memdesc:ga49b7e60575c7d68e90940199997b6074"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of vertices/indices per a glyph entry. <br/></td></tr>
+<tr class="separator:ga49b7e60575c7d68e90940199997b6074"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga6adc9ca92e9e790a495a5608c4f8bda4"></a>
 const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga6adc9ca92e9e790a495a5608c4f8bda4">flatui::kGlyphCacheWidth</a> = 1024</td></tr>
-<tr class="memdesc:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Default size of the glyph cache width. <br/></td></tr>
+<tr class="memdesc:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the glyph cache width. <br/></td></tr>
 <tr class="separator:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga738c7d55cb18a5e2b56bbbf86295df4f"></a>
 const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga738c7d55cb18a5e2b56bbbf86295df4f">flatui::kGlyphCacheHeight</a> = 1024</td></tr>
 <tr class="memdesc:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the glyph cache height. <br/></td></tr>
 <tr class="separator:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga38db0db0ced93dbf3b778543814decd6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">flatui::kLineHeightDefault</a> = 1.2f</td></tr>
-<tr class="memdesc:ga38db0db0ced93dbf3b778543814decd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a line height factor.  <a href="#ga38db0db0ced93dbf3b778543814decd6">More...</a><br/></td></tr>
-<tr class="separator:ga38db0db0ced93dbf3b778543814decd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad729960a0369eddb7cebac775a32af27"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad729960a0369eddb7cebac775a32af27"></a>
-const mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gad729960a0369eddb7cebac775a32af27">flatui::kCaretPositionInvalid</a> = mathfu::vec2i(-1, -1)</td></tr>
-<tr class="memdesc:gad729960a0369eddb7cebac775a32af27"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value representing an invalid caret position. <br/></td></tr>
-<tr class="separator:gad729960a0369eddb7cebac775a32af27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga558f363ff7b2b45485f55916f631d907"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga558f363ff7b2b45485f55916f631d907"></a>
-const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga558f363ff7b2b45485f55916f631d907">flatui::kLineBreakDefaultLanguage</a> = &quot;en&quot;</td></tr>
-<tr class="memdesc:ga558f363ff7b2b45485f55916f631d907"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default language used for a line break. <br/></td></tr>
-<tr class="separator:ga558f363ff7b2b45485f55916f631d907"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2ddffc215c7303836164c618af8285c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2ddffc215c7303836164c618af8285c0"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga2ddffc215c7303836164c618af8285c0">flatui::kGlyphCacheMaxSlices</a> = 4</td></tr>
+<tr class="memdesc:ga2ddffc215c7303836164c618af8285c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the max glyph cache slices. The number of cache slices grows up to the value. <br/></td></tr>
+<tr class="separator:ga2ddffc215c7303836164c618af8285c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2b21511199c33a9a6dc1bd8c49a62609"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga2b21511199c33a9a6dc1bd8c49a62609">flatui::kDefaultLanguage</a> = &quot;en&quot;</td></tr>
+<tr class="memdesc:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default language used for a line break. <br/></td></tr>
+<tr class="separator:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5f44bbd1af44139f7443943daef059e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5f44bbd1af44139f7443943daef059e6"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga5f44bbd1af44139f7443943daef059e6">flatui::kSystemFont</a> = &quot;.SystemFont&quot;</td></tr>
+<tr class="memdesc:ga5f44bbd1af44139f7443943daef059e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A constant to spefify loading a system font. Used with OpenFont() and SelectFont() API Currently the system font is supported on iOS/macOS and Android only. <br/></td></tr>
+<tr class="separator:ga5f44bbd1af44139f7443943daef059e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga018c4b5cb08e3d4012dfdc0c14544416"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga018c4b5cb08e3d4012dfdc0c14544416"></a>
+static const HashedId&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kSystemFontId</b> = HashId(kSystemFont)</td></tr>
+<tr class="separator:ga018c4b5cb08e3d4012dfdc0c14544416"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="ga694c19988411ba5dce25bda0aff0c30e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">flatui::EllipsisMode</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A flag controlling appending behavior of the ellipsis. <b>Enumerations</b>: </p>
+<ul>
+<li><code>kEllipsisModeTruncateCharacter</code> - Truncate characters to make a space.</li>
+<li><code>kEllipsisModeTruncateWord</code> - Truncate whole word to make a space. </li>
+</ul>
+
+</div>
+</div>
+<a class="anchor" id="ga87e2f5d616b4312eb3dd498b82bb98bd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">flatui::FontBufferStatus</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A status of <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> correspoinding current glyph cache contents. <b>Enumerations</b>: </p>
+<ul>
+<li><code>kFontBufferStatusReady</code> - The font buffer is ready to use.</li>
+<li><code>kFontBufferStatusNeedReconstruct</code> - The glyph cache has been flushed.</li>
+<li>The font buffer needs to be reconstructed.</li>
+<li><code>kFontBufferStatusNeedCacheUpdate</code> - The glyph cache texture needs to be</li>
+<li>uploaded. </li>
+</ul>
+
+</div>
+</div>
+<a class="anchor" id="ga924b469e70eacc27f42a1363c703ede7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">flatui::TextAlignment</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Alignment of the text. </p>
+<dl class="section note"><dt>Note</dt><dd>: Used for a typographic alignment in a label. The enumeration is different from <a class="el" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43" title="Alignment of the groups. ">flatui::Alignment</a> as it supports justification setting. Note that in RTL layout direction mode, the setting is flipped. (e.g. kTextAlignmentLeft becomes kTextAlignmentRight) kTextAlignLeft/Right/CenterJustify variants specify how the last line is flushed left, right or centered.</dd></dl>
+<p><b>Enumerations</b>:</p>
+<ul>
+<li><code>kTextAlignmentLeft</code> - Text is aligned to the left of the given area. Default setting.</li>
+<li><code>kTextAlignmentRight</code> - Text is aligned to the right of the given area.</li>
+<li><code>kTextAlignmentCenter</code> - Text is aligned to the center of the given area.</li>
+<li><code>kTextAlignmentJustify</code> - Text is 'justified'. Spaces between words are stretched to align both the left and right ends of each line of text.</li>
+<li><code>kTextAlignmentLeftJustify</code> - An alias of kTextAlignmentJustify. The last line of a paragraph is aligned to the left.</li>
+<li><code>kTextAlignmentRightJustify</code> - Text is 'justified'. The last line of a paragraph is aligned to the right.</li>
+<li><code>kTextAlignmentCenterJustify</code> - Text is 'justified'. The last line of a paragraph is aligned to the center.</li>
+</ul>
+<p>For more detail of each settings, refer: <a href="https://en.wikipedia.org/wiki/Typographic_alignment">https://en.wikipedia.org/wiki/Typographic_alignment</a> </p>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a class="anchor" id="ga11d86d947722eed34b6d29fc8d07f3a4"></a>
 <div class="memitem">
@@ -263,6 +402,21 @@ const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="e
 
 </div>
 </div>
+<a class="anchor" id="ga93d39ed88c789305b56b1057b12cfed6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">flatui::kKerningScaleDefault = 1.0f</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Default value for a kerning scale factor. </p>
+<p>The kerning value is derived as the factor * kerning value retrieved from harfbuzz. To change the kerning scale, use <code>SetKerningScale()</code> API. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga38db0db0ced93dbf3b778543814decd6"></a>
 <div class="memitem">
 <div class="memproto">
@@ -274,7 +428,7 @@ const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="e
 </div><div class="memdoc">
 
 <p>Default value for a line height factor. </p>
-<p>The line height is derived as the factor * a font height. To change the line height, use <code>SetLineHeight()</code> API. </p>
+<p>The line height is derived as the factor * a font height. To change the line height, use <code>SetLineHeightScale()</code> API. </p>
 
 </div>
 </div>

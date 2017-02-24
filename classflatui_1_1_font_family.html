@@ -1,0 +1,393 @@
+<!-- HTML header for doxygen 1.8.6-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>FlatUI: flatui::FontFamily Struct Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
+<link href="style.css" rel="stylesheet" type="text/css"/>
+<script>
+  /**
+   * Check if the browser rendering this page is being run on an Android device.
+   * It checks if the string 'android' is found in the browser's `userAgent`.
+   * @return {boolean} This returns `true` if the browser's `userAgent` contains
+   * the string 'android' (indicating that the browser is on an Android device).
+   * Otherwise, it returns `false`.
+   */
+  function isAndroidDevice() {
+    if (navigator && navigator.userAgent) {
+      return navigator.userAgent.toLowerCase().indexOf('android') != -1;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Check if an HTML `class` attribute is in the browser-specific format.
+   * @param {string} An HTML `class` attribute in the format 'browser-{device}'.
+   * @return {boolean} Returns `true` if `browserClass` was in the valid format,
+   * prefixed with 'browser-'. Otherwise, it returns false.
+   */
+  function isBrowserSpecificClassName(browserClass) {
+    if (browserClass && browserClass.substring(0, 8) == 'browser-' &&
+        browserClass.length > 8) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Get all the HTML Elements with browser-specific `class` attributes.
+   * @return {array} Returns an array of all the HTML Elements with a `class`
+   * attribute that is prefixed with `browser-`.
+   */
+  function getAllBrowserSpecificElements() {
+    if (document) {
+      var htmlElements = document.getElementsByTagName("*");
+      var browserSpecificElements = [];
+      for (var i = 0; i < htmlElements.length; i++) {
+        if (isBrowserSpecificClassName(htmlElements[i].className)) {
+          browserSpecificElements.push(htmlElements[i]);
+        }
+      }
+      return browserSpecificElements;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Given a browser-specific HTML `class` attribute, extract the device name.
+   * @param {string} browserClass The string name of an HTML `class` attribute,
+   * in the format `browser-{device}`.
+   * @return {string} Returns a string containing only the device portion of
+   * the class name. If the input was invalid, then it returns `null`.
+   */
+  function extractDeviceFromBrowserClass(browserClass) {
+    if (isBrowserSpecificClassName(browserClass)) {
+      return browserClass.substring(8);
+    }
+    else {
+      return null;
+    }
+  }
+  /**
+   * Hide device specific elements that do not apply to the current device.
+   */
+  function handleDeviceSpecificLoading() {
+    var browserSpecificElements = getAllBrowserSpecificElements();
+    for (var i = 0; i < browserSpecificElements.length; i++) {
+      var device = extractDeviceFromBrowserClass(browserSpecificElements[i].className);
+      if (device && !isAndroidDevice() && device == 'android') {
+        browserSpecificElements[i].innerHTML = '';
+      } else if(device && isAndroidDevice() && device == 'desktop') {
+        browserSpecificElements[i].innerHTML = '';
+      }
+    }
+  }
+  $(document).ready(handleDeviceSpecificLoading);
+</script>
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">FlatUI
+   </div>
+   <div style="font-size:12px;">
+	 An open source project by
+     <a href="https://developers.google.com/games/#Tools">FPL</a>.
+  </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="usergroup0.html"><span>Programmer's&#160;Guide</span></a></li>
+      <li class="current"><a href="flatui_api_reference.html"><span>API&#160;reference</span></a></li>
+      <li><a href="flatui_readme.html"><span>Readme</span></a></li>
+      <li><a href="contributing.html"><span>Contributing</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="modules.html"><span>Modules</span></a></li>
+      <li class="current"><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('classflatui_1_1_font_family.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#pro-static-methods">Static Protected Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
+<a href="structflatui_1_1_font_family-members.html">List of all members</a>  </div>
+  <div class="headertitle">
+<div class="title">flatui::FontFamily Struct Reference<div class="ingroups"><a class="el" href="group__flatui__font__manager.html">Font Manager</a></div></div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>A class holding font family information. The class provides various ways to support fonts such as a font collection (multiple fonts in a file), referencing a font by a famly name etc.  
+ <a href="classflatui_1_1_font_family.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="font__buffer_8h_source.html">font_buffer.h</a>&gt;</code></p>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A class holding font family information. The class provides various ways to support fonts such as a font collection (multiple fonts in a file), referencing a font by a famly name etc. </p>
+</div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a7cf82eabb834c8ab20aaaf5cf9bd53d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7cf82eabb834c8ab20aaaf5cf9bd53d4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>FontFamily</b> (const std::string &amp;name, int32_t index, const std::string &amp;lang, bool family_name)</td></tr>
+<tr class="separator:a7cf82eabb834c8ab20aaaf5cf9bd53d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0d298e5ece32b7b00842eb34763aa4a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab0d298e5ece32b7b00842eb34763aa4a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>FontFamily</b> (const char *name, bool family_name)</td></tr>
+<tr class="separator:ab0d298e5ece32b7b00842eb34763aa4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac07a1f4aad4f6fcfc20f1be2f07b3256"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac07a1f4aad4f6fcfc20f1be2f07b3256"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>FontFamily</b> (const char *name)</td></tr>
+<tr class="separator:ac07a1f4aad4f6fcfc20f1be2f07b3256"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace648cad519d416b46609825773ce2f9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ace648cad519d416b46609825773ce2f9"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>FontFamily</b> (const std::string &amp;name)</td></tr>
+<tr class="separator:ace648cad519d416b46609825773ce2f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5af639c1227d7583eba15bf09c70d8e"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html#ae5af639c1227d7583eba15bf09c70d8e">get_name</a> () const </td></tr>
+<tr class="separator:ae5af639c1227d7583eba15bf09c70d8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0e4f40e8a25617ae17a5aeb7c2653b6"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html#ac0e4f40e8a25617ae17a5aeb7c2653b6">get_original_name</a> () const </td></tr>
+<tr class="separator:ac0e4f40e8a25617ae17a5aeb7c2653b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8e6a42eb8bc7f41160fa3b8583567be"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af8e6a42eb8bc7f41160fa3b8583567be"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html#af8e6a42eb8bc7f41160fa3b8583567be">get_language</a> () const </td></tr>
+<tr class="memdesc:af8e6a42eb8bc7f41160fa3b8583567be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Language. The entry is ignored when opening a font. <br/></td></tr>
+<tr class="separator:af8e6a42eb8bc7f41160fa3b8583567be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52216bd3024febb15e09d654a81284bf"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html#a52216bd3024febb15e09d654a81284bf">get_index</a> () const </td></tr>
+<tr class="separator:a52216bd3024febb15e09d654a81284bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9c961603a0b133c3f88b1934eb0f4a1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae9c961603a0b133c3f88b1934eb0f4a1"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html#ae9c961603a0b133c3f88b1934eb0f4a1">is_family_name</a> () const </td></tr>
+<tr class="memdesc:ae9c961603a0b133c3f88b1934eb0f4a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the font name is a family name. <br/></td></tr>
+<tr class="separator:ae9c961603a0b133c3f88b1934eb0f4a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d2952bd411e4dfd9830ec95795a39e8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html#a8d2952bd411e4dfd9830ec95795a39e8">is_font_collection</a> () const </td></tr>
+<tr class="separator:a8d2952bd411e4dfd9830ec95795a39e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a90b4c0065009b8aa1e4c2a04451a0aa2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a90b4c0065009b8aa1e4c2a04451a0aa2"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>CreateFontCollectionName</b> (const std::string &amp;name)</td></tr>
+<tr class="separator:a90b4c0065009b8aa1e4c2a04451a0aa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-methods"></a>
+Static Protected Member Functions</h2></td></tr>
+<tr class="memitem:a4b8daf99fe6d755d7fccc4dcfe3b7edf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4b8daf99fe6d755d7fccc4dcfe3b7edf"></a>
+static std::string&#160;</td><td class="memItemRight" valign="bottom"><b>NormalizeFontName</b> (const std::string &amp;name)</td></tr>
+<tr class="separator:a4b8daf99fe6d755d7fccc4dcfe3b7edf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:ac2e8d1acdcb5469b6b59898cc948b786"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac2e8d1acdcb5469b6b59898cc948b786"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>original_name_</b></td></tr>
+<tr class="separator:ac2e8d1acdcb5469b6b59898cc948b786"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e4a9704ecb17bc2ffdff9f355f48ef"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a09e4a9704ecb17bc2ffdff9f355f48ef"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>font_name_</b></td></tr>
+<tr class="separator:a09e4a9704ecb17bc2ffdff9f355f48ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c041fb94adee5b351a334fd6b606afe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1c041fb94adee5b351a334fd6b606afe"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>lang_</b></td></tr>
+<tr class="separator:a1c041fb94adee5b351a334fd6b606afe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae27e10a72e0cebd8aa93eae0cf49395d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae27e10a72e0cebd8aa93eae0cf49395d"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>index_</b></td></tr>
+<tr class="separator:ae27e10a72e0cebd8aa93eae0cf49395d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc0868d4fe3835bdbb6c0fb75308db80"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acc0868d4fe3835bdbb6c0fb75308db80"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>family_name_</b></td></tr>
+<tr class="separator:acc0868d4fe3835bdbb6c0fb75308db80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a52216bd3024febb15e09d654a81284bf"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t flatui::FontFamily::get_index </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Index in a font collection. kIndexInvalid indicates the font is not a font collection. </p>
+
+</div>
+</div>
+<a class="anchor" id="ae5af639c1227d7583eba15bf09c70d8e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string&amp; flatui::FontFamily::get_name </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Font name. When the font is in a font collection file, the name is mangled with a font collection index. </p>
+
+</div>
+</div>
+<a class="anchor" id="ac0e4f40e8a25617ae17a5aeb7c2653b6"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string&amp; flatui::FontFamily::get_original_name </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Original font name. When family_name_ is set, it's treated as a family name. </p>
+
+</div>
+</div>
+<a class="anchor" id="a8d2952bd411e4dfd9830ec95795a39e8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool flatui::FontFamily::is_font_collection </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Check if the font is in a font collection that holds multiple fonts in a single file. </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
+<li><a class="el" href="font__buffer_8h_source.html">font_buffer.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-49880327-7', 'google.github.io');
+ga('send', 'pageview');
+</script>
+</body>
+</html>

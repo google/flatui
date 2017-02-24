@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['layout',['Layout',['../group__flatui__core.html#ga4dd1e0b80b48e4c93473857d3740ce77',1,'flatui']]]
+  ['fontbufferstatus',['FontBufferStatus',['../group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd',1,'flatui']]]
 ];

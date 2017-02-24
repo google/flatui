@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['physicaltovirtual',['PhysicalToVirtual',['../group__flatui__core.html#ga45cca4dced45509054e50fa5babe83c8',1,'flatui']]],
-  ['positiongroup',['PositionGroup',['../group__flatui__core.html#gaf6cdb52ea14cc2bda8083bcbe990ed27',1,'flatui']]]
+  ['open',['Open',['../classflatui_1_1_font_manager.html#a9d22f9d78497756d39cb9e224fd66c4d',1,'flatui::FontManager::Open(const char *font_name)'],['../classflatui_1_1_font_manager.html#a691bb4074cc26ffaaa6d03700b083e86',1,'flatui::FontManager::Open(const FontFamily &amp;family)']]],
+  ['operator_28_29',['operator()',['../classflatui_1_1_font_buffer_parameters.html#a4d25883dfe3f9bf4c78c459cce241cc5',1,'flatui::FontBufferParameters::operator()(const FontBufferParameters &amp;key) const '],['../classflatui_1_1_font_buffer_parameters.html#a60129bd0c653355723df685a7886a04c',1,'flatui::FontBufferParameters::operator()(const FontBufferParameters &amp;lhs, const FontBufferParameters &amp;rhs) const '],['../classflatui_1_1_font_buffer_attributes.html#a871e6ab9d853b03d763af26def4647ae',1,'flatui::FontBufferAttributes::operator()(const FontBufferAttributes &amp;key) const '],['../classflatui_1_1_font_buffer_attributes.html#a77c92ab4aa374c6cfa96968ba3c01a81',1,'flatui::FontBufferAttributes::operator()(const FontBufferAttributes &amp;lhs, const FontBufferAttributes &amp;rhs) const ']]],
+  ['operator_3d_3d',['operator==',['../classflatui_1_1_font_buffer_parameters.html#a90f7172b9c9d98c576381b983f2888e6',1,'flatui::FontBufferParameters::operator==()'],['../classflatui_1_1_font_buffer_attributes.html#af368945b68eee639593501f3e39ea2b1',1,'flatui::FontBufferAttributes::operator==()']]],
+  ['operator_7c',['operator|',['../group__flatui__common__widgets.html#ga14decb7dda4ad1175f2fe4cf2a9679bd',1,'flatui']]],
+  ['operator_7c_3d',['operator|=',['../group__flatui__common__widgets.html#gad023aac012f311b4161ccfa727dde1dd',1,'flatui']]]
 ];

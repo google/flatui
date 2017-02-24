@@ -1,0 +1,1074 @@
+<!-- HTML header for doxygen 1.8.6-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>FlatUI: flatui Namespace Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
+<link href="style.css" rel="stylesheet" type="text/css"/>
+<script>
+  /**
+   * Check if the browser rendering this page is being run on an Android device.
+   * It checks if the string 'android' is found in the browser's `userAgent`.
+   * @return {boolean} This returns `true` if the browser's `userAgent` contains
+   * the string 'android' (indicating that the browser is on an Android device).
+   * Otherwise, it returns `false`.
+   */
+  function isAndroidDevice() {
+    if (navigator && navigator.userAgent) {
+      return navigator.userAgent.toLowerCase().indexOf('android') != -1;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Check if an HTML `class` attribute is in the browser-specific format.
+   * @param {string} An HTML `class` attribute in the format 'browser-{device}'.
+   * @return {boolean} Returns `true` if `browserClass` was in the valid format,
+   * prefixed with 'browser-'. Otherwise, it returns false.
+   */
+  function isBrowserSpecificClassName(browserClass) {
+    if (browserClass && browserClass.substring(0, 8) == 'browser-' &&
+        browserClass.length > 8) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Get all the HTML Elements with browser-specific `class` attributes.
+   * @return {array} Returns an array of all the HTML Elements with a `class`
+   * attribute that is prefixed with `browser-`.
+   */
+  function getAllBrowserSpecificElements() {
+    if (document) {
+      var htmlElements = document.getElementsByTagName("*");
+      var browserSpecificElements = [];
+      for (var i = 0; i < htmlElements.length; i++) {
+        if (isBrowserSpecificClassName(htmlElements[i].className)) {
+          browserSpecificElements.push(htmlElements[i]);
+        }
+      }
+      return browserSpecificElements;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Given a browser-specific HTML `class` attribute, extract the device name.
+   * @param {string} browserClass The string name of an HTML `class` attribute,
+   * in the format `browser-{device}`.
+   * @return {string} Returns a string containing only the device portion of
+   * the class name. If the input was invalid, then it returns `null`.
+   */
+  function extractDeviceFromBrowserClass(browserClass) {
+    if (isBrowserSpecificClassName(browserClass)) {
+      return browserClass.substring(8);
+    }
+    else {
+      return null;
+    }
+  }
+  /**
+   * Hide device specific elements that do not apply to the current device.
+   */
+  function handleDeviceSpecificLoading() {
+    var browserSpecificElements = getAllBrowserSpecificElements();
+    for (var i = 0; i < browserSpecificElements.length; i++) {
+      var device = extractDeviceFromBrowserClass(browserSpecificElements[i].className);
+      if (device && !isAndroidDevice() && device == 'android') {
+        browserSpecificElements[i].innerHTML = '';
+      } else if(device && isAndroidDevice() && device == 'desktop') {
+        browserSpecificElements[i].innerHTML = '';
+      }
+    }
+  }
+  $(document).ready(handleDeviceSpecificLoading);
+</script>
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">FlatUI
+   </div>
+   <div style="font-size:12px;">
+	 An open source project by
+     <a href="https://developers.google.com/games/#Tools">FPL</a>.
+  </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="usergroup0.html"><span>Programmer's&#160;Guide</span></a></li>
+      <li><a href="flatui_api_reference.html"><span>API&#160;reference</span></a></li>
+      <li><a href="flatui_readme.html"><span>Readme</span></a></li>
+      <li><a href="contributing.html"><span>Contributing</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('namespaceflatui.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
+  <div class="headertitle">
+<div class="title">flatui Namespace Reference</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Namespace for FlatUI library.  
+<a href="#details">More...</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_anim_curve_description.html">AnimCurveDescription</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes a curve's typical shape.  <a href="structflatui_1_1_anim_curve_description.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_margin.html">Margin</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies the margins for a group, in units of virtual resolution.  <a href="structflatui_1_1_margin.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_family.html">FontFamily</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class holding font family information. The class provides various ways to support fonts such as a font collection (multiple fonts in a file), referencing a font by a famly name etc.  <a href="classflatui_1_1_font_family.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class that includes font buffer parameters. It is used as a key in the unordered_map to look up <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_parameters.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_link_info.html">LinkInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTML link href, and the location of the link text in <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="structflatui_1_1_link_info.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html">FontMetrics</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class has additional properties for font metrics.  <a href="classflatui_1_1_font_metrics.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds all the font vertex data.  <a href="structflatui_1_1_font_vertex.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_attributes.html">FontBufferAttributes</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A structure holding attribute information of texts in a <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_attributes.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_context.html">FontBufferContext</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Temporary buffers used while generating <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. Word boundary information. This information is used only with a typography layout with a justification.  <a href="classflatui_1_1_font_buffer_context.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_glyph_info.html">GlyphInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds the glyph information that is used when re-creating a <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="structflatui_1_1_glyph_info.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html">FontBuffer</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">this is used with the texture atlas rendering.  <a href="classflatui_1_1_font_buffer.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_manager.html">FontManager</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classflatui_1_1_font_manager.html" title="FontManager manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering a...">FontManager</a> manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering and layout back end.  <a href="classflatui_1_1_font_manager.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_script_info.html">ScriptInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds the script information used for a text layout.  <a href="structflatui_1_1_script_info.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_shader.html">FontShader</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper class to handle shaders for a font rendering. The class keeps a reference to a shader, and a location of uniforms with a fixed names. A caller is responsive not to call set_* APIs that specified shader doesn't support.  <a href="classflatui_1_1_font_shader.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a6c1acd0799998415d35a82e3ad64e0e1"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a6c1acd0799998415d35a82e3ad64e0e1">AnimType</a> { <b>kAnimEaseInEaseOut</b>, 
+<b>kAnimSpring</b>, 
+<b>kAnimTypeCount</b>
+ }</td></tr>
+<tr class="memdesc:a6c1acd0799998415d35a82e3ad64e0e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Anim type describes the algorithm used to animate a UI element.  <a href="namespaceflatui.html#a6c1acd0799998415d35a82e3ad64e0e1">More...</a><br/></td></tr>
+<tr class="separator:a6c1acd0799998415d35a82e3ad64e0e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4b0123787cdcbc7343cd31f2b5b4ac8d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a> { <br/>
+&#160;&#160;<b>kEventNone</b> = 0, 
+<b>kEventWentUp</b> = 1, 
+<b>kEventWentDown</b> = 2, 
+<b>kEventIsDown</b> = 4, 
+<br/>
+&#160;&#160;<b>kEventStartDrag</b> = 8, 
+<b>kEventEndDrag</b> = 16, 
+<b>kEventIsDragging</b> = 32, 
+<b>kEventHover</b> = 64
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga4b0123787cdcbc7343cd31f2b5b4ac8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event types are returned by most interactive elements. These are flags, because multiple events may occur during one frame, and thus should be tested using a Bitwise operators (<code>&amp;</code>, <code>|</code>, etc.).  <a href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">More...</a><br/></td></tr>
+<tr class="separator:ga4b0123787cdcbc7343cd31f2b5b4ac8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5906221e07523f711c94413cc8209f43"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> { <br/>
+&#160;&#160;<b>kAlignTop</b> = 1, 
+<b>kAlignLeft</b> = 1, 
+<b>kAlignCenter</b> = 2, 
+<b>kAlignBottom</b> = 3, 
+<br/>
+&#160;&#160;<b>kAlignRight</b> = 3
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga5906221e07523f711c94413cc8209f43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alignment of the groups.  <a href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">More...</a><br/></td></tr>
+<tr class="separator:ga5906221e07523f711c94413cc8209f43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8eb9a6b547a433f118df8578e4eacd39"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga8eb9a6b547a433f118df8578e4eacd39">Direction</a> { <b>kDirHorizontal</b> = 4, 
+<b>kDirVertical</b> = 8, 
+<b>kDirOverlay</b> = 12
+ }</td></tr>
+<tr class="memdesc:ga8eb9a6b547a433f118df8578e4eacd39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Direction of the groups.  <a href="group__flatui__core.html#ga8eb9a6b547a433f118df8578e4eacd39">More...</a><br/></td></tr>
+<tr class="separator:ga8eb9a6b547a433f118df8578e4eacd39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga958142c1f9f0ab1fb4630ddea4576b52"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga958142c1f9f0ab1fb4630ddea4576b52">EditStatus</a> { <br/>
+&#160;&#160;<b>kEditStatusNone</b> = 0, 
+<b>kEditStatusInEdit</b> = 1, 
+<b>kEditStatusUpdated</b> = 2, 
+<b>kEditStatusFinished</b> = 3, 
+<br/>
+&#160;&#160;<b>kEditStatusCanceled</b> = 4
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga958142c1f9f0ab1fb4630ddea4576b52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Status of Edit widget.  <a href="group__flatui__core.html#ga958142c1f9f0ab1fb4630ddea4576b52">More...</a><br/></td></tr>
+<tr class="separator:ga958142c1f9f0ab1fb4630ddea4576b52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4dd1e0b80b48e4c93473857d3740ce77"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga4dd1e0b80b48e4c93473857d3740ce77">Layout</a> { <br/>
+&#160;&#160;<b>kLayoutHorizontalTop</b> = kDirHorizontal| kAlignTop, 
+<b>kLayoutHorizontalCenter</b> = kDirHorizontal| kAlignCenter, 
+<b>kLayoutHorizontalBottom</b> = kDirHorizontal| kAlignBottom, 
+<b>kLayoutVerticalLeft</b> = kDirVertical | kAlignLeft, 
+<br/>
+&#160;&#160;<b>kLayoutVerticalCenter</b> = kDirVertical | kAlignCenter, 
+<b>kLayoutVerticalRight</b> = kDirVertical | kAlignRight, 
+<b>kLayoutOverlay</b> = kDirOverlay | kAlignCenter
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga4dd1e0b80b48e4c93473857d3740ce77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify how to layout a group.  <a href="group__flatui__core.html#ga4dd1e0b80b48e4c93473857d3740ce77">More...</a><br/></td></tr>
+<tr class="separator:ga4dd1e0b80b48e4c93473857d3740ce77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga486c09268fef9c8a6668dff013237750"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a> { <b>kButtonPropertyDisabled</b> = 1, 
+<b>kButtonPropertyImageLeft</b> = 2, 
+<b>kButtonPropertyImageRight</b> = 4
+ }</td></tr>
+<tr class="memdesc:ga486c09268fef9c8a6668dff013237750"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies the button properties used in common widgets.  <a href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">More...</a><br/></td></tr>
+<tr class="separator:ga486c09268fef9c8a6668dff013237750"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac917b4ce41623ec727a3b9aeebc19462"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gac917b4ce41623ec727a3b9aeebc19462">TextLayoutDirection</a> { <b>kTextLayoutDirectionLTR</b> = 0, 
+<b>kTextLayoutDirectionRTL</b> = 1, 
+<b>kTextLayoutDirectionTTB</b> = 2
+ }</td></tr>
+<tr class="memdesc:gac917b4ce41623ec727a3b9aeebc19462"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify how to layout texts. Default value is TextLayoutDirectionLTR. <br/></td></tr>
+<tr class="separator:gac917b4ce41623ec727a3b9aeebc19462"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga924b469e70eacc27f42a1363c703ede7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a> { <br/>
+&#160;&#160;<b>kTextAlignmentLeft</b> = 0, 
+<b>kTextAlignmentRight</b> = 1, 
+<b>kTextAlignmentCenter</b> = 2, 
+<b>kTextAlignmentJustify</b> = 4, 
+<br/>
+&#160;&#160;<b>kTextAlignmentLeftJustify</b> = kTextAlignmentJustify, 
+<b>kTextAlignmentRightJustify</b> = kTextAlignmentJustify | kTextAlignmentRight, 
+<b>kTextAlignmentCenterJustify</b> = kTextAlignmentJustify | kTextAlignmentCenter
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga924b469e70eacc27f42a1363c703ede7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alignment of the text.  <a href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">More...</a><br/></td></tr>
+<tr class="separator:ga924b469e70eacc27f42a1363c703ede7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">FontBufferStatus</a> { <b>kFontBufferStatusReady</b> = 0, 
+<b>kFontBufferStatusNeedReconstruct</b> = 1, 
+<b>kFontBufferStatusNeedCacheUpdate</b> = 2
+ }</td></tr>
+<tr class="memdesc:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">A status of FontBuffer correspoinding current glyph cache contents. <b>Enumerations</b>:  <a href="group__flatui__font__manager.html#ga87e2f5d616b4312eb3dd498b82bb98bd">More...</a><br/></td></tr>
+<tr class="separator:ga87e2f5d616b4312eb3dd498b82bb98bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga694c19988411ba5dce25bda0aff0c30e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">EllipsisMode</a> { <b>kEllipsisModeTruncateCharacter</b> = 0, 
+<b>kEllipsisModeTruncateWord</b> = 1
+ }</td></tr>
+<tr class="memdesc:ga694c19988411ba5dce25bda0aff0c30e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A flag controlling appending behavior of the ellipsis. <b>Enumerations</b>:  <a href="group__flatui__font__manager.html#ga694c19988411ba5dce25bda0aff0c30e">More...</a><br/></td></tr>
+<tr class="separator:ga694c19988411ba5dce25bda0aff0c30e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:gad45285b86c4980b8af37fb95247b892d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d">Run</a> (fplbase::AssetManager &amp;assetman, <a class="el" href="classflatui_1_1_font_manager.html">FontManager</a> &amp;fontman, fplbase::InputSystem &amp;input, motive::MotiveEngine *motive_engine, const std::function&lt; void()&gt; &amp;gui_definition)</td></tr>
+<tr class="memdesc:gad45285b86c4980b8af37fb95247b892d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The core function that drives the GUI.  <a href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d">More...</a><br/></td></tr>
+<tr class="separator:gad45285b86c4980b8af37fb95247b892d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafd84cdd31aa697070e14d5e70c84d48e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gafd84cdd31aa697070e14d5e70c84d48e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gafd84cdd31aa697070e14d5e70c84d48e">Run</a> (fplbase::AssetManager &amp;assetman, <a class="el" href="classflatui_1_1_font_manager.html">FontManager</a> &amp;fontman, fplbase::InputSystem &amp;input, const std::function&lt; void()&gt; &amp;gui_definition)</td></tr>
+<tr class="memdesc:gafd84cdd31aa697070e14d5e70c84d48e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A version of the function above that doesn't use a MotiveEngine. With this version of <a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a>, user will not be able to use the animation features of FlatUI. If a user tries to use FlatUI's animation features with this version of <a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a>, the program will terminate with an error. <br/></td></tr>
+<tr class="separator:gafd84cdd31aa697070e14d5e70c84d48e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadca7228a18f8993341d7f064b5260595"><td class="memItemLeft" align="right" valign="top">mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gadca7228a18f8993341d7f064b5260595">VirtualToPhysical</a> (const mathfu::vec2 &amp;v)</td></tr>
+<tr class="memdesc:gadca7228a18f8993341d7f064b5260595"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a virtual screen coordinate to a physical value.  <a href="group__flatui__core.html#gadca7228a18f8993341d7f064b5260595">More...</a><br/></td></tr>
+<tr class="separator:gadca7228a18f8993341d7f064b5260595"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45cca4dced45509054e50fa5babe83c8"><td class="memItemLeft" align="right" valign="top">mathfu::vec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga45cca4dced45509054e50fa5babe83c8">PhysicalToVirtual</a> (const mathfu::vec2i &amp;v)</td></tr>
+<tr class="memdesc:ga45cca4dced45509054e50fa5babe83c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a physical screen coordinate to a virtual value.  <a href="group__flatui__core.html#ga45cca4dced45509054e50fa5babe83c8">More...</a><br/></td></tr>
+<tr class="separator:ga45cca4dced45509054e50fa5babe83c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga58c82c0ba8ec4691ef3b6bb7ef1bd34c"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga58c82c0ba8ec4691ef3b6bb7ef1bd34c">GetScale</a> ()</td></tr>
+<tr class="memdesc:ga58c82c0ba8ec4691ef3b6bb7ef1bd34c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the scaling factor for the virtual resolution.  <a href="group__flatui__core.html#ga58c82c0ba8ec4691ef3b6bb7ef1bd34c">More...</a><br/></td></tr>
+<tr class="separator:ga58c82c0ba8ec4691ef3b6bb7ef1bd34c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga97b36c0ef54347259876e71ce5f0312f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga97b36c0ef54347259876e71ce5f0312f">Image</a> (const fplbase::Texture &amp;texture, float ysize, const char *id=<a class="el" href="group__flatui__core.html#gaf90f61bc61a6202d82199888c54cbc67">kDefaultImageID</a>)</td></tr>
+<tr class="memdesc:ga97b36c0ef54347259876e71ce5f0312f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render an image as a GUI element.  <a href="group__flatui__core.html#ga97b36c0ef54347259876e71ce5f0312f">More...</a><br/></td></tr>
+<tr class="separator:ga97b36c0ef54347259876e71ce5f0312f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1d1350f61970e361ef202b57ce1e6399"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga1d1350f61970e361ef202b57ce1e6399">SetImageColor</a> (const mathfu::vec4 &amp;color)</td></tr>
+<tr class="memdesc:ga1d1350f61970e361ef202b57ce1e6399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the Images's tint.  <a href="group__flatui__core.html#ga1d1350f61970e361ef202b57ce1e6399">More...</a><br/></td></tr>
+<tr class="separator:ga1d1350f61970e361ef202b57ce1e6399"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0437a34ccd1efc658d10aa249f6cfd4f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga0437a34ccd1efc658d10aa249f6cfd4f">Label</a> (const char *text, float ysize, HashedId label_id=kNullHash)</td></tr>
+<tr class="memdesc:ga0437a34ccd1efc658d10aa249f6cfd4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a label as a GUI element.  <a href="group__flatui__core.html#ga0437a34ccd1efc658d10aa249f6cfd4f">More...</a><br/></td></tr>
+<tr class="separator:ga0437a34ccd1efc658d10aa249f6cfd4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga942d9db46cff19c656db8760d4d40eb4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga942d9db46cff19c656db8760d4d40eb4">Label</a> (const char *text, float ysize, const mathfu::vec2 &amp;size, HashedId label_id=kNullHash)</td></tr>
+<tr class="memdesc:ga942d9db46cff19c656db8760d4d40eb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a multi-line version of a label as a GUI element.  <a href="group__flatui__core.html#ga942d9db46cff19c656db8760d4d40eb4">More...</a><br/></td></tr>
+<tr class="separator:ga942d9db46cff19c656db8760d4d40eb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8073cb75bd56807cdbfdd60ee4700bff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga8073cb75bd56807cdbfdd60ee4700bff">Label</a> (const char *text, float ysize, const mathfu::vec2 &amp;label_size, <a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a> alignment, HashedId label_id=kNullHash)</td></tr>
+<tr class="memdesc:ga8073cb75bd56807cdbfdd60ee4700bff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a multi-line label with a text alignment.  <a href="group__flatui__core.html#ga8073cb75bd56807cdbfdd60ee4700bff">More...</a><br/></td></tr>
+<tr class="separator:ga8073cb75bd56807cdbfdd60ee4700bff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5eac958ed9f187626da75d5f8e56a982"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga5eac958ed9f187626da75d5f8e56a982">HtmlLabel</a> (const char *html, float ysize, const mathfu::vec2 &amp;label_size, <a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a> alignment, const char *id)</td></tr>
+<tr class="memdesc:ga5eac958ed9f187626da75d5f8e56a982"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render simple HTML text.  <a href="group__flatui__core.html#ga5eac958ed9f187626da75d5f8e56a982">More...</a><br/></td></tr>
+<tr class="separator:ga5eac958ed9f187626da75d5f8e56a982"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafcf8893309e570bbed12cc0884f4c998"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gafcf8893309e570bbed12cc0884f4c998">SetTextColor</a> (const mathfu::vec4 &amp;color)</td></tr>
+<tr class="memdesc:gafcf8893309e570bbed12cc0884f4c998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the Label's text color.  <a href="group__flatui__core.html#gafcf8893309e570bbed12cc0884f4c998">More...</a><br/></td></tr>
+<tr class="separator:gafcf8893309e570bbed12cc0884f4c998"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae6a4a952888e03d5f9beca25aac09a1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gae6a4a952888e03d5f9beca25aac09a1d">SetTextOuterColor</a> (const mathfu::vec4 &amp;color, float size, const mathfu::vec2 &amp;offset)</td></tr>
+<tr class="memdesc:gae6a4a952888e03d5f9beca25aac09a1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the Label's outer color (e.g. drop shadow color). To use the feature, outer SDF generation needs to be enabled by <a class="el" href="group__flatui__core.html#ga630aa6bdca77f6452d7aa3158fdcd1a2" title="Enable/Disable a signed distance field generation with glyphs. A SDF generation of an inner region an...">EnableTextSDF()</a> API. With SDF, each glyph image includes a distance to the nearest edge. The API utilizes the feature to render an outer region of a glyph. For more details of SDF, refer a paper from Valve: <a href="http://www.valvesoftware.com/publications/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf">http://www.valvesoftware.com/publications/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf</a>.  <a href="group__flatui__core.html#gae6a4a952888e03d5f9beca25aac09a1d">More...</a><br/></td></tr>
+<tr class="separator:gae6a4a952888e03d5f9beca25aac09a1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga630aa6bdca77f6452d7aa3158fdcd1a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga630aa6bdca77f6452d7aa3158fdcd1a2">EnableTextSDF</a> (bool inner_sdf, bool outer_sdf, float threshold)</td></tr>
+<tr class="memdesc:ga630aa6bdca77f6452d7aa3158fdcd1a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable/Disable a signed distance field generation with glyphs. A SDF generation of an inner region and an outer region is done separately and it costs some cycles. So if an application doesn't utilize inner SDF, just enable outer SDF.  <a href="group__flatui__core.html#ga630aa6bdca77f6452d7aa3158fdcd1a2">More...</a><br/></td></tr>
+<tr class="separator:ga630aa6bdca77f6452d7aa3158fdcd1a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga67072bc55163ce1675d5f940b846bebb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga67072bc55163ce1675d5f940b846bebb">EnableTextHyphenation</a> (bool enable)</td></tr>
+<tr class="memdesc:ga67072bc55163ce1675d5f940b846bebb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable/Disable the hyphenation in the text label.  <a href="group__flatui__core.html#ga67072bc55163ce1675d5f940b846bebb">More...</a><br/></td></tr>
+<tr class="separator:ga67072bc55163ce1675d5f940b846bebb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga852b89539573dbbe3f52b15c780971a5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga852b89539573dbbe3f52b15c780971a5">SetTextFont</a> (const char *font_name)</td></tr>
+<tr class="memdesc:ga852b89539573dbbe3f52b15c780971a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the Label's font.  <a href="group__flatui__core.html#ga852b89539573dbbe3f52b15c780971a5">More...</a><br/></td></tr>
+<tr class="separator:ga852b89539573dbbe3f52b15c780971a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3625f66dd2cdbca31574752925f13f27"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga3625f66dd2cdbca31574752925f13f27">SetTextFont</a> (const char *font_names[], int32_t count)</td></tr>
+<tr class="memdesc:ga3625f66dd2cdbca31574752925f13f27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the Label's fonts with a fallback priority. When rendering a text, if a glyph is not found in the first font in the array, the renderer will look up the glyph in the second font and so on. If the glyph is not found in all font files, the glyph won't be rendered on the screen.  <a href="group__flatui__core.html#ga3625f66dd2cdbca31574752925f13f27">More...</a><br/></td></tr>
+<tr class="separator:ga3625f66dd2cdbca31574752925f13f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1effb5837826d3b281a522188c2a3b53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga1effb5837826d3b281a522188c2a3b53">SetTextLocale</a> (const char *locale)</td></tr>
+<tr class="memdesc:ga1effb5837826d3b281a522188c2a3b53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a locale used for the text rendering.  <a href="group__flatui__core.html#ga1effb5837826d3b281a522188c2a3b53">More...</a><br/></td></tr>
+<tr class="separator:ga1effb5837826d3b281a522188c2a3b53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa7f6b533e78c278d225723f5e773ef1f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaa7f6b533e78c278d225723f5e773ef1f">SetTextDirection</a> (const <a class="el" href="group__flatui__font__manager.html#gac917b4ce41623ec727a3b9aeebc19462">TextLayoutDirection</a> direction)</td></tr>
+<tr class="memdesc:gaa7f6b533e78c278d225723f5e773ef1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Override a text layout direction set by <a class="el" href="group__flatui__core.html#ga1effb5837826d3b281a522188c2a3b53" title="Set a locale used for the text rendering. ">SetTextLocale()</a> API.  <a href="group__flatui__core.html#gaa7f6b533e78c278d225723f5e773ef1f">More...</a><br/></td></tr>
+<tr class="separator:gaa7f6b533e78c278d225723f5e773ef1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaece2cff827c15d6c12e45223581a809"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaaece2cff827c15d6c12e45223581a809">SetTextLineHeightScale</a> (float scale)</td></tr>
+<tr class="memdesc:gaaece2cff827c15d6c12e45223581a809"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a line height scale used in the text rendering.  <a href="group__flatui__core.html#gaaece2cff827c15d6c12e45223581a809">More...</a><br/></td></tr>
+<tr class="separator:gaaece2cff827c15d6c12e45223581a809"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf16cf18434d57ecd8bf96d4c77694e8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaf16cf18434d57ecd8bf96d4c77694e8d">SetTextKerningScale</a> (float scale)</td></tr>
+<tr class="memdesc:gaf16cf18434d57ecd8bf96d4c77694e8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a kerning scale used in the text rendering.  <a href="group__flatui__core.html#gaf16cf18434d57ecd8bf96d4c77694e8d">More...</a><br/></td></tr>
+<tr class="separator:gaf16cf18434d57ecd8bf96d4c77694e8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga67d54d9f0bcf4227e4cd37ae788b7a36"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga67d54d9f0bcf4227e4cd37ae788b7a36">SetTextEllipsis</a> (const char *ellipsis)</td></tr>
+<tr class="memdesc:ga67d54d9f0bcf4227e4cd37ae788b7a36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an ellipsis string used in label/edit widgets.  <a href="group__flatui__core.html#ga67d54d9f0bcf4227e4cd37ae788b7a36">More...</a><br/></td></tr>
+<tr class="separator:ga67d54d9f0bcf4227e4cd37ae788b7a36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab3b47ef0795efe79be576d72c657876"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaab3b47ef0795efe79be576d72c657876">Edit</a> (float ysize, const mathfu::vec2 &amp;size, const char *id, <a class="el" href="group__flatui__core.html#ga958142c1f9f0ab1fb4630ddea4576b52">EditStatus</a> *status, std::string *string)</td></tr>
+<tr class="memdesc:gaab3b47ef0795efe79be576d72c657876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Renders an edit text box as a GUI element.  <a href="group__flatui__core.html#gaab3b47ef0795efe79be576d72c657876">More...</a><br/></td></tr>
+<tr class="separator:gaab3b47ef0795efe79be576d72c657876"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga53ec14ba91d98dc3a7a1acecee090b0e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga53ec14ba91d98dc3a7a1acecee090b0e">Edit</a> (float ysize, const mathfu::vec2 &amp;size, <a class="el" href="group__flatui__font__manager.html#ga924b469e70eacc27f42a1363c703ede7">TextAlignment</a> alignment, const char *id, <a class="el" href="group__flatui__core.html#ga958142c1f9f0ab1fb4630ddea4576b52">EditStatus</a> *status, std::string *string)</td></tr>
+<tr class="memdesc:ga53ec14ba91d98dc3a7a1acecee090b0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render an edit text box with a text alignment.  <a href="group__flatui__core.html#ga53ec14ba91d98dc3a7a1acecee090b0e">More...</a><br/></td></tr>
+<tr class="separator:ga53ec14ba91d98dc3a7a1acecee090b0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9c9b79ea513cd07ad97c4dd35cc16214"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga9c9b79ea513cd07ad97c4dd35cc16214">StartGroup</a> (<a class="el" href="group__flatui__core.html#ga4dd1e0b80b48e4c93473857d3740ce77">Layout</a> layout, float spacing=0, const char *id=<a class="el" href="group__flatui__core.html#ga2e9998f4760a457deaf0f6de1c0f8c57">kDefaultGroupID</a>)</td></tr>
+<tr class="memdesc:ga9c9b79ea513cd07ad97c4dd35cc16214"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a group of elements with a given layout and intra-element spacing.  <a href="group__flatui__core.html#ga9c9b79ea513cd07ad97c4dd35cc16214">More...</a><br/></td></tr>
+<tr class="separator:ga9c9b79ea513cd07ad97c4dd35cc16214"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab319a2f038ff21cc4884e06f9477237"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaab319a2f038ff21cc4884e06f9477237">EndGroup</a> ()</td></tr>
+<tr class="memdesc:gaab319a2f038ff21cc4884e06f9477237"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the Group element start by <code><a class="el" href="group__flatui__core.html#ga9c9b79ea513cd07ad97c4dd35cc16214" title="Create a group of elements with a given layout and intra-element spacing. ">StartGroup()</a></code>.  <a href="group__flatui__core.html#gaab319a2f038ff21cc4884e06f9477237">More...</a><br/></td></tr>
+<tr class="separator:gaab319a2f038ff21cc4884e06f9477237"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga077bf0bee4ab00e4d96c201629089eb1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga077bf0bee4ab00e4d96c201629089eb1">SetMargin</a> (const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;margin)</td></tr>
+<tr class="memdesc:ga077bf0bee4ab00e4d96c201629089eb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the margin for the current group.  <a href="group__flatui__core.html#ga077bf0bee4ab00e4d96c201629089eb1">More...</a><br/></td></tr>
+<tr class="separator:ga077bf0bee4ab00e4d96c201629089eb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac246a6a6e7afc3ea7ba904c8346d7e1b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gac246a6a6e7afc3ea7ba904c8346d7e1b">CheckEvent</a> ()</td></tr>
+<tr class="memdesc:gac246a6a6e7afc3ea7ba904c8346d7e1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check for events from the current group.  <a href="group__flatui__core.html#gac246a6a6e7afc3ea7ba904c8346d7e1b">More...</a><br/></td></tr>
+<tr class="separator:gac246a6a6e7afc3ea7ba904c8346d7e1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaef4e23e695ed812c781cfb89f2267caf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaef4e23e695ed812c781cfb89f2267caf">CheckEvent</a> (bool check_dragevent_only)</td></tr>
+<tr class="memdesc:gaef4e23e695ed812c781cfb89f2267caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check for events from the current group.  <a href="group__flatui__core.html#gaef4e23e695ed812c781cfb89f2267caf">More...</a><br/></td></tr>
+<tr class="separator:gaef4e23e695ed812c781cfb89f2267caf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabb730fe61aaa858a03a527bf4ad31e51"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabb730fe61aaa858a03a527bf4ad31e51"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gabb730fe61aaa858a03a527bf4ad31e51">SetDefaultFocus</a> ()</td></tr>
+<tr class="memdesc:gabb730fe61aaa858a03a527bf4ad31e51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the default keyboard/gamepad focus to the current element. <br/></td></tr>
+<tr class="separator:gabb730fe61aaa858a03a527bf4ad31e51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac54bb93d418f9bc5cf1f8d851eb95711"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gac54bb93d418f9bc5cf1f8d851eb95711">ModalGroup</a> ()</td></tr>
+<tr class="memdesc:gac54bb93d418f9bc5cf1f8d851eb95711"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called inside of a group that that is mean to act like a popup inside of a <code>kLayoutOverlay</code>.  <a href="group__flatui__core.html#gac54bb93d418f9bc5cf1f8d851eb95711">More...</a><br/></td></tr>
+<tr class="separator:gac54bb93d418f9bc5cf1f8d851eb95711"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaedeb8c08925f628ef393b0588a02585c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaedeb8c08925f628ef393b0588a02585c">CapturePointer</a> (const char *element_id)</td></tr>
+<tr class="memdesc:gaedeb8c08925f628ef393b0588a02585c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Caputre a pointer event.  <a href="group__flatui__core.html#gaedeb8c08925f628ef393b0588a02585c">More...</a><br/></td></tr>
+<tr class="separator:gaedeb8c08925f628ef393b0588a02585c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga94fa80d13891084d0141ad36be774af0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga94fa80d13891084d0141ad36be774af0">ReleasePointer</a> ()</td></tr>
+<tr class="memdesc:ga94fa80d13891084d0141ad36be774af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release a pointer capture.  <a href="group__flatui__core.html#ga94fa80d13891084d0141ad36be774af0">More...</a><br/></td></tr>
+<tr class="separator:ga94fa80d13891084d0141ad36be774af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa4eb49a1362b417704016bba77755f2a"><td class="memItemLeft" align="right" valign="top">ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaa4eb49a1362b417704016bba77755f2a">GetCapturedPointerIndex</a> ()</td></tr>
+<tr class="memdesc:gaa4eb49a1362b417704016bba77755f2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the index of th ecaptured pointer.  <a href="group__flatui__core.html#gaa4eb49a1362b417704016bba77755f2a">More...</a><br/></td></tr>
+<tr class="separator:gaa4eb49a1362b417704016bba77755f2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac9686325a3e8578f0aeb16892a050943"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gac9686325a3e8578f0aeb16892a050943">SetScrollSpeed</a> (float scroll_speed_drag, float scroll_speed_wheel, float scroll_speed_gamepad)</td></tr>
+<tr class="memdesc:gac9686325a3e8578f0aeb16892a050943"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the scroll speed of the drag, mouse wheel, and gamepad operations.  <a href="group__flatui__core.html#gac9686325a3e8578f0aeb16892a050943">More...</a><br/></td></tr>
+<tr class="separator:gac9686325a3e8578f0aeb16892a050943"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4d8ceca955c4537ea1b25b3a31df1e5b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga4d8ceca955c4537ea1b25b3a31df1e5b">SetDragStartThreshold</a> (int drag_start_threshold)</td></tr>
+<tr class="memdesc:ga4d8ceca955c4537ea1b25b3a31df1e5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a threshold value for the start of a drag operation.  <a href="group__flatui__core.html#ga4d8ceca955c4537ea1b25b3a31df1e5b">More...</a><br/></td></tr>
+<tr class="separator:ga4d8ceca955c4537ea1b25b3a31df1e5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga32317b63f2d5533af1d84bf44df5bd25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga32317b63f2d5533af1d84bf44df5bd25">ColorBackground</a> (const mathfu::vec4 &amp;color)</td></tr>
+<tr class="memdesc:ga32317b63f2d5533af1d84bf44df5bd25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the background color for the group.  <a href="group__flatui__core.html#ga32317b63f2d5533af1d84bf44df5bd25">More...</a><br/></td></tr>
+<tr class="separator:ga32317b63f2d5533af1d84bf44df5bd25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0ed5faf436dfcef470c955152f88af5c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga0ed5faf436dfcef470c955152f88af5c">ImageBackground</a> (const fplbase::Texture &amp;tex)</td></tr>
+<tr class="memdesc:ga0ed5faf436dfcef470c955152f88af5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the background texture for the group.  <a href="group__flatui__core.html#ga0ed5faf436dfcef470c955152f88af5c">More...</a><br/></td></tr>
+<tr class="separator:ga0ed5faf436dfcef470c955152f88af5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7d1928896f4ede6c17e4ce1793b8f38e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga7d1928896f4ede6c17e4ce1793b8f38e">ImageBackgroundNinePatch</a> (const fplbase::Texture &amp;tex, const mathfu::vec4 &amp;patch_info)</td></tr>
+<tr class="memdesc:ga7d1928896f4ede6c17e4ce1793b8f38e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the background texture for the group with nine patch settings.  <a href="group__flatui__core.html#ga7d1928896f4ede6c17e4ce1793b8f38e">More...</a><br/></td></tr>
+<tr class="separator:ga7d1928896f4ede6c17e4ce1793b8f38e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf997589896d841abe775d5e3633b5df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gacf997589896d841abe775d5e3633b5df">StartScroll</a> (const mathfu::vec2 &amp;size, mathfu::vec2 *offset)</td></tr>
+<tr class="memdesc:gacf997589896d841abe775d5e3633b5df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make the current group into a scrolling group that can display arbitrary sized elements inside a window of "size", scrolled to the current "offset" (which the caller should store somewhere that survives the current frame).  <a href="group__flatui__core.html#gacf997589896d841abe775d5e3633b5df">More...</a><br/></td></tr>
+<tr class="separator:gacf997589896d841abe775d5e3633b5df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga097d4aeb27b8ac6211d3a5be8398fd98"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga097d4aeb27b8ac6211d3a5be8398fd98">EndScroll</a> ()</td></tr>
+<tr class="memdesc:ga097d4aeb27b8ac6211d3a5be8398fd98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the current scrolling group.  <a href="group__flatui__core.html#ga097d4aeb27b8ac6211d3a5be8398fd98">More...</a><br/></td></tr>
+<tr class="separator:ga097d4aeb27b8ac6211d3a5be8398fd98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga981b07bc2a76cf900a026a66f46b0734"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga981b07bc2a76cf900a026a66f46b0734">StartSlider</a> (<a class="el" href="group__flatui__core.html#ga8eb9a6b547a433f118df8578e4eacd39">Direction</a> direction, float scroll_margin, float *value)</td></tr>
+<tr class="memdesc:ga981b07bc2a76cf900a026a66f46b0734"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make the current group into a slider group that can handle basic slider behavior. The group will capture/release the pointer as necessary.  <a href="group__flatui__core.html#ga981b07bc2a76cf900a026a66f46b0734">More...</a><br/></td></tr>
+<tr class="separator:ga981b07bc2a76cf900a026a66f46b0734"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga18d7d69aeadc752c1db77a75b6b751f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga18d7d69aeadc752c1db77a75b6b751f6">EndSlider</a> ()</td></tr>
+<tr class="memdesc:ga18d7d69aeadc752c1db77a75b6b751f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the current slider group.  <a href="group__flatui__core.html#ga18d7d69aeadc752c1db77a75b6b751f6">More...</a><br/></td></tr>
+<tr class="separator:ga18d7d69aeadc752c1db77a75b6b751f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaea2bd246a5c837f67c5eebe98cebdfba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaea2bd246a5c837f67c5eebe98cebdfba">CustomElement</a> (const mathfu::vec2 &amp;virtual_size, const char *id, const std::function&lt; void(const mathfu::vec2i &amp;pos, const mathfu::vec2i &amp;size)&gt; renderer)</td></tr>
+<tr class="memdesc:gaea2bd246a5c837f67c5eebe98cebdfba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a custom element with a given size.  <a href="group__flatui__core.html#gaea2bd246a5c837f67c5eebe98cebdfba">More...</a><br/></td></tr>
+<tr class="separator:gaea2bd246a5c837f67c5eebe98cebdfba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8d7023b2a3db9787dd4943ea5302055d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga8d7023b2a3db9787dd4943ea5302055d">RenderTexture</a> (const fplbase::Texture &amp;tex, const mathfu::vec2i &amp;pos, const mathfu::vec2i &amp;size)</td></tr>
+<tr class="memdesc:ga8d7023b2a3db9787dd4943ea5302055d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a Texture to a specific position with a given size.  <a href="group__flatui__core.html#ga8d7023b2a3db9787dd4943ea5302055d">More...</a><br/></td></tr>
+<tr class="separator:ga8d7023b2a3db9787dd4943ea5302055d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga208063f472369ce0df052986ebfda7be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga208063f472369ce0df052986ebfda7be">RenderTexture</a> (const fplbase::Texture &amp;tex, const mathfu::vec2i &amp;pos, const mathfu::vec2i &amp;size, const mathfu::vec4 &amp;color)</td></tr>
+<tr class="memdesc:ga208063f472369ce0df052986ebfda7be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a Texture to a specific position with a given size and color.  <a href="group__flatui__core.html#ga208063f472369ce0df052986ebfda7be">More...</a><br/></td></tr>
+<tr class="separator:ga208063f472369ce0df052986ebfda7be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaafe9b1ae58bc55517f1b27840893f845"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaafe9b1ae58bc55517f1b27840893f845">RenderTextureNinePatch</a> (const fplbase::Texture &amp;tex, const mathfu::vec4 &amp;patch_info, const mathfu::vec2i &amp;pos, const mathfu::vec2i &amp;size)</td></tr>
+<tr class="memdesc:gaafe9b1ae58bc55517f1b27840893f845"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a nine-patch texture at a specific position with a given size.  <a href="group__flatui__core.html#gaafe9b1ae58bc55517f1b27840893f845">More...</a><br/></td></tr>
+<tr class="separator:gaafe9b1ae58bc55517f1b27840893f845"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2829b8df1f592d4dfc12799d6da2dcf8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga2829b8df1f592d4dfc12799d6da2dcf8">SetVirtualResolution</a> (float virtual_resolution)</td></tr>
+<tr class="memdesc:ga2829b8df1f592d4dfc12799d6da2dcf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the virtual resolution of the smallest dimension of the screen (the Y size in landscape mode, or X in portrait).  <a href="group__flatui__core.html#ga2829b8df1f592d4dfc12799d6da2dcf8">More...</a><br/></td></tr>
+<tr class="separator:ga2829b8df1f592d4dfc12799d6da2dcf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae96166747ff5d37e2fe329a4bf5af9a3"><td class="memItemLeft" align="right" valign="top">mathfu::vec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gae96166747ff5d37e2fe329a4bf5af9a3">GetVirtualResolution</a> ()</td></tr>
+<tr class="separator:gae96166747ff5d37e2fe329a4bf5af9a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf6cdb52ea14cc2bda8083bcbe990ed27"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaf6cdb52ea14cc2bda8083bcbe990ed27">PositionGroup</a> (<a class="el" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> horizontal, <a class="el" href="group__flatui__core.html#ga5906221e07523f711c94413cc8209f43">Alignment</a> vertical, const mathfu::vec2 &amp;offset)</td></tr>
+<tr class="memdesc:gaf6cdb52ea14cc2bda8083bcbe990ed27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position a group within the screen as a whole.  <a href="group__flatui__core.html#gaf6cdb52ea14cc2bda8083bcbe990ed27">More...</a><br/></td></tr>
+<tr class="separator:gaf6cdb52ea14cc2bda8083bcbe990ed27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9d8f1cd5c820dfc45cc0a9c076e83183"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga9d8f1cd5c820dfc45cc0a9c076e83183">UseExistingProjection</a> (const mathfu::vec2i &amp;canvas_size)</td></tr>
+<tr class="memdesc:ga9d8f1cd5c820dfc45cc0a9c076e83183"><td class="mdescLeft">&#160;</td><td class="mdescRight">By default, FlatUI sets up a projection matrix for all the rendering that covers the entire screen (as given by <code>Renderer::window_size()</code>. You can call to this function instead, to use whatever projection is in place before <code><a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a></code> is called (which may be a 2D or 3D projection).  <a href="group__flatui__core.html#ga9d8f1cd5c820dfc45cc0a9c076e83183">More...</a><br/></td></tr>
+<tr class="separator:ga9d8f1cd5c820dfc45cc0a9c076e83183"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga31e34d4b66abcada6f3487bb0d308965"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga31e34d4b66abcada6f3487bb0d308965">ApplyCustomTransform</a> (const mathfu::mat4 &amp;imvp)</td></tr>
+<tr class="memdesc:ga31e34d4b66abcada6f3487bb0d308965"><td class="mdescLeft">&#160;</td><td class="mdescRight">If you're rendering the UI at a location that does not correspond to the display's pixels (e.g. in 3D), this call allows you to set your a custom transform that corresponds to the inverse of your model-view- projection matrix. FlatUI will then transform all incoming (screen-space) pointer events with this, such that they are mapped to coordinates that match what was passed to UseExistingProjection. Important that the UI was rendered with object space coordinates ranging from (0,0) to canvas_size as well. Call this at the start of your UI. For an example of how to use this, see flatuisample_3d.cpp.  <a href="group__flatui__core.html#ga31e34d4b66abcada6f3487bb0d308965">More...</a><br/></td></tr>
+<tr class="separator:ga31e34d4b66abcada6f3487bb0d308965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga449b5f311ff3da7ab9d1a144a0a36413"><td class="memItemLeft" align="right" valign="top">mathfu::vec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga449b5f311ff3da7ab9d1a144a0a36413">GroupPosition</a> ()</td></tr>
+<tr class="separator:ga449b5f311ff3da7ab9d1a144a0a36413"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7bd8df45cf01110d4b711d43296e13d5"><td class="memItemLeft" align="right" valign="top">mathfu::vec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga7bd8df45cf01110d4b711d43296e13d5">GroupSize</a> ()</td></tr>
+<tr class="separator:ga7bd8df45cf01110d4b711d43296e13d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5af8f702174b48ae07d572ea4ef2d270"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga5af8f702174b48ae07d572ea4ef2d270">IsLastEventPointerType</a> ()</td></tr>
+<tr class="separator:ga5af8f702174b48ae07d572ea4ef2d270"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85a9c7adee94b4f047c4727a6a639a89"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a85a9c7adee94b4f047c4727a6a639a89"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a85a9c7adee94b4f047c4727a6a639a89">SetGlobalListener</a> (const std::function&lt; void(HashedId id, <a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a> event)&gt; &amp;callback)</td></tr>
+<tr class="memdesc:a85a9c7adee94b4f047c4727a6a639a89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a global listener callback that receives all events to all interactive elements (useful for logging/debugging/analytics etc, NOT intended for normal event handling). Does not affect events in the rest of the API. Gets called for all events except None, you must do your own filtering. Call this function as the first thing inside of <a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a>. Callback never fires outside of <a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a>. Use HashId() to compare against ids of elements you may be interested in. <br/></td></tr>
+<tr class="separator:a85a9c7adee94b4f047c4727a6a639a89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a575bdc1a65f94929c767694b62f5c9a3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a575bdc1a65f94929c767694b62f5c9a3"></a>
+const FlatUIVersion *&#160;</td><td class="memItemRight" valign="bottom"><b>GetFlatUIVersion</b> ()</td></tr>
+<tr class="separator:a575bdc1a65f94929c767694b62f5c9a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a514620e774c19fff909ea9da393c0ae2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a514620e774c19fff909ea9da393c0ae2">SetDepthTest</a> (bool enable)</td></tr>
+<tr class="memdesc:a514620e774c19fff909ea9da393c0ae2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables depth testing, when needed for rendering a UI in 3D.  <a href="#a514620e774c19fff909ea9da393c0ae2">More...</a><br/></td></tr>
+<tr class="separator:a514620e774c19fff909ea9da393c0ae2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28023ea51bab806db26a259212a6c146"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a28023ea51bab806db26a259212a6c146">AnimationTimeRemaining</a> (HashedId id)</td></tr>
+<tr class="memdesc:a28023ea51bab806db26a259212a6c146"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the time remaining for an animation.  <a href="#a28023ea51bab806db26a259212a6c146">More...</a><br/></td></tr>
+<tr class="separator:a28023ea51bab806db26a259212a6c146"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4968e50167ac3be304d9b4047d51c43a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a4968e50167ac3be304d9b4047d51c43a">AnimationTimeRemaining</a> (const char *id)</td></tr>
+<tr class="memdesc:a4968e50167ac3be304d9b4047d51c43a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the time remaining for an animation.  <a href="#a4968e50167ac3be304d9b4047d51c43a">More...</a><br/></td></tr>
+<tr class="separator:a4968e50167ac3be304d9b4047d51c43a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d730e6fab5fb091a72b0ecd96e549bd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a4d730e6fab5fb091a72b0ecd96e549bd">NumActiveSprites</a> (HashedId id)</td></tr>
+<tr class="memdesc:a4d730e6fab5fb091a72b0ecd96e549bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function returns the current number of sprites animating on screen.  <a href="#a4d730e6fab5fb091a72b0ecd96e549bd">More...</a><br/></td></tr>
+<tr class="separator:a4d730e6fab5fb091a72b0ecd96e549bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab5611b91c618598f34509f890e31b28"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#aab5611b91c618598f34509f890e31b28">NumActiveSprites</a> (const char *id)</td></tr>
+<tr class="memdesc:aab5611b91c618598f34509f890e31b28"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function returns the current number of sprites animating on screen.  <a href="#aab5611b91c618598f34509f890e31b28">More...</a><br/></td></tr>
+<tr class="separator:aab5611b91c618598f34509f890e31b28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa92a32a84e875c5016a003f169497ff0"><td class="memItemLeft" align="right" valign="top">SequenceId&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#aa92a32a84e875c5016a003f169497ff0">AddSprite</a> (const char *group_id, const std::function&lt; bool(SequenceId seq)&gt; &amp;draw)</td></tr>
+<tr class="memdesc:aa92a32a84e875c5016a003f169497ff0"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a sprite, which will be drawn and then forgotten after it is finished firing.  <a href="#aa92a32a84e875c5016a003f169497ff0">More...</a><br/></td></tr>
+<tr class="separator:aa92a32a84e875c5016a003f169497ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a892d4fa4841db8b51ac010cf195dbc51"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a892d4fa4841db8b51ac010cf195dbc51">DrawSprites</a> (const char *group_id)</td></tr>
+<tr class="memdesc:a892d4fa4841db8b51ac010cf195dbc51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws all the sprites created with 'group_id' in <a class="el" href="namespaceflatui.html#aa92a32a84e875c5016a003f169497ff0" title="This function adds a sprite, which will be drawn and then forgotten after it is finished firing...">AddSprite()</a>.  <a href="#a892d4fa4841db8b51ac010cf195dbc51">More...</a><br/></td></tr>
+<tr class="separator:a892d4fa4841db8b51ac010cf195dbc51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af12b4e0ea19fc7b3d01505830033ef70"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:af12b4e0ea19fc7b3d01505830033ef70"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#af12b4e0ea19fc7b3d01505830033ef70">Animatable</a> (HashedId id, const T &amp;starting_value)</td></tr>
+<tr class="memdesc:af12b4e0ea19fc7b3d01505830033ef70"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function creates a new Motivator if it doesn't already exist and returns the current value of it.  <a href="#af12b4e0ea19fc7b3d01505830033ef70">More...</a><br/></td></tr>
+<tr class="separator:af12b4e0ea19fc7b3d01505830033ef70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a17d22e514fec75cbe74eb6a744cb28"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a9a17d22e514fec75cbe74eb6a744cb28"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a9a17d22e514fec75cbe74eb6a744cb28">Animatable</a> (const char *id, const T &amp;starting_value)</td></tr>
+<tr class="memdesc:a9a17d22e514fec75cbe74eb6a744cb28"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function creates a new animation if it doesn't already exist and returns the current value of it.  <a href="#a9a17d22e514fec75cbe74eb6a744cb28">More...</a><br/></td></tr>
+<tr class="separator:a9a17d22e514fec75cbe74eb6a744cb28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98593c7b7c3287c3841f11edd28f88a1"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a98593c7b7c3287c3841f11edd28f88a1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a98593c7b7c3287c3841f11edd28f88a1">StartAnimation</a> (HashedId id, const T &amp;target_value, const T &amp;target_velocity, const <a class="el" href="structflatui_1_1_anim_curve_description.html">AnimCurveDescription</a> &amp;description)</td></tr>
+<tr class="memdesc:a98593c7b7c3287c3841f11edd28f88a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function sets the target value and velocity to which an animation, that is identified by id, animates.  <a href="#a98593c7b7c3287c3841f11edd28f88a1">More...</a><br/></td></tr>
+<tr class="separator:a98593c7b7c3287c3841f11edd28f88a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56ed2ec7a2d4b4fad957a8e36c76d3f5"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a56ed2ec7a2d4b4fad957a8e36c76d3f5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceflatui.html#a56ed2ec7a2d4b4fad957a8e36c76d3f5">StartAnimation</a> (const char *id, const T &amp;target_value, const T &amp;target_velocity, const <a class="el" href="structflatui_1_1_anim_curve_description.html">AnimCurveDescription</a> &amp;description)</td></tr>
+<tr class="memdesc:a56ed2ec7a2d4b4fad957a8e36c76d3f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function sets the target value and velocity to which an animation, that is identified by id, animates.  <a href="#a56ed2ec7a2d4b4fad957a8e36c76d3f5">More...</a><br/></td></tr>
+<tr class="separator:a56ed2ec7a2d4b4fad957a8e36c76d3f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga14decb7dda4ad1175f2fe4cf2a9679bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga14decb7dda4ad1175f2fe4cf2a9679bd">operator|</a> (<a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a> a, <a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a> b)</td></tr>
+<tr class="memdesc:ga14decb7dda4ad1175f2fe4cf2a9679bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bitwise OR operator for ButtonProperties.  <a href="group__flatui__common__widgets.html#ga14decb7dda4ad1175f2fe4cf2a9679bd">More...</a><br/></td></tr>
+<tr class="separator:ga14decb7dda4ad1175f2fe4cf2a9679bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad023aac012f311b4161ccfa727dde1dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gad023aac012f311b4161ccfa727dde1dd">operator|=</a> (<a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a> &amp;a, const <a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a> &amp;b)</td></tr>
+<tr class="memdesc:gad023aac012f311b4161ccfa727dde1dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bitwise OR assignment operator for ButtonProperties.  <a href="group__flatui__common__widgets.html#gad023aac012f311b4161ccfa727dde1dd">More...</a><br/></td></tr>
+<tr class="separator:gad023aac012f311b4161ccfa727dde1dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab3bbd5a005039ae9da2f8aa66123ace"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gaab3bbd5a005039ae9da2f8aa66123ace">SetHoverClickColor</a> (const mathfu::vec4 &amp;hover_color, const mathfu::vec4 &amp;click_color)</td></tr>
+<tr class="memdesc:gaab3bbd5a005039ae9da2f8aa66123ace"><td class="mdescLeft">&#160;</td><td class="mdescRight">Some of the widgets provide user feedback by rendering a transparent background color to signal that the user is hovering over or clicking/touching/interacting with the widget.  <a href="group__flatui__common__widgets.html#gaab3bbd5a005039ae9da2f8aa66123ace">More...</a><br/></td></tr>
+<tr class="separator:gaab3bbd5a005039ae9da2f8aa66123ace"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga61628d1a02a2c42dbef0aa5ea1c9e49d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga61628d1a02a2c42dbef0aa5ea1c9e49d">TextButton</a> (const char *text, float size, const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;margin)</td></tr>
+<tr class="memdesc:ga61628d1a02a2c42dbef0aa5ea1c9e49d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple button showing clickable text.  <a href="group__flatui__common__widgets.html#ga61628d1a02a2c42dbef0aa5ea1c9e49d">More...</a><br/></td></tr>
+<tr class="separator:ga61628d1a02a2c42dbef0aa5ea1c9e49d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae9483420ce33b362fa8311462f23d9cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gae9483420ce33b362fa8311462f23d9cc">ImageButton</a> (const fplbase::Texture &amp;texture, float size, const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;margin, const char *id)</td></tr>
+<tr class="memdesc:gae9483420ce33b362fa8311462f23d9cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple button showing a clickable image.  <a href="group__flatui__common__widgets.html#gae9483420ce33b362fa8311462f23d9cc">More...</a><br/></td></tr>
+<tr class="separator:gae9483420ce33b362fa8311462f23d9cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga11f17825a7b163f3f664f80d4d94d238"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga11f17825a7b163f3f664f80d4d94d238">ToggleImageButton</a> (const fplbase::Texture &amp;up_texture, const fplbase::Texture &amp;down_texture, float size, const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;margin, const char *id)</td></tr>
+<tr class="memdesc:ga11f17825a7b163f3f664f80d4d94d238"><td class="mdescLeft">&#160;</td><td class="mdescRight">A button showing a different image when clicked or not.  <a href="group__flatui__common__widgets.html#ga11f17825a7b163f3f664f80d4d94d238">More...</a><br/></td></tr>
+<tr class="separator:ga11f17825a7b163f3f664f80d4d94d238"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga657f786916c6d517932d1ce0fcd99e93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga657f786916c6d517932d1ce0fcd99e93">TextButton</a> (const fplbase::Texture &amp;texture, const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;texture_margin, const char *text, float size, const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;margin, const <a class="el" href="group__flatui__common__widgets.html#ga486c09268fef9c8a6668dff013237750">ButtonProperty</a> property)</td></tr>
+<tr class="memdesc:ga657f786916c6d517932d1ce0fcd99e93"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple button showing clickable text with an image shown beside it.  <a href="group__flatui__common__widgets.html#ga657f786916c6d517932d1ce0fcd99e93">More...</a><br/></td></tr>
+<tr class="separator:ga657f786916c6d517932d1ce0fcd99e93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga202be2e3fef788f2dfc20db5880e6083"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga202be2e3fef788f2dfc20db5880e6083">CheckBox</a> (const fplbase::Texture &amp;texture_checked, const fplbase::Texture &amp;texture_unchecked, const char *label, float size, const <a class="el" href="structflatui_1_1_margin.html">Margin</a> &amp;margin, bool *is_checked)</td></tr>
+<tr class="memdesc:ga202be2e3fef788f2dfc20db5880e6083"><td class="mdescLeft">&#160;</td><td class="mdescRight">A checkbox with a label next to it.  <a href="group__flatui__common__widgets.html#ga202be2e3fef788f2dfc20db5880e6083">More...</a><br/></td></tr>
+<tr class="separator:ga202be2e3fef788f2dfc20db5880e6083"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga696ea61d35a54d7c6c47a16ab664b7a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#ga696ea61d35a54d7c6c47a16ab664b7a7">Slider</a> (const fplbase::Texture &amp;tex_bar, const fplbase::Texture &amp;tex_knob, const mathfu::vec2 &amp;size, float bar_height, const char *id, float *slider_value)</td></tr>
+<tr class="memdesc:ga696ea61d35a54d7c6c47a16ab664b7a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">A clider to change a numeric value.  <a href="group__flatui__common__widgets.html#ga696ea61d35a54d7c6c47a16ab664b7a7">More...</a><br/></td></tr>
+<tr class="separator:ga696ea61d35a54d7c6c47a16ab664b7a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf59c34ae56d03fa2a924c05dba5097cb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gaf59c34ae56d03fa2a924c05dba5097cb">ScrollBar</a> (const fplbase::Texture &amp;tex_background, const fplbase::Texture &amp;tex_foreground, const mathfu::vec2 &amp;size, float bar_size, const char *id, float *scroll_value)</td></tr>
+<tr class="memdesc:gaf59c34ae56d03fa2a924c05dba5097cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scrollbar to indicate position in a scroll view.  <a href="group__flatui__common__widgets.html#gaf59c34ae56d03fa2a924c05dba5097cb">More...</a><br/></td></tr>
+<tr class="separator:gaf59c34ae56d03fa2a924c05dba5097cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf2b8d76a6dedbc59ebcd9ee7104be66a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__common__widgets.html#gaf2b8d76a6dedbc59ebcd9ee7104be66a">EventBackground</a> (<a class="el" href="group__flatui__core.html#ga4b0123787cdcbc7343cd31f2b5b4ac8d">Event</a> event)</td></tr>
+<tr class="memdesc:gaf2b8d76a6dedbc59ebcd9ee7104be66a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets a background color of the widget based on the event status.  <a href="group__flatui__common__widgets.html#gaf2b8d76a6dedbc59ebcd9ee7104be66a">More...</a><br/></td></tr>
+<tr class="separator:gaf2b8d76a6dedbc59ebcd9ee7104be66a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a0788aa1a9178855c54fc5a1d3574a16f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0788aa1a9178855c54fc5a1d3574a16f"></a>
+static const int&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxDimensions</b> = 4</td></tr>
+<tr class="separator:a0788aa1a9178855c54fc5a1d3574a16f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8ace64c3d9cf047aa903f4c020f7bd9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af8ace64c3d9cf047aa903f4c020f7bd9"></a>
+static const int&#160;</td><td class="memItemRight" valign="bottom"><b>kSecondsToMotiveTime</b> = 10000</td></tr>
+<tr class="separator:af8ace64c3d9cf047aa903f4c020f7bd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2e9998f4760a457deaf0f6de1c0f8c57"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2e9998f4760a457deaf0f6de1c0f8c57"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga2e9998f4760a457deaf0f6de1c0f8c57">kDefaultGroupID</a> = &quot;__group_id__&quot;</td></tr>
+<tr class="memdesc:ga2e9998f4760a457deaf0f6de1c0f8c57"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value for group IDs. <br/></td></tr>
+<tr class="separator:ga2e9998f4760a457deaf0f6de1c0f8c57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf90f61bc61a6202d82199888c54cbc67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaf90f61bc61a6202d82199888c54cbc67"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#gaf90f61bc61a6202d82199888c54cbc67">kDefaultImageID</a> = &quot;__image_id__&quot;</td></tr>
+<tr class="memdesc:gaf90f61bc61a6202d82199888c54cbc67"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value for image IDs. <br/></td></tr>
+<tr class="separator:gaf90f61bc61a6202d82199888c54cbc67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4e791c6634e3fd3c845188222653ee64"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4e791c6634e3fd3c845188222653ee64"></a>
+const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__core.html#ga4e791c6634e3fd3c845188222653ee64">FLATUI_DEFAULT_VIRTUAL_RESOLUTION</a> = 1000.0f</td></tr>
+<tr class="memdesc:ga4e791c6634e3fd3c845188222653ee64"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default virtual resolution, if none is set. <br/></td></tr>
+<tr class="separator:ga4e791c6634e3fd3c845188222653ee64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memItemLeft" align="right" valign="top">const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">kFreeTypeUnit</a> = 64</td></tr>
+<tr class="memdesc:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constant to convert FreeType unit to pixel unit.  <a href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">More...</a><br/></td></tr>
+<tr class="separator:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga38db0db0ced93dbf3b778543814decd6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">kLineHeightDefault</a> = 1.2f</td></tr>
+<tr class="memdesc:ga38db0db0ced93dbf3b778543814decd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a line height factor.  <a href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">More...</a><br/></td></tr>
+<tr class="separator:ga38db0db0ced93dbf3b778543814decd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga93d39ed88c789305b56b1057b12cfed6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">kKerningScaleDefault</a> = 1.0f</td></tr>
+<tr class="memdesc:ga93d39ed88c789305b56b1057b12cfed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a kerning scale factor.  <a href="group__flatui__font__manager.html#ga93d39ed88c789305b56b1057b12cfed6">More...</a><br/></td></tr>
+<tr class="separator:ga93d39ed88c789305b56b1057b12cfed6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad729960a0369eddb7cebac775a32af27"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad729960a0369eddb7cebac775a32af27"></a>
+const mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gad729960a0369eddb7cebac775a32af27">kCaretPositionInvalid</a> = mathfu::vec2i(-1, -1)</td></tr>
+<tr class="memdesc:gad729960a0369eddb7cebac775a32af27"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value representing an invalid caret position. <br/></td></tr>
+<tr class="separator:gad729960a0369eddb7cebac775a32af27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49bdcb88786f0d41c6223e88029fdc40"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49bdcb88786f0d41c6223e88029fdc40"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kIndexInvalid</b> = -1</td></tr>
+<tr class="separator:ga49bdcb88786f0d41c6223e88029fdc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga59fcb8dd61c60350000a0a80a9d08516"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga59fcb8dd61c60350000a0a80a9d08516"></a>
+const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kDefaultColor</b> = 0xffffffff</td></tr>
+<tr class="separator:ga59fcb8dd61c60350000a0a80a9d08516"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga07c98e09fae6f43fd7320cb57dd58656"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga07c98e09fae6f43fd7320cb57dd58656"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kVerticesPerGlyph</b> = 4</td></tr>
+<tr class="separator:ga07c98e09fae6f43fd7320cb57dd58656"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49b7e60575c7d68e90940199997b6074"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49b7e60575c7d68e90940199997b6074"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga49b7e60575c7d68e90940199997b6074">kIndicesPerGlyph</a> = 6</td></tr>
+<tr class="memdesc:ga49b7e60575c7d68e90940199997b6074"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of vertices/indices per a glyph entry. <br/></td></tr>
+<tr class="separator:ga49b7e60575c7d68e90940199997b6074"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga6adc9ca92e9e790a495a5608c4f8bda4"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga6adc9ca92e9e790a495a5608c4f8bda4">kGlyphCacheWidth</a> = 1024</td></tr>
+<tr class="memdesc:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the glyph cache width. <br/></td></tr>
+<tr class="separator:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga738c7d55cb18a5e2b56bbbf86295df4f"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga738c7d55cb18a5e2b56bbbf86295df4f">kGlyphCacheHeight</a> = 1024</td></tr>
+<tr class="memdesc:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the glyph cache height. <br/></td></tr>
+<tr class="separator:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2ddffc215c7303836164c618af8285c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2ddffc215c7303836164c618af8285c0"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga2ddffc215c7303836164c618af8285c0">kGlyphCacheMaxSlices</a> = 4</td></tr>
+<tr class="memdesc:ga2ddffc215c7303836164c618af8285c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the max glyph cache slices. The number of cache slices grows up to the value. <br/></td></tr>
+<tr class="separator:ga2ddffc215c7303836164c618af8285c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2b21511199c33a9a6dc1bd8c49a62609"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga2b21511199c33a9a6dc1bd8c49a62609">kDefaultLanguage</a> = &quot;en&quot;</td></tr>
+<tr class="memdesc:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default language used for a line break. <br/></td></tr>
+<tr class="separator:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5f44bbd1af44139f7443943daef059e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5f44bbd1af44139f7443943daef059e6"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga5f44bbd1af44139f7443943daef059e6">kSystemFont</a> = &quot;.SystemFont&quot;</td></tr>
+<tr class="memdesc:ga5f44bbd1af44139f7443943daef059e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A constant to spefify loading a system font. Used with OpenFont() and SelectFont() API Currently the system font is supported on iOS/macOS and Android only. <br/></td></tr>
+<tr class="separator:ga5f44bbd1af44139f7443943daef059e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga018c4b5cb08e3d4012dfdc0c14544416"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga018c4b5cb08e3d4012dfdc0c14544416"></a>
+static const HashedId&#160;</td><td class="memItemRight" valign="bottom"><b>kSystemFontId</b> = HashId(<a class="el" href="group__flatui__font__manager.html#ga5f44bbd1af44139f7443943daef059e6">kSystemFont</a>)</td></tr>
+<tr class="separator:ga018c4b5cb08e3d4012dfdc0c14544416"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Namespace for FlatUI library. </p>
+</div><h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="a6c1acd0799998415d35a82e3ad64e0e1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="namespaceflatui.html#a6c1acd0799998415d35a82e3ad64e0e1">flatui::AnimType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Anim type describes the algorithm used to animate a UI element. </p>
+<p>All algorithms maintain the current value and velocity, so any animation can be smoothly interrupted by another animation, even if they are of different types.</p>
+<p><b>Enumerations</b>:</p>
+<ul>
+<li><code>kAnimEaseInEaseOut</code> (<code>0</code>) - Smoothly curve towards the target value (i.e. ease-in) and smoothly stop at the target value (i.e. ease-out). The smoothness of the in and out is determined by the bias in <a class="el" href="structflatui_1_1_anim_curve_description.html" title="Describes a curve&#39;s typical shape. ">AnimCurveDescription</a>. | target + ********* | ******* | **** | **** | *** | *** | ** | *** | ** | ** | ** | bias 0.15 ** | ** | * | ** | ** | * | ** | *** start +***</li>
+<li><code>kAnimSpring</code> (<code>1</code>) - Oscillate about the target value, with each peak having amplitude of the previous peak * bias. So, if bias &lt; 1, the amplitude dampens down and eventually the curve reaches the target. If bias &gt; 1, the amplitude grows with each oscillation. If bias = 1, then the amplitude remains the same for every oscillation. Note that true spring motion follows a sine curve, but a sine curve does not move aggressively enough for convincing motion, so internally we follow a quadratic curve instead. </li>
+</ul>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="aa92a32a84e875c5016a003f169497ff0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">SequenceId flatui::AddSprite </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>group_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; bool(SequenceId seq)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>draw</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function adds a sprite, which will be drawn and then forgotten after it is finished firing. </p>
+<p>A sprite would be a UI element that gets drawn onto the screen with a limited lifespan. For this usage, the sprite could be, for example, an image or text. This makes it useful for situations where the user would want a temporary animation. For example, in a game, a sprite could be points that appear and drift off screen when a user earns points for a turn. The returned SequenceId is so that the application can recalculate the hash assigned to a specific sprite using its id and sequence number. An example of how to pass in a lambda for the draw parameter can be found in the FlatUI animation demo. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">group_id</td><td>A C-string in UTF-8 format that uniquely identifies an animation type. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">draw</td><td>A function that tells the program how to draw the sprite associated with id.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the SequenceId assigned to the sprite associated with id. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af12b4e0ea19fc7b3d01505830033ef70"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">T flatui::Animatable </td>
+          <td>(</td>
+          <td class="paramtype">HashedId&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>starting_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function creates a new Motivator if it doesn't already exist and returns the current value of it. </p>
+<dl class="section warning"><dt>Warning</dt><dd>This function only works if you have passed in a MotiveEngine to <a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A HashedId that uniquely identifies an animation. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">starting_value</td><td>An array of length dimensions that contains the value we want our curve to begin at.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a value of type T. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9a17d22e514fec75cbe74eb6a744cb28"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">T flatui::Animatable </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>starting_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function creates a new animation if it doesn't already exist and returns the current value of it. </p>
+<dl class="section warning"><dt>Warning</dt><dd>This function only works if you have passed in a MotiveEngine to <a class="el" href="group__flatui__core.html#gad45285b86c4980b8af37fb95247b892d" title="The core function that drives the GUI. ">Run()</a>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A C-string in UTF-8 format that uniquely identifies an animation. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">starting_value</td><td>An array of length dimensions that contains the value we want our curve to begin at.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a value of type T. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a28023ea51bab806db26a259212a6c146"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double flatui::AnimationTimeRemaining </td>
+          <td>(</td>
+          <td class="paramtype">HashedId&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the time remaining for an animation. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">A</td><td>HashedId that uniquely identifies an animation. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a double representing the time remaining. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a4968e50167ac3be304d9b4047d51c43a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double flatui::AnimationTimeRemaining </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the time remaining for an animation. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A C-string in UTF-8 format that uniquely identifies an animation.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns a double representing the time remaining. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a892d4fa4841db8b51ac010cf195dbc51"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void flatui::DrawSprites </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>group_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Draws all the sprites created with 'group_id' in <a class="el" href="namespaceflatui.html#aa92a32a84e875c5016a003f169497ff0" title="This function adds a sprite, which will be drawn and then forgotten after it is finished firing...">AddSprite()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">group_id</td><td>A C-string in UTF-8 format that uniquely identifies an animation type. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a4d730e6fab5fb091a72b0ecd96e549bd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int flatui::NumActiveSprites </td>
+          <td>(</td>
+          <td class="paramtype">HashedId&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function returns the current number of sprites animating on screen. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A HashedId that identifies an animation type.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the size_t associated with the size of the sprites vector. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aab5611b91c618598f34509f890e31b28"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int flatui::NumActiveSprites </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>This function returns the current number of sprites animating on screen. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A C-string in UTF-8 format that identifies an animation type.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the size_t associated with the size of the sprites vector. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a514620e774c19fff909ea9da393c0ae2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void flatui::SetDepthTest </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enables depth testing, when needed for rendering a UI in 3D. </p>
+<p>For example, a simple <code><a class="el" href="group__flatui__core.html#ga8073cb75bd56807cdbfdd60ee4700bff" title="Render a multi-line label with a text alignment. ">FlatUI::Label()</a></code> could be rendered, with appropriate depth, on entities in the world to display the game's score as an overlay.</p>
+<dl class="section warning"><dt>Warning</dt><dd>This approach only works for 'simple' UIs, because more complex UIs require overlapping UI elements. Depending on the precision of the z-buffer, elements will be susceptible to z-fighting. That is, when the rectangles around UI elements overlap, flickering will occur. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a98593c7b7c3287c3841f11edd28f88a1"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void flatui::StartAnimation </td>
+          <td>(</td>
+          <td class="paramtype">HashedId&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>target_value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>target_velocity</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const AnimCurveDescription &amp;&#160;</td>
+          <td class="paramname"><em>description</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function sets the target value and velocity to which an animation, that is identified by id, animates. </p>
+<p>It also creates a new animation if it doesn't already exist.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A HashedId that uniquely identifies an animation. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">target_value</td><td>An array of length dimensions that contains the value we want our curve to end at. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">target_velocity</td><td>An array of length dimensions that contains the velocity we want our curve to end at. A velocity of 0.0f would mean our curve would end with a flatter ease-out curve. A large velocity would give our curve a steeper ease-out. If the curve is overdetermined, the desired end velocities might not be achieved. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">description</td><td>A description of the curve's typical shape. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a56ed2ec7a2d4b4fad957a8e36c76d3f5"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void flatui::StartAnimation </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>target_value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>target_velocity</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const AnimCurveDescription &amp;&#160;</td>
+          <td class="paramname"><em>description</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function sets the target value and velocity to which an animation, that is identified by id, animates. </p>
+<p>It also creates a new animation if it doesn't already exist.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">id</td><td>A C-string in UTF-8 format that uniquely identifies an animation. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">target_value</td><td>An array of length dimensions that contains the value we want our curve to end at. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">target_velocity</td><td>An array of length dimensions that contains the velocity we want our curve to end at. A velocity of 0.0f would mean our curve would end with a flatter ease-out curve. A large velocity would give our curve a steeper ease-out. If the curve is overdetermined, the desired end velocities might not be achieved. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">description</td><td>A description of the curve's typical shape. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-49880327-7', 'google.github.io');
+ga('send', 'pageview');
+</script>
+</body>
+</html>

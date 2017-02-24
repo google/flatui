@@ -187,7 +187,7 @@ $(document).ready(function(){initNavTree('font__manager_8h.html','');});
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -199,62 +199,101 @@ $(document).ready(function(){initNavTree('font__manager_8h.html','');});
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">font_manager.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &lt;set&gt;</code><br/>
+<code>#include &lt;sstream&gt;</code><br/>
+<code>#include &quot;fplbase/renderer.h&quot;</code><br/>
+<code>#include &quot;fplutil/mutex.h&quot;</code><br/>
+<code>#include &quot;<a class="el" href="font__buffer_8h_source.html">flatui/font_buffer.h</a>&quot;</code><br/>
+<code>#include &quot;flatui/font_util.h&quot;</code><br/>
+<code>#include &quot;flatui/version.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/distance_computer.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/glyph_cache.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/flatui_util.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/hb_complex_font.h&quot;</code><br/>
+<code>#include &quot;flatui/internal/hyphenator.h&quot;</code><br/>
+</div>
 <p><a href="font__manager_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer_parameters.html">flatui::FontBufferParameters</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class that includes font buffer parameters. It is used as a key in the unordered_map to look up <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>.  <a href="classflatui_1_1_font_buffer_parameters.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_manager.html">flatui::FontManager</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classflatui_1_1_font_manager.html" title="FontManager manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering a...">FontManager</a> manages font rendering with OpenGL utilizing freetype and harfbuzz as a glyph rendering and layout back end.  <a href="classflatui_1_1_font_manager.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_metrics.html">flatui::FontMetrics</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class has additional properties for font metrics.  <a href="classflatui_1_1_font_metrics.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_script_info.html">flatui::ScriptInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds the script information used for a text layout.  <a href="structflatui_1_1_script_info.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_texture.html">flatui::FontTexture</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class is the actual Texture for fonts.  <a href="classflatui_1_1_font_texture.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_shader.html">flatui::FontShader</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper class to handle shaders for a font rendering. The class keeps a reference to a shader, and a location of uniforms with a fixed names. A caller is responsive not to call set_* APIs that specified shader doesn't support.  <a href="classflatui_1_1_font_shader.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structflatui_1_1_font_vertex.html">flatui::FontVertex</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This struct holds all the font vertex data.  <a href="structflatui_1_1_font_vertex.html#details">More...</a><br/></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespaceflatui"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceflatui.html">flatui</a></td></tr>
+<tr class="memdesc:namespaceflatui"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for FlatUI library. <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html">flatui::FontBuffer</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">this is used with the texture atlas rendering.  <a href="classflatui_1_1_font_buffer.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_face_data.html">flatui::FaceData</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The font face instance data opened via the <code>Open()</code> API.  <a href="classflatui_1_1_face_data.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ae6249e6a24d601b3db282aacd304054a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae6249e6a24d601b3db282aacd304054a"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>FLATUI_SYSTEM_FONT</b>&#160;&#160;&#160;(1)</td></tr>
+<tr class="separator:ae6249e6a24d601b3db282aacd304054a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a92857f8bf079b7b9ef5d3ce74cf89ef5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a92857f8bf079b7b9ef5d3ce74cf89ef5"></a>
+typedef struct FT_LibraryRec_ *&#160;</td><td class="memItemRight" valign="bottom"><b>FT_Library</b></td></tr>
+<tr class="separator:a92857f8bf079b7b9ef5d3ce74cf89ef5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a768daa0d9c3fa499e6c37034ee9f2ca3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a768daa0d9c3fa499e6c37034ee9f2ca3"></a>
+typedef struct FT_GlyphSlotRec_ *&#160;</td><td class="memItemRight" valign="bottom"><b>FT_GlyphSlot</b></td></tr>
+<tr class="separator:a768daa0d9c3fa499e6c37034ee9f2ca3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fac88bdba78eb76b505efa6e4fbf3f5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4fac88bdba78eb76b505efa6e4fbf3f5"></a>
+typedef unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>FT_ULong</b></td></tr>
+<tr class="separator:a4fac88bdba78eb76b505efa6e4fbf3f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a73ee3e908d54a31ee8a5cab6f309fe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a73ee3e908d54a31ee8a5cab6f309fe"></a>
+typedef const struct <br class="typebreak"/>
+hb_language_impl_t *&#160;</td><td class="memItemRight" valign="bottom"><b>hb_language_t</b></td></tr>
+<tr class="separator:a1a73ee3e908d54a31ee8a5cab6f309fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memItemLeft" align="right" valign="top">const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">flatui::kFreeTypeUnit</a> = 64</td></tr>
-<tr class="memdesc:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constant to convert FreeType unit to pixel unit.  <a href="group__flatui__font__manager.html#ga11d86d947722eed34b6d29fc8d07f3a4">More...</a><br/></td></tr>
-<tr class="separator:ga11d86d947722eed34b6d29fc8d07f3a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga07c98e09fae6f43fd7320cb57dd58656"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga07c98e09fae6f43fd7320cb57dd58656"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kVerticesPerGlyph</b> = 4</td></tr>
+<tr class="separator:ga07c98e09fae6f43fd7320cb57dd58656"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49b7e60575c7d68e90940199997b6074"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49b7e60575c7d68e90940199997b6074"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga49b7e60575c7d68e90940199997b6074">flatui::kIndicesPerGlyph</a> = 6</td></tr>
+<tr class="memdesc:ga49b7e60575c7d68e90940199997b6074"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of vertices/indices per a glyph entry. <br/></td></tr>
+<tr class="separator:ga49b7e60575c7d68e90940199997b6074"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga6adc9ca92e9e790a495a5608c4f8bda4"></a>
 const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga6adc9ca92e9e790a495a5608c4f8bda4">flatui::kGlyphCacheWidth</a> = 1024</td></tr>
-<tr class="memdesc:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Default size of the glyph cache width. <br/></td></tr>
+<tr class="memdesc:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the glyph cache width. <br/></td></tr>
 <tr class="separator:ga6adc9ca92e9e790a495a5608c4f8bda4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga738c7d55cb18a5e2b56bbbf86295df4f"></a>
 const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga738c7d55cb18a5e2b56bbbf86295df4f">flatui::kGlyphCacheHeight</a> = 1024</td></tr>
 <tr class="memdesc:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the glyph cache height. <br/></td></tr>
 <tr class="separator:ga738c7d55cb18a5e2b56bbbf86295df4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga38db0db0ced93dbf3b778543814decd6"><td class="memItemLeft" align="right" valign="top">const float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">flatui::kLineHeightDefault</a> = 1.2f</td></tr>
-<tr class="memdesc:ga38db0db0ced93dbf3b778543814decd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default value for a line height factor.  <a href="group__flatui__font__manager.html#ga38db0db0ced93dbf3b778543814decd6">More...</a><br/></td></tr>
-<tr class="separator:ga38db0db0ced93dbf3b778543814decd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad729960a0369eddb7cebac775a32af27"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad729960a0369eddb7cebac775a32af27"></a>
-const mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#gad729960a0369eddb7cebac775a32af27">flatui::kCaretPositionInvalid</a> = mathfu::vec2i(-1, -1)</td></tr>
-<tr class="memdesc:gad729960a0369eddb7cebac775a32af27"><td class="mdescLeft">&#160;</td><td class="mdescRight">A sentinel value representing an invalid caret position. <br/></td></tr>
-<tr class="separator:gad729960a0369eddb7cebac775a32af27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga558f363ff7b2b45485f55916f631d907"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga558f363ff7b2b45485f55916f631d907"></a>
-const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga558f363ff7b2b45485f55916f631d907">flatui::kLineBreakDefaultLanguage</a> = &quot;en&quot;</td></tr>
-<tr class="memdesc:ga558f363ff7b2b45485f55916f631d907"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default language used for a line break. <br/></td></tr>
-<tr class="separator:ga558f363ff7b2b45485f55916f631d907"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2ddffc215c7303836164c618af8285c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2ddffc215c7303836164c618af8285c0"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga2ddffc215c7303836164c618af8285c0">flatui::kGlyphCacheMaxSlices</a> = 4</td></tr>
+<tr class="memdesc:ga2ddffc215c7303836164c618af8285c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default size of the max glyph cache slices. The number of cache slices grows up to the value. <br/></td></tr>
+<tr class="separator:ga2ddffc215c7303836164c618af8285c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2b21511199c33a9a6dc1bd8c49a62609"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga2b21511199c33a9a6dc1bd8c49a62609">flatui::kDefaultLanguage</a> = &quot;en&quot;</td></tr>
+<tr class="memdesc:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default language used for a line break. <br/></td></tr>
+<tr class="separator:ga2b21511199c33a9a6dc1bd8c49a62609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5f44bbd1af44139f7443943daef059e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5f44bbd1af44139f7443943daef059e6"></a>
+const char *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__flatui__font__manager.html#ga5f44bbd1af44139f7443943daef059e6">flatui::kSystemFont</a> = &quot;.SystemFont&quot;</td></tr>
+<tr class="memdesc:ga5f44bbd1af44139f7443943daef059e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A constant to spefify loading a system font. Used with OpenFont() and SelectFont() API Currently the system font is supported on iOS/macOS and Android only. <br/></td></tr>
+<tr class="separator:ga5f44bbd1af44139f7443943daef059e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga018c4b5cb08e3d4012dfdc0c14544416"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga018c4b5cb08e3d4012dfdc0c14544416"></a>
+static const HashedId&#160;</td><td class="memItemRight" valign="bottom"><b>flatui::kSystemFontId</b> = HashId(kSystemFont)</td></tr>
+<tr class="separator:ga018c4b5cb08e3d4012dfdc0c14544416"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

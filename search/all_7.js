@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['harfbuzz_5ffont_5f',['harfbuzz_font_',['../classflatui_1_1_face_data.html#a3206ae3db8c8d5028f7808cb20101992',1,'flatui::FaceData']]],
-  ['hascaretpositions',['HasCaretPositions',['../classflatui_1_1_font_buffer.html#a963d7c90671411f7a9b4096065d2dce9',1,'flatui::FontBuffer']]]
+  ['hascaretpositions',['HasCaretPositions',['../classflatui_1_1_font_buffer.html#a963d7c90671411f7a9b4096065d2dce9',1,'flatui::FontBuffer']]],
+  ['hasellipsis',['HasEllipsis',['../classflatui_1_1_font_buffer.html#ae0aa648b2cbbe7e0ec0350d7480dde8b',1,'flatui::FontBuffer']]],
+  ['htmllabel',['HtmlLabel',['../group__flatui__core.html#ga5eac958ed9f187626da75d5f8e56a982',1,'flatui']]],
+  ['hyphenation',['hyphenation',['../structflatui_1_1_script_info.html#aae26d6764dac79e4c283fbec06cdcca7',1,'flatui::ScriptInfo']]]
 ];

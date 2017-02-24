@@ -166,7 +166,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
-      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -190,7 +189,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_buffer.html','');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -201,6 +200,7 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_buffer.html','');
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classflatui_1_1_font_buffer-members.html">List of all members</a>  </div>
@@ -212,10 +212,20 @@ $(document).ready(function(){initNavTree('classflatui_1_1_font_buffer.html','');
 <p>this is used with the texture atlas rendering.  
  <a href="classflatui_1_1_font_buffer.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="font__manager_8h_source.html">font_manager.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="font__buffer_8h_source.html">font_buffer.h</a>&gt;</code></p>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>this is used with the texture atlas rendering. </p>
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a9a86644b2b548c6f66d79e929512effd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a86644b2b548c6f66d79e929512effd"></a>
+typedef std::map<br class="typebreak"/>
+&lt; <a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a>, <br class="typebreak"/>
+std::unique_ptr&lt; <a class="el" href="classflatui_1_1_font_buffer.html">FontBuffer</a> &gt;<br class="typebreak"/>
+, <a class="el" href="classflatui_1_1_font_buffer_parameters.html">FontBufferParameters</a> &gt;<br class="typebreak"/>
+::iterator&#160;</td><td class="memItemRight" valign="bottom"><b>fontbuffer_map_it</b></td></tr>
+<tr class="separator:a9a86644b2b548c6f66d79e929512effd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab8b2dbc750bd13d177e1b6d4495fae14"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab8b2dbc750bd13d177e1b6d4495fae14"></a>
@@ -231,47 +241,26 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a646bdd7953a53606318bbce8932ade0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a856ca8a8affa95fcaf13f4fb825999a3"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classflatui_1_1_font_metrics.html">FontMetrics</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a856ca8a8affa95fcaf13f4fb825999a3">metrics</a> () const </td></tr>
 <tr class="separator:a856ca8a8affa95fcaf13f4fb825999a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a665da2eecd6c377f293fe35c597b185b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a665da2eecd6c377f293fe35c597b185b">set_metrics</a> (const <a class="el" href="classflatui_1_1_font_metrics.html">FontMetrics</a> &amp;<a class="el" href="classflatui_1_1_font_buffer.html#a856ca8a8affa95fcaf13f4fb825999a3">metrics</a>)</td></tr>
-<tr class="memdesc:a665da2eecd6c377f293fe35c597b185b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a> metrics parameters for the font texture.  <a href="#a665da2eecd6c377f293fe35c597b185b">More...</a><br/></td></tr>
-<tr class="separator:a665da2eecd6c377f293fe35c597b185b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ef024e064f17b8f803bde378cdfef25"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint16_t &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a9ef024e064f17b8f803bde378cdfef25">get_indices</a> ()</td></tr>
-<tr class="separator:a9ef024e064f17b8f803bde378cdfef25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af71e1cc950ee28734d5fa2557b90fa20"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint16_t &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#af71e1cc950ee28734d5fa2557b90fa20">get_indices</a> () const </td></tr>
-<tr class="separator:af71e1cc950ee28734d5fa2557b90fa20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ecc725cadf9517e987bd5676dc40833"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a0ecc725cadf9517e987bd5676dc40833">get_vertices</a> ()</td></tr>
-<tr class="separator:a0ecc725cadf9517e987bd5676dc40833"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad690ab8150ab0128fb5dfdd6a58468b8"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; <a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ad690ab8150ab0128fb5dfdd6a58468b8">get_vertices</a> () const </td></tr>
-<tr class="separator:ad690ab8150ab0128fb5dfdd6a58468b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bfe071af41e0a30b8dcdacb1d4b7cb7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint32_t &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a2bfe071af41e0a30b8dcdacb1d4b7cb7">get_code_points</a> ()</td></tr>
-<tr class="separator:a2bfe071af41e0a30b8dcdacb1d4b7cb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac687c93abbb32b4aac9cbc5fb380112"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint32_t &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#aac687c93abbb32b4aac9cbc5fb380112">get_code_points</a> () const </td></tr>
-<tr class="separator:aac687c93abbb32b4aac9cbc5fb380112"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3fb31c94969d126fcd763b90fd0b46c"><td class="memItemLeft" align="right" valign="top">const mathfu::vec2i &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ad3fb31c94969d126fcd763b90fd0b46c">get_size</a> () const </td></tr>
-<tr class="separator:ad3fb31c94969d126fcd763b90fd0b46c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a751f470e787f61eb4c677a86ca767051"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a751f470e787f61eb4c677a86ca767051">set_size</a> (const mathfu::vec2i &amp;size)</td></tr>
-<tr class="memdesc:a751f470e787f61eb4c677a86ca767051"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the size of the string.  <a href="#a751f470e787f61eb4c677a86ca767051">More...</a><br/></td></tr>
-<tr class="separator:a751f470e787f61eb4c677a86ca767051"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac7a2ba236a66d613f6cc7f0fa99924b5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ac7a2ba236a66d613f6cc7f0fa99924b5">get_revision</a> () const </td></tr>
-<tr class="separator:ac7a2ba236a66d613f6cc7f0fa99924b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66bdb57ac5a373b307dfdebcd3d229ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a66bdb57ac5a373b307dfdebcd3d229ca">set_revision</a> (const uint32_t revision)</td></tr>
-<tr class="memdesc:a66bdb57ac5a373b307dfdebcd3d229ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the glyph cache revision counter.  <a href="#a66bdb57ac5a373b307dfdebcd3d229ca">More...</a><br/></td></tr>
-<tr class="separator:a66bdb57ac5a373b307dfdebcd3d229ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58f1eab302da3f4899d9f9e2fe9e8585"><td class="memItemLeft" align="right" valign="top">const std::vector<br class="typebreak"/>
+&lt; <a class="el" href="classflatui_1_1_font_buffer_attributes.html">FontBufferAttributes</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a58f1eab302da3f4899d9f9e2fe9e8585">get_slices</a> () const </td></tr>
+<tr class="separator:a58f1eab302da3f4899d9f9e2fe9e8585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a123770eed82140ba6957fdc46cb81ef0"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint16_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a123770eed82140ba6957fdc46cb81ef0">get_indices</a> (int32_t index) const </td></tr>
+<tr class="separator:a123770eed82140ba6957fdc46cb81ef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83be8d59a67f82a96445f2454a08cb47"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; <a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a83be8d59a67f82a96445f2454a08cb47">get_vertices</a> () const </td></tr>
+<tr class="separator:a83be8d59a67f82a96445f2454a08cb47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad92a31da0e9c24ba287531a3896d98a8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ad92a31da0e9c24ba287531a3896d98a8">get_vertices</a> ()</td></tr>
+<tr class="separator:ad92a31da0e9c24ba287531a3896d98a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21c158966a7507bb6c63acc777d478b1"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; <a class="el" href="structflatui_1_1_glyph_info.html">GlyphInfo</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a21c158966a7507bb6c63acc777d478b1">get_glyph_info</a> () const </td></tr>
+<tr class="separator:a21c158966a7507bb6c63acc777d478b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcd61c39b80a05fca1fdbe449e767e58"><td class="memItemLeft" align="right" valign="top">const mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#afcd61c39b80a05fca1fdbe449e767e58">get_size</a> () const </td></tr>
+<tr class="separator:afcd61c39b80a05fca1fdbe449e767e58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cc8fe701e8fee72f94c277f2fe1645b"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a1cc8fe701e8fee72f94c277f2fe1645b">get_revision</a> () const </td></tr>
+<tr class="separator:a1cc8fe701e8fee72f94c277f2fe1645b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a5faaa6317b923d1c1251f3b567cf25"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a8a5faaa6317b923d1c1251f3b567cf25">get_pass</a> () const </td></tr>
 <tr class="separator:a8a5faaa6317b923d1c1251f3b567cf25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d6d8ae685dfa6c6f8bb97ccefc5bb30"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a1d6d8ae685dfa6c6f8bb97ccefc5bb30">set_pass</a> (const int32_t pass)</td></tr>
-<tr class="separator:a1d6d8ae685dfa6c6f8bb97ccefc5bb30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a678c5e0905ac034d3eb8b05aaf96beb5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a678c5e0905ac034d3eb8b05aaf96beb5">AddVertices</a> (const mathfu::vec2 &amp;pos, const int32_t base_line, const float scale, const GlyphCacheEntry &amp;entry)</td></tr>
-<tr class="memdesc:a678c5e0905ac034d3eb8b05aaf96beb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds 4 vertices to be used for a glyph rendering to the vertex array.  <a href="#a678c5e0905ac034d3eb8b05aaf96beb5">More...</a><br/></td></tr>
-<tr class="separator:a678c5e0905ac034d3eb8b05aaf96beb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe2f01aa6f5e547f1d1baf549ee3b72a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#abe2f01aa6f5e547f1d1baf549ee3b72a">AddCaretPosition</a> (float x, float y)</td></tr>
-<tr class="memdesc:abe2f01aa6f5e547f1d1baf549ee3b72a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add the given caret position to the buffer.  <a href="#abe2f01aa6f5e547f1d1baf549ee3b72a">More...</a><br/></td></tr>
-<tr class="separator:abe2f01aa6f5e547f1d1baf549ee3b72a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ac7d52265eb1f406ba132b13b911e0b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a5ac7d52265eb1f406ba132b13b911e0b">UpdateUV</a> (const int32_t index, const mathfu::vec4 &amp;uv)</td></tr>
-<tr class="memdesc:a5ac7d52265eb1f406ba132b13b911e0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update UV information of a glyph entry.  <a href="#a5ac7d52265eb1f406ba132b13b911e0b">More...</a><br/></td></tr>
-<tr class="separator:a5ac7d52265eb1f406ba132b13b911e0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acdf2bff3e53434e116470e2e3e70d0b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#acdf2bff3e53434e116470e2e3e70d0b2">Verify</a> ()</td></tr>
-<tr class="memdesc:acdf2bff3e53434e116470e2e3e70d0b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies that the sizes of the arrays used in the buffer are correct.  <a href="#acdf2bff3e53434e116470e2e3e70d0b2">More...</a><br/></td></tr>
-<tr class="separator:acdf2bff3e53434e116470e2e3e70d0b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4dc2b5b4b2fda85d23365f0cad7b364d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a4dc2b5b4b2fda85d23365f0cad7b364d">Verify</a> () const </td></tr>
+<tr class="memdesc:a4dc2b5b4b2fda85d23365f0cad7b364d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies that the sizes of the arrays used in the buffer are correct.  <a href="#a4dc2b5b4b2fda85d23365f0cad7b364d">More...</a><br/></td></tr>
+<tr class="separator:a4dc2b5b4b2fda85d23365f0cad7b364d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac74ed8ae0e7c4f00039aee1877895178"><td class="memItemLeft" align="right" valign="top">mathfu::vec2i&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ac74ed8ae0e7c4f00039aee1877895178">GetCaretPosition</a> (size_t index) const </td></tr>
 <tr class="memdesc:ac74ed8ae0e7c4f00039aee1877895178"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve a caret positions with a given index.  <a href="#ac74ed8ae0e7c4f00039aee1877895178">More...</a><br/></td></tr>
 <tr class="separator:ac74ed8ae0e7c4f00039aee1877895178"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -280,6 +269,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8d59631cbbbfc19813475a3ed25ee82b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a963d7c90671411f7a9b4096065d2dce9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a963d7c90671411f7a9b4096065d2dce9">HasCaretPositions</a> () const </td></tr>
 <tr class="separator:a963d7c90671411f7a9b4096065d2dce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0aa648b2cbbe7e0ec0350d7480dde8b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ae0aa648b2cbbe7e0ec0350d7480dde8b">HasEllipsis</a> () const </td></tr>
+<tr class="separator:ae0aa648b2cbbe7e0ec0350d7480dde8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06de72cd6a573b03029978d2efa79053"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a06de72cd6a573b03029978d2efa79053"></a>
+std::vector&lt; mathfu::vec4 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a06de72cd6a573b03029978d2efa79053">CalculateBounds</a> (int32_t start_index, int32_t end_index) const </td></tr>
+<tr class="memdesc:a06de72cd6a573b03029978d2efa79053"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper to retrieve AABB info for glyph index range. Note that we return multiple AABB bounds if the glyphs span multiple lines. Each vec4 is in the format (min_x, min_y, max_x, max_y). <br/></td></tr>
+<tr class="separator:a06de72cd6a573b03029978d2efa79053"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79e1770ede9436adac00b183aae16482"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a79e1770ede9436adac00b183aae16482"></a>
+const std::vector&lt; <a class="el" href="structflatui_1_1_link_info.html">LinkInfo</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a79e1770ede9436adac00b183aae16482">get_links</a> () const </td></tr>
+<tr class="memdesc:a79e1770ede9436adac00b183aae16482"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return glyph indices and linked-to address of any HREF links that have been rendered to this <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a>. <br/></td></tr>
+<tr class="separator:a79e1770ede9436adac00b183aae16482"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03a82423fae9cdcbac3822555c90bd37"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a03a82423fae9cdcbac3822555c90bd37"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#a03a82423fae9cdcbac3822555c90bd37">get_glyph_count</a> () const </td></tr>
+<tr class="memdesc:a03a82423fae9cdcbac3822555c90bd37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return current glyph count stored in the buffer. <br/></td></tr>
+<tr class="separator:a03a82423fae9cdcbac3822555c90bd37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2d84f835f7bcc5fcfafd6d5321d416b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae2d84f835f7bcc5fcfafd6d5321d416b"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classflatui_1_1_font_buffer.html#ae2d84f835f7bcc5fcfafd6d5321d416b">get_ref_count</a> () const </td></tr>
+<tr class="memdesc:ae2d84f835f7bcc5fcfafd6d5321d416b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the reference count of the buffer. <br/></td></tr>
+<tr class="separator:ae2d84f835f7bcc5fcfafd6d5321d416b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -339,91 +346,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="abe2f01aa6f5e547f1d1baf549ee3b72a"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::AddCaretPosition </td>
-          <td>(</td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>y</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Add the given caret position to the buffer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>The <code>x</code> position of the caret. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">y</td><td>The <code>y</code> position of the caret. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="a678c5e0905ac034d3eb8b05aaf96beb5"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::AddVertices </td>
-          <td>(</td>
-          <td class="paramtype">const mathfu::vec2 &amp;&#160;</td>
-          <td class="paramname"><em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int32_t&#160;</td>
-          <td class="paramname"><em>base_line</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float&#160;</td>
-          <td class="paramname"><em>scale</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const GlyphCacheEntry &amp;&#160;</td>
-          <td class="paramname"><em>entry</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Adds 4 vertices to be used for a glyph rendering to the vertex array. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">pos</td><td>A vec2 containing the <code>x</code> and <code>y</code> position of the first, unscaled vertex. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">base_line</td><td>A const int32_t representing the baseline for the vertices. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">scale</td><td>A float used to scale the size and offset. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">entry</td><td>A const GlyphCacheEntry reference whose offset and size are used in the scaling. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="a2bfe071af41e0a30b8dcdacb1d4b7cb7"></a>
+<a class="anchor" id="a21c158966a7507bb6c63acc777d478b1"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -431,31 +354,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;uint32_t&gt;* flatui::FontBuffer::get_code_points </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Returns the array of code points as a std::vector&lt;uint32_t&gt;. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="aac687c93abbb32b4aac9cbc5fb380112"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt;uint32_t&gt;* flatui::FontBuffer::get_code_points </td>
+          <td class="memname">const std::vector&lt;<a class="el" href="structflatui_1_1_glyph_info.html">GlyphInfo</a>&gt;&amp; flatui::FontBuffer::get_glyph_info </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -467,11 +366,11 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Returns the array of code points as a const std::vector&lt;uint32_t&gt;. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the array of <a class="el" href="structflatui_1_1_glyph_info.html" title="This struct holds the glyph information that is used when re-creating a FontBuffer. ">GlyphInfo</a> as a const std::vector&lt;GlyphInfo&gt;. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a9ef024e064f17b8f803bde378cdfef25"></a>
+<a class="anchor" id="a123770eed82140ba6957fdc46cb81ef0"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -479,33 +378,10 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;uint16_t&gt;* flatui::FontBuffer::get_indices </td>
+          <td class="memname">const std::vector&lt;uint16_t&gt;&amp; flatui::FontBuffer::get_indices </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Returns the indices array as a std::vector&lt;uint16_t&gt;. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="af71e1cc950ee28734d5fa2557b90fa20"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt;uint16_t&gt;* flatui::FontBuffer::get_indices </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>index</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -544,7 +420,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 
 </div>
 </div>
-<a class="anchor" id="ac7a2ba236a66d613f6cc7f0fa99924b5"></a>
+<a class="anchor" id="a1cc8fe701e8fee72f94c277f2fe1645b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -552,7 +428,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t flatui::FontBuffer::get_revision </td>
+          <td class="memname">int32_t flatui::FontBuffer::get_revision </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -570,7 +446,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 
 </div>
 </div>
-<a class="anchor" id="ad3fb31c94969d126fcd763b90fd0b46c"></a>
+<a class="anchor" id="afcd61c39b80a05fca1fdbe449e767e58"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -578,7 +454,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const mathfu::vec2i&amp; flatui::FontBuffer::get_size </td>
+          <td class="memname">const mathfu::vec2i flatui::FontBuffer::get_size </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -594,7 +470,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 
 </div>
 </div>
-<a class="anchor" id="a0ecc725cadf9517e987bd5676dc40833"></a>
+<a class="anchor" id="a58f1eab302da3f4899d9f9e2fe9e8585"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -602,10 +478,10 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a>&gt;* flatui::FontBuffer::get_vertices </td>
+          <td class="memname">const std::vector&lt;<a class="el" href="classflatui_1_1_font_buffer_attributes.html">FontBufferAttributes</a>&gt;&amp; flatui::FontBuffer::get_slices </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -614,11 +490,11 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Returns the vertices array as a std::vector&lt;FontVertex&gt;. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns the slices array as a const std::vector&lt;int32_t&gt;. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ad690ab8150ab0128fb5dfdd6a58468b8"></a>
+<a class="anchor" id="a83be8d59a67f82a96445f2454a08cb47"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -626,7 +502,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const std::vector&lt;<a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a>&gt;* flatui::FontBuffer::get_vertices </td>
+          <td class="memname">const std::vector&lt;<a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a>&gt;&amp; flatui::FontBuffer::get_vertices </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -639,6 +515,30 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 </table>
 </div><div class="memdoc">
 <dl class="section return"><dt>Returns</dt><dd>Returns the vertices array as a const std::vector&lt;FontVertex&gt;. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad92a31da0e9c24ba287531a3896d98a8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="structflatui_1_1_font_vertex.html">FontVertex</a>&gt;&amp; flatui::FontBuffer::get_vertices </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns the non const version of vertices array as a std::vector&lt;FontVertex&gt;. Note that the updating the number of elements in the buffer would result undefined behavior. </dd></dl>
 
 </div>
 </div>
@@ -723,6 +623,30 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 
 </div>
 </div>
+<a class="anchor" id="ae0aa648b2cbbe7e0ec0350d7480dde8b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool flatui::FontBuffer::HasEllipsis </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Returns <code>true</code> if the <a class="el" href="classflatui_1_1_font_buffer.html" title="this is used with the texture atlas rendering. ">FontBuffer</a> has an ellipsis appended. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a856ca8a8affa95fcaf13f4fb825999a3"></a>
 <div class="memitem">
 <div class="memproto">
@@ -747,166 +671,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 
 </div>
 </div>
-<a class="anchor" id="a665da2eecd6c377f293fe35c597b185b"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::set_metrics </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classflatui_1_1_font_metrics.html">FontMetrics</a> &amp;&#160;</td>
-          <td class="paramname"><em>metrics</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Sets the <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a> metrics parameters for the font texture. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">metrics</td><td>The <a class="el" href="classflatui_1_1_font_metrics.html" title="This class has additional properties for font metrics. ">FontMetrics</a> to set for the font texture. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="a1d6d8ae685dfa6c6f8bb97ccefc5bb30"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::set_pass </td>
-          <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
-          <td class="paramname"><em>pass</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Returns the psas counter as an int32_t.</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>In the render pass, this value is used if the user of the class needs to call <code>StartRenderPass()</code> to upload the atlas texture. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="a66bdb57ac5a373b307dfdebcd3d229ca"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::set_revision </td>
-          <td>(</td>
-          <td class="paramtype">const uint32_t&#160;</td>
-          <td class="paramname"><em>revision</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Sets the glyph cache revision counter. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">revision</td><td>The uint32_t containing the new counter to set.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section note"><dt>Note</dt><dd>Each time a contents of the glyph cache is updated, the revision of the cache is updated.</dd></dl>
-<p>If the cache revision and the buffer revision is different, the font_manager try to re-construct the buffer. </p>
-
-</div>
-</div>
-<a class="anchor" id="a751f470e787f61eb4c677a86ca767051"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::set_size </td>
-          <td>(</td>
-          <td class="paramtype">const mathfu::vec2i &amp;&#160;</td>
-          <td class="paramname"><em>size</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Set the size of the string. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>A const vec2i reference to the size of the string. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="a5ac7d52265eb1f406ba132b13b911e0b"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void flatui::FontBuffer::UpdateUV </td>
-          <td>(</td>
-          <td class="paramtype">const int32_t&#160;</td>
-          <td class="paramname"><em>index</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const mathfu::vec4 &amp;&#160;</td>
-          <td class="paramname"><em>uv</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Update UV information of a glyph entry. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">index</td><td>The index of the glyph entry that should be updated. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">uv</td><td>The <code>uv</code> vec4 should include the top-left corner of UV value as <code>x</code> and <code>y</code>, and the bottom-right of UV value as the <code>w</code> and <code>z</code> components of the vector. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="acdf2bff3e53434e116470e2e3e70d0b2"></a>
+<a class="anchor" id="a4dc2b5b4b2fda85d23365f0cad7b364d"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -917,7 +682,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
           <td class="memname">bool flatui::FontBuffer::Verify </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -934,7 +699,7 @@ static const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li><a class="el" href="font__manager_8h_source.html">font_manager.h</a></li>
+<li><a class="el" href="font__buffer_8h_source.html">font_buffer.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

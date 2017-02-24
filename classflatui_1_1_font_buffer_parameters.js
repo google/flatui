@@ -1,11 +1,27 @@
 var classflatui_1_1_font_buffer_parameters =
 [
     [ "FontBufferParameters", "classflatui_1_1_font_buffer_parameters.html#a2dbe969a5a6153f713dc5b6852d21485", null ],
-    [ "FontBufferParameters", "classflatui_1_1_font_buffer_parameters.html#ab34cf9663f21fbd3e2051fe291f30e91", null ],
+    [ "FontBufferParameters", "classflatui_1_1_font_buffer_parameters.html#af561b14b65d7d4172c35a8f53895abbb", null ],
+    [ "get_cache_id", "classflatui_1_1_font_buffer_parameters.html#a6335e225ffb0331e60d5e93d56ef13c4", null ],
     [ "get_caret_info_flag", "classflatui_1_1_font_buffer_parameters.html#ab83b91de87cb41faa3c7e539f2dfb54f", null ],
+    [ "get_enable_hyphenation_flag", "classflatui_1_1_font_buffer_parameters.html#a3a0625ef77834836f31842ec2c10aaf5", null ],
+    [ "get_font_id", "classflatui_1_1_font_buffer_parameters.html#a36338be736338f08b7f1ed69206cbc4e", null ],
     [ "get_font_size", "classflatui_1_1_font_buffer_parameters.html#a03a0a8aa273495ed3dc857ee26dd32c1", null ],
+    [ "get_glyph_flags", "classflatui_1_1_font_buffer_parameters.html#a28a4ff58f18ba0747851a83bcdd830eb", null ],
+    [ "get_kerning_scale", "classflatui_1_1_font_buffer_parameters.html#a7fb7d91581b64651879681a6d6e213a4", null ],
+    [ "get_line_height_scale", "classflatui_1_1_font_buffer_parameters.html#a7d7bc9d165156bd1bbf78394159f742d", null ],
+    [ "get_line_length", "classflatui_1_1_font_buffer_parameters.html#a040d6e985fc66ab54116265cd77390e0", null ],
+    [ "get_multi_line_setting", "classflatui_1_1_font_buffer_parameters.html#ae5658ceff52c643fc8d76333ab798550", null ],
+    [ "get_ref_count_flag", "classflatui_1_1_font_buffer_parameters.html#ae9c93148a1d32f12b1f8fcf2b900aa00", null ],
+    [ "get_rtl_layout_flag", "classflatui_1_1_font_buffer_parameters.html#adc56d134b82eda3114c91cde6ba688cb", null ],
     [ "get_size", "classflatui_1_1_font_buffer_parameters.html#a6745c12c825b8f1f8cf97ce1a65ff0fd", null ],
+    [ "get_text_alignment", "classflatui_1_1_font_buffer_parameters.html#ae40d61b7d1128788f238b34efcb69756", null ],
     [ "get_text_id", "classflatui_1_1_font_buffer_parameters.html#adef5351b236634f93eaac0db10f9cbdc", null ],
     [ "operator()", "classflatui_1_1_font_buffer_parameters.html#a4d25883dfe3f9bf4c78c459cce241cc5", null ],
-    [ "operator==", "classflatui_1_1_font_buffer_parameters.html#a90f7172b9c9d98c576381b983f2888e6", null ]
+    [ "operator()", "classflatui_1_1_font_buffer_parameters.html#a60129bd0c653355723df685a7886a04c", null ],
+    [ "operator==", "classflatui_1_1_font_buffer_parameters.html#a90f7172b9c9d98c576381b983f2888e6", null ],
+    [ "set_font_size", "classflatui_1_1_font_buffer_parameters.html#a4f22a8b05e08512f2a22eeeb272fe3ff", null ],
+    [ "set_size", "classflatui_1_1_font_buffer_parameters.html#aa2ea73c19873e677277735f16156563b", null ],
+    [ "flags_", "classflatui_1_1_font_buffer_parameters.html#ac147d231e81562bc68891189c9468a8c", null ],
+    [ "flags_value_", "classflatui_1_1_font_buffer_parameters.html#a014de456b92d0770864cdb454e87862f", null ]
 ];

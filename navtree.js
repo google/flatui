@@ -16,7 +16,6 @@ var NAVTREE =
       [ "Class List", null, [
         [ "Class List", "annotated.html", "annotated" ],
         [ "Class Index", "classes.html", null ],
-        [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
         [ "Class Members", "functions.html", [
           [ "All", "functions.html", null ],
           [ "Functions", "functions_func.html", null ],
@@ -35,7 +34,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"group__flatui__core.html#gaedeb8c08925f628ef393b0588a02585c"
+"flatui_8h.html#gac9686325a3e8578f0aeb16892a050943"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

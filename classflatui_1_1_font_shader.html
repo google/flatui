@@ -1,0 +1,265 @@
+<!-- HTML header for doxygen 1.8.6-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>FlatUI: flatui::FontShader Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic|Roboto+Mono:400,700" rel="stylesheet">
+<link href="style.css" rel="stylesheet" type="text/css"/>
+<script>
+  /**
+   * Check if the browser rendering this page is being run on an Android device.
+   * It checks if the string 'android' is found in the browser's `userAgent`.
+   * @return {boolean} This returns `true` if the browser's `userAgent` contains
+   * the string 'android' (indicating that the browser is on an Android device).
+   * Otherwise, it returns `false`.
+   */
+  function isAndroidDevice() {
+    if (navigator && navigator.userAgent) {
+      return navigator.userAgent.toLowerCase().indexOf('android') != -1;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Check if an HTML `class` attribute is in the browser-specific format.
+   * @param {string} An HTML `class` attribute in the format 'browser-{device}'.
+   * @return {boolean} Returns `true` if `browserClass` was in the valid format,
+   * prefixed with 'browser-'. Otherwise, it returns false.
+   */
+  function isBrowserSpecificClassName(browserClass) {
+    if (browserClass && browserClass.substring(0, 8) == 'browser-' &&
+        browserClass.length > 8) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * Get all the HTML Elements with browser-specific `class` attributes.
+   * @return {array} Returns an array of all the HTML Elements with a `class`
+   * attribute that is prefixed with `browser-`.
+   */
+  function getAllBrowserSpecificElements() {
+    if (document) {
+      var htmlElements = document.getElementsByTagName("*");
+      var browserSpecificElements = [];
+      for (var i = 0; i < htmlElements.length; i++) {
+        if (isBrowserSpecificClassName(htmlElements[i].className)) {
+          browserSpecificElements.push(htmlElements[i]);
+        }
+      }
+      return browserSpecificElements;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * Given a browser-specific HTML `class` attribute, extract the device name.
+   * @param {string} browserClass The string name of an HTML `class` attribute,
+   * in the format `browser-{device}`.
+   * @return {string} Returns a string containing only the device portion of
+   * the class name. If the input was invalid, then it returns `null`.
+   */
+  function extractDeviceFromBrowserClass(browserClass) {
+    if (isBrowserSpecificClassName(browserClass)) {
+      return browserClass.substring(8);
+    }
+    else {
+      return null;
+    }
+  }
+  /**
+   * Hide device specific elements that do not apply to the current device.
+   */
+  function handleDeviceSpecificLoading() {
+    var browserSpecificElements = getAllBrowserSpecificElements();
+    for (var i = 0; i < browserSpecificElements.length; i++) {
+      var device = extractDeviceFromBrowserClass(browserSpecificElements[i].className);
+      if (device && !isAndroidDevice() && device == 'android') {
+        browserSpecificElements[i].innerHTML = '';
+      } else if(device && isAndroidDevice() && device == 'desktop') {
+        browserSpecificElements[i].innerHTML = '';
+      }
+    }
+  }
+  $(document).ready(handleDeviceSpecificLoading);
+</script>
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="commonprojectlogo">
+    <img alt="Logo" src="fpl_logo_small.png"/>
+  </td>
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">FlatUI
+   </div>
+   <div style="font-size:12px;">
+	 An open source project by
+     <a href="https://developers.google.com/games/#Tools">FPL</a>.
+  </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="usergroup0.html"><span>Programmer's&#160;Guide</span></a></li>
+      <li class="current"><a href="flatui_api_reference.html"><span>API&#160;reference</span></a></li>
+      <li><a href="flatui_readme.html"><span>Readme</span></a></li>
+      <li><a href="contributing.html"><span>Contributing</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="modules.html"><span>Modules</span></a></li>
+      <li class="current"><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
+    </ul>
+  </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('classflatui_1_1_font_shader.html','');});
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classflatui_1_1_font_shader-members.html">List of all members</a>  </div>
+  <div class="headertitle">
+<div class="title">flatui::FontShader Class Reference</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Helper class to handle shaders for a font rendering. The class keeps a reference to a shader, and a location of uniforms with a fixed names. A caller is responsive not to call set_* APIs that specified shader doesn't support.  
+ <a href="classflatui_1_1_font_shader.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="font__manager_8h_source.html">font_manager.h</a>&gt;</code></p>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Helper class to handle shaders for a font rendering. The class keeps a reference to a shader, and a location of uniforms with a fixed names. A caller is responsive not to call set_* APIs that specified shader doesn't support. </p>
+</div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a51c70f2a2c5c4cb0cb43e5e86a4d039a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a51c70f2a2c5c4cb0cb43e5e86a4d039a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set</b> (fplbase::Shader *shader)</td></tr>
+<tr class="separator:a51c70f2a2c5c4cb0cb43e5e86a4d039a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9da9b3c0cdecda8815ee027dc128e70e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9da9b3c0cdecda8815ee027dc128e70e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_renderer</b> (const fplbase::Renderer &amp;renderer)</td></tr>
+<tr class="separator:a9da9b3c0cdecda8815ee027dc128e70e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b778940cbb0608ee1c125620a489f69"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7b778940cbb0608ee1c125620a489f69"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_position_offset</b> (const mathfu::vec3 &amp;vec)</td></tr>
+<tr class="separator:a7b778940cbb0608ee1c125620a489f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9f7ada04fae468e4ba3bd1abdea8f40"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa9f7ada04fae468e4ba3bd1abdea8f40"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_color</b> (const mathfu::vec4 &amp;vec)</td></tr>
+<tr class="separator:aa9f7ada04fae468e4ba3bd1abdea8f40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff34ddb428aa77a27f9dc6a8c4327f87"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aff34ddb428aa77a27f9dc6a8c4327f87"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_clipping</b> (const mathfu::vec4 &amp;vec)</td></tr>
+<tr class="separator:aff34ddb428aa77a27f9dc6a8c4327f87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1aa7c828c8912269d3d7d36131b40585"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1aa7c828c8912269d3d7d36131b40585"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_threshold</b> (float f)</td></tr>
+<tr class="separator:a1aa7c828c8912269d3d7d36131b40585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2059b33913aef555e9a36aaf47af279"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af2059b33913aef555e9a36aaf47af279"></a>
+fplbase::UniformHandle&#160;</td><td class="memItemRight" valign="bottom"><b>clipping_handle</b> ()</td></tr>
+<tr class="separator:af2059b33913aef555e9a36aaf47af279"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e19afeedbcf486fee5ba3e8b173489b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7e19afeedbcf486fee5ba3e8b173489b"></a>
+fplbase::UniformHandle&#160;</td><td class="memItemRight" valign="bottom"><b>color_handle</b> ()</td></tr>
+<tr class="separator:a7e19afeedbcf486fee5ba3e8b173489b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc60e96912af95f2a69f0e457cd1998e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acc60e96912af95f2a69f0e457cd1998e"></a>
+fplbase::UniformHandle&#160;</td><td class="memItemRight" valign="bottom"><b>position_offset_handle</b> ()</td></tr>
+<tr class="separator:acc60e96912af95f2a69f0e457cd1998e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe0e6a6ef7709c0ae2ace1c10abb6fd5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abe0e6a6ef7709c0ae2ace1c10abb6fd5"></a>
+fplbase::UniformHandle&#160;</td><td class="memItemRight" valign="bottom"><b>threshold_handle</b> ()</td></tr>
+<tr class="separator:abe0e6a6ef7709c0ae2ace1c10abb6fd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li><a class="el" href="font__manager_8h_source.html">font_manager.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-49880327-7', 'google.github.io');
+ga('send', 'pageview');
+</script>
+</body>
+</html>
