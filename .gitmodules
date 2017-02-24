@@ -34,3 +34,12 @@
 [submodule "dependencies/googletest"]
 	path = dependencies/googletest
 	url = http://github.com/google/googletest.git
+[submodule "dependencies/stb"]
+	path = dependencies/stb
+	url = https://github.com/nothings/stb.git
+[submodule "dependencies/gumbo-parser"]
+	path = dependencies/gumbo-parser
+	url = https://github.com/google/gumbo-parser
+[submodule "dependencies/hyphenation-patterns"]
+	path = dependencies/hyphenation-patterns
+	url = https://android.googlesource.com/platform/external/hyphenation-patterns
