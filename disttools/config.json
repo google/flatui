@@ -26,6 +26,15 @@
       "fetch_dependencies": 1
     },
     {
+      "name": "motive",
+      "url": "http://github.com/google/motive.git",
+      "branch": "develop",
+      "is_library": 1,
+      "third_party": 0,
+      "push": 0,
+      "fetch_dependencies": 1
+    },
+    {
       "name": "fplbase",
       "url": "http://github.com/google/fplbase.git",
       "branch": "develop",
