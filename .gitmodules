@@ -43,3 +43,6 @@
 [submodule "dependencies/hyphenation-patterns"]
 	path = dependencies/hyphenation-patterns
 	url = https://android.googlesource.com/platform/external/hyphenation-patterns
+[submodule "dependencies/motive"]
+	path = dependencies/motive
+	url = http://github.com/google/motive.git
