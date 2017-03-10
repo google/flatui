@@ -537,7 +537,6 @@ bool FontManager::OpenSystemFontAndroid() {
   auto font_it = font_list.begin();
   auto font_end = font_list.end();
   while (font_it != font_end) {
-    fplbase::LogInfo("Loading font name: %s", font_it->get_name().c_str());
     if (Open(*font_it)) {
       // Retrieve the font size for an information.
       auto face = map_faces_.find(font_it->get_name());

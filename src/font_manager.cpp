@@ -197,7 +197,11 @@ FontManager::FontManager(const mathfu::vec2i &cache_size, int32_t max_slices) {
   glyph_cache_.reset(new GlyphCache(cache_size, max_slices));
 }
 
-FontManager::~FontManager() { delete cache_mutex_; }
+FontManager::~FontManager() {
+  // Clear font faces.
+  map_faces_.clear();
+  delete cache_mutex_;
+}
 
 void FontManager::Initialize() {
   // Initialize variables.

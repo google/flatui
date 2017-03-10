@@ -64,7 +64,16 @@ class FaceData {
   /// @brief The destructor for FaceData.
   ///
   /// @note This calls the `Close()` function.
-  ~FaceData() { Close(); }
+  ~FaceData() {
+    // Enforce disposing the font data.
+    // This happens only when the FontManager instance is going to be
+    // destrcuted. In regular scenario, the caller should call Close() API
+    // corresponding to Open() call to clean up FaceData instance gracefully.
+    if (ref_count_) {
+      ref_count_ = 0;
+      Close();
+    }
+  }
 
   /// @brief Open a TTF/OTF font.
   ///
@@ -73,7 +82,7 @@ class FaceData {
   /// @return true if the specified font is successfully opened.
   bool Open(FT_Library ft, const FontFamily &family);
 
-  /// @brief Close the fontface.
+  /// @brief Close the FaceData.
   void Close();
 
   /// @brief Open specified font by name and return the raw data.

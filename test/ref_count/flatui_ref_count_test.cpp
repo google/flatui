@@ -101,6 +101,30 @@ TEST_F(FlatUIRefCountTest, TestCheckRefCounts) {
   }
 }
 
+TEST_F(FlatUIRefCountTest, TestCheckFaceDataRefCounts) {
+  // Test Open & Close font functionality.
+  auto font = "fonts/NotoSansCJKjp-Bold.otf";
+
+  // Close active font.
+  font_manager_->Close(font);
+  ASSERT_EQ(false, font_manager_->SelectFont(font));
+
+  // Open & Close font multiple times.
+  int32_t k = 32;
+  for (int32_t i = 0; i < k; ++i) {
+    font_manager_->Open(font);
+  }
+  for (int32_t i = 0; i < k; ++i) {
+    font_manager_->Close(font);
+  }
+  ASSERT_EQ(false, font_manager_->SelectFont(font));
+
+  // Keep opening fonts to verify destructor destroys them all.
+  for (int32_t i = 0; i < k; ++i) {
+    font_manager_->Open(font);
+  }
+}
+
 TEST_F(FlatUIRefCountTest, TestCacheEviction) {
   // Test cache eviction.
   char string2[] = "!";
