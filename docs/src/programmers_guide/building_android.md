@@ -69,24 +69,30 @@ Additionally, if you'd like to use the handy tools in [fplutil][],
 
 # Code Generation
 
-By default, code is generated for devices that support the `armeabi-v7a`,
-`x86`, or `armeabi` ABIs. Alternatively, you can generate a fat `.apk` that
-includes code for all ABIs. To do so, override APP\_ABI on ndk-build's command
-line.
-
-Using `fplutil`:
-~~~{.sh}
-cd flatui
-./dependencies/fplutil/bin/build_all_android.py
-  --apk_keypk8 <pk8 file> --apk_keypem <pem file> -S
-
-~~~
-
 Using `ndk-build`:
 
 ~~~{.sh}
     cd flatui
     ndk-build -j20
+~~~
+
+By default, code is generated for devices that support the `armeabi-v7a`,
+`x86`, or `armeabi` ABIs. Alternatively, you can generate a fat `.apk` that
+includes code for all ABIs, or a skinny `.apk` that includes only one ABI.
+To do so, override APP\_ABI on ndk-build's command line.
+
+For a fat `.apk`,
+
+~~~{.sh}
+    cd flatui
+    ndk-build APP_ABI=all -j20
+~~~
+
+For a skinny `.apk` with just `armeable-v7a`,
+
+~~~{.sh}
+    cd flatui
+    ndk-build APP_ABI=armeabi-v7a -j20
 ~~~
 
 <br>
