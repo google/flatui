@@ -386,7 +386,9 @@ bool FontManager::OpenSystemFontApple() {
           system_fallback_list_.push_back(family);
           ret = true;
         } else {
+#ifdef FLATUI_VERBOSE_LOGGING
           fplbase::LogInfo("Skipped loading font:%s %d", str, i);
+#endif  // FLATUI_VERBOSE_LOGGING
           Close(str);
         }
       }
@@ -545,8 +547,10 @@ bool FontManager::OpenSystemFontAndroid() {
         system_fallback_list_.push_back(std::move(*font_it));
         ret = true;
       } else {
+#ifdef FLATUI_VERBOSE_LOGGING
         fplbase::LogInfo("Skipped loading font: %s",
                          font_it->get_name().c_str());
+#endif  // FLATUI_VERBOSE_LOGGING
         Close(*font_it);
       }
     }
@@ -615,7 +619,9 @@ bool FontManager::UpdateFontCoverage(FT_Face face,
     }
     code = FT_Get_Next_Char(face, code, &index);
   }
+#ifdef FLATUI_VERBOSE_LOGGING
   fplbase::LogInfo("Has %d new glyphs", new_glyph);
+#endif  // FLATUI_VERBOSE_LOGGING
   return has_new_coverage;
 }
 

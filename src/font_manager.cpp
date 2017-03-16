@@ -1039,7 +1039,9 @@ bool FontManager::Open(const FontFamily &family) {
   auto it = map_faces_.find(font_name);
   if (it != map_faces_.end()) {
     // The font has been already opened.
+#ifdef FLATUI_VERBOSE_LOGGING
     LogInfo("Specified font '%s' is already opened.", font_name);
+#endif  // FLATUI_VERBOSE_LOGGING
     it->second->AddRef();
     return true;
   }
