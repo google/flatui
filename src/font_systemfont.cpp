@@ -535,6 +535,11 @@ bool FontManager::OpenSystemFontAndroid() {
   // Reorder system fonts based on the system locale setting.
   ReorderSystemFonts(&font_list);
 
+  // Add default font to the font list.
+  const char* kDefaultFont = "/system/fonts/Roboto-Regular.ttf";
+  FontFamily fnt(kDefaultFont, false);
+  font_list.insert(font_list.begin(), std::move(fnt));
+
   // Load fonts.
   auto font_it = font_list.begin();
   auto font_end = font_list.end();
