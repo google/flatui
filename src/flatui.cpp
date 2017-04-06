@@ -286,7 +286,7 @@ class InternalState : public LayoutManager {
   void RenderQuad(Shader *sh, const vec4 &color, const vec2i &pos,
                   const vec2i &size, const vec4 &uv) {
     renderer_.set_color(color);
-    sh->Set(renderer_);
+    renderer_.SetShader(sh);
     fplbase::RenderAAQuadAlongX(vec3(vec2(pos), 0), vec3(vec2(pos + size), 0),
                                 uv.xy(), uv.zw());
   }
@@ -568,7 +568,7 @@ class InternalState : public LayoutManager {
         if (shader_type == kFontShaderTypeColor && render_outer_color) continue;
 
         current_shader = &font_shaders_[shader_type][clipping ? 1 : 0];
-        current_shader->set_renderer(renderer_);
+        current_shader->set_renderer(&renderer_);
 
         // Set shader specific parameters.
         color = text_color_;
@@ -719,7 +719,7 @@ class InternalState : public LayoutManager {
     if (!layout_pass_) {
       tex.Set(0);
       renderer_.set_color(mathfu::kOnes4f);
-      image_shader_->Set(renderer_);
+      renderer_.SetShader(image_shader_);
       fplbase::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
                                            vec3(vec2(pos + size), 0),
                                            tex.size(), patch_info);

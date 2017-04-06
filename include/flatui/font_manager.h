@@ -696,8 +696,8 @@ class FontShader {
     clipping_ = shader->FindUniform("clipping");
     threshold_ = shader->FindUniform("threshold");
   }
-  void set_renderer(const fplbase::Renderer &renderer) {
-    shader_->Set(renderer);
+  void set_renderer(fplbase::Renderer *renderer) {
+    renderer->SetShader(shader_);
   }
 
   void set_position_offset(const mathfu::vec3 &vec) {
