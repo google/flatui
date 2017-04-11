@@ -882,7 +882,7 @@ class FontBuffer {
   }
 
   /// The destructor for FontBuffer.
-  ~FontBuffer() {}
+  ~FontBuffer() { ReleaseCacheRowReference(); }
 
   /// @return Returns the FontMetrics metrics parameters for the font
   /// texture.

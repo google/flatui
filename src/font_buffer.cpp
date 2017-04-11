@@ -384,14 +384,12 @@ void GlyphCacheRow::InvalidateReferencingBuffers() {
 }
 
 void GlyphCacheRow::ReleaseReferencesFromFontBuffers() {
-  auto begin = ref_.begin();
-  auto end = ref_.end();
-  while (begin != end) {
-    auto buffer = *begin;
+  while (!ref_.empty()) {
+    auto buffer = *ref_.begin();
+    // This will lead to the buffer being removed from ref_ via
+    // GlyphCacheRow::Release(), so no need to use iterators here.
     buffer->ReleaseCacheRowReference();
-    begin++;
   }
-  ref_.clear();
 }
 
 }  // namespace flatui
