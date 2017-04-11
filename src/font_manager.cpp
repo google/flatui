@@ -1227,8 +1227,9 @@ bool FontManager::UpdatePass(bool start_subpass) {
   // Increment a cycle counter in glyph cache.
   glyph_cache_->Update();
 
-  // Resolve glyph cache's dirty rects.
-  if (glyph_cache_->get_dirty_state() && current_pass_ <= 0) {
+  // Resolve glyph cache's dirty rects, but only if we're in the render pass
+  // (current_pass_ hasn't been updated yet, so use !start_subpass).
+  if (glyph_cache_->get_dirty_state() && !start_subpass) {
     glyph_cache_->ResolveDirtyRect();
     // Cache texture is updated. Update counters as well.
     current_atlas_revision_ = glyph_cache_->get_revision();
