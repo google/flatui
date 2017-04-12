@@ -1479,8 +1479,6 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
       }
     } else {
       if (color_glyph) {
-        entry.set_color_glyph(true);
-
         // FreeType returns fixed sized bitmap for color glyphs.
         // Rescale bitmap here for better quality and performance.
         auto glyph_scale = static_cast<float>(ysize) / g->bitmap.rows;
@@ -1493,6 +1491,24 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         stbir_resize_uint8(g->bitmap.buffer, g->bitmap.width, g->bitmap.rows, 0,
                            static_cast<uint8_t *>(out_buffer), new_width,
                            new_height, 0, sizeof(uint32_t));
+
+        if (glyph_cache_->SupportsColorGlyphs()) {
+          entry.set_color_glyph(true);
+        } else {
+          // Copy the color glyph's alpha into the monochrome buffer.  Otherwise
+          // this will cause the entire font buffer to fail.
+          auto mono_buffer = malloc(new_width * new_height);
+          const uint32_t* src = reinterpret_cast<const uint32_t*>(out_buffer);
+          uint8_t* dst = reinterpret_cast<uint8_t*>(mono_buffer);
+
+          for (int i = 0; i < new_width * new_height; ++i, ++src, ++dst) {
+            *dst = static_cast<uint8_t>((*src) >> 24);
+          }
+
+          free(out_buffer);
+          out_buffer = mono_buffer;
+        }
+
         const float kEmojiBaseLine = 0.85f;
         entry.set_offset(vec2i(
             vec2(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine)));

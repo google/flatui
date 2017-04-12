@@ -384,7 +384,7 @@ class GlyphCacheBufferBase {
 
   virtual void Initialize(GlyphCache *cache, const mathfu::vec2i &size,
                           int32_t max_slices);
-  const mathfu::vec2i &get_size() { return size_; }
+  const mathfu::vec2i &get_size() const { return size_; }
 
   bool FindRow(int32_t req_width, int32_t req_height,
                GlyphCacheEntry::iterator_row *it_found);
@@ -408,7 +408,7 @@ class GlyphCacheBufferBase {
   // Getter/Setter of dirty state.
   bool get_dirty_state() const {
     return dirty_;
-  };
+  }
   void set_dirty_state(bool dirty) { dirty_ = dirty; }
 
   // Virtual functions to retrieve buffer parameters.
@@ -687,6 +687,8 @@ class GlyphCache {
 
   // Enable color glyph cache in the cache.
   void EnableColorGlyph();
+
+  bool SupportsColorGlyphs() const { return color_buffers_.get_size().x > 0; }
 
   // Getter of allocated glyph cache.
   GlyphCacheBuffer<uint8_t> *get_monochrome_buffer() { return &buffers_; }
