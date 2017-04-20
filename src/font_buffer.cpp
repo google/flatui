@@ -159,8 +159,30 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     auto boundary_offset_change = 0;
     auto &word_boundary = context->word_boundary();
 
-    // Retrieve the line width from glyph's vertices.
-    auto line_width = 0;
+    // |--start_pos--|----line-----|
+    // |--end_pos------------------|
+    // |--size---------------------------------------|
+
+    // Center
+    // |--size/2--------------|
+    // |--start_pos--| |line/2|
+    //    offset     |-|
+
+    // offset = size/2 - line/2 - start_pos
+    //        = size/2 - (end_pos - start_pos)/2 - 2*start_pos/2
+    //        = (size - end_pos - start_pos)/2
+
+    // Right
+    // |--size---------------------------------------|
+    // |--start_pos--|   |----line-----|--start_pos--|
+    //    offset     |---|
+
+    // offset = size - line - 2*start_pos
+    //        = size - (end_pos - start_pos) - 2*start_pos
+    //        = size - end_pos - start_pos
+
+    auto start_pos = 0;
+    auto end_pos = 0;
     if (!vertices_.empty()) {
       const int32_t kEndPosOffset = 2;
       auto it_start =
@@ -168,38 +190,33 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       auto it_end =
           vertices_.begin() + (glyph_count - 1) * kVerticesPerCodePoint;
       if (layout_direction == kTextLayoutDirectionLTR) {
-        auto start_pos = it_start->position_.data[0];
-        auto end_pos = (it_end + kEndPosOffset)->position_.data[0];
-        line_width = end_pos - start_pos;
+        start_pos = it_start->position_.data[0];
+        end_pos = (it_end + kEndPosOffset)->position_.data[0];
       } else if (layout_direction == kTextLayoutDirectionRTL) {
-        auto start_pos = (it_start + kEndPosOffset)->position_.data[0];
-        auto end_pos = it_end->position_.data[0];
-        line_width = start_pos - end_pos;
+        start_pos = it_end->position_.data[0];
+        end_pos = (it_start + kEndPosOffset)->position_.data[0];
       } else {
         // TTB layout is currently not supported.
         assert(0);
       }
     }
+    auto free_width = parameters.get_size().x - end_pos - start_pos;
 
     if (justify && word_boundary.size() > 1) {
       // With a justification, we add an offset for each word boundary.
       // For each word boundary (e.g. spaces), we stretch them slightly to align
       // both the left and right ends of each line of text.
       boundary_offset_change = static_cast<int32_t>(
-          (parameters.get_size().x - line_width) / (word_boundary.size() - 1));
+          free_width / (word_boundary.size() - 1));
     } else {
       justify = false;
-      offset = parameters.get_size().x - line_width;
       if (align == kTextAlignmentCenter) {
-        offset = offset / 2;  // Centering.
+        offset = free_width / 2;
+      } else {  // kTextAlignmentRight
+        offset = free_width;
       }
     }
 
-    // Flip the value if the text layout is in RTL.
-    if (layout_direction == kTextLayoutDirectionRTL) {
-      offset = -offset;
-      boundary_offset_change = -boundary_offset_change;
-    }
     // Keep original offset value.
     auto offset_caret = offset;
 
