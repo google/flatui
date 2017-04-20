@@ -1484,37 +1484,38 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         auto glyph_scale = static_cast<float>(ysize) / g->bitmap.rows;
         int32_t new_width = static_cast<int32_t>(g->bitmap.width * glyph_scale);
         int32_t new_height = static_cast<int32_t>(g->bitmap.rows * glyph_scale);
-        auto out_buffer = malloc(new_width * new_height * sizeof(uint32_t));
+        std::unique_ptr<uint8_t[]> out_buffer(
+            new uint8_t[new_width * new_height * sizeof(uint32_t)]);
 
         // TODO: Evaluate generating mipmap for a dirty rect and see
         // it would improve performance and produces acceptable quality.
         stbir_resize_uint8(g->bitmap.buffer, g->bitmap.width, g->bitmap.rows, 0,
-                           static_cast<uint8_t *>(out_buffer), new_width,
-                           new_height, 0, sizeof(uint32_t));
+                           out_buffer.get(), new_width, new_height, 0,
+                           sizeof(uint32_t));
 
         if (glyph_cache_->SupportsColorGlyphs()) {
           entry.set_color_glyph(true);
         } else {
           // Copy the color glyph's alpha into the monochrome buffer.  Otherwise
           // this will cause the entire font buffer to fail.
-          auto mono_buffer = malloc(new_width * new_height);
-          const uint32_t* src = reinterpret_cast<const uint32_t*>(out_buffer);
-          uint8_t* dst = reinterpret_cast<uint8_t*>(mono_buffer);
+          std::unique_ptr<uint8_t[]> mono_buffer(
+              new uint8_t[new_width * new_height]);
+          const uint32_t* src =
+              reinterpret_cast<const uint32_t*>(out_buffer.get());
+          uint8_t* dst = mono_buffer.get();
 
           for (int i = 0; i < new_width * new_height; ++i, ++src, ++dst) {
             *dst = static_cast<uint8_t>((*src) >> 24);
           }
 
-          free(out_buffer);
-          out_buffer = mono_buffer;
+          out_buffer = std::move(mono_buffer);
         }
 
         const float kEmojiBaseLine = 0.85f;
         entry.set_offset(vec2i(
             vec2(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine)));
         entry.set_size(vec2i(new_width, new_height));
-        cache = glyph_cache_->Set(out_buffer, key, entry);
-        free(out_buffer);
+        cache = glyph_cache_->Set(out_buffer.get(), key, entry);
       } else {
         entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
         entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
