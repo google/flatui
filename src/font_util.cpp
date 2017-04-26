@@ -77,7 +77,8 @@ static std::string &StartHtmlLine(const char *prefix, std::string *out) {
 // The very first text output we want to trim the leading whitespace.
 // We should also trim if the previous text ends in whitespace.
 static bool ShouldTrimLeadingWhitespace(const std::vector<HtmlSection> &s) {
-  if (s.size() <= 1) return true;
+  if (s.empty()) return true;
+  if (s.back().text().empty() && s.size() < 2) return true;
 
   const std::string &prev_text =
       s.back().text().empty() ? s[s.size() - 2].text() : s.back().text();
@@ -251,6 +252,13 @@ static void GumboTreeToHtmlSections(const GumboNode *node,
     case GUMBO_NODE_TEXT:
       TrimHtmlWhitespace(node->v.text.text, ShouldTrimLeadingWhitespace(*s),
                          &s->back().text());
+      break;
+
+    // Append a single whitespace where appropriate.
+    case GUMBO_NODE_WHITESPACE:
+      if (!ShouldTrimLeadingWhitespace(*s)) {
+        s->back().text().append(" ");
+      }
       break;
 
     // Ignore other node types.
