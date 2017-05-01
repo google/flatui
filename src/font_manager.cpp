@@ -537,6 +537,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   while (word_enum.Advance()) {
     // Set font face index for current word.
     current_font_->SetCurrentFaceIndex(word_enum.GetCurrentFaceIndex());
+    bool layout_success = false;
 
     auto max_width = size.x * kFreeTypeUnit;
     if (!multi_line) {
@@ -544,6 +545,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       // In this mode, it layouts all string into single line.
       max_line_width = static_cast<int32_t>(LayoutText(text, length) * scale) +
                        buffer->get_size().x * kFreeTypeUnit;
+      layout_success = max_line_width > 0;
 
       if (size.x && max_line_width > max_width && !caret_info) {
         // The text size exceeds given size.
@@ -574,6 +576,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
                      last_line, parameters.get_enable_hyphenation_flag(),
                      &rewind) *
           scale);
+      layout_success = word_width > 0;
       if (rewind) {
         // Force a linebreak and rewind some characters for a next line.
         word_enum.Rewind(rewind);
@@ -627,10 +630,12 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       first_character = false;
     }
 
-    // Add string information to the buffer.
-    if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, &pos,
-                      &initial_metrics)) {
-      return nullptr;
+    if (layout_success) {
+      // Add string information to the buffer only if LayoutText succeeded.
+      if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, &pos,
+                        &initial_metrics)) {
+        return nullptr;
+      }
     }
 
     // Add word boundary information.
@@ -1289,7 +1294,10 @@ int32_t FontManager::LayoutText(const char *text, size_t length,
         string_width -=
             static_cast<float>(glyph_pos[i].x_advance) * kerning_scale_;
       }
-      assert(i > 0);
+      // If there is no space for even one letter, don't layout anything.
+      if (i <= 0) {
+        return 0;
+      }
 
       // Calculate # of characters to rewind.
       *rewind = static_cast<int32_t>(length - glyph_info[i].cluster);
