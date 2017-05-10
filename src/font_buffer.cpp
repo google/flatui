@@ -246,15 +246,6 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
         caret_positions_[idx].x += offset_caret;
       }
     }
-
-    // Update underline information if necessary.
-    auto &attr_history = context->attribute_history();
-    if (attr_history.back()->first.get_underline()) {
-      auto index = attr_history.back()->second;
-      slices_[index]
-          .WrapUnderline(static_cast<int32_t>((get_vertices().size() - 1)) /
-                         kVerticesPerGlyph);
-    }
   }
 
   // Update current line information.

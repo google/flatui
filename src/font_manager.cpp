@@ -780,7 +780,7 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       if (buffer->get_slices().at(buffer_idx).get_underline()) {
         buffer->UpdateUnderline(
             buffer_idx, (buffer->get_vertices().size() - 1) / kVerticesPerGlyph,
-            current_font_->GetUnderline(converted_ysize) + vec2i(pos->y, 0));
+            current_font_->GetUnderline(ysize) + vec2i(pos->y, 0));
       }
 
       // Update references if the buffer is ref counting buffer.
