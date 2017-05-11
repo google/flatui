@@ -572,9 +572,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
           total_height + static_cast<int32_t>(line_height) > size.y;
       auto word_width = static_cast<int32_t>(
           LayoutText(text + word_enum.GetCurrentWordIndex(),
-                     word_enum.GetCurrentWordLength(), max_width, line_width_,
-                     last_line, parameters.get_enable_hyphenation_flag(),
-                     &rewind) *
+                     word_enum.GetCurrentWordLength(), max_width / scale,
+                     line_width_ / scale, last_line,
+                     parameters.get_enable_hyphenation_flag(), &rewind) *
           scale);
       layout_success = word_width > 0;
       if (rewind) {
