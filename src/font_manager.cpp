@@ -626,7 +626,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
 
     // Update the first caret position.
     if (caret_info && first_character) {
-      buffer->AddCaretPosition(pos + vec2(0, base_line * scale));
+      buffer->AddCaretPosition(pos + vec2(0, base_line));
       first_character = false;
     }
 
@@ -647,7 +647,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
 
   // Add the last caret.
   if (caret_info) {
-    buffer->AddCaretPosition(pos + vec2(0, base_line * scale));
+    buffer->AddCaretPosition(pos + vec2(0, base_line));
   }
 
   // Update the last line.
@@ -803,13 +803,12 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
                                      static_cast<int32_t>(i));
 
       auto scaled_offset = cache->get_offset().x * scale;
-      float scaled_base_line = base_line * scale;
       // Add caret points
       for (auto caret = 1; caret <= carets; ++caret) {
         buffer->AddCaretPosition(
             *pos + vec2(scaled_offset - pos_advance.x +
                         caret * pos_advance.x / carets,
-                        scaled_base_line));
+                        base_line));
       }
     }
   }
