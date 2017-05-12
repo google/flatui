@@ -1468,6 +1468,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
                              g->bitmap_top + kGlyphCachePaddingSDF));
       entry.set_size(vec2i(g->bitmap.width + kGlyphCachePaddingSDF * 2,
                            g->bitmap.rows + kGlyphCachePaddingSDF * 2));
+      entry.set_advance(vec2i(g->advance.x / kFreeTypeUnit, 0));
       cache = glyph_cache_->Set(nullptr, key, entry);
       if (cache != nullptr) {
         // Generates SDF.
@@ -1488,6 +1489,8 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         auto glyph_scale = static_cast<float>(ysize) / g->bitmap.rows;
         int32_t new_width = static_cast<int32_t>(g->bitmap.width * glyph_scale);
         int32_t new_height = static_cast<int32_t>(g->bitmap.rows * glyph_scale);
+        int32_t new_advance =
+            static_cast<int32_t>(g->advance.x * glyph_scale / kFreeTypeUnit);
         std::unique_ptr<uint8_t[]> out_buffer(
             new uint8_t[new_width * new_height * sizeof(uint32_t)]);
 
@@ -1519,10 +1522,12 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         entry.set_offset(vec2i(
             vec2(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine)));
         entry.set_size(vec2i(new_width, new_height));
+        entry.set_advance(vec2i(new_advance, 0));
         cache = glyph_cache_->Set(out_buffer.get(), key, entry);
       } else {
         entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
         entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
+        entry.set_advance(vec2i(g->advance.x / kFreeTypeUnit, 0));
         cache = glyph_cache_->Set(g->bitmap.buffer, key, entry);
       }
     }

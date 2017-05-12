@@ -98,6 +98,7 @@ void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
   mathfu::vec2 scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
   mathfu::vec2 scaled_size = mathfu::vec2(entry.get_size()) * scale;
+  mathfu::vec2 scaled_advance = mathfu::vec2(entry.get_advance()) * scale;
 
   auto x = rounded_pos.x + scaled_offset.x;
   auto y = rounded_pos.y + base_line - scaled_offset.y;
@@ -107,6 +108,9 @@ void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
   vertices_.push_back(FontVertex(x + scaled_size.x, y, 0.0f, uv.z, uv.y));
   vertices_.push_back(
       FontVertex(x + scaled_size.x, y + scaled_size.y, 0.0f, uv.z, uv.w));
+
+  last_pos_ = mathfu::vec2(rounded_pos.x, rounded_pos.y);
+  last_advance_ = last_pos_ + scaled_advance;
 }
 
 void FontBuffer::UpdateUV(int32_t index, const mathfu::vec4 &uv) {
@@ -184,17 +188,15 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     auto start_pos = 0;
     auto end_pos = 0;
     if (!vertices_.empty()) {
-      const int32_t kEndPosOffset = 2;
-      auto it_start =
-          vertices_.begin() + line_start_index * kVerticesPerCodePoint;
-      auto it_end =
-          vertices_.begin() + (glyph_count - 1) * kVerticesPerCodePoint;
+      // Do not use vertices' positions, use the position and advance of the
+      // glyph layout to match font's intended alignments to remove bias from
+      // offsets and SDF in the glyph.
       if (layout_direction == kTextLayoutDirectionLTR) {
-        start_pos = it_start->position_.data[0];
-        end_pos = (it_end + kEndPosOffset)->position_.data[0];
+        start_pos = 0;
+        end_pos = last_advance_.x;
       } else if (layout_direction == kTextLayoutDirectionRTL) {
-        start_pos = it_end->position_.data[0];
-        end_pos = (it_start + kEndPosOffset)->position_.data[0];
+        start_pos = last_pos_.x;
+        end_pos = parameters.get_size().x;
       } else {
         // TTB layout is currently not supported.
         assert(0);
@@ -212,9 +214,9 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       justify = false;
       if (align == kTextAlignmentCenter) {
         offset = free_width / 2;
-      } else {  // kTextAlignmentRight
+      } else if (align == kTextAlignmentRight) {
         offset = free_width;
-      }
+      } // kTextAlignmentLeft has no offset.
     }
 
     // Keep original offset value.
