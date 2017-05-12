@@ -720,15 +720,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
   auto glyph_info = hb_buffer_get_glyph_infos(harfbuzz_buf_, &glyph_count);
   auto glyph_pos = hb_buffer_get_glyph_positions(harfbuzz_buf_, &glyph_count);
 
-  auto idx = 0;
-  auto idx_advance = 1;
-  if (layout_direction_ == kTextLayoutDirectionRTL) {
-    idx = glyph_count - 1;
-    idx_advance = -1;
-  }
-
-  for (size_t i = 0; i < glyph_count; ++i, idx += idx_advance) {
-    auto code_point = glyph_info[idx].codepoint;
+  for (size_t i = 0; i < glyph_count; ++i) {
+    auto code_point = glyph_info[i].codepoint;
     if (!code_point) {
       continue;
     }
@@ -742,8 +735,8 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
 
     mathfu::vec2 pos_advance =
         mathfu::vec2(
-            static_cast<float>(glyph_pos[idx].x_advance) * kerning_scale_,
-            static_cast<float>(-glyph_pos[idx].y_advance)) *
+            static_cast<float>(glyph_pos[i].x_advance) * kerning_scale_,
+            static_cast<float>(-glyph_pos[i].y_advance)) *
         scale / static_cast<float>(kFreeTypeUnit);
     // Advance positions before rendering in RTL.
     if (layout_direction_ == kTextLayoutDirectionRTL) {
@@ -807,15 +800,15 @@ bool FontManager::UpdateBuffer(const WordEnumerator &word_enum,
       // for the issue.
       auto carets = GetCaretPosCount(word_enum, glyph_info,
                                      static_cast<int32_t>(glyph_count),
-                                     static_cast<int32_t>(idx));
+                                     static_cast<int32_t>(i));
 
       auto scaled_offset = cache->get_offset().x * scale;
       float scaled_base_line = base_line * scale;
       // Add caret points
       for (auto caret = 1; caret <= carets; ++caret) {
         buffer->AddCaretPosition(
-            *pos + vec2(idx_advance * (scaled_offset - pos_advance.x +
-                                       caret * pos_advance.x / carets),
+            *pos + vec2(scaled_offset - pos_advance.x +
+                        caret * pos_advance.x / carets,
                         scaled_base_line));
       }
     }
@@ -1268,6 +1261,9 @@ int32_t FontManager::LayoutText(const char *text, size_t length,
   hb_buffer_add_utf8(harfbuzz_buf_, text, static_cast<uint32_t>(length), 0,
                      static_cast<int32_t>(length));
   hb_shape(current_font_->GetHbFont(), harfbuzz_buf_, nullptr, 0);
+  if (layout_direction_ == kTextLayoutDirectionRTL) {
+    hb_buffer_reverse(harfbuzz_buf_);
+  }
 
   // Retrieve layout info.
   uint32_t glyph_count;
