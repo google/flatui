@@ -334,7 +334,7 @@ FontBuffer *FontManager::GetHtmlBuffer(const char *html,
   ctx.set_original_font_size(parameters.get_font_size());
   ctx.set_current_font_size(parameters.get_font_size());
 
-  mathfu::vec2 pos = mathfu::kZeros2f;
+  mathfu::vec2 pos = GetStartPosition(parameters);
   FontBuffer *buffer = CreateBuffer("", 0, parameters, &pos);
   if (buffer == nullptr) {
     fplbase::LogError("Failed to create buffer.");
@@ -397,6 +397,16 @@ FontBuffer *FontManager::FindBuffer(const FontBufferParameters &parameters) {
   return nullptr;
 }
 
+mathfu::vec2 FontManager::GetStartPosition(
+      const FontBufferParameters &parameters) const {
+  float x_start = 0;
+  if (layout_direction_ == kTextLayoutDirectionRTL) {
+    // In RTL layout, the glyph position starts from right.
+    x_start = static_cast<float>(parameters.get_size().x);
+  }
+  return mathfu::vec2(x_start, 0);
+}
+
 FontBuffer *FontManager::CreateBuffer(const char *text, uint32_t length,
                                       const FontBufferParameters &parameters,
                                       mathfu::vec2 *text_pos) {
@@ -449,7 +459,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
                                     const FontBufferParameters &parameters,
                                     FontBuffer *buffer,
                                     FontBufferContext *context,
-                                    mathfu::vec2 *pos_offset) {
+                                    mathfu::vec2 *text_pos) {
   auto size = parameters.get_size();
   auto multi_line = parameters.get_multi_line_setting();
   auto caret_info = parameters.get_caret_info_flag();
@@ -494,7 +504,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   WordEnumerator word_enum(wordbreak_info_, fontface_index_, multi_line);
 
   // Initialize font metrics parameters.
-  int32_t max_line_width = parameters.get_line_length();
+  int32_t max_line_width = 0;
   // Height calculation needs to use ysize before conversion.
   int32_t total_height = ysize;
   bool first_character = true;
@@ -517,20 +527,18 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     if (context->current_font_size() != ysize) {
       // Adjust glyph positions in current line?
       auto offset = buffer->AdjustCurrentLine(parameters, context);
-      pos_offset->y += offset;
+      if (text_pos != nullptr) {
+        text_pos->y += offset;
+      }
       context->set_current_font_size(ysize);
     }
   }
 
   // Set up positions.
-  float pos_start = 0;
-  if (layout_direction_ == kTextLayoutDirectionRTL) {
-    // In RTL layout, the glyph position start from right.
-    pos_start = static_cast<float>(size.x);
-  }
-  mathfu::vec2 pos = vec2(pos_start, 0);
-  if (pos_offset != nullptr) {
-    pos += *pos_offset;
+  const mathfu::vec2 pos_start = GetStartPosition(parameters);
+  mathfu::vec2 pos = pos_start;
+  if (text_pos != nullptr) {
+    pos = *text_pos;
   }
 
   // Find words and layout them.
@@ -543,9 +551,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     if (!multi_line) {
       // Single line text.
       // In this mode, it layouts all string into single line.
-      max_line_width = static_cast<int32_t>(LayoutText(text, length) * scale) +
-                       buffer->get_size().x * kFreeTypeUnit;
-      layout_success = max_line_width > 0;
+      auto word_width = static_cast<int32_t>(LayoutText(text, length) * scale);
+      max_line_width = word_width + buffer->get_size().x * kFreeTypeUnit;
+      layout_success = word_width > 0;
 
       if (size.x && max_line_width > max_width && !caret_info) {
         // The text size exceeds given size.
@@ -553,6 +561,15 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
         if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
                             &pos, &initial_metrics)) {
           return nullptr;
+        }
+
+        // Shrink the max_line_width after rewinding and adding ellipsis.
+        if (ellipsis_.length()) {
+          if (layout_direction_ == kTextLayoutDirectionRTL) {
+            max_line_width = (pos_start.x - pos.x) * kFreeTypeUnit;
+          } else {
+            max_line_width = pos.x * kFreeTypeUnit;
+          }
         }
       }
 
@@ -584,8 +601,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
 
       if (context->lastline_must_break() ||
           ((line_width_ + word_width) > max_width && size.x)) {
-        auto new_pos = vec2(pos_start, pos.y + line_height);
-        total_height += static_cast<int32_t>(line_height);
+        auto new_pos = vec2(pos_start.x, pos.y + line_height);
         first_character = context->lastline_must_break();
         if (last_line && !caret_info) {
           // The text size exceeds given size.
@@ -601,6 +617,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
           break;
         }
         // Line break.
+        total_height += static_cast<int32_t>(line_height);
         buffer->UpdateLine(parameters, layout_direction_, context);
         pos = new_pos;
 
@@ -666,8 +683,8 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   buffer->set_metrics(initial_metrics);
 
   // Return the position.
-  if (pos_offset != nullptr) {
-    *pos_offset = pos;
+  if (text_pos != nullptr) {
+    *text_pos = pos;
   }
 
   return buffer;
@@ -828,6 +845,9 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   }
 
   auto max_width = parameters.get_size().x * kFreeTypeUnit;
+  auto ysize = static_cast<int32_t>(parameters.get_font_size());
+  auto converted_ysize = ConvertSize(ysize);
+  float scale = ysize / static_cast<float>(converted_ysize);
 
   // Dump current string to the buffer.
   if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, pos,
@@ -837,7 +857,8 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
 
   // Calculate ellipsis string information.
   hb_buffer_clear_contents(harfbuzz_buf_);
-  auto ellipsis_width = LayoutText(ellipsis_.c_str(), ellipsis_.length());
+  auto ellipsis_width = LayoutText(ellipsis_.c_str(), ellipsis_.length()) *
+                        scale;
   if (ellipsis_width > max_width) {
     LogInfo("The ellipsis string width exceeded the given line width.\n");
     ellipsis_width = max_width;
@@ -859,15 +880,47 @@ bool FontManager::AppendEllipsis(const WordEnumerator &word_enum,
   return true;
 }
 
+bool FontManager::NeedToRemoveEntries(const FontBufferParameters &parameters,
+                                      uint32_t required_width,
+                                      const FontBuffer *buffer,
+                                      size_t entry_index) const {
+  const auto pos_start = GetStartPosition(parameters);
+  const auto &vertices = buffer->get_vertices();
+
+  // entry_index starts 1 past the index of the last glyph.
+  auto vert_index = 0u;
+  // We want to get the farthest vertex from the origin.
+  if (layout_direction_ == kTextLayoutDirectionRTL) {
+    // Get the last glyph's left edge.
+    vert_index = entry_index * kVerticesPerGlyph - 3;
+  } else {
+    // Get the last glyph's right edge.
+    vert_index = entry_index * kVerticesPerGlyph - 1;
+  }
+
+  const auto x = vertices.at(vert_index).position_.data[0];
+  auto width = 0.f;
+  // Width needs to be (more positive x value - less positive x value).
+  if (layout_direction_ == kTextLayoutDirectionRTL) {
+    // Width of RTL is counted backwards from the pos_start.
+    width = pos_start.x - x;
+  } else {
+    // Width of LTR is x - 0, or just x.
+    width = x;
+  }
+
+  const auto max_width = parameters.get_size().x;
+  return max_width - width < required_width / kFreeTypeUnit;
+}
+
 void FontManager::RemoveEntries(const FontBufferParameters &parameters,
                                 uint32_t required_width, FontBuffer *buffer,
                                 FontBufferContext *context, mathfu::vec2 *pos) {
-  auto max_width = parameters.get_size().x;
-
   // Determine how many letters to remove.
   const int32_t kLastElementIndex = -2;
   auto &vertices = buffer->get_vertices();
-  auto vert_index = vertices.size() - 1;
+  // entry_index starts 1 past the index of the last glyph.
+  auto entry_index = vertices.size() / kVerticesPerGlyph;
 
   // Remove words when the eliminate mode if per word basis.
   if (ellipsis_mode_ == kEllipsisModeTruncateWord &&
@@ -875,22 +928,19 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     auto it = context->word_boundary().rbegin();
     auto end = context->word_boundary().rend();
     do {
-      vert_index = *it * kVerticesPerGlyph - 1;
+      entry_index = *it;
     } while (++it != end &&
-             max_width - vertices.at(vert_index).position_.data[0] <
-                 required_width / kFreeTypeUnit);
+        NeedToRemoveEntries(parameters, required_width, buffer, entry_index));
   }
 
   // Remove characters.
-  while (max_width - vertices.at(vert_index).position_.data[0] <
-             required_width / kFreeTypeUnit &&
-         vert_index >= kVerticesPerGlyph) {
-    vert_index -= kVerticesPerGlyph;
+  while (entry_index > 0 &&
+         NeedToRemoveEntries(parameters, required_width, buffer, entry_index)) {
+    --entry_index;
   }
 
   auto entries_to_remove =
-      static_cast<int32_t>(vertices.size() - 1 - vert_index) /
-      kVerticesPerGlyph;
+      static_cast<int32_t>(vertices.size() / kVerticesPerGlyph - entry_index);
   auto removing_index =
       static_cast<int32_t>(vertices.size()) + kLastElementIndex;
   auto latest_attribute = context->attribute_history().back();
@@ -919,7 +969,14 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
 
     // Keep the x position of removed glyph and use it for a start of the
     // ellipsis string.
-    pos->x = (buffer->vertices_.end() - 3)->position_.data[0];
+    if (layout_direction_ == kTextLayoutDirectionRTL) {
+      // Get the right edge of the glyph because that's closest to the
+      // remaining glyphs in RTL.
+      pos->x = (buffer->vertices_.end() - 1)->position_.data[0];
+    } else {
+      // In LTR the left edge is closest to the remaining glyphs.
+      pos->x = (buffer->vertices_.end() - 3)->position_.data[0];
+    }
 
     // Remove vertices.
     for (size_t j = 0; j < kVerticesPerGlyph; ++j) {
@@ -930,9 +987,16 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
   // Position ellipsis a bit closer to the last character.
   if (ellipsis_mode_ == kEllipsisModeTruncateWord) {
     const float kSpacingBeforeEllipsis = 0.5f;
-    pos->x = pos->x -
-             (pos->x - buffer->vertices_.back().position_.data[0]) *
-                 kSpacingBeforeEllipsis;
+    float last_x = pos->x;
+    if (layout_direction_ == kTextLayoutDirectionRTL) {
+      // Get the left edge of the last glyph because that's farthest edge in
+      // RTL.
+      last_x = (buffer->vertices_.end() - 3)->position_.data[0];
+    } else {
+      // In LTR the right edge is the farthest.
+      last_x = (buffer->vertices_.end() - 1)->position_.data[0];
+    }
+    pos->x = pos->x - (pos->x - last_x) * kSpacingBeforeEllipsis;
   }
 }
 

@@ -315,7 +315,8 @@ static size_t NumUnderlineVertices(const FontBuffer &buffer) {
 }
 
 std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
-                                                   const mathfu::vec2 &pos) {
+                                                   const mathfu::vec2 &pos,
+                                                   bool reverse) {
   std::vector<vec3_packed> vec;
   auto num_verts = NumUnderlineVertices(buffer);
   if (!num_verts) {
@@ -333,18 +334,26 @@ std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
         auto info = regions[i];
         auto y_start = info.y_pos_.x + pos.y;
         auto y_end = y_start + info.y_pos_.y;
+        int start_vertex_index = info.start_vertex_index_;
+        int end_vertex_index = info.end_vertex_index_;
+        const int index_count = end_vertex_index - start_vertex_index;
+        int index_direction = 1;
+        if (reverse) {
+          std::swap(start_vertex_index, end_vertex_index);
+          index_direction = -1;
+        }
 
         if (degenerated_triangle) {
           // Add degenerated triangle to connect multiple strips.
-          auto start_pos = vec3(vertices.at(info.start_vertex_index_ *
+          auto start_pos = vec3(vertices.at(start_vertex_index *
                                             kVerticesPerGlyph).position_);
           vec.push_back(vec.back());
           vec.push_back(vec3_packed(vec3(start_pos.x + pos.x, y_start, 0.f)));
         }
 
         // Add vertices.
-        for (auto idx = info.start_vertex_index_; idx <= info.end_vertex_index_;
-             ++idx) {
+        for (int i = 0; i <= index_count; ++i) {
+          int idx = start_vertex_index + i * index_direction;
           auto strip_pos = vec3(vertices.at(idx * kVerticesPerGlyph).position_);
           vec.push_back(vec3_packed(vec3(strip_pos.x + pos.x, y_start, 0.f)));
           vec.push_back(vec3_packed(vec3(strip_pos.x + pos.x, y_end, 0.f)));
@@ -352,7 +361,7 @@ std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
 
         // Add last 2 vertices.
         auto end_pos =
-            vec3(vertices.at(info.end_vertex_index_ * kVerticesPerGlyph +
+            vec3(vertices.at(end_vertex_index * kVerticesPerGlyph +
                              kVerticesPerGlyph - 1).position_);
         vec.push_back(vec3_packed(vec3(end_pos.x + pos.x, y_start, 0.f)));
         vec.push_back(vec3_packed(vec3(end_pos.x + pos.x, y_end, 0.f)));
