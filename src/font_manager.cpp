@@ -600,12 +600,18 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       }
 
       if (context->lastline_must_break() ||
-          ((line_width_ + word_width) > max_width && size.x)) {
+          ((line_width_ + word_width) > max_width && size.x) ||
+          !layout_success) {
         auto new_pos = vec2(pos_start.x, pos.y + line_height);
         first_character = context->lastline_must_break();
         if (last_line && !caret_info) {
-          // The text size exceeds given size.
-          // Rewind the buffers and add an ellipsis if it's speficied.
+          if (context->lastline_must_break()) {
+            // Previous line was a line break and also the last_line, so don't
+            // print this text that was supposed to go on the last+1 line.
+            hb_buffer_clear_contents(harfbuzz_buf_);
+          }
+          // Else the text width exceeds given width, so still print the text on
+          // the same line and add an ellipsis if it's speficied.
           if (!AppendEllipsis(word_enum, parameters, base_line, buffer, context,
                               &pos, &initial_metrics)) {
             return nullptr;
@@ -647,12 +653,9 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       first_character = false;
     }
 
-    if (layout_success) {
-      // Add string information to the buffer only if LayoutText succeeded.
-      if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, &pos,
-                        &initial_metrics)) {
-        return nullptr;
-      }
+    if (!UpdateBuffer(word_enum, parameters, base_line, buffer, context, &pos,
+                      &initial_metrics)) {
+      return nullptr;
     }
 
     // Add word boundary information.
@@ -884,6 +887,11 @@ bool FontManager::NeedToRemoveEntries(const FontBufferParameters &parameters,
                                       uint32_t required_width,
                                       const FontBuffer *buffer,
                                       size_t entry_index) const {
+  // Only remove entries from the last line.
+  if (entry_index <= buffer->line_start_indices_.back()) {
+    return false;
+  }
+
   const auto pos_start = GetStartPosition(parameters);
   const auto &vertices = buffer->get_vertices();
 
@@ -892,10 +900,10 @@ bool FontManager::NeedToRemoveEntries(const FontBufferParameters &parameters,
   // We want to get the farthest vertex from the origin.
   if (layout_direction_ == kTextLayoutDirectionRTL) {
     // Get the last glyph's left edge.
-    vert_index = entry_index * kVerticesPerGlyph - 3;
+    vert_index = entry_index * kVerticesPerGlyph + kVertexOfLeftEdge;
   } else {
     // Get the last glyph's right edge.
-    vert_index = entry_index * kVerticesPerGlyph - 1;
+    vert_index = entry_index * kVerticesPerGlyph + kVertexOfRightEdge;
   }
 
   const auto x = vertices.at(vert_index).position_.data[0];
@@ -945,8 +953,10 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
       static_cast<int32_t>(vertices.size()) + kLastElementIndex;
   auto latest_attribute = context->attribute_history().back();
 
-  assert(entries_to_remove >= 0 && removing_index >= 0);
-  while (entries_to_remove--) {
+  if (removing_index <= 0) {
+    return;
+  }
+  while (entries_to_remove-- > 0) {
     // Remove indices.
     auto buffer_idx = latest_attribute->second;
     auto &indices = buffer->get_indices(buffer_idx);
@@ -972,10 +982,10 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     if (layout_direction_ == kTextLayoutDirectionRTL) {
       // Get the right edge of the glyph because that's closest to the
       // remaining glyphs in RTL.
-      pos->x = (buffer->vertices_.end() - 1)->position_.data[0];
+      pos->x = (buffer->vertices_.end() + kVertexOfRightEdge)->position_.data[0];
     } else {
       // In LTR the left edge is closest to the remaining glyphs.
-      pos->x = (buffer->vertices_.end() - 3)->position_.data[0];
+      pos->x = (buffer->vertices_.end() + kVertexOfLeftEdge)->position_.data[0];
     }
 
     // Remove vertices.
@@ -991,10 +1001,10 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     if (layout_direction_ == kTextLayoutDirectionRTL) {
       // Get the left edge of the last glyph because that's farthest edge in
       // RTL.
-      last_x = (buffer->vertices_.end() - 3)->position_.data[0];
+      last_x = (buffer->vertices_.end() + kVertexOfLeftEdge)->position_.data[0];
     } else {
       // In LTR the right edge is the farthest.
-      last_x = (buffer->vertices_.end() - 1)->position_.data[0];
+      last_x = (buffer->vertices_.end() + kVertexOfRightEdge)->position_.data[0];
     }
     pos->x = pos->x - (pos->x - last_x) * kSpacingBeforeEllipsis;
   }
@@ -1353,8 +1363,11 @@ int32_t FontManager::LayoutText(const char *text, size_t length,
         string_width -=
             static_cast<float>(glyph_pos[i].x_advance) * kerning_scale_;
       }
-      // If there is no space for even one letter, don't layout anything.
       if (i <= 0) {
+        // If there is no space for even one letter, don't render anything.
+        hb_buffer_set_length(harfbuzz_buf_, 0);
+        // But, still progress past that one letter to prevent infinite looping.
+        *rewind = static_cast<int32_t>(length - 1);
         return 0;
       }
 

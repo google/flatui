@@ -65,6 +65,13 @@ struct ScriptInfo;
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
 
+/// @var kIndexOfLeftEdge/kIndexOfRightEdge
+///
+/// @brief The offset to the index of a vertex for the previous glyph's
+/// left or right edge in a font_buffer.
+const int32_t kVertexOfLeftEdge = -3;
+const int32_t kVertexOfRightEdge = -1;
+
 /// @var kGlyphCacheWidth
 ///
 /// @brief The default size of the glyph cache width.
