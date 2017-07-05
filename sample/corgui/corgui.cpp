@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <cassert>
 #include <sstream>
 
@@ -137,22 +138,28 @@ static const vec4 kTextColors[] = {
     vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(0.87f, 0.52f, 0.54f, 1.0f),
     vec4(0.0f, 1.0f, 0.0f, 1.0f), vec4(0.0f, 1.0f, 1.0f, 1.0f),
 };
-static const char *kCorgiTextureNames[] = {
-    "textures/corgi_bg.webp",          // kCorgiTextureBackground
-    "textures/corgi_happy.webp",       // kCorgiTextureHappyHead
-    "textures/corgi_neutral.webp",     // kCorgiTextureNeutralHead
-    "textures/corgi_horn.webp",        // kCorgiTextureHorn
-    "textures/corgi_body.webp",        // kCorgiTextureCorgiBody
-    "textures/corgi_wings.webp",       // kCorgiTextureWings
-    "textures/heart_icon.webp",        // kCorgiTextureHeartIcon
-    "textures/corgi_shadow.webp",      // kCorgiTextureShadow
-    "textures/scrolling_clouds.webp",  // kCorgiTextureClouds
+
+struct corgi_texture_package {
+  const char *textureName;
+  bool usesAlpha;
 };
+
+static const corgi_texture_package kCorgiTexturePackages[] = {
+    {"textures/corgi_bg.webp", false},
+    {"textures/corgi_happy.webp", true},
+    {"textures/corgi_neutral.webp", true},
+    {"textures/corgi_horn.webp", true},
+    {"textures/corgi_body.webp", true},
+    {"textures/corgi_wings.webp", true},
+    {"textures/heart_icon.webp", true},
+    {"textures/corgi_shadow.webp", true},
+    {"textures/scrolling_clouds.webp", true}};
+
 static const float kSpriteXStartPositions[] = {
     30.0f, 140.0f, 60.0f, 100.0f, 80.0f,
 };
 static const char kFontPath[] = "fonts/LuckiestGuy.ttf";
-static_assert(FPL_ARRAYSIZE(kCorgiTextureNames) == kCorgiTextureCount,
+static_assert(FPL_ARRAYSIZE(kCorgiTexturePackages) == kCorgiTextureCount,
               "kCorgiTextureNames not consistent with CorgiTexture enum");
 
 // Struct to hold the state of the game.
@@ -209,9 +216,14 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
 
   // Load up the textures that will be used by the demo.
   const fplbase::Texture *corgi_textures[kCorgiTextureCount];
+
   for (int i = 0; i < kCorgiTextureCount; ++i) {
-    corgi_textures[i] = assetman.LoadTexture(kCorgiTextureNames[i]);
+    corgi_textures[i] = assetman.LoadTexture(
+        kCorgiTexturePackages[i].textureName,
+        kCorgiTexturePackages[i].usesAlpha ? fplbase::kFormat8888
+                                             : fplbase::kFormatAuto);
   }
+
   assetman.StartLoadingTextures();
 
   while (!(input.exit_requested())) {

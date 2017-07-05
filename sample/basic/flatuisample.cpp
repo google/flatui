@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cassert>
+
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
 #include "fplbase/utilities.h"
 #include "flatui/flatui.h"
-#include <cassert>
 
 using flatui::Run;
 using flatui::EndGroup;
@@ -47,7 +48,8 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fontman.Open("fonts/NotoSansCJKjp-Bold.otf");
 
   // Load textures.
-  auto tex_about = assetman.LoadTexture("textures/text_about.webp");
+  auto tex_about =
+      assetman.LoadTexture("textures/text_about.webp", fplbase::kFormat8888);
   assetman.StartLoadingTextures();
 
   // While an initialization of flatui, it implicitly loads shaders used in the
