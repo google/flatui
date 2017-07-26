@@ -785,7 +785,7 @@ class InternalState : public LayoutManager {
         // Wheel scroll
         if (mathfu::InRange2D(pointer_pos_[0], position_, position_ + psize)) {
           pointer_delta = input_.mousewheel_delta();
-          scroll_speed = static_cast<int32_t>(-scroll_speed_wheel_);
+          scroll_speed = static_cast<int32_t>(scroll_speed_wheel_);
         }
       }
 
