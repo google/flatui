@@ -169,7 +169,8 @@ class GlyphCacheEntry {
   typedef std::list<GlyphCacheRow>::iterator iterator_row;
 
   GlyphCacheEntry()
-      : code_point_(0), size_(0, 0), offset_(0, 0), color_glyph_(false) {}
+      : code_point_(0), size_(0, 0), offset_(0, 0), advance_(0, 0),
+        color_glyph_(false) {}
 
   // Setter/Getter of code point.
   // Code point is an entry in a font file, not a direct transform of Unicode.
@@ -183,6 +184,10 @@ class GlyphCacheEntry {
   // Setter/Getter of cache entry offset.
   mathfu::vec2i get_offset() const { return offset_; }
   void set_offset(const mathfu::vec2i &offset) { offset_ = offset; }
+
+  // Setter/Getter of cache entry advance.
+  mathfu::vec2i get_advance() const { return advance_; }
+  void set_advance(const mathfu::vec2i &advance) { advance_ = advance; }
 
   // Setter/Getter of the cache entry position.
   mathfu::vec3i get_pos() const { return pos_; }
@@ -215,6 +220,9 @@ class GlyphCacheEntry {
 
   // Glyph image's offset value relative to font metrics origin.
   mathfu::vec2i offset_;
+
+  // Glyph image's advance value relative to font metrics origin.
+  mathfu::vec2i advance_;
 
   // Glyph image's UV in the texture atlas.
   mathfu::vec4 uv_;
@@ -384,7 +392,7 @@ class GlyphCacheBufferBase {
 
   virtual void Initialize(GlyphCache *cache, const mathfu::vec2i &size,
                           int32_t max_slices);
-  const mathfu::vec2i &get_size() { return size_; }
+  const mathfu::vec2i &get_size() const { return size_; }
 
   bool FindRow(int32_t req_width, int32_t req_height,
                GlyphCacheEntry::iterator_row *it_found);
@@ -408,7 +416,7 @@ class GlyphCacheBufferBase {
   // Getter/Setter of dirty state.
   bool get_dirty_state() const {
     return dirty_;
-  };
+  }
   void set_dirty_state(bool dirty) { dirty_ = dirty; }
 
   // Virtual functions to retrieve buffer parameters.
@@ -687,6 +695,8 @@ class GlyphCache {
 
   // Enable color glyph cache in the cache.
   void EnableColorGlyph();
+
+  bool SupportsColorGlyphs() const { return color_buffers_.get_size().x > 0; }
 
   // Getter of allocated glyph cache.
   GlyphCacheBuffer<uint8_t> *get_monochrome_buffer() { return &buffers_; }

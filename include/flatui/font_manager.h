@@ -65,6 +65,13 @@ struct ScriptInfo;
 const int32_t kVerticesPerGlyph = 4;
 const int32_t kIndicesPerGlyph = 6;
 
+/// @var kIndexOfLeftEdge/kIndexOfRightEdge
+///
+/// @brief The offset to the index of a vertex for the previous glyph's
+/// left or right edge in a font_buffer.
+const int32_t kVertexOfLeftEdge = -3;
+const int32_t kVertexOfRightEdge = -1;
+
 /// @var kGlyphCacheWidth
 ///
 /// @brief The default size of the glyph cache width.
@@ -440,6 +447,11 @@ class FontManager {
                     FontBuffer *buffer, FontBufferContext *context,
                     mathfu::vec2 *pos, FontMetrics *metrics);
 
+  // Helper function to determine how many entries to remove from the buffer.
+  bool NeedToRemoveEntries(const FontBufferParameters &parameters,
+                           uint32_t required_width, const FontBuffer *buffer,
+                           size_t entry_index) const;
+
   // Helper function to remove entries from the buffer for specified width.
   void RemoveEntries(const FontBufferParameters &parameters,
                      uint32_t required_width, FontBuffer *buffer,
@@ -492,6 +504,10 @@ class FontManager {
   int32_t GetCaretPosCount(const WordEnumerator &enumerator,
                            const hb_glyph_info_t *info, int32_t glyph_count,
                            int32_t index);
+
+  // The start position is different depending on LTR or RTL
+  // TextLayoutDirection.
+  mathfu::vec2 GetStartPosition(const FontBufferParameters &parameters) const;
 
   // Create FontBuffer with requested parameters.
   // The function may return nullptr if the glyph cache is full.
@@ -696,8 +712,8 @@ class FontShader {
     clipping_ = shader->FindUniform("clipping");
     threshold_ = shader->FindUniform("threshold");
   }
-  void set_renderer(const fplbase::Renderer &renderer) {
-    shader_->Set(renderer);
+  void set_renderer(fplbase::Renderer *renderer) {
+    renderer->SetShader(shader_);
   }
 
   void set_position_offset(const mathfu::vec3 &vec) {

@@ -16,9 +16,8 @@ LOCAL_PATH:=$(call my-dir)
 
 # Project directory relative to this file.
 FLATUI_RELATIVE_DIR:=../../..
-FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
+FLATUI_DIR:=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
 include $(FLATUI_DIR)/jni/android_config.mk
-FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
 FLATUI_RELATIVEPATH:=$(call realpath-portable,$(FLATUI_DIR))
 
 # realpath-portable from android_config.mk
@@ -62,12 +61,12 @@ LOCAL_ARM_MODE := arm
 LOCAL_SRC_FILES := $(FREETYPE_SRC_FILES)
 LOCAL_C_INCLUDES += $(DEPENDENCIES_FREETYPE_DIR)/include\
   $(DEPENDENCIES_HARFBUZZ_DIR)/src\
-  $(FLATUI_ABSPATH)/external/include/harfbuzz\
-  $(FLATUI_ABSPATH)/src/libpng_to_stbimage\
+  $(FLATUI_DIR)/external/include/harfbuzz\
+  $(FLATUI_DIR)/src/libpng_to_stbimage\
   $(DEPENDENCIES_STB_DIR)
 LOCAL_CFLAGS += \
   -DFT2_BUILD_LIBRARY \
-  -DFT_CONFIG_MODULES_H=\"$(FLATUI_ABSPATH)/cmake/freetype/ftmodule.h\"\
+  -DFT_CONFIG_MODULES_H=\"$(FLATUI_DIR)/cmake/freetype/ftmodule.h\"\
   -DFT_CONFIG_OPTION_USE_PNG \
   -DFT_CONFIG_OPTION_USE_HARFBUZZ
 LOCAL_MODULE := libfreetype

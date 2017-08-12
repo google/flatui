@@ -12,7 +12,9 @@ need to build [FlatUI][] for [OS X]:
 
 # Prerequisites
 
-   * Install [Xcode][].
+   * Install [Xcode][]. Even if building on the command line, you should open
+     Xcode at least once to accept the end user license agreement. Otherwise,
+     command line builds will not run.
    * Install [CMake][].
 
 # Building with Xcode
@@ -48,15 +50,15 @@ To build:
 
    * Open a command line window.
    * Go to the [FlatUI][] project directory.
-   * Use [CMake][] to generate the makefiles.
+   * Use [CMake][] to generate the Unix makefiles.
    * Run make.
 
 For example:
 
 ~~~{.sh}
     cd flatui
-    cmake -G "Xcode" .
-    xcodebuild
+    cmake .
+    make -j20
 ~~~
 
 <br>

@@ -19,6 +19,7 @@
 #include "flatui/internal/flatui_util.h"
 #include "flatui/internal/hb_complex_font.h"
 #include "flatui/internal/micro_edit.h"
+#include "fplbase/render_utils.h"
 #include "fplbase/utilities.h"
 #include "motive/engine.h"
 #include "motive/init.h"
@@ -285,9 +286,9 @@ class InternalState : public LayoutManager {
   void RenderQuad(Shader *sh, const vec4 &color, const vec2i &pos,
                   const vec2i &size, const vec4 &uv) {
     renderer_.set_color(color);
-    sh->Set(renderer_);
-    Mesh::RenderAAQuadAlongX(vec3(vec2(pos), 0), vec3(vec2(pos + size), 0),
-                             uv.xy(), uv.zw());
+    renderer_.SetShader(sh);
+    fplbase::RenderAAQuadAlongX(vec3(vec2(pos), 0), vec3(vec2(pos + size), 0),
+                                uv.xy(), uv.zw());
   }
 
   void RenderQuad(Shader *sh, const vec4 &color, const vec2i &pos,
@@ -567,7 +568,7 @@ class InternalState : public LayoutManager {
         if (shader_type == kFontShaderTypeColor && render_outer_color) continue;
 
         current_shader = &font_shaders_[shader_type][clipping ? 1 : 0];
-        current_shader->set_renderer(renderer_);
+        current_shader->set_renderer(&renderer_);
 
         // Set shader specific parameters.
         color = text_color_;
@@ -604,7 +605,7 @@ class InternalState : public LayoutManager {
           fplbase::kPosition3f, fplbase::kTexCoord2f, fplbase::kEND};
       auto &indices = buffer.get_indices(static_cast<int32_t>(i));
       if (!indices.empty()) {
-        Mesh::RenderArray(
+        RenderArray(
             Mesh::kTriangles, static_cast<int>(indices.size()), kFormat,
             sizeof(FontVertex),
             reinterpret_cast<const char *>(buffer.get_vertices().data()),
@@ -718,10 +719,10 @@ class InternalState : public LayoutManager {
     if (!layout_pass_) {
       tex.Set(0);
       renderer_.set_color(mathfu::kOnes4f);
-      image_shader_->Set(renderer_);
-      Mesh::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
-                                        vec3(vec2(pos + size), 0), tex.size(),
-                                        patch_info);
+      renderer_.SetShader(image_shader_);
+      fplbase::RenderAAQuadAlongXNinePatch(vec3(vec2(pos), 0),
+                                           vec3(vec2(pos + size), 0),
+                                           tex.size(), patch_info);
     }
   }
 

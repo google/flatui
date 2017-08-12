@@ -849,6 +849,8 @@ class FontBuffer {
   /// @brief The default constructor for a FontBuffer.
   FontBuffer()
       : size_(mathfu::kZeros2i),
+        last_pos_(mathfu::kZeros2f),
+        last_advance_(mathfu::kZeros2f),
         revision_(0),
         ref_count_(0),
         has_ellipsis_(false),
@@ -870,6 +872,8 @@ class FontBuffer {
   /// caret position information in the FontBuffer.
   FontBuffer(uint32_t size, bool caret_info)
       : size_(mathfu::kZeros2i),
+        last_pos_(mathfu::kZeros2f),
+        last_advance_(mathfu::kZeros2f),
         revision_(0),
         ref_count_(0),
         has_ellipsis_(false),
@@ -882,7 +886,7 @@ class FontBuffer {
   }
 
   /// The destructor for FontBuffer.
-  ~FontBuffer() {}
+  ~FontBuffer() { ReleaseCacheRowReference(); }
 
   /// @return Returns the FontMetrics metrics parameters for the font
   /// texture.
@@ -1175,6 +1179,12 @@ class FontBuffer {
 
   // Size of the string in pixels.
   mathfu::vec2i size_;
+
+  // The position of last glyph added to the font buffer.
+  mathfu::vec2 last_pos_;
+
+  // The advance of last glyph added to the font buffer.
+  mathfu::vec2 last_advance_;
 
   // Revision of the FontBuffer corresponding glyph cache revision.
   // Caller needs to check the revision value if glyph texture has referencing

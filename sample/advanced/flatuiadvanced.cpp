@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cassert>
+
 #include "fplbase/renderer.h"
 #include "fplbase/input.h"
 #include "fplbase/utilities.h"
 #include "flatui/flatui.h"
 #include "flatui/flatui_common.h"
-#include <cassert>
 
 using namespace flatui;
+using fplbase::kFormat8888;
 using mathfu::vec2;
 using mathfu::vec2i;
 using mathfu::vec4;
@@ -54,11 +56,15 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
   fontman.SelectFont(fonts, FPL_ARRAYSIZE(fonts));
 
   // Load textures.
-  auto tex_about = assetman.LoadTexture("textures/text_about.webp");
-  auto tex_check_on = assetman.LoadTexture("textures/btn_check_on.webp");
-  auto tex_check_off = assetman.LoadTexture("textures/btn_check_off.webp");
-  auto tex_circle = assetman.LoadTexture("textures/white_circle.webp");
-  auto tex_bar = assetman.LoadTexture("textures/gray_bar.webp");
+  auto tex_about =
+      assetman.LoadTexture("textures/text_about.webp", kFormat8888);
+  auto tex_check_on =
+      assetman.LoadTexture("textures/btn_check_on.webp", kFormat8888);
+  auto tex_check_off =
+      assetman.LoadTexture("textures/btn_check_off.webp", kFormat8888);
+  auto tex_circle =
+      assetman.LoadTexture("textures/white_circle.webp", kFormat8888);
+  auto tex_bar = assetman.LoadTexture("textures/gray_bar.webp", kFormat8888);
   assetman.StartLoadingTextures();
 
   // Wait for everything to finish loading...
@@ -122,7 +128,6 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
           fplbase::LogInfo("Event Listener: %x -> %d", id, event);
       });
       SetVirtualResolution(1000);
-      //ApplyCustomTransform(mathfu::mat4::Identity());
       if (test_rtl) {
         SetTextLocale("ar");
       } else {
@@ -182,7 +187,7 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
                  nullptr, &str3);
             // Some arabic labels.
             SetTextLocale("ar");
-            Label(rtl_string, 40, vec2(400,0));
+            Label(rtl_string, 40, vec2(400, 0));
             SetTextLocale("en");
           EndGroup();
         EndGroup();

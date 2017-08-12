@@ -29,6 +29,7 @@ using flatui::Margin;
 using flatui::Run;
 using flatui::SetVirtualResolution;
 using flatui::StartGroup;
+using fplbase::kFormat8888;
 using mathfu::vec2;
 using mathfu::vec2i;
 using mathfu::vec3;
@@ -41,10 +42,10 @@ using motive::MotiveTime;
 using motive::Range;
 
 static const vec4 kBackgroundColors[] = {
-    vec4(0.596f, 0.137f, 0.584f, 1.0f), // 982395
-    vec4(1.0f,   0.635f, 0.0f,   1.0f), // ffa200
-    vec4(0.0f,   0.627f, 0.243f, 1.0f), // 00a03e
-    vec4(0.141f, 0.659f, 0.675f, 1.0f), // 24a8ac
+    vec4(0.596f, 0.137f, 0.584f, 1.0f),  // 982395
+    vec4(1.0f, 0.635f, 0.0f, 1.0f),      // ffa200
+    vec4(0.0f, 0.627f, 0.243f, 1.0f),    // 00a03e
+    vec4(0.141f, 0.659f, 0.675f, 1.0f),  // 24a8ac
 };
 
 // Create curve's typical shape with a typical delta distance of 1.0f,
@@ -102,7 +103,8 @@ extern "C" int FPL_main(int /*argc*/, char** argv) {
   fplbase::AssetManager assetman(renderer);
 
   // Load textures.
-  auto fade_texture = assetman.LoadTexture("textures/star_icon.webp");
+  auto fade_texture =
+      assetman.LoadTexture("textures/star_icon.webp", kFormat8888);
   assetman.StartLoadingTextures();
   while (!assetman.TryFinalize()) {
     renderer.AdvanceFrame(input.minimized(), input.Time());

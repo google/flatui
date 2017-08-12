@@ -109,6 +109,8 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
 ///
 /// @param buffer FontBuffer to generate an underline geometory.
 /// @param pos An offset value that is added to generated vertices position.
+/// @param reverse Reverse the order of the vertices used, for example to
+/// preserve mesh normals when using kTextLayoutDirectionRTL.
 /// @return A vector of vec3 that includes a triangle strip data representing
 /// underline information of given FontBuffer. The strip is devided into pieces
 /// with a same width of each underlined character.
@@ -124,7 +126,7 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
 ///                            &line[0]);
 /// Note that a stride value of vec3 is 16 bytes.
 std::vector<mathfu::vec3_packed> GenerateUnderlineVertices(
-    const FontBuffer &buffer, const mathfu::vec2 &pos);
+    const FontBuffer &buffer, const mathfu::vec2 &pos, bool reverse = false);
 
 }  // namespace flatui
 

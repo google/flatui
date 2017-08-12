@@ -386,7 +386,9 @@ bool FontManager::OpenSystemFontApple() {
           system_fallback_list_.push_back(family);
           ret = true;
         } else {
+#ifdef FLATUI_VERBOSE_LOGGING
           fplbase::LogInfo("Skipped loading font:%s %d", str, i);
+#endif  // FLATUI_VERBOSE_LOGGING
           Close(str);
         }
       }
@@ -533,11 +535,15 @@ bool FontManager::OpenSystemFontAndroid() {
   // Reorder system fonts based on the system locale setting.
   ReorderSystemFonts(&font_list);
 
+  // Add default font to the font list.
+  const char* kDefaultFont = "/system/fonts/Roboto-Regular.ttf";
+  FontFamily fnt(kDefaultFont, false);
+  font_list.insert(font_list.begin(), std::move(fnt));
+
   // Load fonts.
   auto font_it = font_list.begin();
   auto font_end = font_list.end();
   while (font_it != font_end) {
-    fplbase::LogInfo("Loading font name: %s", font_it->get_name().c_str());
     if (Open(*font_it)) {
       // Retrieve the font size for an information.
       auto face = map_faces_.find(font_it->get_name());
@@ -546,8 +552,10 @@ bool FontManager::OpenSystemFontAndroid() {
         system_fallback_list_.push_back(std::move(*font_it));
         ret = true;
       } else {
+#ifdef FLATUI_VERBOSE_LOGGING
         fplbase::LogInfo("Skipped loading font: %s",
                          font_it->get_name().c_str());
+#endif  // FLATUI_VERBOSE_LOGGING
         Close(*font_it);
       }
     }
@@ -616,7 +624,9 @@ bool FontManager::UpdateFontCoverage(FT_Face face,
     }
     code = FT_Get_Next_Char(face, code, &index);
   }
+#ifdef FLATUI_VERBOSE_LOGGING
   fplbase::LogInfo("Has %d new glyphs", new_glyph);
+#endif  // FLATUI_VERBOSE_LOGGING
   return has_new_coverage;
 }
 

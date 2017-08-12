@@ -1,26 +1,10 @@
 Building for Linux    {#flatui_guide_linux}
 ==================
 
-# Version Requirements
-
-Following are the minimum required versions of tools and libraries you
-need to build [FlatUI][] for Android:
-
-   * [CMake][]: 2.8.12.1
-
 # Prerequisites
 
-Prior to building, install the following components using the [Linux][]
-distribution's package manager:
-
-   * [CMake][].  You can also manually install packages from
-     [cmake.org](http://cmake.org).
-
-For example, on [Ubuntu][]:
-
-~~~{.sh}
-    sudo apt-get install cmake
-~~~
+FlatUI depends on [FPLBase][], and has the same prerequisites.
+Please install the [FPLBase prerequisites][] before building.
 
 # Building
 
@@ -72,4 +56,6 @@ to switch to a release build CMAKE_BUILD_TYPE must be explicitly specified:
   [Linux]: http://en.wikipedia.org/wiki/Linux
   [Makefiles]: http://www.gnu.org/software/make/
   [FlatUI]: @ref flatui_overview
+  [FPLBase]: https://github.com/google/fplbase
+  [FPLBase prerequisites]: http://google.github.io/fplbase/fplbase_guide_linux.html
   [Ubuntu]: http://www.ubuntu.com

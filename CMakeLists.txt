@@ -113,7 +113,7 @@ if(NOT TARGET hyphenation_patterns)
 endif()
 if(flatui_build_tests OR flatui_build_samples)
 # Add FPLbase
-add_subdirectory("${fpl_root}/fplbase" ${tmp_dir}/fplbase)
+add_subdirectory("${dependencies_fplbase_dir}" ${tmp_dir}/fplbase)
 endif()
 
 # Include motive.

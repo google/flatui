@@ -16,9 +16,8 @@ LOCAL_PATH:=$(call my-dir)
 
 # Project directory relative to this file.
 FLATUI_RELATIVE_DIR:=../../..
-FLATUI_DIR=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
+FLATUI_DIR:=$(LOCAL_PATH)/$(FLATUI_RELATIVE_DIR)
 include $(FLATUI_DIR)/jni/android_config.mk
-FLATUI_ABSPATH:=$(abspath $(FLATUI_DIR))
 
 # realpath-portable from android_config.mk
 LOCAL_PATH:=$(call realpath-portable,$(DEPENDENCIES_HARFBUZZ_DIR))
@@ -70,7 +69,7 @@ LOCAL_ARM_MODE := arm
 LOCAL_SRC_FILES := $(HARFBUZZ_SRC_FILES)
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES += \
-    $(FLATUI_ABSPATH)/external/include/harfbuzz \
+    $(FLATUI_DIR)/external/include/harfbuzz \
     $(DEPENDENCIES_HARFBUZZ_DIR)/src \
     $(DEPENDENCIES_HARFBUZZ_DIR)/src/hb-ucdn \
     $(DEPENDENCIES_FREETYPE_DIR)/include
