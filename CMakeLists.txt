@@ -128,6 +128,7 @@ endif()
 set(flatui_SRCS
     include/flatui/flatui.h
     include/flatui/flatui_common.h
+    include/flatui/flatui_core.h
     include/flatui/font_buffer.h
     include/flatui/font_manager.h
     include/flatui/font_util.h
