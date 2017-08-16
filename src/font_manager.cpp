@@ -58,10 +58,6 @@ using mathfu::vec4;
 
 namespace flatui {
 
-// Singleton object of FreeType&Harfbuzz.
-FT_Library *FontManager::ft_;
-hb_buffer_t *FontManager::harfbuzz_buf_;
-
 // Constants.
 static const FontBufferAttributes kHtmlLinkAttributes(true, 0x0000FFFF);
 
@@ -201,6 +197,13 @@ FontManager::~FontManager() {
   // Clear font faces.
   map_faces_.clear();
   delete cache_mutex_;
+
+  // Destroy the harfbuzz buffer.
+  hb_buffer_destroy(harfbuzz_buf_);
+  harfbuzz_buf_ = nullptr;
+
+  assert(ft_ != nullptr);
+  FT_Done_FreeType(*ft_);
 }
 
 void FontManager::Initialize() {
@@ -222,33 +225,23 @@ void FontManager::Initialize() {
   hyb_path_ = kAndroidDefaultHybPath;
 #endif  //__ANDROID__
 
-  if (ft_ == nullptr) {
-    ft_ = new FT_Library;
-    FT_Error err = FT_Init_FreeType(ft_);
-    if (err) {
-      // Error! Please fix me.
-      LogError("Can't initialize freetype. FT_Error:%d\n", err);
-      assert(0);
-    }
+  std::unique_ptr<FT_Library> freetype_lib(new FT_Library);
+  ft_ = std::move(freetype_lib);
+  FT_Error err = FT_Init_FreeType(ft_.get());
+  if (err) {
+    // Error! Please fix me.
+    LogError("Can't initialize freetype. FT_Error:%d\n", err);
+    assert(0);
   }
 
-  if (harfbuzz_buf_ == nullptr) {
-    // Create a buffer for harfbuzz.
-    harfbuzz_buf_ = hb_buffer_create();
-  }
+  // Create a buffer for harfbuzz.
+  harfbuzz_buf_ = hb_buffer_create();
 
   // Initialize libunibreak
   init_linebreak();
 }
 
-void FontManager::Terminate() {
-  assert(ft_ != nullptr);
-  hb_buffer_destroy(harfbuzz_buf_);
-  harfbuzz_buf_ = nullptr;
-
-  FT_Done_FreeType(*ft_);
-  ft_ = nullptr;
-}
+void FontManager::Terminate() {}
 
 FontBuffer *FontManager::GetBuffer(const char *text, size_t length,
                                    const FontBufferParameters &parameter) {

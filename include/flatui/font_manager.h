@@ -602,11 +602,11 @@ class FontManager {
   std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
            FontBufferParameters> map_buffers_;
 
-  // Singleton instance of Freetype library.
-  static FT_Library *ft_;
+  // Instance of Freetype library.
+  std::unique_ptr<FT_Library> ft_;
 
-  // Harfbuzz buffer
-  static hb_buffer_t *harfbuzz_buf_;
+  // Harfbuzz buffer.
+  hb_buffer_t *harfbuzz_buf_;
 
   // Unique pointer to a glyph cache.
   std::unique_ptr<GlyphCache> glyph_cache_;
