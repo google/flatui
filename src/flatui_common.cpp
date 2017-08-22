@@ -198,4 +198,22 @@ Event ScrollBar(const Texture &tex_background, const Texture &tex_foreground,
   return event;
 }
 
+Event CollapsibleGroup(const char *label, float ysize, const Margin &margin,
+                       const char *id, const std::function<void()> &contents,
+                       bool *expand) {
+  StartGroup(kLayoutVerticalLeft, 0, id);
+  SetMargin(margin);
+  Event event = TextButton(label, ysize, margin);
+  if (event & kEventWentUp) {
+    *expand = !*expand;
+  }
+  EndGroup();
+
+  if (*expand) {
+    contents();
+  }
+
+  return event;
+}
+
 }  // namespace flatui
