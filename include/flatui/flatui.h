@@ -381,6 +381,12 @@ void HtmlLabel(const char *html, float ysize, const mathfu::vec2 &label_size,
 /// should be set to.
 void SetTextColor(const mathfu::vec4 &color);
 
+/// @brief Get the Label's text color.
+///
+/// @return Returns the  current text color as a vec4 representing the RGBA
+/// values that the text color is currently set to.
+mathfu::vec4 GetTextColor();
+
 /// @brief Set the Label's outer color (e.g. drop shadow color).
 /// To use the feature, outer SDF generation needs to be enabled by
 /// EnableTextSDF() API. With SDF, each glyph image includes a distance to the

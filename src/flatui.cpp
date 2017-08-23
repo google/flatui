@@ -1475,6 +1475,9 @@ class InternalState : public LayoutManager {
   // Set Label's text color.
   void SetTextColor(const vec4 &color) { text_color_ = color; }
 
+  // Get Label's text color
+  vec4 GetTextColor() { return text_color_; }
+
   // Set Label's font.
   bool SetTextFont(const char *font_name) {
     return fontman_.SelectFont(font_name);
