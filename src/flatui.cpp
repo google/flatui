@@ -1776,6 +1776,8 @@ void SetTextOuterColor(const mathfu::vec4 &color, float size,
 
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
+vec4 GetTextColor() { return Gui()->GetTextColor(); }
+
 bool SetTextFont(const char *font_name) {
   return Gui()->SetTextFont(font_name);
 }
