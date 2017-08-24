@@ -387,6 +387,18 @@ void SetTextColor(const mathfu::vec4 &color);
 /// values that the text color is currently set to.
 mathfu::vec4 GetTextColor();
 
+/// @brief Set the caret's text color.
+///
+/// @param[in] color A vec4 representing the RGBA values that the caret should
+/// be set to.
+void SetCaretColor(const mathfu::vec4 &color);
+
+/// @brief Get the Caret's color.
+///
+/// @return Returns the  current caret color as a vec4 representing the RGBA
+/// values that the text color is currently set to.
+mathfu::vec4 GetCaretColor();
+
 /// @brief Set the Label's outer color (e.g. drop shadow color).
 /// To use the feature, outer SDF generation needs to be enabled by
 /// EnableTextSDF() API. With SDF, each glyph image includes a distance to the

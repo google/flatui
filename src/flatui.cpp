@@ -207,6 +207,7 @@ class InternalState : public LayoutManager {
 
     image_color_ = mathfu::kOnes4f;
     text_color_ = mathfu::kOnes4f;
+    caret_color_ = mathfu::kOnes4f;
 
     scroll_speed_drag_ = kScrollSpeedDragDefault;
     scroll_speed_wheel_ = kScrollSpeedWheelDefault;
@@ -492,15 +493,13 @@ class InternalState : public LayoutManager {
 
   // Helper for Edit widget to render a caret.
   void RenderCaret(const vec2i &caret_pos, const vec2i &caret_size) {
-    // TODO: Make the caret rendering configurable.
-
     // Caret blink duration.
     // 10.0 indicates the counter value increased by 10 for each seconds,
     // so the caret blink cycle becomes 10 / (2 * M_PI) second.
-    const double kCareteBlinkDuration = 10.0;
+    const double kCaretBlinkDuration = 10.0;
     auto t = input_.Time();
-    if (sin(t * kCareteBlinkDuration) > 0.0) {
-      RenderQuad(color_shader_, mathfu::kOnes4f, caret_pos, caret_size);
+    if (sin(t * kCaretBlinkDuration) > 0.0) {
+      RenderQuad(color_shader_, caret_color_, caret_pos, caret_size);
     }
   }
 
@@ -1478,6 +1477,10 @@ class InternalState : public LayoutManager {
   // Get Label's text color
   vec4 GetTextColor() { return text_color_; }
 
+  void SetCaretColor(const vec4 &color) { caret_color_ = color; }
+
+  vec4 GetCaretColor() { return caret_color_; }
+
   // Set Label's font.
   bool SetTextFont(const char *font_name) {
     return fontman_.SelectFont(font_name);
@@ -1541,6 +1544,7 @@ class InternalState : public LayoutManager {
   // Widget properties.
   mathfu::vec4 image_color_;
   mathfu::vec4 text_color_;
+  mathfu::vec4 caret_color_;
   // Text's outer color setting
   mathfu::vec4 text_outer_color_;
   float text_outer_color_size_;
@@ -1777,6 +1781,10 @@ void SetTextOuterColor(const mathfu::vec4 &color, float size,
 void SetTextColor(const mathfu::vec4 &color) { Gui()->SetTextColor(color); }
 
 vec4 GetTextColor() { return Gui()->GetTextColor(); }
+
+void SetCaretColor(const mathfu::vec4 &color) { Gui()->SetCaretColor(color); }
+
+vec4 GetCaretColor() { return Gui()->GetCaretColor(); }
 
 bool SetTextFont(const char *font_name) {
   return Gui()->SetTextFont(font_name);
