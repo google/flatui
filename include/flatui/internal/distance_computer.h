@@ -276,6 +276,15 @@ class DistanceComputer {
       // transposition, do the work in the first octant (positive gradients, x
       // gradient >= y gradient) for simplicity.
       vec2 g = vec2(fabs(gradient[0]), fabs(gradient[1])).Normalized();
+      // The following isnan checks are needed because if the gradients_ Grid
+      // is inverted then gradients_->Get will do a FLT_MAX - value, which will
+      // mean |gradient| will contain FLT_MAX, which will cause Normalized()
+      // to return NaNs on some platforms (iOS being one).  This is a very
+      // common case, not a rare case, and happens for pixels near the glyph
+      // edge.  If we hit this case, then we approximate linearly as above.
+      if (isnan(g.x) || isnan(g.y)) {
+        return 0.5f - value;
+      }
       if (g.x < g.y) std::swap(g.x, g.y);
       const auto gradient_value = static_cast<float>(0.5f * g.y / g.x);
       float dist;
