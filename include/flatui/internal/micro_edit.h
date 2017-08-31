@@ -107,9 +107,13 @@ class MicroEdit {
   // of the edit window.
   int32_t Pick(const mathfu::vec2i &pointer_position, float offset);
 
-  // Set caret position as a character index. The charactor index can be
+  // Set caret position as a character index. The character index can be
   // retrieved Pick() or other APIs.
   bool SetCaret(int32_t position);
+
+  // Returns true if the caret should be shown this frame. Since the caret will
+  // blink on and off when a text field is selected.
+  bool ShowCaret(float delta_time);
 
  private:
   void Reset() {
@@ -131,6 +135,7 @@ class MicroEdit {
     single_line_ = true;
     language_ = kDefaultLanguage;
     direction_ = kTextLayoutDirectionLTR;
+    caret_timer_ = 0.0f;
   }
 
   // Helper to count a number of characters in a text.
@@ -196,6 +201,9 @@ class MicroEdit {
   int32_t input_text_caret_offset_;
   int32_t input_text_selection_start_;
   int32_t input_text_selection_length_;
+
+  // Timer used to determine the cursor blinking.
+  double caret_timer_;
 
   // Editing text shown in UI (Combination of edited text + IME text).
   std::string editing_text_;

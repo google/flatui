@@ -174,7 +174,18 @@ bool MicroEdit::SetCaret(int32_t position) {
   return true;
 }
 
+bool MicroEdit::ShowCaret(float delta_time) {
+  // kCaretBlinkDuration is the length of the ON time of the cursor. The cursor
+  // is on for the same amount of time that it is off.
+  const double kCaretBlinkDuration = 0.5;
+  // If caret_timer_ exceeds 2 * kCaretBlinkDuration (aka: one full cycle),
+  // caret_timer_ wraps back around to zero.
+  caret_timer_ = fmod(caret_timer_ + delta_time, 2 * kCaretBlinkDuration);
+  return (caret_timer_ < kCaretBlinkDuration);
+}
+
 void MicroEdit::InsertText(const std::string &text) {
+  caret_timer_ = 0.0f;
   text_->insert(wordbreak_index_, text);
   caret_pos_ += GetNumCharacters(text);
   expected_caret_x_position_ = kCaretPosInvalid;
@@ -182,6 +193,7 @@ void MicroEdit::InsertText(const std::string &text) {
 }
 
 void MicroEdit::RemoveText(int32_t num_remove) {
+  caret_timer_ = 0.0f;
   for (auto i = 0; i < num_remove; ++i) {
     // Remove 1 character from the buffer.
     auto num_to_erase = 1;
@@ -492,7 +504,7 @@ EditStatus MicroEdit::HandleInputEvents(
       case fplbase::kTextInputEventTypeEdit:
         // Note: Due to SDL bug #3006,
         // https://bugzilla.libsdl.org/show_bug.cgi?id=3006
-        // we can only recieve an input string up to32 bytes from IME now.
+        // we can only receive an input string up to32 bytes from IME now.
         UpdateEditingText(event->text);
         input_text_selection_start_ = event->edit.start;
         input_text_selection_length_ = event->edit.length;

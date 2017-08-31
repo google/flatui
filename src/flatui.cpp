@@ -444,7 +444,7 @@ class InternalState : public LayoutManager {
       if (edit_status) {
         // Render caret.
         const float kCaretPositionSizeFactor = 0.8f;
-        const float kCaretWidth = 4.0f;
+        const float kCaretWidth = 2.0f;
         auto caret_pos =
             buffer->GetCaretPosition(persistent_.text_edit_.GetCaretPosition());
         auto caret_height = size.y * kCaretPositionSizeFactor;
@@ -493,12 +493,7 @@ class InternalState : public LayoutManager {
 
   // Helper for Edit widget to render a caret.
   void RenderCaret(const vec2i &caret_pos, const vec2i &caret_size) {
-    // Caret blink duration.
-    // 10.0 indicates the counter value increased by 10 for each seconds,
-    // so the caret blink cycle becomes 10 / (2 * M_PI) second.
-    const double kCaretBlinkDuration = 10.0;
-    auto t = input_.Time();
-    if (sin(t * kCaretBlinkDuration) > 0.0) {
+    if (persistent_.text_edit_.ShowCaret(input_.DeltaTime())) {
       RenderQuad(color_shader_, caret_color_, caret_pos, caret_size);
     }
   }
