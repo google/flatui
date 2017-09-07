@@ -85,18 +85,13 @@ class FaceData {
   /// @brief Close the FaceData.
   void Close();
 
-  /// @brief Open specified font by name and return the mapped data.
+  /// @brief Open specified font by name and return the raw data.
   /// Current implementation works on macOS/iOS and Android.
-  /// @return Returns a mapped pointer. nullptr when failed to map the
-  /// file.
+  /// @return Returns true if the font is opened successfully.
   ///
   /// @param[in] font_name A font name to load.
-  /// @param[in] offset An offset of the file contents to map.
-  /// @param[in/out] size A size to map. A size of 0 indicates to map
-  /// whole file.  returns a mapped size of the file.
-  const void* OpenFontByName(const char *font_name,
-                             int32_t offset,
-                             int32_t *size);
+  /// @param[out] dest A string that font data will be loaded into.
+  bool OpenFontByName(const char *font_name, std::string *dest);
 
   /// @brief Set font size to the facedata.
   /// @param[in] size Face size in pixels.
