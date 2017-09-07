@@ -33,11 +33,36 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreGraphics/CoreGraphics.h>
 #include <CoreText/CTFont.h>
+#include <fstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <ftw.h>
 #endif
 #include "font_manager.h"
 
 using fplbase::LogInfo;
 using fplbase::LogError;
+
+#ifdef __APPLE__
+namespace {
+  template <typename T>
+  class cf_ptr {
+  public:
+    explicit cf_ptr(T ref) : ref_(ref) {}
+    cf_ptr(const cf_ptr<T>&) = delete;
+    ~cf_ptr() {
+      if (ref_) {
+        CFRelease(ref_);
+      }
+    }
+    cf_ptr<T>& operator=(cf_ptr<T> const&) = delete;
+    T get() { return ref_; }
+  private:
+    T ref_;
+  };
+}  // namespace
+#endif // ifdef __APPLE__
 
 namespace flatui {
 #ifdef _DEBUG
@@ -290,16 +315,173 @@ static bool CGFontToSFNT(CGFontRef font, std::string* data) {
 // Open specified font by name and return the raw data.
 // Current implementation works on macOS/iOS.
 #ifdef __APPLE__
-static bool OpenFontByName(CFStringRef name, std::string* dest) {
-  auto cgfont = CGFontCreateWithFontName(name);
-  if (cgfont == nullptr) {
-    return false;
+
+/// @brief Ensures a directory exists at a URL.
+/// @return Returns true if it was able to ensure the directory exists.
+static bool EnsureDirectory(CFURLRef url) {
+  Boolean isReachable = CFURLResourceIsReachable(url, nullptr);
+  if (isReachable) {
+    return true;
+  } else {
+    cf_ptr<CFStringRef> dirPath(
+        CFURLCopyFileSystemPath(url,
+                                kCFURLPOSIXPathStyle));
+    char pathBuffer[1024];
+    Boolean didGetCString = CFStringGetCString(dirPath.get(),
+                                               pathBuffer,
+                                               1024,
+                                               kCFStringEncodingUTF8);
+    if (!didGetCString) {
+      return false;
+    }
+
+    int mkdirError = mkdir(pathBuffer, 0755);
+    return (mkdirError == 0);
+  }
+}
+
+static bool GetDarwinVersion(char* str, size_t size) {
+  int ret = sysctlbyname("kern.osrelease", str, &size, NULL, 0);
+  return 0 == ret;
+}
+
+static int NftwRemove(const char *fpath,
+                      const struct stat *sb,
+                      int typeflag,
+                      struct FTW *ftwbuf) {
+  int rv = remove(fpath);
+  if (rv) {
+    perror(fpath);
   }
 
-  // Load the font file of assets.
-  auto ret = CGFontToSFNT(cgfont, dest);
-  CFRelease(cgfont);
-  return ret;
+  return rv;
+}
+
+static int DeleteDirectory(char *path) {
+  return nftw(path, NftwRemove, 64, FTW_DEPTH | FTW_PHYS);
+}
+
+static const void* OpenFontByName(CFStringRef name,
+                                  int32_t offset,
+                                  int32_t *size) {
+  const void* returnValue = nullptr;
+  cf_ptr<CFURLRef> homeUrl(CFCopyHomeDirectoryURL());
+  cf_ptr<CFURLRef> libraryUrl(
+      CFURLCreateCopyAppendingPathComponent(nullptr,
+                                            homeUrl.get(),
+                                            CFSTR("Library"),
+                                            true));
+  cf_ptr<CFURLRef> cachesUrl(
+      CFURLCreateCopyAppendingPathComponent(nullptr,
+                                            libraryUrl.get(),
+                                            CFSTR("Caches"),
+                                            true));
+
+  cf_ptr<CFURLRef> fontsUrl(
+    CFURLCreateCopyAppendingPathComponent(nullptr,
+                                          cachesUrl.get(),
+                                          CFSTR("flatui-fonts"),
+                                          true));
+
+  char darwinVersion[256];
+  if (!GetDarwinVersion(darwinVersion, sizeof(darwinVersion))) {
+    LogError("OpenFontByName: unable to get darwin version");
+    return nullptr;
+  }
+
+  cf_ptr<CFStringRef> cfDarwinVersion(
+      CFStringCreateWithCString(nullptr,
+                                darwinVersion,
+                                kCFStringEncodingUTF8));
+
+  cf_ptr<CFURLRef> darwinVersionUrl(
+    CFURLCreateCopyAppendingPathComponent(nullptr,
+                                          fontsUrl.get(),
+                                          cfDarwinVersion.get(),
+                                          true));
+
+  // Delete cache if invalidated by new operating system version.
+  if (CFURLResourceIsReachable(fontsUrl.get(), nullptr) &&
+        !CFURLResourceIsReachable(darwinVersionUrl.get(), nullptr)) {
+    cf_ptr<CFStringRef> fontsPath(
+        CFURLCopyFileSystemPath(fontsUrl.get(),
+                                kCFURLPOSIXPathStyle));
+
+    char fontsPathBuffer[1024];
+    Boolean didGetCString = CFStringGetCString(fontsPath.get(),
+                                               fontsPathBuffer,
+                                               1024,
+                                               kCFStringEncodingUTF8);
+    if (!didGetCString) {
+      return nullptr;
+    }
+
+    int err = DeleteDirectory(fontsPathBuffer);
+    if (0 != err) {
+      return nullptr;
+    }
+  }
+
+  bool didEnsureFontsUrl = EnsureDirectory(fontsUrl.get());
+  if (!didEnsureFontsUrl) {
+    LogError("OpenFontByName: unable ensure fonts directory exists");
+    return nullptr;
+  }
+
+  bool didEnsureDarwinVersionUrl = EnsureDirectory(darwinVersionUrl.get());
+  if (!didEnsureDarwinVersionUrl) {
+    LogError("OpenFontByName: unable ensure darwin version directory exists");
+    return nullptr;
+  }
+
+  cf_ptr<CFURLRef> cacheUrl(
+      CFURLCreateCopyAppendingPathComponent(nullptr,
+                                            darwinVersionUrl.get(),
+                                            name,
+                                            true));
+
+  cf_ptr<CFStringRef> cachePath(
+      CFURLCopyFileSystemPath(cacheUrl.get(),
+                              kCFURLPOSIXPathStyle));
+  char pathBuffer[1024];
+  Boolean didGetCString = CFStringGetCString(cachePath.get(),
+                                             pathBuffer,
+                                             1024,
+                                             kCFStringEncodingUTF8);
+  if (!didGetCString) {
+    LogError("OpenFontByName: unable to get cstring from cfstringref");
+    return nullptr;
+  }
+
+  // Check to see if file exists.
+  Boolean isReachable = CFURLResourceIsReachable(cacheUrl.get(), nullptr);
+  if (!isReachable) {
+    cf_ptr<CGFontRef> cgfont(CGFontCreateWithFontName(name));
+    if (cgfont.get() == nullptr) {
+      LogError("OpenFontByName: unable to open cgfont");
+      return nullptr;
+    }
+
+    // Load the font file of assets.
+    std::string sfntData;
+    bool didConvert = CGFontToSFNT(cgfont.get(), &sfntData);
+    if (!didConvert) {
+      LogError("OpenFontByName: unable to convert to sfnt");
+      return nullptr;
+    }
+
+    std::ofstream outfile;
+    outfile.open(pathBuffer);
+    if (outfile.bad()) {
+      LogError("OpenFontByName: unable to open output file");
+      return nullptr;
+    }
+    outfile << sfntData;
+  }
+
+  returnValue = fplbase::MapFile(pathBuffer, offset, size);
+
+  return returnValue;
 }
 #endif  // __APPLE__
 
@@ -630,12 +812,14 @@ bool FontManager::UpdateFontCoverage(FT_Face face,
   return has_new_coverage;
 }
 
-bool FaceData::OpenFontByName(const char* font_name, std::string* dest) {
+const void* FaceData::OpenFontByName(const char* font_name,
+                                     int32_t offset,
+                                     int32_t *size) {
 #ifdef __APPLE__
   // Open the font using CGFont API and create font data from them.
   auto name = CFStringCreateWithCString(kCFAllocatorDefault, font_name,
                                         kCFStringEncodingUTF8);
-  bool ret = flatui::OpenFontByName(name, dest);
+  const void* ret = flatui::OpenFontByName(name, offset, size);
   if (!ret) {
     LogInfo("Can't load font resource: %s\n", font_name);
   }
@@ -643,9 +827,10 @@ bool FaceData::OpenFontByName(const char* font_name, std::string* dest) {
   return ret;
 #else   // __APPLE__
   (void)font_name;
-  (void)dest;
+  (void)offset;
+  (void)size;
   fplbase::LogInfo("OpenFontByName() not implemented on the platform.");
-  return false;
+  return nullptr;
 #endif  // __APPLE__
 }
 

@@ -456,15 +456,19 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
   if (p) {
     mapped_data_ = p;
     font_size_ = size;
+  } else if (by_name) {
+    p = OpenFontByName(font_name, 0, &size);
+    if (!p) {
+      LogError("Can't load font resource: %s\n", font_name);
+      return false;
+    }
+    mapped_data_ = p;
+    font_size_ = size;
   } else {
     // Fallback to regular file load.
-    if (by_name ||
-        !fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
+    if (!fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
       // Fallback to open the specified font as a font name.
-      if (!OpenFontByName(font_name, &font_data_)) {
-        LogError("Can't load font resource: %s\n", font_name);
-        return false;
-      }
+      return false;
     }
     p = font_data_.c_str();
     font_size_ = font_data_.size();
