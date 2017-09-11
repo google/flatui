@@ -48,20 +48,17 @@ using fplbase::LogError;
 #ifdef __APPLE__
 namespace {
   template <typename T>
-  class cf_ptr {
-  public:
-    explicit cf_ptr(T ref) : ref_(ref) {}
-    cf_ptr(const cf_ptr<T>&) = delete;
-    ~cf_ptr() {
-      if (ref_) {
-        CFRelease(ref_);
+  struct CFDeleter {
+    using pointer = T;
+    void operator()(T ref) {
+      if (ref) {
+        CFRelease(ref);
       }
     }
-    cf_ptr<T>& operator=(cf_ptr<T> const&) = delete;
-    T get() { return ref_; }
-  private:
-    T ref_;
   };
+
+  template <typename T>
+  using cf_ptr = std::unique_ptr<T, CFDeleter<T> >;
 }  // namespace
 #endif // ifdef __APPLE__
 
