@@ -378,7 +378,7 @@ class DistanceComputer {
     const vec2i xy_dist = distances_to_edges_.Get(test_pixel);
     const vec2i edge_pixel = test_pixel - xy_dist;
     const vec2i new_xy_dist = xy_dist - offset;
-    const auto new_dist = ComputeDistanceToEdge(edge_pixel, vec2(new_xy_dist));
+    const auto new_dist = ComputeDistanceToEdge(edge_pixel, new_xy_dist);
     static const float kEpsilon = 1e-3f;
     if (new_dist < *dist - kEpsilon) {
       distances_->Set(pos, new_dist);
@@ -388,10 +388,27 @@ class DistanceComputer {
     }
   }
 
+  // Computes the length of a vec2.  It is optimized for vectors that are
+  // occasionally one-dimensional.  In the application here it was measured to
+  // be 6% faster than straight Length().  We are able to do straight comparison
+  // with 0.0f because these vectors were made from vec2i's.
+  inline float Fast1DComputeLength(const vec2& vec) {
+    float result;
+    if (vec.x == 0.0f) {
+      result = fabsf(vec.y);
+    } else if (vec.y == 0.0f) {
+      result = fabsf(vec.x);
+    } else {
+      result = vec.Length();
+    }
+
+    return result;
+  }
+
   // Computes the new distance from a pixel to an edge pixel based on previous
   // information.
   float ComputeDistanceToEdge(const vec2i& pixel,
-                              const vec2& vec_to_edge_pixel) {
+                              const vec2i& vec_to_edge_pixel) {
     // The returned value is expected in range of 0.0 - 1.0.
     const auto value =
         static_cast<float>(image_->Get(pixel)) / std::numeric_limits<T>::max();
@@ -400,13 +417,15 @@ class DistanceComputer {
     // processing will continue.
     if (value == 0.0f) return kLargeDistance;
 
+    vec2 vec_to_edge_pixel_f = vec2(vec_to_edge_pixel);
+
     // Use the length of the vector to the edge pixel to estimate the real
     // distance to the edge.
-    const auto length = vec_to_edge_pixel.Length();
+    const auto length = Fast1DComputeLength(vec_to_edge_pixel_f);
     const auto dist =
         length > 0.0f ?
             // Estimate based on direction to edge (accurate for large vectors).
-            ApproximateDistanceToEdge(value, vec_to_edge_pixel)
+            ApproximateDistanceToEdge(value, vec_to_edge_pixel_f)
                       :
                       // Estimate based on local gradient only.
             ApproximateDistanceToEdge(value, gradients_.Get(pixel));
