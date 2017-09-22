@@ -388,47 +388,45 @@ class DistanceComputer {
     }
   }
 
-  // Computes the length of a vec2.  It is optimized for vectors that are
-  // occasionally one-dimensional.  In the application here it was measured to
-  // be 6% faster than straight Length().  We are able to do straight comparison
-  // with 0.0f because these vectors were made from vec2i's.
-  inline float Fast1DComputeLength(const vec2& vec) {
-    float result;
-    if (vec.x == 0.0f) {
-      result = fabsf(vec.y);
-    } else if (vec.y == 0.0f) {
-      result = fabsf(vec.x);
-    } else {
-      result = vec.Length();
-    }
-
-    return result;
-  }
-
   // Computes the new distance from a pixel to an edge pixel based on previous
   // information.
   float ComputeDistanceToEdge(const vec2i& pixel,
                               const vec2i& vec_to_edge_pixel) {
-    // The returned value is expected in range of 0.0 - 1.0.
-    const auto value =
-        static_cast<float>(image_->Get(pixel)) / std::numeric_limits<T>::max();
+    auto pixel_value = image_->Get(pixel);
 
     // If the pixel value is negative or 0, return kLargeDistance so that
     // processing will continue.
-    if (value == 0.0f) return kLargeDistance;
+    if (pixel_value == 0) return kLargeDistance;
+
+    // The returned value is expected in range of 0.0 - 1.0.
+    const auto normalized_value =
+        static_cast<float>(pixel_value) / std::numeric_limits<T>::max();
 
     vec2 vec_to_edge_pixel_f = vec2(vec_to_edge_pixel);
 
     // Use the length of the vector to the edge pixel to estimate the real
     // distance to the edge.
-    const auto length = Fast1DComputeLength(vec_to_edge_pixel_f);
+    // Optimization: This code was reworked to avoid fcmp since it is expensive.
+    float length;
+    bool should_estimate_based_on_direction_to_edge;
+    if (vec_to_edge_pixel.x == 0) {
+      length = abs(vec_to_edge_pixel.y);
+      should_estimate_based_on_direction_to_edge = vec_to_edge_pixel.y != 0;
+    } else if (vec_to_edge_pixel.y == 0) {
+      length = abs(vec_to_edge_pixel.x);
+      should_estimate_based_on_direction_to_edge = vec_to_edge_pixel.x != 0;
+    } else {
+      length = vec_to_edge_pixel_f.Length();
+      should_estimate_based_on_direction_to_edge = length > 0.0f;
+    }
+
     const auto dist =
-        length > 0.0f ?
+        should_estimate_based_on_direction_to_edge ?
             // Estimate based on direction to edge (accurate for large vectors).
-            ApproximateDistanceToEdge(value, vec_to_edge_pixel_f)
+            ApproximateDistanceToEdge(normalized_value, vec_to_edge_pixel_f)
                       :
                       // Estimate based on local gradient only.
-            ApproximateDistanceToEdge(value, gradients_.Get(pixel));
+            ApproximateDistanceToEdge(normalized_value, gradients_.Get(pixel));
     return length + dist;
   }
 
