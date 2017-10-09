@@ -27,6 +27,8 @@
 #include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 
+#include "flatui/internal/antialias_distance_computer.h"
+
 // libUnibreak header
 #include <unibreakdef.h>
 #include "linebreak.h"
@@ -57,6 +59,12 @@ using mathfu::vec2i;
 using mathfu::vec4;
 
 namespace flatui {
+
+namespace {
+  DistanceComputer<uint8_t>* CreateAntialiasDistanceComputer() {
+    return new AntialiasDistanceComputer<uint8_t>();
+  }
+}
 
 // Constants.
 static const FontBufferAttributes kHtmlLinkAttributes(true, 0x0000FFFF);
@@ -173,6 +181,9 @@ class WordEnumerator {
   bool multi_line_;
 };
 
+DistanceComputer<uint8_t>*(*FontManager::DistanceComputerFactory)(void) =
+  &CreateAntialiasDistanceComputer;
+
 FontManager::FontManager() {
   // Initialize variables and libraries.
   Initialize();
@@ -208,6 +219,8 @@ FontManager::~FontManager() {
 
 void FontManager::Initialize() {
   // Initialize variables.
+  sdf_computer_ =
+    std::unique_ptr<DistanceComputer<uint8_t>>(DistanceComputerFactory());
   face_initialized_ = false;
   current_atlas_revision_ = 0;
   atlas_last_flush_revision_ = kNeverFlushed;
@@ -1568,7 +1581,7 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
                           vec2i(g->bitmap.width, g->bitmap.rows),
                           kGlyphCachePaddingSDF, g->bitmap.width);
         Grid<uint8_t> dest(p, cache->get_size(), 0, stride);
-        sdf_computer_.Compute(src, &dest, flags);
+        sdf_computer_->Compute(src, &dest, flags);
       }
     } else {
       if (color_glyph) {

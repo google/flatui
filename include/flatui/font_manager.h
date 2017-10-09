@@ -15,6 +15,7 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
+#include <memory>
 #include <set>
 #include <sstream>
 #include "fplbase/renderer.h"
@@ -422,6 +423,9 @@ class FontManager {
   /// current texture atlas contents.
   FontBufferStatus GetFontBufferStatus(const FontBuffer &font_buffer) const;
 
+  /// @brief Factory function for the DistanceComputer.
+  static DistanceComputer<uint8_t>*(*DistanceComputerFactory)(void);
+
  private:
   // Pass indicating rendering pass.
   static const int32_t kRenderPass = -1;
@@ -670,7 +674,7 @@ class FontManager {
   // An instance of signed distance field generator.
   // To avoid redundant initializations, the FontManager holds an instnce of the
   // class.
-  DistanceComputer<uint8_t> sdf_computer_;
+  std::unique_ptr<DistanceComputer<uint8_t>> sdf_computer_;
 
   // Mutex guarding glyph cache's buffer access.
   fplutil::Mutex *cache_mutex_;
