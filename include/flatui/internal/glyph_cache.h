@@ -15,6 +15,7 @@
 #ifndef GLYPH_CACH_H
 #define GLYPH_CACH_H
 
+#include <assert.h>
 #include <list>
 #include <map>
 #include <set>
