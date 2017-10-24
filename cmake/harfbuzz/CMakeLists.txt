@@ -89,11 +89,13 @@ set(libharfbuzz_SRCS
     ${harfbuzz_dir}/src/hb-ot-shape-complex-indic.cc
     ${harfbuzz_dir}/src/hb-ot-shape-complex-indic-table.cc
     ${harfbuzz_dir}/src/hb-ot-shape-complex-myanmar.cc
-    ${harfbuzz_dir}/src/hb-ot-shape-complex-sea.cc
     ${harfbuzz_dir}/src/hb-ot-shape-complex-thai.cc
     ${harfbuzz_dir}/src/hb-ot-shape-complex-tibetan.cc
+    ${harfbuzz_dir}/src/hb-ot-shape-complex-use.cc
+    ${harfbuzz_dir}/src/hb-ot-shape-complex-use-table.cc
     ${harfbuzz_dir}/src/hb-ot-shape-normalize.cc
-    ${harfbuzz_dir}/src/hb-ot-shape-fallback.cc )
+    ${harfbuzz_dir}/src/hb-ot-shape-fallback.cc
+    ${harfbuzz_dir}/src/hb-ot-var.cc )
 
 # Add definitions to use OpenType backend UCDN Unicode functions
 add_definitions(-DHAVE_OT)

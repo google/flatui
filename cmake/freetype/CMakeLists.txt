@@ -56,6 +56,7 @@ set(libfreetype_SRCS
     ${freetype_dir}/src/base/ftsystem.c
     ${freetype_dir}/src/base/ftinit.c
     ${freetype_dir}/src/base/ftgasp.c
+    ${freetype_dir}/src/base/ftmm.c
     ${freetype_dir}/src/gzip/ftgzip.c
     ${freetype_dir}/src/raster/raster.c
     ${freetype_dir}/src/sfnt/sfnt.c
