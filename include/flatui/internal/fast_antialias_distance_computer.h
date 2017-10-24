@@ -15,7 +15,7 @@
 #ifndef FLATUI_INTERNAL_FAST_ANTIALIAS_DISTANCE_COMPUTER_H
 #define FLATUI_INTERNAL_FAST_ANTIALIAS_DISTANCE_COMPUTER_H
 
-#include "third_party/flatui/include/flatui/internal/distance_computer.h"
+#include "flatui/internal/distance_computer.h"
 
 namespace flatui {
 
@@ -222,7 +222,7 @@ class FastAntialiasDistanceComputer :
           auto pos = vec2i(x, y);
           auto dist = distances_->Get(pos);
           if (dist > 0.0f) {
-            UpdateDistance(pos, vec2i(-1, 0), &dist);
+            UpdateDistance(pos, vec2i(0, -1), &dist);
           }
         }
 
