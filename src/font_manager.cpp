@@ -27,11 +27,17 @@
 #include "fplbase/fpl_common.h"
 #include "fplbase/utilities.h"
 
-#include "flatui/internal/antialias_distance_computer.h"
-
 // libUnibreak header
 #include <unibreakdef.h>
 #include "linebreak.h"
+
+// font_manager is now using fast version of the distance computer.
+#define FONT_MANAGER_FAST_SDF_GENERATOR (1)
+#ifdef FONT_MANAGER_FAST_SDF_GENERATOR
+#include "flatui/internal/fast_antialias_distance_computer.h"
+#else
+#include "flatui/internal/antialias_distance_computer.h"
+#endif
 
 // STB_image to resize PNG glyph.
 // Disable warnings in STB_image_resize.
@@ -62,7 +68,11 @@ namespace flatui {
 
 namespace {
   DistanceComputer<uint8_t>* CreateAntialiasDistanceComputer() {
+#ifdef FONT_MANAGER_FAST_SDF_GENERATOR
+    return new FastAntialiasDistanceComputer<uint8_t>();
+#else
     return new AntialiasDistanceComputer<uint8_t>();
+#endif
   }
 }
 
