@@ -767,8 +767,12 @@ class FontBufferContext {
   std::vector<attribute_map_it> &attribute_history() {
     return attribute_history_;
   };
-  std::vector<uint32_t> &word_boundary() { return word_boundary_; };
-  std::vector<uint32_t> &word_boundary_caret() { return word_boundary_caret_; };
+  std::vector<uint32_t> &word_boundary() {
+    return word_boundary_;
+  };
+  std::vector<uint32_t> &word_boundary_caret() {
+    return word_boundary_caret_;
+  };
 
   HbFont *original_font() const { return original_font_; }
   void set_original_font(HbFont *font) { original_font_ = font; }
@@ -1122,11 +1126,6 @@ class FontBuffer {
   /// @brief Retrieve an internal buffer index of accounting atlas slice in the
   /// FontBuffer.
   int32_t GetBufferIndex(int32_t slice, FontBufferContext *context);
-
-  /// @brief Add an offset value to each vertex.
-  ///
-  /// @param[in] pos The offset value to add.
-  void OffsetVertices(const mathfu::vec2 &pos);
 
   // @brief Invalidate the FontBuffer.
   void Invalidate() { valid_ = false; }

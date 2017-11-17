@@ -53,15 +53,6 @@
       "push": 0
     },
     {
-      "name": "fribidi",
-      "url": "https://github.com/behdad/fribidi",
-      "branch": "master",
-      "revision": "0ca97b7feb52a9bd1b03aa379bc77fc4fe05957e",
-      "is_library": 1,
-      "third_party": 1,
-      "push": 0
-    },
-    {
       "name": "gumbo-parser",
       "url": "https://github.com/google/gumbo-parser",
       "branch": "master",

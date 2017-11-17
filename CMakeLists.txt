@@ -42,8 +42,6 @@ set_common_build_variables(${flatui_temporarily_suppressed_warnings})
 
 set(dependencies_harfbuzz_cmake_dir "${CMAKE_MODULE_PATH}/harfbuzz"
     CACHE PATH "Directory containing the harfbuzz cmake project.")
-set(dependencies_fribidi_cmake_dir "${CMAKE_MODULE_PATH}/fribidi"
-    CACHE PATH "Directory containing the fribidi cmake project.")
 set(dependencies_gumbo_cmake_dir "${CMAKE_MODULE_PATH}/gumbo-parser"
     CACHE PATH "Directory containing the gumbo cmake project.")
 set(dependencies_freetype_cmake_dir "${CMAKE_MODULE_PATH}/freetype"
@@ -88,15 +86,10 @@ set(mathfu_build_benchmarks OFF CACHE BOOL "")
 set(mathfu_build_tests OFF CACHE BOOL "")
 add_subdirectory(${dependencies_mathfu_dir} ${tmp_dir}/mathfu)
 
-# Include harfbuzz, fribidi, gumbo, freetype, libunibreak, hyphenation patterns.
+# Include harfbuzz, gumbo, freetype, libunibreak, hyphenation patterns.
 if(NOT TARGET harfbuzz)
   set_compiler_flags_for_external_libraries()
   add_subdirectory("${dependencies_harfbuzz_cmake_dir}" ${tmp_dir}/harfbuzz)
-  restore_compiler_flags()
-endif()
-if(NOT TARGET fribidi)
-  set_compiler_flags_for_external_libraries()
-  add_subdirectory("${dependencies_fribidi_cmake_dir}" ${tmp_dir}/fribidi)
   restore_compiler_flags()
 endif()
 if(NOT TARGET gumbo AND flatui_has_gumbo)
@@ -139,9 +132,7 @@ set(flatui_SRCS
     include/flatui/font_buffer.h
     include/flatui/font_manager.h
     include/flatui/font_util.h
-    include/flatui/internal/antialias_distance_computer.h
     include/flatui/internal/distance_computer.h
-    include/flatui/internal/fast_antialias_distance_computer.h
     include/flatui/internal/glyph_cache.h
     include/flatui/internal/flatui_util.h
     include/flatui/internal/flatui_layout.h
@@ -207,9 +198,6 @@ include_directories(${dependencies_harfbuzz_distr_dir}/src)
 
 # freetype includes.
 include_directories(${dependencies_freetype_distr_dir}/include)
-
-# fribidi includes.
-include_directories(${dependencies_fribidi_distr_dir}/src)
 
 # gumbo includes.
 if(EXISTS ${dependencies_gumbo_distr_dir}/src)

@@ -120,15 +120,6 @@ void FontBuffer::UpdateUV(int32_t index, const mathfu::vec4 &uv) {
   vertices_[index * 4 + 3].uv_ = uv.zw();
 }
 
-void FontBuffer::OffsetVertices(const mathfu::vec2 &pos) {
-  // TODO: Add 'center' member to FontBuffer to offset them at once rather than
-  // manipulating values.
-  for (uint32_t i = 0; i < vertices_.size(); ++i) {
-    vertices_[i].position_.data[0] += pos.x;
-    vertices_[i].position_.data[1] += pos.y;
-  }
-}
-
 void FontBuffer::AddCaretPosition(const mathfu::vec2 &pos) {
   mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
   AddCaretPosition(rounded_pos.x, rounded_pos.y);
@@ -160,8 +151,8 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
     justify = false;
   }
   auto glyph_count = vertices_.size() / kVerticesPerCodePoint;
-  auto line_start_index =
-      std::min(line_start_indices_.back(), static_cast<uint32_t>(glyph_count));
+  auto line_start_index = std::min(line_start_indices_.back(),
+                                   static_cast<uint32_t>(glyph_count));
 
   // Do nothing when the width of the text rect is not specified.
   if ((justify || align != kTextAlignmentLeft) && parameters.get_size().x) {
@@ -196,7 +187,6 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
 
     auto start_pos = 0;
     auto end_pos = 0;
-    auto adjust_idx = 0;
     if (!vertices_.empty()) {
       // Do not use vertices' positions, use the position and advance of the
       // glyph layout to match font's intended alignments to remove bias from
@@ -208,28 +198,25 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
         start_pos = last_pos_.x;
         end_pos = parameters.get_size().x;
       } else {
-        // Set up parameters for TTB layout.
-        start_pos = 0;
-        end_pos = last_advance_.y;
-        adjust_idx = 1;
+        // TTB layout is currently not supported.
+        assert(0);
       }
     }
-    auto free_width =
-        parameters.get_size().data_[adjust_idx] - end_pos - start_pos;
+    auto free_width = parameters.get_size().x - end_pos - start_pos;
 
     if (justify && word_boundary.size() > 1) {
       // With a justification, we add an offset for each word boundary.
       // For each word boundary (e.g. spaces), we stretch them slightly to align
       // both the left and right ends of each line of text.
-      boundary_offset_change =
-          static_cast<int32_t>(free_width / (word_boundary.size() - 1));
+      boundary_offset_change = static_cast<int32_t>(
+          free_width / (word_boundary.size() - 1));
     } else {
       justify = false;
       if (align == kTextAlignmentCenter) {
         offset = free_width / 2;
       } else if (align == kTextAlignmentRight) {
         offset = free_width;
-      }  // kTextAlignmentLeft has no offset.
+      } // kTextAlignmentLeft has no offset.
     }
 
     // Keep original offset value.
@@ -244,7 +231,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       }
       auto it = vertices_.begin() + idx * kVerticesPerCodePoint;
       for (auto i = 0; i < kVerticesPerCodePoint; ++i) {
-        it->position_.data[adjust_idx] += offset;
+        it->position_.data[0] += offset;
         it++;
       }
     }
@@ -258,7 +245,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
           boundary_index++;
           offset_caret += boundary_offset_change;
         }
-        caret_positions_[idx].data_[adjust_idx] += offset_caret;
+        caret_positions_[idx].x += offset_caret;
       }
     }
   }
