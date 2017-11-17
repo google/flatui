@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.7)
 
-add_subdirectory(advanced)
-add_subdirectory(animation)
-add_subdirectory(basic)
-add_subdirectory(corgui)
-add_subdirectory(sample_3d)
-add_subdirectory(serialization)
-add_subdirectory(sdf)
-add_subdirectory(text_html_label)
-add_subdirectory(text_i17n)
-add_subdirectory(text_layout)
-add_subdirectory(text_color_emoji)
+project(fribidi)
+
+set(fribidi_dir ${dependencies_fribidi_distr_dir})
+
+# Include fribidi header files.
+include_directories(${fribidi_dir}/src)
+
+# Include fribidi source files.
+set(fribidi_SRCS
+    ${fribidi_dir}/src/hb-blob.cc )
+
+# Library target.
+add_library(fribidi ${fribidi_SRCS})
+

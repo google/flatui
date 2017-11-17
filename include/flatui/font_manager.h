@@ -15,19 +15,20 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
+#include <cassert>
 #include <memory>
 #include <set>
 #include <sstream>
-#include "fplbase/renderer.h"
-#include "fplutil/mutex.h"
 #include "flatui/font_buffer.h"
 #include "flatui/font_util.h"
-#include "flatui/version.h"
 #include "flatui/internal/distance_computer.h"
-#include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/flatui_util.h"
+#include "flatui/internal/glyph_cache.h"
 #include "flatui/internal/hb_complex_font.h"
 #include "flatui/internal/hyphenator.h"
+#include "flatui/version.h"
+#include "fplbase/renderer.h"
+#include "fplutil/mutex.h"
 
 #if defined(__APPLE__) || defined(__ANDROID__)
 #define FLATUI_SYSTEM_FONT (1)
@@ -40,6 +41,7 @@ typedef unsigned long FT_ULong;
 
 // Forward decls for Harfbuzz.
 typedef const struct hb_language_impl_t *hb_language_t;
+struct hb_glyph_position_t;
 /// @endcond
 
 /// @brief Namespace for FlatUI library.
@@ -71,6 +73,7 @@ const int32_t kIndicesPerGlyph = 6;
 /// @brief The offset to the index of a vertex for the previous glyph's
 /// left or right edge in a font_buffer.
 const int32_t kVertexOfLeftEdge = -3;
+const int32_t kVertexOfBottomEdge = -2;
 const int32_t kVertexOfRightEdge = -1;
 
 /// @var kGlyphCacheWidth
@@ -361,11 +364,6 @@ class FontManager {
   ///            TextLayoutDirectionLTR & TextLayoutDirectionRTL are supported.
   ///
   void SetLayoutDirection(const TextLayoutDirection direction) {
-    if (direction == kTextLayoutDirectionTTB) {
-      fplbase::LogError("TextLayoutDirectionTTB is not supported yet.");
-      return;
-    }
-
     layout_direction_ = direction;
   }
 
@@ -424,7 +422,7 @@ class FontManager {
   FontBufferStatus GetFontBufferStatus(const FontBuffer &font_buffer) const;
 
   /// @brief Factory function for the DistanceComputer.
-  static DistanceComputer<uint8_t>*(*DistanceComputerFactory)(void);
+  static DistanceComputer<uint8_t> *(*DistanceComputerFactory)(void);
 
  private:
   // Pass indicating rendering pass.
@@ -451,6 +449,15 @@ class FontManager {
                      int32_t current_width = 0, bool last_line = false,
                      bool enable_hyphenation = false,
                      int32_t *rewind = nullptr);
+
+  // Helper function to retrieve an advance value for a glyph position.
+  // Advance value differs based on current layout direction.
+  float GetGlyphAdvance(const hb_glyph_position_t &position) const;
+
+  // Helper functions to retrieve values for a size structure.
+  int32_t GetAdvanceFromSize(const vec2i &size) const;
+  int32_t GetAdvanceFromSize(const vec2 &size) const;
+  int32_t GetHeightFromSize(const vec2i &size) const;
 
   // Helper function to add string information to the buffer.
   ErrorType UpdateBuffer(const WordEnumerator &word_enum,
@@ -616,7 +623,8 @@ class FontManager {
   // Using the FontBufferParameters as keys.
   // The map is used for GetBuffer() API.
   std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
-           FontBufferParameters> map_buffers_;
+           FontBufferParameters>
+      map_buffers_;
 
   // Instance of Freetype library.
   std::unique_ptr<FT_Library> ft_;
