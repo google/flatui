@@ -28,7 +28,9 @@
 
 namespace flatui {
 
+using mathfu::vec2;
 using mathfu::vec3;
+using mathfu::vec2_packed;
 using mathfu::vec3_packed;
 
 // Replace whitespace with a single space.
@@ -372,6 +374,118 @@ std::vector<vec3_packed> GenerateUnderlineVertices(const FontBuffer &buffer,
   }
   assert(num_verts == vec.size());
   return vec;
+}
+
+static void NumPaddedUnderlineVertices(const FontBuffer &buffer,
+                                       size_t* num_verts, size_t* num_indices) {
+  *num_verts = 0;
+  *num_indices = 0;
+  const int32_t kUnderlineVerticesPerGlyph = 2;
+  const int32_t kUnderlineIndicesPerGlyph = 6;
+  const auto& slices = buffer.get_slices();
+  for (size_t i = 0; i < slices.size(); ++i) {
+    const auto& regions = slices[i].get_underline_info();
+    for (size_t i = 0; i < regions.size(); ++i) {
+      const auto& info = regions[i];
+      const auto num_glyphs =
+          info.end_vertex_index_ - info.start_vertex_index_ + 1;
+      *num_verts += (num_glyphs + 1) * kUnderlineVerticesPerGlyph;
+      *num_indices += num_glyphs * kUnderlineIndicesPerGlyph;
+    }
+  }
+}
+
+bool GeneratePaddedUnderlineVertices(
+    const FontBuffer &buffer, const mathfu::vec2 &pos,
+    const mathfu::vec2 &padding, std::vector<mathfu::vec3>* positions,
+    std::vector<mathfu::vec2>* tex_coords, std::vector<uint16_t>* indices,
+    bool reverse) {
+  size_t num_verts, num_indices;
+  NumPaddedUnderlineVertices(buffer, &num_verts, &num_indices);
+  if (num_verts == 0 || num_indices == 0) {
+    return false;
+  }
+  positions->clear();
+  positions->reserve(num_verts);
+  tex_coords->clear();
+  tex_coords->reserve(num_verts);
+  indices->clear();
+  indices->reserve(num_indices);
+
+  const int32_t kUnderlineVerticesPerGlyph = 2;
+  const auto& slices = buffer.get_slices();
+  const auto& vertices = buffer.get_vertices();
+  for (size_t i = 0; i < slices.size(); ++i) {
+    const auto& regions = slices[i].get_underline_info();
+    for (size_t i = 0; i < regions.size(); ++i) {
+      const auto& info = regions[i];
+      // Positions where tex_coord will be 0 or 1.
+      const float tex_y_start = pos.y + info.y_pos_.x;
+      const float tex_y_end = tex_y_start + info.y_pos_.y;
+      // Positions after adding padding.
+      const float y_start = tex_y_start - padding.y;
+      const float y_end = tex_y_end + padding.y;
+      int start_vertex_index = info.start_vertex_index_;
+      int end_vertex_index = info.end_vertex_index_;
+      const int num_glyphs = end_vertex_index - start_vertex_index + 1;
+      int index_direction = 1;
+      if (reverse) {
+        std::swap(start_vertex_index, end_vertex_index);
+        index_direction = -1;
+      }
+      const size_t start_index = positions->size();
+
+      // Add first 2 vertices.
+      const float tex_x_start =
+          vertices[start_vertex_index * kVerticesPerGlyph].position_.x + pos.x;
+      positions->emplace_back(tex_x_start - padding.x, y_start, 0.f);
+      positions->emplace_back(tex_x_start - padding.x, y_end, 0.f);
+
+      // Add middle vertices.
+      for (int i = 1; i < num_glyphs; ++i) {
+        const int idx = start_vertex_index + i * index_direction;
+        const vec3_packed& strip_pos =
+            vertices[idx * kVerticesPerGlyph].position_;
+        positions->emplace_back(strip_pos.x + pos.x, y_start, 0.f);
+        positions->emplace_back(strip_pos.x + pos.x, y_end, 0.f);
+      }
+
+      // Add last 2 vertices.
+      const int end_idx =
+          (end_vertex_index + 1) * kVerticesPerGlyph + kVertexOfRightEdge;
+      const float tex_x_end = vertices[end_idx].position_.x + pos.x;
+      positions->emplace_back(tex_x_end + padding.x, y_start, 0.f);
+      positions->emplace_back(tex_x_end + padding.x, y_end, 0.f);
+
+      // Add tex_coords for every position, such that tex_x/y_start is (0,0) and
+      // tex_x/y_end is (1,1).
+      const float y_size = tex_y_end - tex_y_start;
+      const float x_size = tex_x_end - tex_x_start;
+      while (tex_coords->size() < positions->size()) {
+        const auto& p = positions->at(tex_coords->size());
+        tex_coords->emplace_back((p.x - tex_x_start) / x_size,
+                                 (p.y - tex_y_start) / y_size);
+      }
+
+      // Add indices.
+      for (int i = 0; i < num_glyphs; ++i) {
+        const uint16_t index =
+            static_cast<uint16_t>(start_index + i * kUnderlineVerticesPerGlyph);
+        indices->emplace_back(index);
+        indices->emplace_back(static_cast<uint16_t>(index + 1));
+        indices->emplace_back(static_cast<uint16_t>(index + 2));
+
+        // Keep same winding order.
+        indices->emplace_back(static_cast<uint16_t>(index + 2));
+        indices->emplace_back(static_cast<uint16_t>(index + 1));
+        indices->emplace_back(static_cast<uint16_t>(index + 3));
+      }
+    }
+  }
+  assert(num_verts == positions->size());
+  assert(num_verts == tex_coords->size());
+  assert(num_indices == indices->size());
+  return true;
 }
 
 }  // namespace flatui

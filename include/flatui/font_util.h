@@ -112,7 +112,7 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
 /// @param reverse Reverse the order of the vertices used, for example to
 /// preserve mesh normals when using kTextLayoutDirectionRTL.
 /// @return A vector of vec3 that includes a triangle strip data representing
-/// underline information of given FontBuffer. The strip is devided into pieces
+/// underline information of given FontBuffer. The strip is divided into pieces
 /// with a same width of each underlined character.
 ///
 /// Below is an example to use API and render the underline strip using FPLBase
@@ -127,6 +127,37 @@ std::string &TrimHtmlWhitespace(const char *text, bool trim_leading_whitespace,
 /// Note that a stride value of vec3 is 16 bytes.
 std::vector<mathfu::vec3_packed> GenerateUnderlineVertices(
     const FontBuffer &buffer, const mathfu::vec2 &pos, bool reverse = false);
+
+
+
+/// @brief Generate a triangle mesh data representing padded underline geometry
+/// for FontBuffer. Requires special sdf aa shaders.
+///
+/// @param buffer FontBuffer to generate an underline geometory.
+/// @param pos An offset value that is added to generated vertices position.
+/// @param padding A padding value that is added around each generated underline
+/// segment.
+/// @param positions The vector of vec3 that will be cleared and filled with
+/// triangle positions representing underline information of given FontBuffer.
+/// The strip is divided into pieces with a same width of each underlined
+/// character, plus padding at the front and back.
+/// @param tex_coords The vector of vec2 that will be cleared and filled with
+/// texture coordinates with added padding such that [0,1] in uv space delineate
+/// the un-padded underline size. When padding is non-zero, that means that the
+/// actual values of tex_coords will be <0 and >1. This is used to add SDF
+/// antialiasing and the vector will be the same size as |positions|.
+/// @param indices The vector of uint16_t that will be filled with indices into
+/// |positions| and |tex_coords| that represent triangles. Its size will be a
+/// multiple of 3 and all values less than the size of |positions|.
+/// @param reverse Reverse the order of the vertices used, for example to
+/// preserve mesh normals when using kTextLayoutDirectionRTL.
+/// @return A boolean for the success of this function. If false the output
+/// vectors will be untouched.
+bool GeneratePaddedUnderlineVertices(
+    const FontBuffer &buffer, const mathfu::vec2 &pos,
+    const mathfu::vec2 &padding, std::vector<mathfu::vec3>* positions,
+    std::vector<mathfu::vec2>* tex_coords, std::vector<uint16_t>* indices,
+    bool reverse = false);
 
 }  // namespace flatui
 
