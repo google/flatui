@@ -95,13 +95,12 @@ void FontBuffer::UpdateUnderline(int32_t buffer_idx, int32_t vertex_index,
 
 void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
                              float scale, const GlyphCacheEntry &entry) {
-  mathfu::vec2i rounded_pos = mathfu::vec2i(pos);
-  mathfu::vec2 scaled_offset = mathfu::vec2(entry.get_offset()) * scale;
+  mathfu::vec2 scaled_offset = entry.get_offset() * scale;
   mathfu::vec2 scaled_size = mathfu::vec2(entry.get_size()) * scale;
   mathfu::vec2 scaled_advance = mathfu::vec2(entry.get_advance()) * scale;
 
-  auto x = rounded_pos.x + scaled_offset.x;
-  auto y = rounded_pos.y + base_line - scaled_offset.y;
+  auto x = pos.x + scaled_offset.x;
+  auto y = pos.y + base_line - scaled_offset.y;
   auto uv = entry.get_uv();
   vertices_.push_back(FontVertex(x, y, 0.0f, uv.x, uv.y));
   vertices_.push_back(FontVertex(x, y + scaled_size.y, 0.0f, uv.x, uv.w));
@@ -109,7 +108,7 @@ void FontBuffer::AddVertices(const mathfu::vec2 &pos, int32_t base_line,
   vertices_.push_back(
       FontVertex(x + scaled_size.x, y + scaled_size.y, 0.0f, uv.z, uv.w));
 
-  last_pos_ = mathfu::vec2(rounded_pos.x, rounded_pos.y);
+  last_pos_ = pos;
   last_advance_ = last_pos_ + scaled_advance;
 }
 

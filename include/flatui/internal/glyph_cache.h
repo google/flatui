@@ -170,7 +170,7 @@ class GlyphCacheEntry {
   typedef std::list<GlyphCacheRow>::iterator iterator_row;
 
   GlyphCacheEntry()
-      : code_point_(0), size_(0, 0), offset_(0, 0), advance_(0, 0),
+      : code_point_(0), size_(0, 0), offset_(0.f, 0.f), advance_(0, 0),
         color_glyph_(false) {}
 
   // Setter/Getter of code point.
@@ -183,8 +183,8 @@ class GlyphCacheEntry {
   void set_size(const mathfu::vec2i &size) { size_ = size; }
 
   // Setter/Getter of cache entry offset.
-  mathfu::vec2i get_offset() const { return offset_; }
-  void set_offset(const mathfu::vec2i &offset) { offset_ = offset; }
+  mathfu::vec2 get_offset() const { return offset_; }
+  void set_offset(const mathfu::vec2 &offset) { offset_ = offset; }
 
   // Setter/Getter of cache entry advance.
   mathfu::vec2i get_advance() const { return advance_; }
@@ -220,7 +220,7 @@ class GlyphCacheEntry {
   mathfu::vec2i size_;
 
   // Glyph image's offset value relative to font metrics origin.
-  mathfu::vec2i offset_;
+  mathfu::vec2 offset_;
 
   // Glyph image's advance value relative to font metrics origin.
   mathfu::vec2i advance_;

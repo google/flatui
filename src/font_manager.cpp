@@ -527,7 +527,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
   // Initialize font metrics parameters.
   int32_t max_line_width = 0;
   // Height calculation needs to use ysize before conversion.
-  int32_t total_height = ysize;
+  float total_height = ysize;
   bool first_character = true;
   auto line_height = ysize * line_height_scale_;
   FontMetrics initial_metrics;
@@ -543,7 +543,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
     // buffer.
     initial_metrics = buffer->metrics();
     max_line_width = buffer->get_size().x * kFreeTypeUnit;
-    total_height = buffer->get_size().y;
+    total_height = static_cast<float>(buffer->get_size().y);
 
     if (context->current_font_size() != ysize) {
       // Adjust glyph positions in current line?
@@ -610,7 +610,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
       auto rewind = 0;
       auto last_line =
           size.y &&
-          total_height + static_cast<int32_t>(line_height) > size.y;
+          static_cast<int32_t>(total_height + line_height) > size.y;
       auto word_width = static_cast<int32_t>(
           LayoutText(text + word_enum.GetCurrentWordIndex(),
                      word_enum.GetCurrentWordLength(), max_width / scale,
@@ -650,7 +650,7 @@ FontBuffer *FontManager::FillBuffer(const char *text, uint32_t length,
           break;
         }
         // Line break.
-        total_height += static_cast<int32_t>(line_height);
+        total_height += line_height;
         buffer->UpdateLine(parameters, layout_direction_, context);
         pos = new_pos;
 
@@ -803,8 +803,8 @@ FontManager::ErrorType FontManager::UpdateBuffer(
       // Calculate internal/external leading value and expand a buffer if
       // necessary.
       FontMetrics new_metrics;
-      if (UpdateMetrics(cache->get_offset().y, cache->get_size().y, *metrics,
-                        &new_metrics)) {
+      if (UpdateMetrics(static_cast<int32_t>(cache->get_offset().y),
+                        cache->get_size().y, *metrics, &new_metrics)) {
         *metrics = new_metrics;
       }
 
@@ -1570,13 +1570,15 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
     GlyphCacheEntry entry;
     entry.set_code_point(code_point);
     bool color_glyph = g->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA;
+    float bitmap_left = g->bitmap_left +
+                        static_cast<float>(g->lsb_delta) / kFreeTypeUnit;
 
     // Does not support SDF for color glyphs.
     if (flags & (kGlyphFlagsOuterSDF | kGlyphFlagsInnerSDF) &&
         g->bitmap.width && g->bitmap.rows && !color_glyph) {
       // Adjust a glyph size and an offset with a padding.
-      entry.set_offset(vec2i(g->bitmap_left - kGlyphCachePaddingSDF,
-                             g->bitmap_top + kGlyphCachePaddingSDF));
+      entry.set_offset(vec2(bitmap_left - kGlyphCachePaddingSDF,
+                            g->bitmap_top + kGlyphCachePaddingSDF));
       entry.set_size(vec2i(g->bitmap.width + kGlyphCachePaddingSDF * 2,
                            g->bitmap.rows + kGlyphCachePaddingSDF * 2));
       entry.set_advance(vec2i(g->advance.x / kFreeTypeUnit, 0));
@@ -1630,13 +1632,13 @@ const GlyphCacheEntry *FontManager::GetCachedEntry(uint32_t code_point,
         }
 
         const float kEmojiBaseLine = 0.85f;
-        entry.set_offset(vec2i(
-            vec2(g->bitmap_left * glyph_scale, new_height * kEmojiBaseLine)));
+        entry.set_offset(vec2(bitmap_left * glyph_scale,
+                              new_height * kEmojiBaseLine));
         entry.set_size(vec2i(new_width, new_height));
         entry.set_advance(vec2i(new_advance, 0));
         cache = glyph_cache_->Set(out_buffer.get(), key, entry);
       } else {
-        entry.set_offset(vec2i(g->bitmap_left, g->bitmap_top));
+        entry.set_offset(vec2(bitmap_left, g->bitmap_top));
         entry.set_size(vec2i(g->bitmap.width, g->bitmap.rows));
         entry.set_advance(vec2i(g->advance.x / kFreeTypeUnit, 0));
         cache = glyph_cache_->Set(g->bitmap.buffer, key, entry);
