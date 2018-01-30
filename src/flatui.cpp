@@ -22,7 +22,10 @@
 #include "fplbase/render_utils.h"
 #include "fplbase/utilities.h"
 #include "motive/engine.h"
-#include "motive/init.h"
+#include "motive/const_init.h"
+#include "motive/ease_in_ease_out_init.h"
+#include "motive/spring_init.h"
+#include "motive/vector_motivator.h"
 
 using flatui::AnimCurveDescription;
 using fplbase::Button;
