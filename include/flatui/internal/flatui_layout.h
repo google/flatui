@@ -30,7 +30,7 @@
 #ifndef FPL_FLATUI_LAYOUT_H
 #define FPL_FLATUI_LAYOUT_H
 
-#include "flatui/flatui.h"
+#include "flatui/flatui_core.h"
 #include "flatui/version.h"
 #include "flatui/internal/flatui_util.h"
 

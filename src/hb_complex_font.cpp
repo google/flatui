@@ -33,6 +33,21 @@
 #include "internal/flatui_util.h"
 #include "internal/hb_complex_font.h"
 
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif  // __APPLE__
+
+static const bool kShouldMapFontByName =
+#ifdef __APPLE__
+#if TARGET_OS_IPHONE
+  true;
+#else  // TARGET_OS_IPHONE
+  false;
+#endif  // TARGET_OS_IPHONE
+#else
+  false;
+#endif  // __APPLE__
+
 using fplbase::LogInfo;
 using fplbase::LogError;
 
@@ -456,15 +471,28 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
   if (p) {
     mapped_data_ = p;
     font_size_ = size;
-  } else {
-    // Fallback to regular file load.
-    if (by_name ||
-        !fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
-      // Fallback to open the specified font as a font name.
+  } else if (by_name) {
+    if (kShouldMapFontByName) {
+      p = OpenFontByName(font_name, 0, &size);
+      if (!p) {
+        LogError("Can't load font resource: %s\n", font_name);
+        return false;
+      }
+      mapped_data_ = p;
+      font_size_ = size;
+    } else {
       if (!OpenFontByName(font_name, &font_data_)) {
         LogError("Can't load font resource: %s\n", font_name);
         return false;
       }
+      p = font_data_.c_str();
+      font_size_ = font_data_.size();
+    }
+  } else {
+    // Fallback to regular file load.
+    if (!fplbase::LoadFile(family.get_original_name().c_str(), &font_data_)) {
+      // Fallback to open the specified font as a font name.
+      return false;
     }
     p = font_data_.c_str();
     font_size_ = font_data_.size();

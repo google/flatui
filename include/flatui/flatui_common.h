@@ -15,6 +15,7 @@
 #ifndef FPL_FLATUI_COMMON_H
 #define FPL_FLATUI_COMMON_H
 
+#include "flatui.h"
 #include "fplbase/material.h"
 
 namespace flatui {
@@ -211,6 +212,22 @@ Event ScrollBar(const fplbase::Texture &tex_background,
 ///
 /// @param[in] event The Event type used to determine the background color.
 void EventBackground(Event event);
+
+/// @brief A text button that renders extra contents when toggled.
+///
+/// @param[in] label A C-string of text to display on the button.
+/// @param[in] ysize A float indicating the text button's vertical height.
+/// @param[in] margin A Margin that should be placed around the text.
+/// @param[in] id A C-string of text that provides the ID for the button.
+/// @param[in] contents A void function that executes while the menu is expanded
+/// @param[out] expand A pointer to a bool that stores whether or not the
+/// group is expanded.
+/// which contains the position of the slider.
+///
+/// @return Returns the Event type for the scroll bar.
+Event CollapsibleGroup(const char *label, float ysize, const Margin &margin,
+                       const char *id, const std::function<void()> &contents,
+                       bool *expand);
 /// @}
 
 }  // namespace flatui

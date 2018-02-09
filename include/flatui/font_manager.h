@@ -15,6 +15,7 @@
 #ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
 
+#include <memory>
 #include <set>
 #include <sstream>
 #include "fplbase/renderer.h"
@@ -422,9 +423,19 @@ class FontManager {
   /// current texture atlas contents.
   FontBufferStatus GetFontBufferStatus(const FontBuffer &font_buffer) const;
 
+  /// @brief Factory function for the DistanceComputer.
+  static DistanceComputer<uint8_t>*(*DistanceComputerFactory)(void);
+
  private:
   // Pass indicating rendering pass.
   static const int32_t kRenderPass = -1;
+
+  // Error identifiers.
+  enum ErrorType {
+    kErrorTypeSuccess = 0,
+    kErrorTypeMissingGlyph,
+    kErrorTypeCacheIsFull,
+  };
 
   // Initialize static data associated with the class.
   void Initialize();
@@ -442,10 +453,11 @@ class FontManager {
                      int32_t *rewind = nullptr);
 
   // Helper function to add string information to the buffer.
-  bool UpdateBuffer(const WordEnumerator &word_enum,
-                    const FontBufferParameters &parameters, int32_t base_line,
-                    FontBuffer *buffer, FontBufferContext *context,
-                    mathfu::vec2 *pos, FontMetrics *metrics);
+  ErrorType UpdateBuffer(const WordEnumerator &word_enum,
+                         const FontBufferParameters &parameters,
+                         int32_t base_line, FontBuffer *buffer,
+                         FontBufferContext *context, mathfu::vec2 *pos,
+                         FontMetrics *metrics);
 
   // Helper function to determine how many entries to remove from the buffer.
   bool NeedToRemoveEntries(const FontBufferParameters &parameters,
@@ -458,10 +470,11 @@ class FontManager {
                      FontBufferContext *context, mathfu::vec2 *pos);
 
   // Helper function to append ellipsis to the buffer.
-  bool AppendEllipsis(const WordEnumerator &word_enum,
-                      const FontBufferParameters &parameters, int32_t base_line,
-                      FontBuffer *buffer, FontBufferContext *context,
-                      mathfu::vec2 *pos, FontMetrics *metrics);
+  ErrorType AppendEllipsis(const WordEnumerator &word_enum,
+                           const FontBufferParameters &parameters,
+                           int32_t base_line, FontBuffer *buffer,
+                           FontBufferContext *context, mathfu::vec2 *pos,
+                           FontMetrics *metrics);
 
   // Calculate internal/external leading value and expand a buffer if
   // necessary.
@@ -473,13 +486,13 @@ class FontManager {
   // Retrieve cached entry from the glyph cache.
   // If an entry is not found in the glyph cache, the API tries to create new
   // cache entry and returns it if succeeded.
-  // Returns nullptr if,
+  // Returns nullptr and sets *error if,
   // - The font doesn't have the requested glyph.
   // - The glyph doesn't fit into the cache (even after trying to evict some
   // glyphs in cache based on LRU rule).
   // (e.g. Requested glyph size too large or the cache is highly fragmented.)
   const GlyphCacheEntry *GetCachedEntry(uint32_t code_point, uint32_t y_size,
-                                        GlyphFlags flags);
+                                        GlyphFlags flags, ErrorType *error);
 
   // Update font manager, check glyph cache if the texture atlas needs to be
   // updated.
@@ -510,10 +523,12 @@ class FontManager {
   mathfu::vec2 GetStartPosition(const FontBufferParameters &parameters) const;
 
   // Create FontBuffer with requested parameters.
-  // The function may return nullptr if the glyph cache is full.
+  // The function may return nullptr if the glyph cache is full or a glyph fails
+  // to load.
   FontBuffer *CreateBuffer(const char *text, uint32_t length,
                            const FontBufferParameters &parameters,
-                           mathfu::vec2 *text_pos = nullptr);
+                           mathfu::vec2 *text_pos = nullptr,
+                           ErrorType *error = nullptr);
 
   // Check if the requested buffer already exist in the cache.
   FontBuffer *FindBuffer(const FontBufferParameters &parameters);
@@ -522,7 +537,8 @@ class FontManager {
   FontBuffer *FillBuffer(const char *text, uint32_t length,
                          const FontBufferParameters &parameters,
                          FontBuffer *buffer, FontBufferContext *context,
-                         mathfu::vec2 *text_pos = nullptr);
+                         mathfu::vec2 *text_pos = nullptr,
+                         ErrorType *error = nullptr);
 
   // Update language related settings.
   void SetLanguageSettings();
@@ -602,11 +618,11 @@ class FontManager {
   std::map<FontBufferParameters, std::unique_ptr<FontBuffer>,
            FontBufferParameters> map_buffers_;
 
-  // Singleton instance of Freetype library.
-  static FT_Library *ft_;
+  // Instance of Freetype library.
+  std::unique_ptr<FT_Library> ft_;
 
-  // Harfbuzz buffer
-  static hb_buffer_t *harfbuzz_buf_;
+  // Harfbuzz buffer.
+  hb_buffer_t *harfbuzz_buf_;
 
   // Unique pointer to a glyph cache.
   std::unique_ptr<GlyphCache> glyph_cache_;
@@ -658,7 +674,7 @@ class FontManager {
   // An instance of signed distance field generator.
   // To avoid redundant initializations, the FontManager holds an instnce of the
   // class.
-  DistanceComputer<uint8_t> sdf_computer_;
+  std::unique_ptr<DistanceComputer<uint8_t>> sdf_computer_;
 
   // Mutex guarding glyph cache's buffer access.
   fplutil::Mutex *cache_mutex_;

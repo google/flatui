@@ -41,6 +41,7 @@ FREETYPE_SRC_FILES = \
     src/base/ftsystem.c \
     src/base/ftinit.c \
     src/base/ftgasp.c \
+    src/base/ftmm.c \
     src/gzip/ftgzip.c \
     src/raster/raster.c \
     src/sfnt/sfnt.c \
@@ -66,7 +67,7 @@ LOCAL_C_INCLUDES += $(DEPENDENCIES_FREETYPE_DIR)/include\
   $(DEPENDENCIES_STB_DIR)
 LOCAL_CFLAGS += \
   -DFT2_BUILD_LIBRARY \
-  -DFT_CONFIG_MODULES_H=\"$(FLATUI_DIR)/cmake/freetype/ftmodule.h\"\
+  -DFT_CONFIG_MODULES_H=\"$(FLATUI_RELATIVEPATH)/cmake/freetype/ftmodule.h\"\
   -DFT_CONFIG_OPTION_USE_PNG \
   -DFT_CONFIG_OPTION_USE_HARFBUZZ
 LOCAL_MODULE := libfreetype
