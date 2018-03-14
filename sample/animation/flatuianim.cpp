@@ -18,9 +18,7 @@
 #include "fplbase/input.h"
 #include "fplbase/renderer.h"
 #include "fplbase/utilities.h"
-
 #include "motive/engine.h"
-#include "motive/init.h"
 
 using flatui::kAlignCenter;
 using flatui::AnimCurveDescription;
