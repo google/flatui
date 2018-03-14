@@ -14,9 +14,10 @@
 
 // Demo showing off how to use FlatUI in 3D, for use in e.g. VR.
 
-#include "fplbase/renderer.h"
-#include "fplbase/render_target.h"
 #include "fplbase/input.h"
+#include "fplbase/render_target.h"
+#include "fplbase/render_utils.h"
+#include "fplbase/renderer.h"
 #include "fplbase/utilities.h"
 
 #include "flatui/flatui.h"
@@ -130,17 +131,16 @@ extern "C" int FPL_main(int /*argc*/, char **argv) {
     // Now place the UI in the space we computed before.
     renderer.set_model_view_projection(mvp);
 
-    tex_shader->Set(renderer);
+    renderer.SetShader(tex_shader);
 
     render_target.BindAsTexture(0);
 
     // Render UI as a quad, with object-space coordinates the same as pixels,
     // that way our projected coordinates match.
-    fplbase::Mesh::RenderAAQuadAlongX(
-          mathfu::kZeros3f,
-          mathfu::vec3(render_target_size.x, render_target_size.y, 0),
-          mathfu::vec2(0, 0),
-          mathfu::vec2(1, 1));
+    fplbase::RenderAAQuadAlongX(
+        mathfu::kZeros3f,
+        mathfu::vec3(render_target_size.x, render_target_size.y, 0),
+        mathfu::vec2(0, 0), mathfu::vec2(1, 1));
   }
 
   return 0;
