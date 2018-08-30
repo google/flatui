@@ -166,7 +166,7 @@ equal to pixels, e.g.:
 
 ~~~{.cpp}
 gui::SetVirtualResolution(min(renderer.window_size().x,
-                              renderer.window_size().x));
+                              renderer.window_size().y));
 ~~~
 
 
