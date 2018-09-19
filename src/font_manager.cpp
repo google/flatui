@@ -118,13 +118,6 @@ class WordEnumerator {
     auto current_face_index = GetFaceIndex(index);
 
     while (index < buffer_->size()) {
-      auto word_info = (*buffer_)[index];
-      if (word_info == LINEBREAK_MUSTBREAK ||
-          word_info == LINEBREAK_ALLOWBREAK) {
-        current_length_ = index - current_index_ + 1;
-        break;
-      }
-
       // Check if the font face needs to be switched.
       if (!face_index_buffer_->empty()) {
         auto i = GetFaceIndex(index);
@@ -132,6 +125,13 @@ class WordEnumerator {
           current_length_ = index - current_index_;
           break;
         }
+      }
+
+      auto word_info = (*buffer_)[index];
+      if (word_info == LINEBREAK_MUSTBREAK ||
+          word_info == LINEBREAK_ALLOWBREAK) {
+        current_length_ = index - current_index_ + 1;
+        break;
       }
       index++;
     }

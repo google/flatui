@@ -116,14 +116,14 @@ int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
                                          length, &i);
     // Current face has a priority since we want to have longer run for a font.
     if (current_face != static_cast<size_t>(kIndexInvalid) &&
-        FT_Get_Char_Index(faces_[current_face]->get_face(), unicode)) {
+        FT_Get_Char_Index(faces_[current_face]->get_face(), unicode) &&
+        prefer_long_run_) {
       (*font_data_index)[text_idx] = current_face;
     } else {
       // Check if any font has the glyph.
       size_t face_idx = 0;
       for (face_idx = 0; face_idx < faces_.size(); ++face_idx) {
-        if (face_idx != current_face &&
-            FT_Get_Char_Index(faces_[face_idx]->get_face(), unicode)) {
+        if (FT_Get_Char_Index(faces_[face_idx]->get_face(), unicode)) {
           (*font_data_index)[text_idx] = face_idx;
           if (face_idx != current_face) {
             run++;
