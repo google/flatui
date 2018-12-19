@@ -621,9 +621,9 @@ class InternalState : public LayoutManager {
                              .at(info.end_vertex_index_ * kVerticesPerGlyph +
                                  kVerticesPerGlyph - 1)
                              .position_;
-          auto p = vec2i(start_pos.data[0] + pos.x, info.y_pos_.x + pos.y);
+          auto p = vec2i(start_pos.data_[0] + pos.x, info.y_pos_.x + pos.y);
           // NOTE: Use abs value for a size to account with RTL.
-          auto size = vec2i(std::abs(end_pos.data[0] - start_pos.data[0]),
+          auto size = vec2i(std::abs(end_pos.data_[0] - start_pos.data_[0]),
                             info.y_pos_.y);
           RenderQuad(color_shader_, color, p, size);
         }

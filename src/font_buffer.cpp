@@ -230,7 +230,7 @@ void FontBuffer::UpdateLine(const FontBufferParameters &parameters,
       }
       auto it = vertices_.begin() + idx * kVerticesPerCodePoint;
       for (auto i = 0; i < kVerticesPerCodePoint; ++i) {
-        it->position_.data[0] += offset;
+        it->position_.data_[0] += offset;
         it++;
       }
     }
@@ -272,7 +272,7 @@ float FontBuffer::AdjustCurrentLine(const FontBufferParameters &parameters,
          ++idx) {
       auto it = vertices_.begin() + idx * kVerticesPerCodePoint;
       for (auto i = 0; i < kVerticesPerCodePoint; ++i) {
-        it->position_.data[1] += offset;
+        it->position_.data_[1] += offset;
         it++;
       }
     }
@@ -287,7 +287,7 @@ static void VertexExtents(const FontVertex *v, vec2 *min_position,
   vec2 min(kInfinity);
   vec2 max(-kInfinity);
   for (auto i = 0; i < FontBuffer::kVerticesPerCodePoint; ++i) {
-    const vec2 position(v[i].position_.data);
+    const vec2 position(v[i].position_.data_);
     min = vec2::Min(min, position);
     max = vec2::Max(max, position);
   }
