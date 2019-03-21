@@ -127,6 +127,15 @@ class FaceData {
   int32_t Release() { return --ref_count_; }
 
  private:
+  /// @brief Creates the harfbuzz font from the ft font. If it fails the
+  /// FaceData is Closed.
+  ///
+  /// @return true if the hb font is successfully created.
+  bool CreateHbFont();
+
+  /// @brief Destroys the harfbuzz font.
+  void DestroyHbFont();
+
   /// @var face_
   ///
   /// @brief freetype's fontface instance.

@@ -508,9 +508,7 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
   }
 
   // Create harfbuzz font information from the FreeType face.
-  harfbuzz_font_ = hb_ft_font_create(face_, NULL);
-  if (!harfbuzz_font_) {
-    Close();
+  if (!CreateHbFont()) {
     return false;
   }
 
@@ -527,10 +525,7 @@ void FaceData::Close() {
   }
 
   // Remove the font data associated to this face data.
-  if (harfbuzz_font_) {
-    hb_font_destroy(harfbuzz_font_);
-    harfbuzz_font_ = nullptr;
-  }
+  DestroyHbFont();
 
   if (face_) {
     FT_Done_Face(face_);
@@ -556,6 +551,27 @@ void FaceData::SetSize(uint32_t size) {
               available_size);
   }
   current_size_ = size;
+
+  // Harfbuzz caches size information, so we need to recreate it.
+  DestroyHbFont();
+  CreateHbFont();
+}
+
+bool FaceData::CreateHbFont() {
+  harfbuzz_font_ = hb_ft_font_create(face_, NULL);
+  if (!harfbuzz_font_) {
+    Close();
+    return false;
+  }
+
+  return true;
+}
+
+void FaceData::DestroyHbFont() {
+  if (harfbuzz_font_) {
+    hb_font_destroy(harfbuzz_font_);
+    harfbuzz_font_ = nullptr;
+  }
 }
 
 }  // namespace flatui
