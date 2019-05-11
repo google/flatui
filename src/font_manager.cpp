@@ -118,13 +118,6 @@ class WordEnumerator {
     auto current_face_index = GetFaceIndex(index);
 
     while (index < buffer_->size()) {
-      auto word_info = (*buffer_)[index];
-      if (word_info == LINEBREAK_MUSTBREAK ||
-          word_info == LINEBREAK_ALLOWBREAK) {
-        current_length_ = index - current_index_ + 1;
-        break;
-      }
-
       // Check if the font face needs to be switched.
       if (!face_index_buffer_->empty()) {
         auto i = GetFaceIndex(index);
@@ -132,6 +125,13 @@ class WordEnumerator {
           current_length_ = index - current_index_;
           break;
         }
+      }
+
+      auto word_info = (*buffer_)[index];
+      if (word_info == LINEBREAK_MUSTBREAK ||
+          word_info == LINEBREAK_ALLOWBREAK) {
+        current_length_ = index - current_index_ + 1;
+        break;
       }
       index++;
     }
@@ -937,7 +937,7 @@ bool FontManager::NeedToRemoveEntries(const FontBufferParameters &parameters,
     vert_index = entry_index * kVerticesPerGlyph + kVertexOfRightEdge;
   }
 
-  const auto x = vertices.at(vert_index).position_.data[0];
+  const auto x = vertices.at(vert_index).position_.data_[0];
   auto width = 0.f;
   // Width needs to be (more positive x value - less positive x value).
   if (layout_direction_ == kTextLayoutDirectionRTL) {
@@ -1013,10 +1013,10 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     if (layout_direction_ == kTextLayoutDirectionRTL) {
       // Get the right edge of the glyph because that's closest to the
       // remaining glyphs in RTL.
-      pos->x = (buffer->vertices_.end() + kVertexOfRightEdge)->position_.data[0];
+      pos->x = (buffer->vertices_.end() + kVertexOfRightEdge)->position_.data_[0];
     } else {
       // In LTR the left edge is closest to the remaining glyphs.
-      pos->x = (buffer->vertices_.end() + kVertexOfLeftEdge)->position_.data[0];
+      pos->x = (buffer->vertices_.end() + kVertexOfLeftEdge)->position_.data_[0];
     }
 
     // Remove vertices.
@@ -1032,10 +1032,10 @@ void FontManager::RemoveEntries(const FontBufferParameters &parameters,
     if (layout_direction_ == kTextLayoutDirectionRTL) {
       // Get the left edge of the last glyph because that's farthest edge in
       // RTL.
-      last_x = (buffer->vertices_.end() + kVertexOfLeftEdge)->position_.data[0];
+      last_x = (buffer->vertices_.end() + kVertexOfLeftEdge)->position_.data_[0];
     } else {
       // In LTR the right edge is the farthest.
-      last_x = (buffer->vertices_.end() + kVertexOfRightEdge)->position_.data[0];
+      last_x = (buffer->vertices_.end() + kVertexOfRightEdge)->position_.data_[0];
     }
     pos->x = pos->x - (pos->x - last_x) * kSpacingBeforeEllipsis;
   }

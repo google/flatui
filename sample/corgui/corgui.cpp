@@ -21,7 +21,6 @@
 #include "fplbase/renderer.h"
 #include "fplbase/utilities.h"
 #include "motive/engine.h"
-#include "motive/init.h"
 
 using flatui::AnimCurveDescription;
 using flatui::kAnimEaseInEaseOut;

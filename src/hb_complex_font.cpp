@@ -116,14 +116,14 @@ int32_t HbComplexFont::AnalyzeFontFaceRun(const char *text, size_t length,
                                          length, &i);
     // Current face has a priority since we want to have longer run for a font.
     if (current_face != static_cast<size_t>(kIndexInvalid) &&
-        FT_Get_Char_Index(faces_[current_face]->get_face(), unicode)) {
+        FT_Get_Char_Index(faces_[current_face]->get_face(), unicode) &&
+        prefer_long_run_) {
       (*font_data_index)[text_idx] = current_face;
     } else {
       // Check if any font has the glyph.
       size_t face_idx = 0;
       for (face_idx = 0; face_idx < faces_.size(); ++face_idx) {
-        if (face_idx != current_face &&
-            FT_Get_Char_Index(faces_[face_idx]->get_face(), unicode)) {
+        if (FT_Get_Char_Index(faces_[face_idx]->get_face(), unicode)) {
           (*font_data_index)[text_idx] = face_idx;
           if (face_idx != current_face) {
             run++;
@@ -508,9 +508,7 @@ bool FaceData::Open(FT_Library ft, const FontFamily &family) {
   }
 
   // Create harfbuzz font information from the FreeType face.
-  harfbuzz_font_ = hb_ft_font_create(face_, NULL);
-  if (!harfbuzz_font_) {
-    Close();
+  if (!CreateHbFont()) {
     return false;
   }
 
@@ -527,10 +525,7 @@ void FaceData::Close() {
   }
 
   // Remove the font data associated to this face data.
-  if (harfbuzz_font_) {
-    hb_font_destroy(harfbuzz_font_);
-    harfbuzz_font_ = nullptr;
-  }
+  DestroyHbFont();
 
   if (face_) {
     FT_Done_Face(face_);
@@ -556,6 +551,27 @@ void FaceData::SetSize(uint32_t size) {
               available_size);
   }
   current_size_ = size;
+
+  // Harfbuzz caches size information, so we need to recreate it.
+  DestroyHbFont();
+  CreateHbFont();
+}
+
+bool FaceData::CreateHbFont() {
+  harfbuzz_font_ = hb_ft_font_create(face_, NULL);
+  if (!harfbuzz_font_) {
+    Close();
+    return false;
+  }
+
+  return true;
+}
+
+void FaceData::DestroyHbFont() {
+  if (harfbuzz_font_) {
+    hb_font_destroy(harfbuzz_font_);
+    harfbuzz_font_ = nullptr;
+  }
 }
 
 }  // namespace flatui

@@ -94,8 +94,7 @@ class FaceData {
   /// @param[in] offset An offset of the file contents to map.
   /// @param[in/out] size A size to map. A size of 0 indicates to map
   /// whole file.  returns a mapped size of the file.
-  const void* OpenFontByName(const char *font_name,
-                             int32_t offset,
+  const void *OpenFontByName(const char *font_name, int32_t offset,
                              int32_t *size);
 
   /// @brief Open specified font by name and return the raw data.
@@ -128,6 +127,15 @@ class FaceData {
   int32_t Release() { return --ref_count_; }
 
  private:
+  /// @brief Creates the harfbuzz font from the ft font. If it fails the
+  /// FaceData is Closed.
+  ///
+  /// @return true if the hb font is successfully created.
+  bool CreateHbFont();
+
+  /// @brief Destroys the harfbuzz font.
+  void DestroyHbFont();
+
   /// @var face_
   ///
   /// @brief freetype's fontface instance.
@@ -303,8 +311,11 @@ class HbFont {
 class HbComplexFont : public HbFont {
  public:
   HbComplexFont()
-      : complex_font_id_(kNullHash), current_face_index_(0), pixel_size_(0) {}
-  virtual ~HbComplexFont() {};
+      : complex_font_id_(kNullHash),
+        current_face_index_(0),
+        pixel_size_(0),
+        prefer_long_run_(false) {}
+  virtual ~HbComplexFont(){};
 
   /// @brief Create an instance of HbFont. If a HbFont with same FaceData has
   ///        already been initialized, the API returns a pointer of the
@@ -407,8 +418,14 @@ class HbComplexFont : public HbFont {
 
   /// @var pixel_size_
   ///
-  /// @brief Pixel sizse of the complex font.
+  /// @brief Pixel size of the complex font.
   uint32_t pixel_size_;
+
+  /// @var prefer_long_run_
+  ///
+  /// @brief A flag to indicate prefering longer font face run rather than
+  /// switching font faces.
+  bool prefer_long_run_;
 };
 
 }  // namespace flatui

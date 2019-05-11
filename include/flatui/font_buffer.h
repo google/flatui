@@ -595,11 +595,11 @@ struct FontVertex {
   /// @param[in] u A float representing the `u` value in the UV mapping.
   /// @param[in] v A float representing the `v` value in the UV mapping.
   FontVertex(float x, float y, float z, float u, float v) {
-    position_.data[0] = x;
-    position_.data[1] = y;
-    position_.data[2] = z;
-    uv_.data[0] = u;
-    uv_.data[1] = v;
+    position_.data_[0] = x;
+    position_.data_[1] = y;
+    position_.data_[2] = z;
+    uv_.data_[0] = u;
+    uv_.data_[1] = v;
   }
 
   /// @cond FONT_MANAGER_INTERNAL
